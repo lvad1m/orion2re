@@ -17,9 +17,13 @@ namespace advisor {
         // weights WEIGHT_COUNT, research 1, doctrine 1, spy_target 1, spy_mission 1, rule_id 2.
         constexpr size_t DIRECTIVE_SAVE_SIZE =
             1 + 4 + 4 + 1 + 1 + MAX_PLAYERS + 1 + WEIGHT_COUNT + 1 + 1 + 1 + 1 + 2;
-        constexpr size_t SAVE_SIZE = sizeof(uint16_t) + MAX_PLAYERS * DIRECTIVE_SAVE_SIZE;
+        constexpr size_t DIRECTIVES_SAVE_SIZE = MAX_PLAYERS * DIRECTIVE_SAVE_SIZE;
+        // Payload v1: version + directives. v2 appends int32 last_objective_change per player.
+        constexpr size_t SAVE_SIZE_V1 = sizeof(uint16_t) + DIRECTIVES_SAVE_SIZE;
+        constexpr size_t SAVE_SIZE = SAVE_SIZE_V1 + MAX_PLAYERS * sizeof(int32_t);
 
         s_directive directives[MAX_PLAYERS];
+        int32_t last_objective_change[MAX_PLAYERS] = {};
 
         bool Fail_(std::string* reason, const char* text) {
             if (reason != nullptr) *reason = text;
@@ -152,6 +156,15 @@ namespace advisor {
 
     void Clear_All_Directives() {
         for (s_directive& directive : directives) Clear_Directive(&directive);
+        for (int32_t& stardate : last_objective_change) stardate = 0;
+    }
+
+    int32_t Last_Objective_Change(uint8_t player) {
+        return player < MAX_PLAYERS ? last_objective_change[player] : 0;
+    }
+
+    void Set_Last_Objective_Change(uint8_t player, int32_t stardate) {
+        if (player < MAX_PLAYERS) last_objective_change[player] = stardate;
     }
 
     size_t Save_Size() {
@@ -161,6 +174,7 @@ namespace advisor {
     void Write_Save(SERIAL::Writer_* writer) {
         writer->Write_Uint16(SAVE_PAYLOAD_VERSION);
         for (const s_directive& directive : directives) Write_Directive_(writer, &directive);
+        for (int32_t stardate : last_objective_change) writer->Write_Int32(stardate);
     }
 
     bool Read_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -171,13 +185,15 @@ namespace advisor {
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) {
             return fail("advisor save is truncated");
         }
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) {
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) {
             return fail("unsupported advisor payload version");
         }
-        if (reader->Remaining() < MAX_PLAYERS * DIRECTIVE_SAVE_SIZE) {
+        const size_t expected = version == 1 ? DIRECTIVES_SAVE_SIZE : SAVE_SIZE - sizeof(uint16_t);
+        if (reader->Remaining() < expected) {
             return fail("advisor save is truncated");
         }
-        if (reader->Remaining() > MAX_PLAYERS * DIRECTIVE_SAVE_SIZE) {
+        if (reader->Remaining() > expected) {
             return fail("advisor save has trailing bytes");
         }
         s_directive parsed[MAX_PLAYERS];
@@ -185,8 +201,15 @@ namespace advisor {
             Read_Directive_(reader, &directive);
             if (!Fields_In_Range_(&directive)) return fail("advisor save has an out-of-range value");
         }
+        int32_t parsed_changes[MAX_PLAYERS] = {};
+        if (version >= 2) {
+            for (int32_t& stardate : parsed_changes) stardate = reader->Read_Int32();
+        }
         if (reader->Failed()) return fail("advisor save is truncated");
-        for (int i = 0; i < MAX_PLAYERS; ++i) directives[i] = parsed[i];
+        for (int i = 0; i < MAX_PLAYERS; ++i) {
+            directives[i] = parsed[i];
+            last_objective_change[i] = parsed_changes[i];
+        }
         return true;
     }
 

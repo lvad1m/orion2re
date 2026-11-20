@@ -8426,6 +8426,99 @@
       },
     },
 
+    rules_objectives: {
+      title: "Advisor rules change objectives",
+      description: "Lets the rule-based advisor change the objective of computer-controlled empires.",
+      remarks: "Effective only while advisor enabled is true. False leaves every empire objective as the original AI chose it.",
+      examples: ["advisor rules_objectives = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_objectives",
+      },
+    },
+
+    rules_spies: {
+      title: "Advisor rules steer spies",
+      description: "Lets the rule-based advisor raise the weight of its spy target and choose the spy mission in Allocate_AI_Spies.",
+      remarks: "Effective only while advisor enabled is true. The number of random draws does not change either way.",
+      examples: ["advisor rules_spies = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_spies",
+      },
+    },
+
+    rules_expansion: {
+      title: "Advisor rules push colonization",
+      description: "Lets the rule-based advisor keep a colony ship in production for computer empires that know a free planet in reach, and stops the AI from scrapping that colony ship when money runs low or a new technology arrives.",
+      remarks: "Effective only while advisor enabled is true and the advisor has raised the colonization weight of the empire (rule 301).",
+      examples: ["advisor rules_expansion = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_expansion",
+      },
+    },
+
+    rules_period: {
+      title: "Advisor rules directive period",
+      description: "Sets how many turns a directive from the rule-based advisor stays active before the rules are evaluated again.",
+      remarks: "Effective only while advisor enabled is true.",
+      examples: ["advisor rules_period = 10;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 1, max: 50 },
+      default: 5,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_period",
+      },
+    },
+
+    objective_min_turns: {
+      title: "Advisor minimum turns between objective changes",
+      description: "Sets the minimum number of turns between two objective changes the advisor makes for one empire.",
+      remarks: "Effective only while advisor enabled and advisor rules_objectives are true.",
+      examples: ["advisor objective_min_turns = 20;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 1, max: 100 },
+      default: 10,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::objective_min_turns",
+      },
+    },
+
+    spy_target_weight_percent: {
+      title: "Advisor spy target weight",
+      description: "Sets the percentage multiplier applied to the weight of the empire the advisor wants spied on when computer empires choose spy targets.",
+      remarks: "100 leaves the original weights unchanged. Effective only while advisor enabled and advisor rules_spies are true.",
+      examples: ["advisor spy_target_weight_percent = 500;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 100, max: 1000 },
+      default: 300,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::spy_target_weight_percent",
+      },
+    },
+
     journal: {
       title: "Advisor journal",
       description: "Selects how much the advisor writes to its turn journal file on this machine.",

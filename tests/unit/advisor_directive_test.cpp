@@ -238,16 +238,23 @@ DOCTEST_TEST_CASE("directive store round trips through the save payload") {
     second.main_rival = advisor::NO_PLAYER;
     advisor::Set_Directive(0, &first);
     advisor::Set_Directive(MAX_PLAYERS - 1, &second);
+    advisor::Set_Last_Objective_Change(0, 35012);
+    advisor::Set_Last_Objective_Change(MAX_PLAYERS - 1, -3);
 
     const std::vector<uint8_t> bytes = Saved_Bytes_();
-    DOCTEST_CHECK(bytes[0] == 1);  // little-endian payload version
+    DOCTEST_CHECK(bytes[0] == 2);  // little-endian payload version
     DOCTEST_CHECK(bytes[1] == 0);
 
     advisor::Clear_All_Directives();
     DOCTEST_CHECK(advisor::Get_Directive(0)->source == advisor::SOURCE_NONE);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(0) == 0);
     std::string error;
     DOCTEST_REQUIRE(Load_(bytes, &error));
     DOCTEST_CHECK(Saved_Bytes_() == bytes);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(0) == 35012);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(MAX_PLAYERS - 1) == -3);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(1) == 0);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(MAX_PLAYERS) == 0);
     DOCTEST_CHECK(advisor::Get_Directive(0)->rule_id == 0xABCD);
     DOCTEST_CHECK(advisor::Get_Directive(0)->expires_stardate == 110);
     DOCTEST_CHECK(advisor::Get_Directive(MAX_PLAYERS - 1)->issued_stardate == -5);
@@ -275,7 +282,11 @@ DOCTEST_TEST_CASE("directive save payload rejects malformed input and leaves the
     };
 
     std::vector<uint8_t> bytes = good;
-    bytes[0] = 2;  // payload version
+    bytes[0] = 3;  // payload version
+    check_rejected(bytes);
+
+    bytes = good;
+    bytes[0] = 1;  // a v1 payload has no last-change tail
     check_rejected(bytes);
 
     bytes = good;
@@ -289,7 +300,7 @@ DOCTEST_TEST_CASE("directive save payload rejects malformed input and leaves the
     check_rejected(std::vector<uint8_t>{});
 
     // Player 1's record starts after the version and one record; its first byte is the source.
-    const size_t record_size = (good.size() - sizeof(uint16_t)) / MAX_PLAYERS;
+    const size_t record_size = (good.size() - sizeof(uint16_t) - MAX_PLAYERS * sizeof(int32_t)) / MAX_PLAYERS;
     bytes = good;
     bytes[sizeof(uint16_t) + record_size] = 4;  // source out of range
     check_rejected(bytes);
@@ -297,4 +308,23 @@ DOCTEST_TEST_CASE("directive save payload rejects malformed input and leaves the
     bytes = good;
     bytes[sizeof(uint16_t) + record_size + 10] = advisor::POSTURE_COUNT;  // after source, 2 x int32, objective
     check_rejected(bytes);
+}
+
+DOCTEST_TEST_CASE("a version 1 directive payload is read with no objective changes") {
+    s_store_scope scope;
+    const advisor::s_directive stored = Sample_Directive_();
+    advisor::Set_Directive(1, &stored);
+    advisor::Set_Last_Objective_Change(1, 35012);
+    std::vector<uint8_t> bytes = Saved_Bytes_();
+    bytes.resize(bytes.size() - MAX_PLAYERS * sizeof(int32_t));  // drop the v2 tail
+    bytes[0] = 1;
+
+    advisor::Clear_All_Directives();
+    advisor::Set_Last_Objective_Change(2, 99);
+    std::string error;
+    DOCTEST_REQUIRE(Load_(bytes, &error));
+    DOCTEST_CHECK(advisor::Get_Directive(1)->rule_id == 0xABCD);
+    for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
+        DOCTEST_CHECK(advisor::Last_Objective_Change(player) == 0);
+    }
 }

@@ -11,6 +11,7 @@
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/shipstak.h"
+#include "game/struct.h"
 
 namespace advisor {
 
@@ -61,6 +62,48 @@ namespace advisor {
             return (world->stars[star_index].visited & (1u << (player & 0x1F))) != 0;
         }
 
+        // Same reach as Compute_AI_Data (aidata.cpp): 45 map units per parsec of ship range from
+        // any of our colonies, unless a black hole blocks the way.
+        bool Star_In_Extended_Range_(const game::s_view* world, uint8_t player, int32_t star_index) {
+            const int64_t reach = static_cast<int64_t>(world->players[player].ship_range) * 45;
+            const int64_t reach_sq = reach * reach;
+            for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                const s_colony* colony = &world->colonies[i];
+                if (colony->owner != static_cast<int8_t>(player) || colony->planet < 0
+                    || colony->planet >= world->Planet_Count()) {
+                    continue;
+                }
+                const int32_t home = world->planets[colony->planet].star_index;
+                if (home < 0 || home >= world->Star_Count()) {
+                    continue;
+                }
+                const int64_t dx = static_cast<int64_t>(world->stars[home].x) - world->stars[star_index].x;
+                const int64_t dy = static_cast<int64_t>(world->stars[home].y) - world->stars[star_index].y;
+                if (dx * dx + dy * dy <= reach_sq
+                    && struct_::Read_Bit_Field(world->stars[home].black_hole_blocks, static_cast<uint16_t>(star_index)) == 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // The AI colonization targets (aimove.cpp Get_Colonizable_Planets): uncolonized planets of
+        // the regular type. Unlike the AI we count only stars this empire has visited.
+        int32_t Count_Free_Planets_In_Reach_(const game::s_view* world, uint8_t player) {
+            int32_t count = 0;
+            for (int32_t i = 0; i < world->Planet_Count(); ++i) {
+                const s_planet_data& planet = world->planets[i];
+                if (planet.colony_index != -1 || planet.planet_type != PLANET_TYPE_PLANET
+                    || !Star_Visited_By(world, planet.star_index, player)) {
+                    continue;
+                }
+                if (Star_In_Extended_Range_(world, player, planet.star_index)) {
+                    ++count;
+                }
+            }
+            return count;
+        }
+
         void Fill_Self(const game::s_view* world, uint8_t player, s_view_self* self) {
             const s_player& plr = world->players[player];
 
@@ -91,6 +134,7 @@ namespace advisor {
                     ++self->colonies;
                 }
             }
+            self->free_planets_in_reach = Count_Free_Planets_In_Reach_(world, player);
             for (int32_t i = 0; i < world->Ship_Count(); ++i) {
                 const s_ship_data* ship = &world->ships[i];
                 if (Ship_Is_Alive(ship) && ship->owner == static_cast<int8_t>(player)) {
@@ -218,10 +262,12 @@ namespace advisor {
                       static_cast<int>(self.colonies), static_cast<int>(self.population), static_cast<int>(self.industry),
                       static_cast<int>(self.research), static_cast<int>(self.income_bc),
                       static_cast<int>(self.treasury_bc), static_cast<int>(self.food_surplus));
-        Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars.\n",
+        Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars, "
+                           "%d free planets in reach.\n",
                       static_cast<int>(self.ships), static_cast<int>(self.fleet_strength),
                       static_cast<int>(self.command_points_used), static_cast<int>(self.command_points),
-                      static_cast<int>(self.stars_explored), static_cast<int>(self.stars_total));
+                      static_cast<int>(self.stars_explored), static_cast<int>(self.stars_total),
+                      static_cast<int>(self.free_planets_in_reach));
 
         out->append("CONTACTS:");
         if (view->contact_count <= 0) {

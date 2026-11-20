@@ -145,9 +145,13 @@ namespace advisor {
         bool Open_Session_File() {
             std::string directory = state.directory_override;
             if (directory.empty()) {
-                const char* base = user_paths::Get_Directory(user_paths::USER_DIRECTORY_STATE);
+                // User paths exist only in XDG mode (Linux). In portable mode (Windows) the
+                // journal goes next to the executable, like the debug logs (main.cpp).
+                const char* base = user_paths::Is_Enabled()
+                    ? user_paths::Get_Directory(user_paths::USER_DIRECTORY_STATE)
+                    : SDL_GetBasePath();
                 if (base == nullptr || base[0] == '\0') {
-                    Warn_And_Disable("user paths are disabled");
+                    Warn_And_Disable("no state or base directory");
                     return false;
                 }
                 directory = std::string(base) + "advisor_journal/";

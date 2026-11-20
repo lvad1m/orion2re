@@ -86,18 +86,45 @@ DOCTEST_TEST_CASE("advisor disabled stores nothing and leaves players unchanged"
     }
 }
 
-DOCTEST_TEST_CASE("advisor enabled with stub sources stores no directive") {
+DOCTEST_TEST_CASE("advisor enabled with its mechanics off leaves objectives unchanged") {
     s_advisor_scope scope;
     test::s_game_state state;
     Setup_Two_Computer_Players_(&state);
     advisor::enabled = true;
     advisor::journal = advisor::JOURNAL_OFF;
+    const bool rules_objectives = advisor::rules_objectives;
+    advisor::rules_objectives = false;
 
     advisor::Run_Turn(&game::current);
 
     for (int i = 0; i < 2; i++) {
         DOCTEST_CHECK(state.players[i].objectives == i + 1);
-        const advisor::s_directive* stored = advisor::Get_Directive((uint8_t)i);
-        DOCTEST_CHECK((stored == nullptr || stored->source == advisor::SOURCE_NONE));
     }
+    advisor::rules_objectives = rules_objectives;
+}
+
+DOCTEST_TEST_CASE("advisor enabled: a militarist at peace turns technologist (rule 105)") {
+    s_advisor_scope scope;
+    test::s_game_state state;
+    Setup_Two_Computer_Players_(&state);  // player 0 MILITARIST, player 1 EXPANSIONIST
+    // Rule 105 needs at least one (peaceful) contact and turn 50 or later.
+    state.players[0].contact[1] = 1;
+    state.players[0].relations[1] = 10;
+    MOX::stardate = 35060;  // the fixture restores the stardate on exit
+    advisor::enabled = true;
+    advisor::journal = advisor::JOURNAL_OFF;
+    const bool rules_objectives = advisor::rules_objectives;
+    advisor::rules_objectives = true;
+
+    advisor::Run_Turn(&game::current);
+
+    const advisor::s_directive* stored = advisor::Get_Directive(0);
+    DOCTEST_REQUIRE(stored != nullptr);
+    DOCTEST_CHECK(stored->source == advisor::SOURCE_RULES);
+    DOCTEST_CHECK(stored->rule_id == 105);
+    DOCTEST_CHECK(state.players[0].objectives != PLAYER_OBJECTIVE_MILITARIST);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(0) == game::current.Stardate());
+    // Player 1 is not a militarist and no other rule fires in this galaxy.
+    DOCTEST_CHECK(state.players[1].objectives == PLAYER_OBJECTIVE_EXPANSIONIST);
+    advisor::rules_objectives = rules_objectives;
 }

@@ -139,10 +139,17 @@ namespace advisor {
     void Set_Directive(uint8_t player, const s_directive* directive);
     void Clear_All_Directives();
 
+    // Stardate of the last objective change made by the advisor for `player` (0 = never).
+    // Part of the store: cleared with it and saved with it.
+    int32_t Last_Objective_Change(uint8_t player);
+    void Set_Last_Objective_Change(uint8_t player, int32_t stardate);
+
     // Optional save section SAVEGAME::SECTION_TYPE_ADVISOR. The payload starts with its own
     // uint16 payload version. Read_Save parses into a temporary store and commits only on
     // success; on failure the store is unchanged and `error` says why.
-    inline constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+    // Version 2 appends int32 Last_Objective_Change for each player; version 1 payloads are
+    // still read (last changes = 0).
+    inline constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
     size_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Read_Save(SERIAL::Reader_* reader, std::string* error);

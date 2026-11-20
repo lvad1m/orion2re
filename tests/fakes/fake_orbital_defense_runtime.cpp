@@ -159,6 +159,13 @@ namespace AIMOVE {
     }
 } // namespace AIMOVE
 
+namespace advisor {
+    // The advisor is off in these tests: the colonization push is neutral.
+    bool Colonization_Push(uint8_t) {
+        return false;
+    }
+} // namespace advisor
+
 namespace INITSHIP {
     void __cdecl Load_Doom_Star_Ship_Design(int16_t, s_ship_design*, bool) {
         DOCTEST_FAIL("Unexpected Doom Star design request");

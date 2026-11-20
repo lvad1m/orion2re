@@ -1904,6 +1904,7 @@ namespace SAVEGAME {
         orion2re::lua::s_lua_save_snapshot lua_snapshot;
         const orion2re::lua::s_lua_save_snapshot* lua_snapshot_ptr = nullptr;
         advisor::s_directive loaded_directives[MAX_PLAYERS];
+        int32_t loaded_objective_changes[MAX_PLAYERS] = {};
         bool found_advisor_directives = false;
         if (metadata->version >= LUA_SAVE_SNAPSHOT_VERSION) {
             s_section_view sections[MAX_EXTENSION_SECTIONS];
@@ -1950,10 +1951,12 @@ namespace SAVEGAME {
                         advisor::Clear_All_Directives();
                         return fail_after_native_read();
                     }
-                    // Read_Save filled the store; take the parsed directives out and
-                    // leave the store empty until the load commits.
+                    // Read_Save filled the store; take the parsed state out (directives and
+                    // the last objective change of each player) and leave the store empty
+                    // until the load commits.
                     for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
                         loaded_directives[player] = *advisor::Get_Directive(player);
+                        loaded_objective_changes[player] = advisor::Last_Objective_Change(player);
                     }
                     advisor::Clear_All_Directives();
                     found_advisor = true;
@@ -2070,6 +2073,7 @@ namespace SAVEGAME {
         if (found_advisor_directives) {
             for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
                 advisor::Set_Directive(player, &loaded_directives[player]);
+                advisor::Set_Last_Objective_Change(player, loaded_objective_changes[player]);
             }
         }
         free(prior_state);

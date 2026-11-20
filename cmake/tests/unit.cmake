@@ -931,6 +931,8 @@ orion2re_add_game_test(test_advisor
     tests/unit/advisor_view_test.cpp
     tests/unit/advisor_directive_test.cpp
     tests/unit/advisor_journal_test.cpp
+    tests/unit/advisor_rules_test.cpp
+    tests/unit/advisor_apply_test.cpp
 )
 
 orion2re_add_game_test(test_advisor_detection

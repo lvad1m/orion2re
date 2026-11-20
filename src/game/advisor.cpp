@@ -2,6 +2,7 @@
 
 #include "game/advisor.h"
 
+#include "game/advisor_apply.h"
 #include "game/advisor_directive.h"
 #include "game/advisor_journal.h"
 #include "game/advisor_sources.h"
@@ -62,6 +63,8 @@ namespace advisor {
                 Write_Journal_Line(line);
             }
         }
+
+        Apply_Directives(world);
     }
 
     void Reset() {

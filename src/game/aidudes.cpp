@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "legacy_world.h"
+#include "game/advisor_apply.h"
 
 namespace aidudes {
 
@@ -131,6 +132,11 @@ namespace aidudes {
                     int16_t ship_idx = COLBLDG::Colony_Production_Ship_Index(producing);
                     if (world->ships[ship_idx].status == 4) {
                         return; // Abandon evaluation entirely if an outdated ship is being built
+                    }
+                    // Stage 2v advisor hook: keep a colony ship under construction.
+                    if (world->ships[ship_idx].d.ship_type == SHIP_TYPE_COLONY &&
+                        advisor::Colonization_Push(static_cast<uint8_t>(legacy_world::Slot(ctx->i_ai)))) {
+                        continue;
                     }
                 }
 

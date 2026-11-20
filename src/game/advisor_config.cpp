@@ -9,5 +9,11 @@ namespace advisor {
 
     bool enabled = false;
     uint8_t journal = JOURNAL_OFF;
+    bool rules_objectives = true;
+    bool rules_spies = true;
+    bool rules_expansion = true;
+    int32_t rules_period = 5;
+    int32_t objective_min_turns = 10;
+    int32_t spy_target_weight_percent = 300;
 
 } // namespace advisor

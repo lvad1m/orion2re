@@ -1676,6 +1676,7 @@ namespace {
         directive.weights[advisor::WEIGHT_FOOD] = advisor::LEVEL_HIGH;
         directive.rule_id = 0x0102;
         advisor::Set_Directive(2, &directive);
+        advisor::Set_Last_Objective_Change(2, 35004);
     }
 
     // Header of the advisor section: it is the last section, so it sits Save_Size() + 12 bytes from the end.
@@ -1710,6 +1711,8 @@ DOCTEST_TEST_CASE("save with the advisor enabled carries the advisor section and
     DOCTEST_CHECK(restored->main_rival == 1);
     DOCTEST_CHECK(restored->weights[advisor::WEIGHT_FOOD] == advisor::LEVEL_HIGH);
     DOCTEST_CHECK(restored->rule_id == 0x0102);
+    DOCTEST_CHECK(advisor::Last_Objective_Change(2) == 35004);
+    DOCTEST_CHECK(advisor::Save_Size() == 2 + 8 * 32 + 8 * 4);  // payload v2
     DOCTEST_CHECK(advisor::Get_Directive(0)->source == advisor::SOURCE_NONE);
 }
 

@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "legacy_world.h"
+#include "game/advisor_apply.h"
 
 namespace aidudes {
 
@@ -26,6 +27,8 @@ namespace aidudes {
 
         bool is_militarist = (p->objectives == PLAYER_OBJECTIVE_MILITARIST);
         bool low_money = (p->bc + p->surplus_bc < p->total_maintenance);
+        // Stage 2v advisor hook; false (original behavior) unless the advisor is enabled.
+        const bool colonization_push = advisor::Colonization_Push(static_cast<uint8_t>(player_idx));
 
         int isqrt_val = 0;
         if (low_money || p->bc < 1500) {
@@ -60,7 +63,8 @@ namespace aidudes {
                             bool delete_from_queue = false;
                             int16_t prod = temp_colony->producing[0];
                             if (COLBLDG::Colony_Production_Is_Queued_Ship(prod)) {
-                                if (world->ships[COLBLDG::Colony_Production_Ship_Index(prod)].d.ship_type != SHIP_TYPE_COMBAT) {
+                                const int8_t queued_type = world->ships[COLBLDG::Colony_Production_Ship_Index(prod)].d.ship_type;
+                                if (queued_type != SHIP_TYPE_COMBAT && !(colonization_push && queued_type == SHIP_TYPE_COLONY)) {
                                     delete_from_queue = true;
                                 }
                             } else if (prod > COLONY_PRODUCTION_REFIT) {
@@ -100,6 +104,59 @@ namespace aidudes {
 
         if (recalculate_colony) {
             COLCALC::Do_Player_Colony_Calculations(*legacy_player);
+        }
+
+        // Stage 2v: with the advisor's colonization push, an empire without a colony ship starts one
+        // at its most productive colony as soon as it knows a target, instead of waiting for an
+        // idle colony with industry worth of colony_ship_minimum_industry.
+        if (colonization_push && needs.colony_ships.current == 0 &&
+            p->tech_applications[TECH_APP_COLONY_SHIP] == TECH_RESEARCH_STATUS_RESEARCHED) {
+            int16_t push_colony = -1;
+            int16_t push_worth = -1;
+            for (int16_t ci = 0; ci < world->Colony_Count(); ++ci) {
+                s_colony* candidate = &world->colonies[ci];
+                if (candidate->owner != (char)player_idx || candidate->outpost_flag != 0 || candidate->n_pops == 0 ||
+                    COLCALC::Colony_Is_Blockaded(candidate)) {
+                    continue;
+                }
+                const int16_t worth = AIBUILD::Industry_Worth(candidate);
+                if (worth > push_worth) {
+                    push_worth = worth;
+                    push_colony = ci;
+                }
+            }
+            if (push_colony >= 0 && push_worth >= advisor::COLONIZATION_PUSH_MIN_INDUSTRY_WORTH &&
+                world->colonies[push_colony].producing[6] == COLONY_PRODUCTION_NONE &&
+                !COLBLDG::Colony_Production_Is_Queued_Ship(world->colonies[push_colony].producing[0]) &&
+                AIMOVE::Best_Uncolonized_Undestined_Planet(ai, world, player_id)) {
+                s_ship_design push_design = {};
+                INITSHIP::Load_Colony_Ship_Design(*legacy_player, &push_design);
+                const auto push_legacy_colony = legacy_world::Index(legacy_world::Colony_Id(push_colony));
+                const int16_t push_ship = push_legacy_colony
+                    ? COLBLDG::Create_Ship_From_Design(*legacy_player, &push_design, *push_legacy_colony)
+                    : (int16_t)-1;
+                if (push_ship != -1) {
+                    world->ships[push_ship].status = 6;
+                    s_colony* pushed = &world->colonies[push_colony];
+                    // An idle colony holds the AI placeholder in slot 0: replace it; otherwise put the
+                    // colony ship in front of the current queue.
+                    if (pushed->producing[0] != COLONY_PRODUCTION_AI_UNASSIGNED) {
+                        for (int k = 6; k > 0; --k) {
+                            pushed->producing[k] = pushed->producing[k - 1];
+                        }
+                    }
+                    pushed->producing[0] = COLBLDG::Colony_Production_From_Ship_Index(push_ship);
+                    for (int32_t j = 0; j < colony_queue_count; ++j) {
+                        if (legacy_world::Slot(colony_queue[j]) == (uint32_t)push_colony) {
+                            for (int32_t m = j; m + 1 < colony_queue_count; ++m) {
+                                colony_queue[m] = colony_queue[m + 1];
+                            }
+                            --colony_queue_count;
+                            break;
+                        }
+                    }
+                }
+            }
         }
 
         if (colony_queue_count <= 0) {

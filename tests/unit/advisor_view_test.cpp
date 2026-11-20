@@ -168,3 +168,58 @@ DOCTEST_TEST_CASE("advisor name helpers return stable text for unknown values") 
     DOCTEST_CHECK(std::strcmp(advisor::Treaty_Name(99), "unknown") == 0);
     DOCTEST_CHECK(std::strcmp(advisor::Objective_Name(77), "unknown") == 0);
 }
+
+DOCTEST_TEST_CASE_FIXTURE(s_advisor_state, "advisor counts free regular planets at visited stars in reach") {
+    // Home at star 0; ship range 3 parsecs reaches 135 map units.
+    MOX::player[0].ship_range = 3;
+    const int16_t star_x[] = {0, 100, 400, 50, 60, 120};
+    MOX::NUM_STARS = 6;
+    for (int16_t i = 0; i < MOX::NUM_STARS; ++i) {
+        MOX::star[i].x = star_x[i];
+        MOX::star[i].y = 0;
+        MOX::star[i].visited = 1;  // bit of player 0
+    }
+    MOX::star[3].visited = 0;                       // never visited
+    MOX::star[0].black_hole_blocks[0] = 1 << 4;     // star 4 is behind a black hole
+
+    struct s_planet_case {
+        int16_t star;
+        int8_t type;
+        int16_t colony;
+    };
+    const s_planet_case planets[] = {
+        {0, PLANET_TYPE_PLANET, 0},       // our home colony
+        {1, PLANET_TYPE_PLANET, -1},      // counted
+        {1, PLANET_TYPE_PLANET, -1},      // counted
+        {1, PLANET_TYPE_GAS_GIANT, -1},   // not a colony-ship target
+        {2, PLANET_TYPE_PLANET, -1},      // out of reach
+        {3, PLANET_TYPE_PLANET, -1},      // not visited
+        {4, PLANET_TYPE_PLANET, -1},      // blocked by the black hole
+        {5, PLANET_TYPE_PLANET, 1},       // already colonized by someone
+    };
+    MOX::planet_count = 8;
+    for (int16_t i = 0; i < MOX::planet_count; ++i) {
+        MOX::planet[i].star_index = planets[i].star;
+        MOX::planet[i].planet_type = planets[i].type;
+        MOX::planet[i].colony_index = planets[i].colony;
+    }
+    MOX::NUM_COLONIES = 2;
+    MOX::colony[0].owner = 0;
+    MOX::colony[0].planet = 0;
+    MOX::colony[1].owner = 1;
+    MOX::colony[1].planet = 7;
+    const game::s_view world = legacy_world::World();
+    advisor::s_empire_view view;
+
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.self.free_planets_in_reach == 2);
+
+    std::string summary;
+    advisor::Format_Empire_Summary(&view, &summary);
+    DOCTEST_CHECK(summary.find("2 free planets in reach") != std::string::npos);
+
+    // Longer range brings the far star into reach; the black hole still blocks star 4.
+    MOX::player[0].ship_range = 10;
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.self.free_planets_in_reach == 3);
+}

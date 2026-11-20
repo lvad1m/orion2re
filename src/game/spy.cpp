@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/advisor_apply.h"
+
 namespace spy {
     int16_t spy_bonuses[MAX_PLAYERS * 2];
 
@@ -219,6 +221,15 @@ namespace spy {
             }
         }
 
+        // Advisor: raise the weight of the directive's spy target. With the multiplier at 100
+        // (advisor off or no directive) the weights are unchanged.
+        for (int16_t i = 0; i < MOX::NUM_PLAYERS; i++) {
+            if (target_weights[i] == 0) continue;
+            uint64_t scaled = (uint64_t)target_weights[i] *
+                advisor::Spy_Target_Weight_Percent((uint8_t)player_idx, (uint8_t)i) / 100;
+            target_weights[i] = scaled > UINT32_MAX ? UINT32_MAX : (uint32_t)scaled;
+        }
+
         while (remaining_spies > 0) {
             int16_t target = RUSS::Get_Weighted_Choice_Int(target_weights, MOX::NUM_PLAYERS);
 
@@ -244,6 +255,11 @@ namespace spy {
                     if (game_random::Random(8) == 1) {
                         mission = 1;
                     }
+                }
+                // The erratic draw above stays; the advisor only overrides its result.
+                int8_t preferred_mission = 0;
+                if (advisor::Preferred_Spy_Mission((uint8_t)player_idx, (uint8_t)target, &preferred_mission)) {
+                    mission = preferred_mission;
                 }
                 BILL::Set_Their_Spy_Mission(player_idx, target, (int8_t)mission);
             }

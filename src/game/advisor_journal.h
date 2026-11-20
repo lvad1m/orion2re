@@ -8,7 +8,8 @@
 
 // Turn journal (docs/LocalLLM/README.md, decision of 20.11.2026): one JSON line per computer
 // empire per turn, for self-play analysis and debugging. Written only when advisor::journal is
-// not JOURNAL_OFF. File: <user state directory>/advisor_journal/<session>.jsonl. Writing never
+// not JOURNAL_OFF. File: <user state directory>/advisor_journal/<session>.jsonl (portable mode, e.g. Windows:
+// <executable directory>/advisor_journal/). Writing never
 // touches game state; a failed write disables the journal for the session with one warning.
 namespace advisor {
 

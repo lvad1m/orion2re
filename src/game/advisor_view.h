@@ -65,6 +65,9 @@ namespace advisor {
         int32_t command_points_used = 0;
         int32_t stars_explored = 0;
         int32_t stars_total = 0;
+        // Uncolonized regular planets at stars we have visited and within our extended ship
+        // range: the targets the AI colonization code could send a colony ship to.
+        int32_t free_planets_in_reach = 0;
     };
 
     struct s_view_contact {
