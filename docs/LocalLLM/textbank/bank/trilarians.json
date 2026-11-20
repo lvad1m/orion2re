@@ -114,9 +114,9 @@
      "Нет. Ваши идеи — тёплое течение в холодном море: от них в наших водах заводится чужая жизнь.",
      "Мы отказываемся. Учёные любопытны, а любопытные рано или поздно приплывают сами.",
      "Обмен знаниями требует доверия. Доверия к вам у нас нет.",
-     "Отклонено. Чем меньше вы знаете о нас, тем спокойнее спят наши города.",
+     "Отклонено. Глубины хранят свои тайны от тех, кто не из глубин.",
      "Нет. Наша наука выросла в темноте и тишине, и чужие руки ей ни к чему.",
-     "Вы хотите знать, как устроены наши глубоководные корабли? Именно поэтому — нет.",
+     "Нет. Что лежит на дне, то лежит на дне, и вам туда не нырять.",
      "Мы не станем делиться. Знание течёт в обе стороны, а нам не нужно ничего, что течёт от вас."
     ],
     "en": [
@@ -241,7 +241,7 @@
      "Нет. Пока ваши корабли в наших водах, ни о каком мире не может быть и речи.",
      "Мы отказываем. Прилив не останавливается на полпути, и мы не остановимся, пока наше море не очистится от вас.",
      "Мир с чужаками? Нет. Глубины ещё помнят ваш первый выстрел.",
-     "Мир с вами означал бы, что вы останетесь рядом. Нет.",
+     "Нет. Лучше война через весь океан, чем мир в одной бухте.",
      "Мы отказываем. Вы принесли войну в наши воды без спроса и уйдёте отсюда только побеждёнными.",
      "Нет. Пусть холод глубины доделает свою работу.",
      "Мирный договор — это лист, где ваша подпись стоит рядом с нашей. Мы не хотим даже такого соседства.",
@@ -250,10 +250,10 @@
      "Мы не верим обещаниям чужаков. Война честнее: в ней вы хотя бы на виду."
     ],
     "en": [
-     "No. While your ships remain in our waters, there can be no talk of peace.",
+     "No. Peace would mean your ships anchoring close, and our depths are not open to you.",
      "We refuse. The tide does not stop halfway, and neither will we until our sea is clear of you.",
      "Peace with outsiders? No. The depths still remember your first shot.",
-     "Peace with you would mean you stay nearby. No.",
+     "No. We prefer a war across an ocean to a peace in the same bay.",
      "We refuse. You brought war into our waters uninvited, and you will leave them only in defeat.",
      "No. Let the cold of the deep finish its work.",
      "A peace treaty is a sheet with your signature beside ours. We will not tolerate even that much proximity.",
@@ -381,7 +381,7 @@
     ],
     "en": [
      "Your gift is accepted. We thank you, but gratitude does not open our waters.",
-     "Thank you for the gift. We will keep it, and we will keep our distance too.",
+     "Thank you for the gift. The tide carries it down to our depths, and it will stay there.",
      "Even a foreign tide sometimes washes up something useful. We are grateful for the gift; do not expect a visit in return.",
      "We thank you. We examined the gift from every side and found nothing dangerous in it. A pleasant surprise.",
      "Thank you. The gift is useful, which is the kindest thing we have ever said about outsiders.",
@@ -436,7 +436,7 @@
      "We will vote for you. You kept your distance from our waters, and the Council should know that we value it.",
      "The depths give you their vote. It is not friendship; in choosing you, we simply choose to be left alone.",
      "We vote for you. A ruler far away suits us better than one close by.",
-     "Our vote is yours. Do not come to thank us.",
+     "We vote for you. Now drift far from our waters.",
      "The Council awaits our decision. We choose you, and we hope that ends our part in galactic affairs.",
      "In the vote we will support you. You ask no needless questions, and we value that.",
      "You will have our support when the Council votes, but do not expect us at your receptions.",
@@ -709,7 +709,7 @@
    "reject_peace": {
     "ru": [
      "Нет. Прилив уже у ваших берегов, и мы не повернём его вспять, когда добыча так близко.",
-     "Мир сейчас выгоден только вам. Поэтому — нет.",
+     "Нет. Течение войны всё ещё несёт нам прибыль.",
      "Мы отказываем. Тонущий корабль не выпускают из сети, пока с него есть что снять.",
      "Нет. Ваше предложение пришло слишком рано: вы ещё не отдали всё, что можете.",
      "Мир? А что вы предложите сверх него? Ничего? Тогда нет.",
@@ -721,7 +721,7 @@
     ],
     "en": [
      "No. The tide is already at your shores, and we will not turn it back with the prize this close.",
-     "Peace now would profit only you. So, no.",
+     "No. The current of war still carries profit our way.",
      "We refuse. A sinking ship is not let out of the net while there is still something to strip from it.",
      "No. Your offer comes too early; you have not yet given up everything you can.",
      "Peace? And what would you add to it? Nothing? Then no.",
@@ -868,7 +868,7 @@
      "Мы поймали вашего агента. Вернуть его обойдётся вам дороже, чем вы потратили на его обучение.",
      "Лазутчик в наших водах — неосторожность с вашей стороны. Мы обратим её себе на пользу.",
      "Ваш агент поклялся, что ничего не успел передать. Мы не поверили и проверили — до самого дна.",
-     "Шпион пойман. Мы не протестуем — мы выставляем счёт.",
+     "Шпион пойман в наших водах. Он утонет, если вы не заплатите, чтобы его подняли.",
      "Ваш лазутчик работал небрежно. Если уж платите шпионам, платите хорошим.",
      "Ваш агент в наших руках, и теперь мы знаем, что вас интересует, — а значит, сколько с вас за это брать.",
      "Ваш шпион вернётся к вам. А что именно он вам расскажет, уже решили мы.",
@@ -880,7 +880,7 @@
      "We caught your agent. Getting him back will cost you more than you spent training him.",
      "An infiltrator in our waters is carelessness on your part. We intend to turn it to our profit.",
      "Your agent swore he had passed nothing on. We did not believe him and checked, all the way to the bottom.",
-     "Spy caught. We are not protesting; we are sending you the bill.",
+     "Spy caught in our waters. It will sink, unless you pay to bring it up.",
      "Your infiltrator was sloppy. If you are going to pay spies, pay good ones.",
      "Your agent is in our hands, so now we know what interests you, and therefore what to charge you for it.",
      "Your spy will return to you. What exactly he tells you is something we have decided.",
@@ -1053,7 +1053,7 @@
      "Делиться секретами флота? Никогда. Хищник не показывает чужим свои охотничьи воды.",
      "Нет. Наши учёные куют оружие, а не дружбу.",
      "Мы отказываемся. Кто знает устройство наших кораблей, тот знает, куда по ним бить.",
-     "Отклонено. Делиться с вами знаниями — всё равно что точить нож для чужой руки.",
+     "Нет. Знания глубин не для тех, кто плавает у поверхности.",
      "Нет! Наши тайны охраняют лучше, чем ваши столицы.",
      "Вы хотите учиться у сильных? Сначала станьте достойными. Отказ.",
      "Нет. Ваши открытия нам не нужны: всё, что нужно для победы, у нас уже есть.",
@@ -1077,7 +1077,7 @@
      "Мы принимаем союз. Вместе мы станем штормом, от которого не укроется ни один берег.",
      "Союз принят! Пусть ваши враги узнают, как глубоко тонут те, кто встал против нас.",
      "Согласны. Но держитесь рядом в бою: союзник, отставший от волны, остаётся без защиты.",
-     "Да! Наконец-то будет с кем разделить хорошую битву.",
+     "Да! Вместе мы заставим океаны закипеть.",
      "Принимаем. Укажите нам врага, а как глубоко его утопить, мы решим сами.",
      "Союз принят. Наши флоты вместе — это уже не волна, а цунами.",
      "Согласны. Вы показали в бою, что вы не трусы, а нам такие союзники и нужны.",
@@ -1089,7 +1089,7 @@
      "We accept the alliance. Together we will be a storm that no shore can hide from.",
      "Alliance accepted! Let your enemies learn how deep they sink when they stand against us.",
      "Agreed. But keep pace with us in battle; an ally who falls behind the wave is left unprotected.",
-     "Yes! At last someone to share a good battle with.",
+     "Yes! Together we will make the seas boil.",
      "Accepted. Point us at the enemy; we will decide how deep to drown him.",
      "Alliance accepted. Our fleets together are no longer a wave but a tidal surge.",
      "We agree. You have shown in battle that you are no cowards, and those are the allies we want.",
@@ -1182,7 +1182,7 @@
      "Мира не будет. Волна уже поднялась, и её не остановить на полпути.",
      "Вы просите пощады? Глубины не знают такого слова. Мы отказываем.",
      "Мир? Мы ещё даже не начали по-настоящему. Нет.",
-     "Нет. Вы просите мира, потому что проигрываете. Именно поэтому мы и не остановимся.",
+     "Нет. Раненая рыба просит тихой воды, а мы всегда кусаем.",
      "Отказываем. Наши флоты только вошли во вкус.",
      "Никакого мира, пока ваши столицы не уйдут под воду.",
      "Нет. Сдавайтесь, если хотите, но о мире на равных забудьте.",
@@ -1194,7 +1194,7 @@
      "There will be no peace. The wave has already risen, and it cannot be stopped halfway.",
      "You beg for mercy? The depths do not know the word. We refuse.",
      "Peace? We have not even started in earnest. No.",
-     "No. You ask for peace because you are losing. That is exactly why we will not stop.",
+     "No. A wounded fish begs for calm water, and we always bite.",
      "We refuse. Our fleets are only just getting a taste for it.",
      "No peace until your capitals are under water.",
      "No. Surrender if you like, but forget about peace between equals.",
@@ -1294,7 +1294,7 @@
      "Мы требуем {СУММА}, и вы заплатите. Вопрос лишь в том, сколько кораблей вы потеряете, прежде чем согласитесь."
     ],
     "en": [
-     "Pay {AMOUNT}, or our fleet will come and take everything it finds.",
+     "{AMOUNT}, or the tide brings our fleet to your shore.",
      "{AMOUNT}, and at once. The sea does not wait, and neither do we.",
      "Your fleet is too small to argue. {AMOUNT}, and our warships sail past you.",
      "{AMOUNT}. Cheaper than a cruiser of yours, and far cheaper than your fleet.",
@@ -1328,7 +1328,7 @@
      "Gift accepted with gratitude. We always welcome trophies, even when they deliver themselves.",
      "Thank you for the gift. Our admirals appreciated it, and your caution as well.",
      "We are grateful. Generous neighbours live longer; that is the law of our seas.",
-     "A gift? Good. We will remember that you know how to bow.",
+     "Thank you for the gift. Keep paying tribute like that and we will let you swim.",
      "Thank you. Our fleet gains another ship, and you gain a little of our goodwill."
     ]
    },
@@ -1376,7 +1376,7 @@
      "We will vote for you. But remember whose fleet stands behind that vote.",
      "The Council will hear us speak for you. Let everyone know our storm stands at your back.",
      "We vote for you. You showed your teeth, and we liked it.",
-     "The Council should be led by someone who knows how to fight. Our vote is yours.",
+     "Our vote is yours. The Council needs a shark, not a minnow.",
      "We will support you in the vote. Anyone who votes against will answer to us.",
      "Our fleet is with you, and so is our vote. Do not let either of them down.",
      "We will vote for you: of all the candidates, only you are not afraid of us. That earns respect.",
@@ -1389,7 +1389,7 @@
      "Мы проголосуем против вас. Слабым не место у штурвала.",
      "Наш голос в Совете против вас. Радуйтесь, что пока мы бьём голосами, а не орудиями.",
      "В Совете мы против. Сначала докажите силу — потом просите власти.",
-     "Наш голос против вас. Вы проиграли слишком много битв, чтобы править галактикой.",
+     "Наш голос против вас. Слабый пловец тонет первым, а за утопающими мы не плывём.",
      "Мы проголосуем против. Галактике нужен адмирал, а не торговец.",
      "В Совете мы будем голосовать против вас, и громко.",
      "Голосовать за вас? За тех, кто бежал от нашего флота? Никогда.",
@@ -1398,12 +1398,12 @@
      "Совет не дождётся от нас голоса за вас. Вы слишком громко говорите и слишком тихо стреляете."
     ],
     "en": [
-     "We vote against you. The weak have no place at the helm.",
+     "Our vote is against you. Weak swimmers drown first, and we do not follow the drowning.",
      "Our vote in the Council goes against you. Be glad that for now we strike with votes, not guns.",
      "In the Council we stand against you. Prove your strength first, then ask for power.",
-     "Our vote is against you. You have lost too many battles to rule the galaxy.",
+     "We vote against you. A ruler who cannot hold the current cannot hold the Council.",
      "We will vote against. The galaxy needs an admiral, not a shopkeeper.",
-     "In the Council we will vote against you, and loudly.",
+     "Our vote is against you. The tide has turned, and you are on the wrong side of it.",
      "Vote for you? For those who fled from our fleet? Never.",
      "Our vote is against. A crown does not stay on a head that bows.",
      "We are against you in the vote, and if you dislike it, we can discuss it off your shores.",
@@ -1585,7 +1585,7 @@
      "An alliance? We wanted it. Very much. Then the moon pulled the water the other way. No.",
      "No. We dreamed you were a whirlpool, and we are never friends with whirlpools.",
      "We decline the alliance. Today we are not even allied with ourselves, let alone with you.",
-     "No. An alliance is forever, and we cannot do forever. We cannot even do until lunch.",
+     "No. Alliances are shackles, and today we are an eel.",
      "We decline the alliance. Your flag is too rectangular.",
      "An alliance? Oh. We decided today to be alone. Tomorrow we may decide otherwise, but today, no.",
      "Refused! We like you. That is what frightens us.",
@@ -1600,7 +1600,7 @@
      "Да. Мы посоветовались с приливом, и прилив не возражал.",
      "Согласны не нападать. Запишите это где-нибудь, где сухо, — мы иногда забываем.",
      "Да! Мы как раз собирались на вас напасть, а теперь не будем. Какое облегчение.",
-     "Принимаем. Нападать — это так шумно, а у нас сегодня болит голова.",
+     "Согласны. Нападать не будем. Если, конечно, прилив не скажет иное, а он капризный.",
      "Пакт о ненападении? Согласны. А на нас нападать можно? Нет? Жаль, было бы весело.",
      "Согласны не нападать. И не кусаться. Ну, почти не кусаться.",
      "Пакт принят! Наш флот уже повернул домой. Правда, не все корабли поняли, где дом.",
@@ -1610,9 +1610,9 @@
     "en": [
      "A non-aggression pact? Accepted! Attacking you seemed tiresome anyway. That is, we are deeply peaceful.",
      "Yes. We consulted the tide, and the tide did not object.",
-     "We agree not to attack. Write it down somewhere dry; we sometimes forget.",
+     "We agree. No attacks. Unless the moon decides otherwise, and the moon is moody.",
      "Yes! We were just about to attack you, but now we will not. What a relief.",
-     "Accepted. Attacking is so noisy, and we have a headache today.",
+     "Accepted. We would love not to attack; we are not sure we ever knew how.",
      "A non-aggression pact? Agreed. And may others attack us? No? A pity; it would have been fun.",
      "We agree not to attack. Or bite. Well, almost not bite.",
      "The pact is accepted! Our fleet has already turned for home. Not every ship understood where home is, though.",
@@ -1625,7 +1625,7 @@
      "Мир! Вода вдруг стала тёплой и ласковой, а в тёплой воде воевать совсем не хочется.",
      "Буря в нас кончилась так же внезапно, как началась. Мир — и не спрашивайте, надолго ли.",
      "Мы согласны на мир. Странно: ещё утром мы точили кораллы для битвы.",
-     "Мир! Ура! Подождите, а мы разве воевали? Ах да. Ну, тем более ура.",
+     "Мир! Пузырьки! Мы воевали? Ну ладно, значит, больше пузырьков.",
      "Мы принимаем мир. Нам вдруг стало стыдно, потом скучно, а потом мирно.",
      "Мир. Наши пушки замолчали сами, мы их даже не просили. Мы решили их послушаться.",
      "Да, мир. Мы поняли это, глядя на пузырьки: все поднимались вверх, ни один не опустился. Хороший знак.",
@@ -1637,7 +1637,7 @@
      "Peace! The water has suddenly turned warm and gentle, and nobody wants to fight in warm water.",
      "The storm inside us ended as suddenly as it began. Peace, and do not ask for how long.",
      "We agree to peace. Strange: only this morning we were sharpening coral for battle.",
-     "Peace! Hurrah! Wait, were we at war? Ah, yes. All the more reason for hurrah.",
+     "Peace! Bubbles! Were we at war with you? Ah well, more bubbles.",
      "We accept peace. We suddenly felt ashamed, then bored, then peaceful.",
      "Peace. Our guns fell silent on their own; we did not even ask them. We decided to obey them.",
      "Yes, peace. We worked it out watching bubbles: they all rose, not one sank. A good sign.",
@@ -1657,7 +1657,7 @@
      "Мира не будет, пока не сменится цвет воды, а он сегодня какой-то упрямый.",
      "Нет-нет. Если мы помиримся, придётся всё начинать сначала, а нам лень.",
      "Отклонено! Мы хотели подумать, но мысль уплыла, а без неё остаётся только война.",
-     "Нет. Вчера мы плакали о мире, сегодня смеёмся над ним. Спросите, когда снова заплачем."
+     "Нет. Прилив мира сегодня ушёл. Может, вернётся. Может, в четверг."
     ],
     "en": [
      "Peace? We meant to say yes, but the water around us began to boil, and that means no.",
@@ -1669,7 +1669,7 @@
      "There will be no peace until the colour of the water changes, and today it is being stubborn.",
      "No, no. If we made peace, we would have to start everything over, and we cannot be bothered.",
      "Rejected! We meant to think it over, but the thought swam away, and without it there is only war.",
-     "No. Yesterday we wept for peace; today we laugh at it. Ask again when we are weeping."
+     "No. The tide has gone out on peace. It may return. Perhaps on a Thursday."
     ]
    },
    "declare_war": {
@@ -1793,7 +1793,7 @@
      "A gift! We are so pleased. Or moved. Or hungry? No, pleased. Thank you!",
      "Thank you for the gift. We will lay it on the seabed beside our other shiny things and visit it often.",
      "We are grateful. We meant to be offended that it was so small, but a wave whispered that it is lovely.",
-     "Oh, a gift! We do not know what it is, but it is beautiful. Thank you!",
+     "A gift, how shiny! We are putting it on our head and swimming in circles. Thank you!",
      "We thank you! We have already lost it and found it again several times. That means we like it.",
      "Thank you. We meant to return your gift, but it has settled so cosily into our treasury.",
      "A gift! We are moved to the very seabed. And a tiny bit suspicious. But mostly moved.",
@@ -2300,7 +2300,7 @@
    },
    "council_vote_for": {
     "ru": [
-     "Мы обещали поддержать вас в Совете и держим слово: наш голос — за вас.",
+     "Обещание, данное на глубине, не уносит течением. В Совете наш голос ваш.",
      "Наша Нация отдаёт вам свой голос. Вы были честны с нами, и мы отвечаем вам тем же.",
      "Мы проголосуем за вас. Пусть Совет видит, что верность у нас ценится выше выгоды.",
      "Наш голос в Совете принадлежит вам. Мы обещали, и обещание лежит на дне глубже любого якоря.",
@@ -2312,7 +2312,7 @@
      "Голос за вас: решение принято давно, и менять его не нужно."
     ],
     "en": [
-     "We promised to support you in the Council, and we keep our word: our vote is yours.",
+     "A promise made in deep water is not easily lost. Our vote in the Council is yours.",
      "The Nation gives you its vote. You have been honest with us, and we answer you in kind.",
      "We will vote for you. Let the Council see that among us loyalty counts for more than gain.",
      "Our vote in the Council is yours. We promised, and the promise lies deeper than any anchor.",
@@ -2326,7 +2326,7 @@
    },
    "council_vote_against": {
     "ru": [
-     "Мы проголосуем против вас и говорим это заранее, чтобы между нами не было обмана.",
+     "Воды глубоки, но слово наше не мелко: в Совете мы голосуем против вас.",
      "Наш голос в Совете будет против. Мы не можем поддержать тех, кто не держит своего слова.",
      "Скажем открыто: в Совете мы против вас. Это решение совести, а не вражды.",
      "Мы проголосуем против вас. Предупреждаем заранее, чтобы вы услышали это от нас, а не из подсчёта голосов.",
@@ -2338,7 +2338,7 @@
      "Скажем прямо: вашей кандидатуре мы не поверили. Голос в Совете мы отдадим другому."
     ],
     "en": [
-     "We will vote against you, and we tell you so in advance, so that there is no deceit between us.",
+     "The current tells us to say it plainly: our vote in the Council goes against you.",
      "Our vote in the Council goes against you. We cannot support those who do not keep their word.",
      "We say it openly: in the Council we stand against you. It is a matter of conscience, not of enmity.",
      "We will vote against you. We warn you in advance so that you hear it from us and not from the count.",
@@ -2380,7 +2380,7 @@
    },
    "accept_trade": {
     "ru": [
-     "С радостью принимаем! Пусть наши корабли возят друг другу товары, а не оружие.",
+     "Принимаем с радостью. Пусть наши течения несут товары, а не торпеды.",
      "Согласны. Торговля — это тёплое течение между берегами, и в нём никто не тонет.",
      "Договор принят. Ваши суда всегда желанны в наших лагунах — с любым грузом, кроме вражды.",
      "Да, с радостью! Пусть по этому течению плывут только фрукты моря, ткани и добрые вести.",
@@ -2719,7 +2719,7 @@
    "thank_gift": {
     "ru": [
      "Спасибо! Ваш подарок согрел нас, как тёплое течение в холодный сезон.",
-     "Мы благодарим вас от всего сердца. Такие дары связывают народы крепче любых договоров.",
+     "Благодарим вас. Подарок греет, как тёплое течение в холодную ночь.",
      "Какой чудесный дар! Мы сохраним его в самой тихой лагуне, чтобы он напоминал нам о вашей доброте.",
      "Спасибо! Мы не ожидали такого подарка и очень тронуты. Он будет жить в нашем самом светлом зале.",
      "Благодарим вас от всей души. Ваша доброта согрела наши лагуны сильнее любого солнца.",

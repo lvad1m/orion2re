@@ -241,7 +241,7 @@
      "Нет. Вы ещё здесь. Мир наступит, когда от вас останется только пыль.",
      "Мира не будет. Мягкое не просит у камня — оно стирается.",
      "Отказ. Коллектив не остановится, пока последний ваш след не уйдёт под осадок.",
-     "Мир с вами означал бы, что вы останетесь рядом. Поэтому — нет.",
+     "Нет. Мир это когда вы рядом. Мы предпочитаем войну на расстоянии.",
      "Нет. Вы просите мира, но всё ещё стоите на нашем камне. Сначала сойдите с него.",
      "Отказ. Мир — это договор, договор — это разговоры. Мы предпочитаем войну.",
      "Ваши голоса в эфире звучат всё слабее. Хорошо. Мы не остановимся, пока они не смолкнут.",
@@ -272,7 +272,7 @@
      "Каждый ваш корабль у наших границ — как песчинка в кварце. Мы начинаем войну, чтобы вычистить их.",
      "Мы долго старались вас не замечать. Вы сделали это невозможным. Война.",
      "Камень решил: соседство окончено. Начинается война.",
-     "Нам не нужны ваши миры. Нам нужно, чтобы вас там не было. Это война.",
+     "Эхо наших просьб дошло до вас слишком медленно. Теперь придёт обвал. Это война.",
      "Война. Не ждите переговоров: мы и в мирное время с вами почти не разговаривали."
     ],
     "en": [
@@ -345,7 +345,7 @@
      "Ваше присутствие стоит {СУММА}. Платите и держитесь дальше.",
      "Коллектив требует {СУММА}. Это цена того, что мы вас не замечаем.",
      "{СУММА} — и камень не сдвинется в вашу сторону. В эту эпоху.",
-     "Пришлите {СУММА} и не провожайте груз. Нам нужны деньги, а не ваши лица.",
+     "Оставьте {СУММА} на границе и уходите. Нам не нужно видеть, кто привёз.",
      "{СУММА}. Оставьте у границы. Курьера не присылайте — заберём сами.",
      "Ваше соседство нас утомляет. Возместите усталость: {СУММА}.",
      "Мы требуем {СУММА}. Не спрашивайте зачем: вопросы — это тоже общение.",
@@ -357,7 +357,7 @@
      "Your nearness costs {AMOUNT}. Pay it and keep your distance.",
      "The Collective requires {AMOUNT}. That is the price of being ignored.",
      "{AMOUNT}, and the stone will not move toward you. Not in this age.",
-     "Send {AMOUNT} and do not escort it. We want the money, not your faces.",
+     "Leave {AMOUNT} at the border and go. We do not need to see who delivers it.",
      "{AMOUNT}. Leave it at the border. No courier; we will collect it ourselves.",
      "We demand {AMOUNT}. Do not ask why; questions are a form of contact too.",
      "{AMOUNT} buys silence. Pay, and we will go back to forgetting you.",
@@ -458,7 +458,7 @@
      "В Совете мы будем против вас. Это единственное, в чём мы там готовы участвовать."
     ],
     "en": [
-     "We vote against you in the Council. No outsider rules the stone.",
+     "Our vote is against you. Strangers hold no seats in our mountains.",
      "The Collective will not give you its vote. Not now, not in an age.",
      "Our vote goes against you. The less of you there is, the quieter the galaxy.",
      "We vote against you. Whoever rules the Council sooner or later comes to visit.",
@@ -529,7 +529,7 @@
      "Нет. Зачем покупать то, что однажды можно будет выкопать из ваших руин?",
      "Ваш договор — пустая порода. Отклоняем.",
      "Коллектив посчитал. Выгода ваша, потеря наша. Отказ.",
-     "Нет. Ваши цены рассчитаны на тех, кто живёт быстро и не умеет считать.",
+     "Нет. Ваш товар недолговечен, как роса, а мы считаем в тысячелетиях.",
      "Отказ. Нам выгоднее, чтобы вы нуждались, а не торговали.",
      "Вы предлагаете медь за кварц? Это смешно даже для мягких. Нет.",
      "Мы отклоняем договор. Голодный сосед уступчивее сытого.",
@@ -619,7 +619,7 @@
      "We accept. Your enemies have rich worlds. We will share them. Mostly.",
      "Agreed. Your fleet is useful ore. We will work it until the vein runs dry.",
      "Yes. Allies erode slower than enemies. That is the only reason.",
-     "We accept. Your ships will take the first blow. That is what allies are for.",
+     "We accept. An ally is a wall we need not build ourselves; stay where we put you.",
      "Agreed. When the enemy falls, we will discuss who gets what. We will get more.",
      "Yes. Together we are stronger. Afterwards we will see which of us is strongest.",
      "Accepted. An alliance is cheaper than an extra enemy.",
@@ -694,7 +694,7 @@
      "Мир. На ваших границах останутся наши наблюдатели. Бесплатно, разумеется."
     ],
     "en": [
-     "Peace. The war now costs more than your planets are worth.",
+     "Peace, then. Your ruins are not worth mining.",
      "We accept peace. You have paid enough for this age. The next age is another matter.",
      "Peace is accepted. Stone does not hurry; what we did not eat today will keep.",
      "Peace. We already took what we wanted. The rest is not yet worth the effort.",
@@ -709,7 +709,7 @@
    "reject_peace": {
     "ru": [
      "Нет. Ваши миры почти наши. Остановиться сейчас — расточительно.",
-     "Вы просите мира, потому что проигрываете. Именно поэтому — нет.",
+     "Нет. Вы покупаете мир, потому что проигрываете, а мы не продаём дёшево.",
      "Коллектив не бросает жилу на полпути. Война продолжится.",
      "Нет. Мир сейчас обошёлся бы нам дороже, чем ваша капитуляция.",
      "Отказ. Предложите больше миров — тогда поговорим о мире.",
@@ -721,7 +721,7 @@
     ],
     "en": [
      "No. Your worlds are nearly ours. Stopping now would be wasteful.",
-     "You ask for peace because you are losing. That is exactly why not.",
+     "No. Peace is a price paid by the losing side, and we do not sell cheap.",
      "The Collective does not abandon a half-dug vein. The war goes on.",
      "No. Peace now would cost us more than your surrender.",
      "Refused. Offer more worlds, and then we will discuss peace.",
@@ -763,7 +763,7 @@
      "Договор больше не приносит выгоды. Мы его расторгаем.",
      "Соглашение выработано, как старая жила. Коллектив его бросает.",
      "Пакт был удобен. Удобство кончилось. Пакта больше нет.",
-     "Договор расторгнут. Нам предложили больше.",
+     "Соглашение больше не окупается. Мы закрываем его, как выработанную шахту.",
      "Мы выходим из пакта. Вы ослабли, и договор с вами потерял цену.",
      "Соглашение окончено. Его условия подходили вчерашним нам. Сегодняшние мы хотим другого.",
      "Мы подписали пакт, когда вы были опасны. Теперь вы не опасны, и пакта нет.",
@@ -790,7 +790,7 @@
      "Ваши действия стоят нам денег. Скоро они будут стоить вам планет.",
      "Остановитесь. Камень терпит, пока терпеть дешевле, чем раздавить.",
      "Прекратите. Мы уже подсчитали, во что вам обойдётся продолжение.",
-     "Ещё немного — и мы решим, что вы дешевле обойдётесь нам мёртвыми.",
+     "Ещё шаг, и мы пересчитаем, сколько стоит ваша планета как карьер.",
      "Остановитесь, или ваши соседи узнают, где ваши слабые места. Мы им расскажем.",
      "Вы мешаете нашей добыче. Мы не терпим помех — мы их убираем.",
      "Прекратите, пока мы ещё торгуемся. Потом мы просто возьмём.",
@@ -865,7 +865,7 @@
    "caught_spy": {
     "ru": [
      "Ваш шпион оказался мягким. Мягкое легко сжать. Он рассказал всё.",
-     "Мы поймали вашего агента. Пока не решили: вернуть, переплавить или использовать.",
+     "Ваш агент пойман. Из него выйдет неплохой пример для остальных.",
      "Лазутчик пойман. Вы потратили ресурс впустую. Мы ничего не тратим впустую.",
      "Ваш шпион вернётся к вам с теми сведениями, которые мы ему дали. Удачи в проверке.",
      "Мы поймали вашего агента. Его оборудование лучше нашего. Спасибо за образец.",
@@ -905,8 +905,8 @@
      "We vote for you. Your victory is useful to us. For now.",
      "The Collective gives you its vote in the Council. Remember what it cost.",
      "Our vote is yours. Stone invests slowly, and collects everything.",
-     "We vote for you. The bill will follow.",
-     "Our vote is yours. Your rivals offered less.",
+     "We vote for you. The interest will be collected slowly, as stone erodes.",
+     "The vote is yours, for a very small deposit on your future cooperation.",
      "The Collective backs you in the Council. A ruler who owes us is worth more than any ally.",
      "We vote for you. A strong Council leader draws attention away from us.",
      "You have our vote. Do not thank us; pay us.",
@@ -928,8 +928,8 @@
      "Против. В Совете нам нужен должник, а не соперник."
     ],
     "en": [
-     "We vote against you. Your power does not profit us.",
-     "The Collective's vote goes to another. They paid more.",
+     "We vote against you. A weak leader sells us ore cheaper.",
+     "Our vote is against you. Your rise makes our quarries more expensive.",
      "Our Council vote is against you. A strong neighbour is harder to mine.",
      "We vote against you. Your rival owes us; you do not.",
      "Our vote is against you. You keep your books too honestly, and honest rulers are hard to bargain with.",
@@ -1016,7 +1016,7 @@
      "Your offer smells of fear. We like the smell, not the deal. Refused.",
      "No. Stone does not haggle. It waits until resistance cracks.",
      "We do not trade with the weak. Survive a blow from us first, then we will talk.",
-     "Never. Trade is for those who are afraid to fight.",
+     "No. We take from stone, not from merchants.",
      "No. We want your ships near our docks only as targets."
     ]
    },
@@ -1080,7 +1080,7 @@
      "Да! Наконец-то нам покажут, кого бить.",
      "Принимаем. Держитесь за нами — камень прикроет. Отстанете — пеняйте на себя.",
      "Союз принят. Ваши враги — наша добыча. Ваши слабости — ваша забота.",
-     "Согласны. Но запомните: в этом союзе гора — мы.",
+     "Согласны. Горы не ждут отстающих, поспевайте.",
      "Коллектив одобряет союз. Когда начнётся бой, не путайтесь под ногами у лавы.",
      "Принимаем. Нам давно хотелось проверить себя на ком-то покрупнее вас.",
      "Да. Союз с нами — лучшая броня. И худший приговор, если вы её снимете."
@@ -1091,7 +1091,7 @@
      "Agreed. Stand beside the stone and watch what it does to your enemies.",
      "Yes! At last someone will show us who to hit.",
      "We accept. Keep behind us and the stone will cover you. Fall behind and that is your problem.",
-     "Agreed. But remember: in this alliance, we are the mountain.",
+     "Agreed. Mountains do not march with the weak, so keep up.",
      "The Collective accepts. When the fighting starts, stay out from under the lava.",
      "We accept. We have long wanted to test ourselves against something bigger than you.",
      "Yes. An alliance with us is the best armour, and the worst sentence if you ever take it off.",
@@ -1283,25 +1283,25 @@
    "demand_tribute": {
     "ru": [
      "{СУММА}. Сейчас. Или гора придёт и возьмёт больше.",
-     "Мы требуем {СУММА}. Слабые платят камню.",
+     "Гора требует {СУММА}. Гора дважды не просит.",
      "Платите {СУММА}, или лава заберёт всё, что вы цените.",
      "{СУММА}. Не торгуйтесь: камень не слышит торга, он слышит только удары.",
      "Мы требуем {СУММА}. Слабые платят дань. Вы ведь знаете, кто вы?",
      "Наш флот уже прогревает орудия. {СУММА} — и он их остудит.",
      "Дань: {СУММА}. Опоздаете — и мы пришлём за ней вулкан.",
      "Коллектив хочет {СУММА}. Хотеть — для нас редкость. Не разочаруйте.",
-     "Отдайте {СУММА}, пока мы просим словами.",
+     "Платите {СУММА}, пока обвал не начался.",
      "{СУММА} — и ваши щиты так и не узнают, какой тяжёлый у нас ответ."
     ],
     "en": [
      "{AMOUNT}. Now. Or the mountain comes and takes more.",
-     "We demand {AMOUNT}. The weak pay the stone.",
+     "The mountain wants {AMOUNT} from you. The mountain does not ask twice.",
      "Pay {AMOUNT}, or the lava takes everything you value.",
      "{AMOUNT}. Do not haggle; stone does not hear haggling, only blows.",
      "We demand {AMOUNT}. The weak pay tribute. You do know what you are?",
      "Our fleet is warming its guns. {AMOUNT}, and it will let them cool.",
      "Tribute: {AMOUNT}. Be late, and we send a volcano to collect it.",
-     "Hand over {AMOUNT} while we are still asking with words.",
+     "{AMOUNT}. Pay before the next avalanche.",
      "The Collective wants {AMOUNT}. Wanting is rare for us. Do not disappoint us.",
      "{AMOUNT}, and your shields will never learn how heavy our answer is."
     ]
@@ -1337,7 +1337,7 @@
      "Ваш шпион стёрт в щебень. Пришлите ещё — и мы сотрём ваш флот.",
      "Ваш агент пойман в наших пещерах. Камень сомкнулся. Его больше нет.",
      "Лазутчик? У нас? Это вызов, и мы ответим лавой.",
-     "Шпион? Значит, вы нас боитесь. И правильно делаете.",
+     "Шпион пойман. Он раскрошится первым, а вы вторым, если повторите.",
      "Ваш агент искал наше слабое место. Его нет. Агента — тоже.",
      "Мы поймали лазутчика. Следующий наш ответ будет не дипломатическим.",
      "Ваш шпион был храбрым. Храбрость не делает плоть твёрже.",
@@ -1360,7 +1360,7 @@
    },
    "council_vote_for": {
     "ru": [
-     "Мы голосуем за вас. Сильным нужен сильный союзник в Совете. Не разочаруйте.",
+     "Наш голос за вас. Вдвоём мы весим больше, чем весь Совет. Держитесь.",
      "Наш голос — ваш. Но если подведёте — камень вспомнит.",
      "Коллектив поддержит вас в Совете. Пусть все видят, кто стоит за вашей спиной.",
      "Наш голос — за вас. Вы сильнее остальных, а камень уважает только силу.",
@@ -1386,7 +1386,7 @@
    },
    "council_vote_against": {
     "ru": [
-     "Мы голосуем против вас. Слабым не место во главе Совета.",
+     "Мы голосуем против вас. Тех, кого можно раздавить, мы не слушаем.",
      "Наш голос — против. Хотите власти? Отнимите её у камня.",
      "Коллектив голосует против вас и с удовольствием посмотрит, как вы падаете.",
      "Мы голосуем против вас. Советом должен править тот, кого мы не можем раздавить. Вас — можем.",
@@ -1398,16 +1398,16 @@
      "Мы голосуем против. Совет — не место для тех, кто прячется за щитами."
     ],
     "en": [
-     "We vote against you. The weak have no place at the head of the Council.",
+     "Our vote is against you. Mountains do not follow pebbles.",
      "Our vote is against you. Want power? Take it from the stone, if you can.",
      "The Collective votes against you, and will enjoy watching you fall.",
      "We vote against you. The Council should be led by someone we cannot crush. We can crush you.",
      "Our vote goes against you. First you lose the vote. Then you lose the rest.",
      "The Collective votes against you. Vote all you like; the stone will not move.",
      "Against you, and loudly, so the whole Council hears it.",
-     "We vote against you. A ruler who fears us is of no use to the Council.",
+     "We vote against you. A leader who bends easily was never stone.",
      "Our vote is not yours. You bend too easily, and what bends, breaks.",
-     "We vote against you. The Council is no place for those who hide behind shields."
+     "We vote against you. Your fleet cracks like thin crystal."
     ]
    }
   },
@@ -1612,7 +1612,7 @@
      "Agreed, no attacks. We were not planning any. Or were we? It no longer matters.",
      "Yes. Silence between us. We like silence. Sometimes. Today, yes.",
      "Non-aggression? We hardly move at all anyway. Accepted!",
-     "Yes. We promise not to attack. Write it down somewhere; we will forget.",
+     "Agreed. We will not strike. Unless it is Tuesday, whatever that is.",
      "Agreed. You are so soft that attacking you would be rather awkward.",
      "Pact accepted! Shall we celebrate? We celebrate slowly; we will start in a century.",
      "Yes. No. Yes. We will not attack. That is final. Almost final.",
@@ -1627,7 +1627,7 @@
      "Мир. Кристалл повернулся другой гранью. Не спрашивайте, надолго ли.",
      "Мир! Мы как раз забыли, из-за чего воевали.",
      "Принимаем мир. Война звучала красиво, но теперь от неё болит кварц.",
-     "Мир? Хорошо. А мы разве воевали? Ах да. Ну, тогда тем более мир.",
+     "Мир! На вкус как гранит. Или как война. Мы забыли, но принимаем.",
      "Мы согласны на мир. Внезапно. Сами удивлены. Кристалл в восторге.",
      "Мир. Ваш последний залп был таким красивым, что мы растрогались.",
      "Да, мир! Пусть пыль войны станет песком для наших садов. У нас нет садов. Но пусть.",
@@ -1639,7 +1639,7 @@
      "Peace. The crystal turned another facet to the light. Do not ask for how long.",
      "Peace! We had just forgotten what we were fighting about.",
      "We accept peace. The war sounded lovely, but now our quartz aches.",
-     "Peace? Fine. Were we at war? Ah, yes. Then all the more reason for peace.",
+     "Peace! It tastes like granite. Or like war. Both are delicious.",
      "We agree to peace. Suddenly. We surprise ourselves. The crystal is delighted.",
      "Peace. Your final volley was so beautiful that we were moved.",
      "Yes, peace! Let the dust of war become sand for our gardens. We have no gardens. Still.",
@@ -1706,7 +1706,7 @@
      "Договор окончен. Почему? Он нам приснился неправильно.",
      "Мы рвём пакт. Ой. Уже порвали. Ну, так тому и быть.",
      "Наше соглашение было слишком прямым. Мы любим грани. Оно расторгнуто.",
-     "Договор? Мы его съели. Случайно. Его больше нет.",
+     "Договор? Он потерялся в жеоде. Считайте, что он разорван.",
      "Союз окончен. Мы соскучились по одиночеству. Сегодня соскучились. Вчера нет.",
      "Пакт расторгнут. Возможно, мы ещё передумаем. Возможно, к тому времени вас уже не будет.",
      "Коллектив выходит из договора. Кристалл повернулся, и договор оказался вверх ногами."
@@ -1718,7 +1718,7 @@
      "The treaty is over. Why? We dreamed it wrong.",
      "We are tearing up the pact. Oops. Already torn. So be it.",
      "Our agreement was too straight. We prefer facets. It is dissolved.",
-     "The treaty? We ate it. By accident. It is gone.",
+     "The agreement? We lost it somewhere in the geode. Consider it broken.",
      "The alliance is over. We missed being alone. Today we missed it. Not yesterday.",
      "Pact dissolved. Perhaps we will change our minds. Perhaps you will have vanished by then.",
      "The Collective leaves the treaty. The crystal turned, and the agreement ended up upside down."
@@ -1727,7 +1727,7 @@
    "threaten": {
     "ru": [
      "Прекратите! Или продолжайте. Нет, прекратите, пока кристалл не лопнул.",
-     "Нам не нравится, что вы делаете. Нравилось. Теперь нет. Остановитесь.",
+     "Мы урчим, как камни в лавине. Это то ли угроза, то ли обед. Остановитесь на всякий случай.",
      "Мы дрожим. Не от страха. Когда мы дрожим, рушатся горы. Перестаньте.",
      "Хватит! Мы ещё не решили, что именно хватит. Но хватит.",
      "Остановитесь, пожалуйста. Нет, не пожалуйста. Остановитесь, или мы станем вулканом.",
@@ -1739,7 +1739,7 @@
     ],
     "en": [
      "Stop! Or continue. No, stop, before the crystal shatters all over you.",
-     "We do not like what you are doing. We did. Now we do not. Stop it.",
+     "Our rocks are rumbling. That may mean a threat or lunch. Stop, just in case.",
      "We are trembling. Not from fear. When we tremble, mountains fall. Cease.",
      "Enough! We have not decided what exactly is enough. But enough.",
      "Stop, please. No, not please. Stop, or we become a volcano.",
@@ -1856,7 +1856,7 @@
    },
    "council_vote_against": {
     "ru": [
-     "Мы голосуем против вас. Ничего личного. Или личное? Мы не знаем, что такое личное.",
+     "Голос против вас. Кристалл в голове мигнул, а мы привыкли ему верить.",
      "Наш голос — против. Вчера был за. Вчера было давно.",
      "Коллектив будет голосовать против вас. Кристалл чихнул. Это знак.",
      "Голосуем против! Ой, слишком громко? Голосуем против — тихо.",
@@ -1869,7 +1869,7 @@
     ],
     "en": [
      "We vote against you. Nothing personal. Or personal? We do not know what personal is.",
-     "Our vote is against you. Yesterday it was for you. Yesterday was long ago.",
+     "Against! The crystal in our head flickered, so our vote is against.",
      "The Collective votes against you in the Council. A tremor told us to.",
      "We vote against! Oh, too loud? We vote against, quietly.",
      "Our vote is against. We meant for, but the vote flipped over by itself, like a stratum in a quake.",
@@ -2101,7 +2101,7 @@
      "Мы согласны на мир. Обиды остынут, а договор останется.",
      "Да, мир. Мы не станем требовать больше, чем справедливо.",
      "Коллектив принимает мир и объявляет об этом всем: пусть будут свидетели.",
-     "Мир. Война была честной — таким же будет и мир."
+     "Мы принимаем мир. Камень держит форму, и слово наше держит её тоже."
     ],
     "en": [
      "We accept peace and will hold it as rock holds its layers.",
@@ -2130,7 +2130,7 @@
      "Нет. Вы уже просили мира и нарушили его меньше чем через век. Мы помним."
     ],
     "en": [
-     "No. You have broken your word before; we cannot trust it again so soon.",
+     "No. A peace built on a broken oath would crack. Repair the oath first.",
      "We refuse peace. The wrong has not yet cooled, and we will not pretend it has.",
      "The Collective rejects your offer. Justice has not been restored.",
      "No. You have not returned what you took. Peace without reparation is only a pause.",
@@ -2165,12 +2165,12 @@
      "Our ally asked for help, and we gave our word. That word now leads us to war with you.",
      "Let the whole galaxy know: we begin this war honestly, without ambush or deceit.",
      "War is declared. We will fight by the rules, even if you do not.",
-     "Stone does not strike from behind. So we tell you to your face: war."
+     "War. We say it before the avalanche, not after."
     ]
    },
    "break_treaty": {
     "ru": [
-     "Мы расторгаем наш договор и говорим об этом прямо, а не за спиной.",
+     "Договор окончен, потому что вы нарушили его условия. Мы говорим это вам в лицо.",
      "Вы первыми нарушили соглашение. Коллектив больше не связан им.",
      "Пакт окончен. Мы объявляем это открыто, как требует честь камня.",
      "Мы расторгаем договор и честно называем причину: вы скрывали от нас правду.",
@@ -2182,7 +2182,7 @@
      "Мы отзываем свою подпись под пактом. Честь не позволяет нам стоять рядом с теми, кто лжёт."
     ],
     "en": [
-     "We are ending our treaty, and we tell you so to your face, not behind your back.",
+     "The pact is ended, because you broke its terms. We say so to your face.",
      "You broke the agreement first. The Collective is no longer bound by it.",
      "The pact is over. We declare it openly, as the honour of stone requires.",
      "We are ending our treaty, and we name the reason honestly: you hid the truth from us.",
@@ -2235,7 +2235,7 @@
     ],
     "en": [
      "The Collective requires {AMOUNT} for the damage done. No more, no less.",
-     "Justice weighs {AMOUNT}. Pay it, and the account is closed.",
+     "You owe us {AMOUNT} for what was done. Pay it, and we will call the debt settled.",
      "We ask {AMOUNT}, a fair sum. Once paid, the matter is buried like old stone.",
      "Your ships wrecked our mines. Fair compensation is {AMOUNT}.",
      "We ask no charity and take nothing extra. We demand {AMOUNT}, exactly what we lost.",
@@ -2249,7 +2249,7 @@
    "thank_gift": {
     "ru": [
      "Благодарим вас. Коллектив помнит дары так же долго, как обиды.",
-     "Ваш подарок принят с честью. Мы ответим тем же.",
+     "Мы благодарим вас. Честный дар ложится в наш камень навсегда.",
      "Спасибо. Такой дар заслуживает памяти, и камень её сохранит.",
      "Благодарим. Мы не останемся в долгу — так не поступают те, у кого есть честь.",
      "Ваш дар принят. Мы видим в нём не плату, а знак уважения, и отвечаем уважением.",
@@ -2319,7 +2319,7 @@
      "Our vote is yours. We will declare it openly in the Council, not by secret ballot.",
      "The Collective supports you. The Council needs someone who keeps treaties.",
      "We vote for you. It is not payment for favours; it is recognition of merit.",
-     "We give you our vote and ask nothing in return. An honest choice is not for sale.",
+     "Our vote is yours, because you kept every agreement. A promise kept sits in stone.",
      "Our vote is yours, as we promised.",
      "We will vote for you. If you betray that trust, we will say so just as openly."
     ]
@@ -2328,7 +2328,7 @@
     "ru": [
      "Мы будем голосовать против вас и говорим это заранее, чтобы не было обмана.",
      "Коллектив не отдаст вам голос. Вы не держали слова, а камень это помнит.",
-     "Наш голос в Совете — против. Это не вражда, это честное суждение.",
+     "Мы заранее сообщаем вам: наш голос в Совете будет против. Камень не лжёт.",
      "Мы голосуем против вас. Мы вас уважаем, но Совету нужен другой правитель.",
      "Наш голос против. Вы обещали Совету многое и выполнили мало.",
      "Коллектив не поддержит вас в Совете. Причину скажем прямо: вы воевали нечестно.",
@@ -2783,7 +2783,7 @@
     ],
     "en": [
      "We vote for you. You have been kind, and kindness is harder than granite.",
-     "Our vote is yours. Let the Council be led by one who wants peace.",
+     "We vote for you. Let the Council be as peaceful as a mountain at dawn.",
      "The Collective supports you in the Council, quietly and firmly, like the root of a mountain.",
      "Our vote is for you. We will hold it as firmly as a mountain holds a cloud.",
      "We will vote for you in the Council. You are quiet, and we like the quiet.",
@@ -2796,7 +2796,7 @@
    },
    "council_vote_against": {
     "ru": [
-     "Простите, мы будем голосовать против вас. Мы боимся, что ваша власть принесёт войну.",
+     "Простите, но наш голос против вас. Камень любит тишину, а ваша власть не будет тихой.",
      "Наш голос не ваш. Не сердитесь: мы просто ищем того, кто тише.",
      "Мы голосуем против. Без злобы. Камень выбирает покой.",
      "Нет, наш голос не ваш. В совете нужна тишина, а вы гремите.",
@@ -2808,7 +2808,7 @@
      "Мы голосуем против вас, мягкие. Пусть совет выберет того, кто несёт мир, а не огонь."
     ],
     "en": [
-     "Forgive us, we will vote against you. We fear your rule would bring war.",
+     "We are sorry, but our vote is against you. Stone prefers quiet, and your rule would not be quiet.",
      "Our vote is not yours. Do not be angry; we only seek someone quieter.",
      "We vote against you. Without malice. Stone chooses stillness.",
      "No, our vote is not yours. The Council needs quiet, and you thunder.",
