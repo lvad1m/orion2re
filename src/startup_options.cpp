@@ -19,6 +19,8 @@ namespace startup {
             {"oracle-record", true},
             {"oracle-replay", true},
             {"oracle-turns", true},
+            {"oracle-seed", true},
+            {"oracle-difficulty", true},
 #endif
         };
         std::vector<command_line::s_option> parsed;
@@ -59,6 +61,26 @@ namespace startup {
                     }
                     break;
                 }
+                case 7: {
+                    const char* begin = option.value.data();
+                    const char* end = begin + option.value.size();
+                    const auto result = std::from_chars(begin, end, options->oracle_seed);
+                    if (result.ec != std::errc() || result.ptr != end || options->oracle_seed < 1 || options->oracle_seed > 2147483647u) {
+                        *error = "oracle-seed expects a whole number from 1 to 2147483647";
+                        return false;
+                    }
+                    break;
+                }
+                case 8: {
+                    const char* begin = option.value.data();
+                    const char* end = begin + option.value.size();
+                    const auto result = std::from_chars(begin, end, options->oracle_difficulty);
+                    if (result.ec != std::errc() || result.ptr != end || options->oracle_difficulty < 0 || options->oracle_difficulty > 4) {
+                        *error = "oracle-difficulty expects 0 (tutor) to 4 (impossible)";
+                        return false;
+                    }
+                    break;
+                }
             }
         }
         if ((!options->oracle_record.empty() && !options->oracle_replay.empty()) ||
@@ -69,6 +91,10 @@ namespace startup {
         for (const command_line::s_option& option : parsed) {
             if (option.definition_index == 6 && options->oracle_record.empty()) {
                 *error = "oracle-turns requires oracle-record; replay uses the recorded turn count";
+                return false;
+            }
+            if ((option.definition_index == 7 || option.definition_index == 8) && options->oracle_record.empty()) {
+                *error = "oracle-seed and oracle-difficulty require oracle-record; replay uses the recorded game";
                 return false;
             }
         }
