@@ -4,6 +4,8 @@
 
 #include "config/config_loader.h"
 #include "config/config_snapshot.h"
+#include "game/advisor.h"
+#include "game/advisor_directive.h"
 #include "game/save_sections.h"
 #include "lua/lua_game.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1802,8 +1804,15 @@ namespace SAVEGAME {
             }
             return false;
         }
-        const uint32_t extension_size = Extension_Size(
-            config_snapshot_size + lua_snapshot_size, 2);
+        // The advisor section exists only while the advisor is on, so saves made with it off
+        // stay byte-identical to the older format.
+        const bool write_advisor = advisor::enabled;
+        const uint32_t advisor_size =
+            write_advisor ? static_cast<uint32_t>(advisor::Save_Size()) : 0;
+        const uint32_t section_count = write_advisor ? 3 : 2;
+        const uint32_t payload_size =
+            config_snapshot_size + lua_snapshot_size + advisor_size;
+        const uint32_t extension_size = Extension_Size(payload_size, section_count);
         writer->Write_Uint32(VERSIONED_HEADER);
         writer->Write_Bytes(description, sizeof(s_metadata::description));
         writer->Write_Int32(MOX::stardate);
@@ -1817,8 +1826,7 @@ namespace SAVEGAME {
             }
             return false;
         }
-        Write_Extension_Header(
-            writer, config_snapshot_size + lua_snapshot_size, 2);
+        Write_Extension_Header(writer, payload_size, section_count);
         Write_Section_Header(writer,
             SECTION_TYPE_CONFIG,
             SECTION_FORMAT_VERSION,
@@ -1831,6 +1839,14 @@ namespace SAVEGAME {
             SECTION_FLAG_REQUIRED,
             lua_snapshot_size);
         orion2re::lua::Write_Lua_Save_Snapshot(writer, &lua_snapshot);
+        if (write_advisor) {
+            Write_Section_Header(writer,
+                SECTION_TYPE_ADVISOR,
+                ADVISOR_SECTION_VERSION,
+                0,
+                advisor_size);
+            advisor::Write_Save(writer);
+        }
         return true;
     }
 
@@ -1838,6 +1854,8 @@ namespace SAVEGAME {
         pending_loaded_config_message = false;
         if (error_text != nullptr) error_text->clear();
         if (reader == nullptr || metadata == nullptr || saved_settings == nullptr || random_seed == nullptr) return false;
+        // A save without the advisor section, or a failed load, leaves no directives behind.
+        advisor::Clear_All_Directives();
 
         metadata->header = reader->Read_Uint32();
         if (metadata->header != LEGACY_HEADER && metadata->header != VERSIONED_HEADER) return false;
@@ -1885,6 +1903,8 @@ namespace SAVEGAME {
         config::s_config_snapshot snapshot;
         orion2re::lua::s_lua_save_snapshot lua_snapshot;
         const orion2re::lua::s_lua_save_snapshot* lua_snapshot_ptr = nullptr;
+        advisor::s_directive loaded_directives[MAX_PLAYERS];
+        bool found_advisor_directives = false;
         if (metadata->version >= LUA_SAVE_SNAPSHOT_VERSION) {
             s_section_view sections[MAX_EXTENSION_SECTIONS];
             uint32_t section_count = 0;
@@ -1903,10 +1923,43 @@ namespace SAVEGAME {
             }
             bool found_config = false;
             bool found_lua = false;
+            bool found_advisor = false;
             for (uint32_t section_index = 0;
                  section_index < section_count;
                  ++section_index) {
                 const s_section_view& section = sections[section_index];
+                if (section.type == SECTION_TYPE_ADVISOR) {
+                    if (section.version != ADVISOR_SECTION_VERSION) {
+                        if ((section.flags & SECTION_FLAG_REQUIRED) != 0) {
+                            if (error_text != nullptr) {
+                                *error_text = "unsupported required save section version";
+                            }
+                            return fail_after_native_read();
+                        }
+                        continue;
+                    }
+                    SERIAL::Reader_ advisor_reader(section.data, section.size, "invalid save extension section payload", true);
+                    std::string advisor_error;
+                    if (found_advisor ||
+                        !advisor::Read_Save(&advisor_reader, &advisor_error) ||
+                        advisor_reader.Remaining() != 0) {
+                        if (error_text != nullptr) {
+                            *error_text = "Error loading advisor directives: " +
+                                (advisor_error.empty() ? std::string("duplicate section") : advisor_error);
+                        }
+                        advisor::Clear_All_Directives();
+                        return fail_after_native_read();
+                    }
+                    // Read_Save filled the store; take the parsed directives out and
+                    // leave the store empty until the load commits.
+                    for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
+                        loaded_directives[player] = *advisor::Get_Directive(player);
+                    }
+                    advisor::Clear_All_Directives();
+                    found_advisor = true;
+                    found_advisor_directives = true;
+                    continue;
+                }
                 if (section.version != SECTION_FORMAT_VERSION) {
                     if ((section.flags & SECTION_FLAG_REQUIRED) != 0) {
                         if (error_text != nullptr) {
@@ -2014,6 +2067,11 @@ namespace SAVEGAME {
         }
         orion2re::lua::game::Commit_Semantic_State_Replacement(
             &semantic_state_replacement);
+        if (found_advisor_directives) {
+            for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
+                advisor::Set_Directive(player, &loaded_directives[player]);
+            }
+        }
         free(prior_state);
         return true;
     }

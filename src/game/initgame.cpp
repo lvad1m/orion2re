@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "legacy_world.h"
+#include "game/advisor.h"
 #include "string_overrides.h"
 
 #include "lua/lua_game.h"
@@ -136,6 +137,7 @@ namespace INITGAME {
             return false;
         }
         AIDATA::Reset(&AIDATA::state);
+        advisor::Reset();
         game::current = legacy_world::World();
         orion2re::lua::game::Reset_Semantic_State();
         const bool random_player_count =

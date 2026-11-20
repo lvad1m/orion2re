@@ -68,7 +68,7 @@
     ai_and_diplomacy: {
       title: "AI and diplomacy",
       description: "Computer-player behavior and diplomatic rules.",
-      namespaces: ["ai", "diplomacy"],
+      namespaces: ["ai", "diplomacy", "advisor"],
     },
     espionage: {
       title: "Espionage",
@@ -124,6 +124,14 @@
       kind: "enum",
       base_type: "uint8",
       values: { prewarp: 0, average: 1, advanced: 2 },
+    },
+    advisor_journal_mode: {
+      title: "Advisor journal mode",
+      description: "Selects how much the advisor writes to its turn journal.",
+      remarks: "off writes nothing, decisions writes one line per computer empire per turn, and full adds the empire summary the advisor saw.",
+      kind: "enum",
+      base_type: "uint8",
+      values: { off: 0, decisions: 1, full: 2 },
     },
     antaran_difficulty_band: {
       title: "Antaran difficulty band",
@@ -8400,6 +8408,36 @@
       bind_root: {
         header: "game/events.h",
         symbol: "EVENTS::force_event_type",
+      },
+    },
+
+    enabled: {
+      title: "Advisor enabled",
+      description: "Lets the advisor give strategic directives to computer-controlled empires each turn.",
+      remarks: "False preserves classic behavior: the advisor does nothing and computer empires play by the original AI.",
+      examples: ["advisor enabled = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::enabled",
+      },
+    },
+
+    journal: {
+      title: "Advisor journal",
+      description: "Selects how much the advisor writes to its turn journal file on this machine.",
+      remarks: "The journal never affects game state. off writes nothing, decisions writes one line per computer empire per turn, and full adds the empire summary.",
+      examples: ["advisor journal = full;"],
+      group: "interface",
+      namespace: "advisor",
+      type: "advisor_journal_mode",
+      default: "off",
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::journal",
       },
     },
 

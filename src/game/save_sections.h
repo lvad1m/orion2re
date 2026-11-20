@@ -19,7 +19,10 @@ namespace SAVEGAME {
 
     inline constexpr uint32_t SECTION_TYPE_CONFIG = 0x464E4F43;
     inline constexpr uint32_t SECTION_TYPE_LUA = 0x2041554C;
+    // 'ADVS' in the same byte order as the codes above (first character is the lowest byte).
+    inline constexpr uint32_t SECTION_TYPE_ADVISOR = 0x53564441;
     inline constexpr uint16_t SECTION_FORMAT_VERSION = 1;
+    inline constexpr uint16_t ADVISOR_SECTION_VERSION = 1;
     inline constexpr uint16_t SECTION_FLAG_REQUIRED = 1;
 
     struct s_section_view {

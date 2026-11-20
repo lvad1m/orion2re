@@ -1,0 +1,321 @@
+#include "pch.h"
+
+#include "game/advisor_view.h"
+
+#include <algorithm>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+
+#include "game/aipower.h"
+#include "game/harold.h"
+#include "game/legacy_ids.h"
+#include "game/shipstak.h"
+
+namespace advisor {
+
+    namespace {
+        // Ship status below this value is a live ship (colcalc Update_Player_Counts, aibuild).
+        constexpr int32_t SHIP_STATUS_FIRST_NOT_ALIVE = 5;
+
+        void Copy_Name(char* dest, const char* source, size_t source_size) {
+            size_t length = 0;
+            while (length < source_size && source[length] != '\0') {
+                ++length;
+            }
+            if (length > static_cast<size_t>(VIEW_NAME_LENGTH - 1)) {
+                length = VIEW_NAME_LENGTH - 1;
+            }
+            std::memcpy(dest, source, length);
+            dest[length] = '\0';
+        }
+
+        void Set_Fact(s_fact* fact, int32_t value, e_fact_source source, e_confidence confidence, int32_t stardate) {
+            fact->value = value;
+            fact->source = source;
+            fact->confidence = confidence;
+            fact->stardate = stardate;
+        }
+
+        bool Ship_Is_Alive(const s_ship_data* ship) {
+            return ship->owner >= 0 && ship->owner < MAX_PLAYERS && ship->status < SHIP_STATUS_FIRST_NOT_ALIVE;
+        }
+
+        // The measure the computer empires use for fleet power (aidata.cpp, strengths[]):
+        // AIPOWER::Ship_Strength_Vs_Ships, combat ships only, taken against the observer's best
+        // shields so own and visible enemy ships are measured on one scale.
+        // In strategic combat that function refreshes the ship's design to the owner's best tech
+        // (INITSHIP::Update_Strategic_Ship), the same idempotent refresh the AI performs each turn.
+        int32_t Combat_Ship_Strength(const game::s_view* world, int32_t ship_index, uint8_t observer) {
+            if (world->settings == nullptr || world->ships[ship_index].d.ship_type != SHIP_TYPE_COMBAT) {
+                return 0;
+            }
+            return AIPOWER::Ship_Strength_Vs_Ships(
+                world, legacy_world::Ship_Id(static_cast<uint32_t>(ship_index)), legacy_world::Player_Id(observer));
+        }
+
+        bool Star_Visited_By(const game::s_view* world, int32_t star_index, uint8_t player) {
+            if (star_index < 0 || star_index >= world->Star_Count()) {
+                return false;
+            }
+            return (world->stars[star_index].visited & (1u << (player & 0x1F))) != 0;
+        }
+
+        void Fill_Self(const game::s_view* world, uint8_t player, s_view_self* self) {
+            const s_player& plr = world->players[player];
+
+            self->player = player;
+            Copy_Name(self->race_name, plr.race_name, sizeof(plr.race_name));
+            Copy_Name(self->leader_name, plr.name, sizeof(plr.name));
+            self->objective = plr.objectives;
+            self->personality = plr.personality;
+            self->stardate = world->Stardate();
+            self->treasury_bc = plr.bc;
+            // Cached by COLCALC::Update_Player_Stats on the same rule the screens use.
+            self->income_bc = plr.surplus_bc;
+            self->industry = plr.industry_produced;
+            self->research = plr.research_produced;  // the game stores 0x7FFF here for a special case
+            self->food_surplus = plr.surplus_food;
+            self->population = plr.total_pop;
+            self->command_points = plr.command_points;
+            self->command_points_used = plr.command_points_used;
+            self->stars_total = world->Star_Count();
+
+            for (int32_t i = 0; i < world->Star_Count(); ++i) {
+                if (Star_Visited_By(world, i, player)) {
+                    ++self->stars_explored;
+                }
+            }
+            for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                if (world->colonies[i].owner == static_cast<int8_t>(player)) {
+                    ++self->colonies;
+                }
+            }
+            for (int32_t i = 0; i < world->Ship_Count(); ++i) {
+                const s_ship_data* ship = &world->ships[i];
+                if (Ship_Is_Alive(ship) && ship->owner == static_cast<int8_t>(player)) {
+                    ++self->ships;
+                    self->fleet_strength += Combat_Ship_Strength(world, i, player);
+                }
+            }
+        }
+
+        void Fill_Contact(const game::s_view* world, uint8_t player, uint8_t other, s_view_contact* contact) {
+            const s_player& me = world->players[player];
+            const s_player& them = world->players[other];
+            const int32_t now = world->Stardate();
+
+            contact->player = other;
+            Copy_Name(contact->race_name, them.race_name, sizeof(them.race_name));
+            Copy_Name(contact->leader_name, them.name, sizeof(them.name));
+            contact->personality = them.personality;
+
+            Set_Fact(&contact->relations, me.relations[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->treaty, me.treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->trade_treaty, me.trade_treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->research_treaty, me.research_treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+
+            int32_t known_colonies = 0;
+            for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                const s_colony* colony = &world->colonies[i];
+                if (colony->owner != static_cast<int8_t>(other) || colony->planet < 0
+                    || colony->planet >= world->Planet_Count()) {
+                    continue;
+                }
+                if (Star_Visited_By(world, world->planets[colony->planet].star_index, player)) {
+                    ++known_colonies;
+                }
+            }
+            Set_Fact(&contact->known_colonies, known_colonies, FACT_OWN_RECORDS, CONFIDENCE_MEDIUM, now);
+
+            int32_t visible_ships = 0;
+            int32_t visible_strength = 0;
+            for (int32_t i = 0; i < world->Ship_Count(); ++i) {
+                const s_ship_data* ship = &world->ships[i];
+                if (!Ship_Is_Alive(ship) || ship->owner != static_cast<int8_t>(other)) {
+                    continue;
+                }
+                if (!SHIPSTAK::Is_Ship_Detected_By(static_cast<int16_t>(i), player)) {
+                    continue;
+                }
+                ++visible_ships;
+                visible_strength += Combat_Ship_Strength(world, i, player);
+            }
+            Set_Fact(&contact->visible_ships, visible_ships, FACT_SENSORS, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->visible_fleet_strength, visible_strength, FACT_SENSORS, CONFIDENCE_HIGH, now);
+
+            // ship_war_losses[x] / colony_war_losses[x]: losses suffered in war with x (assumed).
+            Set_Fact(&contact->our_ship_losses, me.ship_war_losses[other], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->their_ship_losses, them.ship_war_losses[player], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->our_colony_losses, me.colony_war_losses[other], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
+
+            contact->our_spies = me.spies[other];
+        }
+
+        void Append_Format(std::string* out, const char* format, ...) {
+            char buffer[512];
+            va_list args;
+            va_start(args, format);
+            const int written = std::vsnprintf(buffer, sizeof(buffer), format, args);
+            va_end(args);
+            if (written > 0) {
+                out->append(buffer, std::min<size_t>(static_cast<size_t>(written), sizeof(buffer) - 1));
+            }
+        }
+
+        void Append_Tag(std::string* out, const s_fact& fact) {
+            Append_Format(out, " [%s, %d, %s]", Fact_Source_Name(fact.source), static_cast<int>(fact.stardate),
+                          Confidence_Name(fact.confidence));
+        }
+
+        void Append_Fact_Line(std::string* out, const char* label, const s_fact& fact) {
+            Append_Format(out, "   - %s %d", label, static_cast<int>(fact.value));
+            Append_Tag(out, fact);
+            out->push_back('\n');
+        }
+    } // namespace
+
+    bool Build_Empire_View(const game::s_view* world, uint8_t player, s_empire_view* out) {
+        if (out == nullptr) {
+            return false;
+        }
+        *out = s_empire_view{};
+        if (world == nullptr || world->players == nullptr || world->ships == nullptr || world->stars == nullptr
+            || world->colonies == nullptr || world->planets == nullptr) {
+            return false;
+        }
+        if (player >= world->Player_Count() || player >= MAX_PLAYERS || world->players[player].eliminated != 0) {
+            return false;
+        }
+
+        Fill_Self(world, player, &out->self);
+
+        for (int32_t other = 0; other < world->Player_Count() && other < MAX_PLAYERS; ++other) {
+            if (other == player || world->players[player].contact[other] == 0 || world->players[other].eliminated != 0) {
+                continue;
+            }
+            Fill_Contact(world, player, static_cast<uint8_t>(other), &out->contacts[out->contact_count]);
+            ++out->contact_count;
+        }
+        return true;
+    }
+
+    void Format_Empire_Summary(const s_empire_view* view, std::string* out) {
+        if (out == nullptr) {
+            return;
+        }
+        out->clear();
+        if (view == nullptr) {
+            return;
+        }
+        const s_view_self& self = view->self;
+
+        Append_Format(out, "STARDATE %d. You advise the %s (player %d). Leader: %s. Personality: %s. Objective: %s.\n",
+                      static_cast<int>(self.stardate), self.race_name, static_cast<int>(self.player), self.leader_name,
+                      Personality_Name(self.personality), Objective_Name(self.objective));
+        Append_Format(out, "OUR STATE: %d colonies, population %d, industry %d/turn, research %d RP/turn, "
+                           "income %+d BC/turn, treasury %d BC, food %+d.\n",
+                      static_cast<int>(self.colonies), static_cast<int>(self.population), static_cast<int>(self.industry),
+                      static_cast<int>(self.research), static_cast<int>(self.income_bc),
+                      static_cast<int>(self.treasury_bc), static_cast<int>(self.food_surplus));
+        Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars.\n",
+                      static_cast<int>(self.ships), static_cast<int>(self.fleet_strength),
+                      static_cast<int>(self.command_points_used), static_cast<int>(self.command_points),
+                      static_cast<int>(self.stars_explored), static_cast<int>(self.stars_total));
+
+        out->append("CONTACTS:");
+        if (view->contact_count <= 0) {
+            out->append(" none\n");
+            return;
+        }
+        out->push_back('\n');
+
+        const int32_t count = view->contact_count < MAX_PLAYERS ? view->contact_count : MAX_PLAYERS;
+        for (int32_t i = 0; i < count; ++i) {
+            const s_view_contact& contact = view->contacts[i];
+            Append_Format(out, "%d. %s (player %d). Leader: %s. Personality: %s.\n", static_cast<int>(i + 1),
+                          contact.race_name, static_cast<int>(contact.player), contact.leader_name,
+                          Personality_Name(contact.personality));
+            Append_Fact_Line(out, "relations", contact.relations);
+            Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
+            Append_Tag(out, contact.treaty);
+            out->push_back('\n');
+            Append_Format(out, "   - trade treaty %s", contact.trade_treaty.value != 0 ? "yes" : "no");
+            Append_Tag(out, contact.trade_treaty);
+            out->push_back('\n');
+            Append_Format(out, "   - research treaty %s", contact.research_treaty.value != 0 ? "yes" : "no");
+            Append_Tag(out, contact.research_treaty);
+            out->push_back('\n');
+            Append_Fact_Line(out, "known colonies", contact.known_colonies);
+            Append_Fact_Line(out, "visible ships", contact.visible_ships);
+            Append_Fact_Line(out, "visible fleet strength", contact.visible_fleet_strength);
+            Append_Fact_Line(out, "ships we lost to them", contact.our_ship_losses);
+            Append_Fact_Line(out, "ships they lost to us", contact.their_ship_losses);
+            Append_Fact_Line(out, "colonies we lost to them", contact.our_colony_losses);
+            Append_Format(out, "   - our spies in their empire: %d\n", static_cast<int>(contact.our_spies));
+        }
+    }
+
+    const char* Objective_Name(uint8_t objective) {
+        switch (objective) {
+            case PLAYER_OBJECTIVE_DIPLOMATIC: return "diplomatic";
+            case PLAYER_OBJECTIVE_MILITARIST: return "militarist";
+            case PLAYER_OBJECTIVE_EXPANSIONIST: return "expansionist";
+            case PLAYER_OBJECTIVE_TECHNOLOGIST: return "technologist";
+            case PLAYER_OBJECTIVE_INDUSTRIALIST: return "industrialist";
+            case PLAYER_OBJECTIVE_ECOLOGIST: return "ecologist";
+            case PLAYER_OBJECTIVE_HUMAN: return "human";
+            default: return "unknown";
+        }
+    }
+
+    const char* Personality_Name(uint8_t personality) {
+        switch (personality) {
+            case PLAYER_PERSONALITY_XENOPHOBIC: return "xenophobic";
+            case PLAYER_PERSONALITY_RUTHLESS: return "ruthless";
+            case PLAYER_PERSONALITY_AGGRESSIVE: return "aggressive";
+            case PLAYER_PERSONALITY_ERRATIC: return "erratic";
+            case PLAYER_PERSONALITY_HONORABLE: return "honorable";
+            case PLAYER_PERSONALITY_PACIFIST: return "pacifist";
+            case PLAYER_PERSONALITY_DISHONORED: return "dishonored";
+            default: return "unknown";
+        }
+    }
+
+    // s_player::treaty: 0 none, 1 non-aggression, 2 alliance, 3 peace (diplomac.cpp), 4 and above
+    // are the war states (npcdiplo/aimove treat 4-6 as hostile; 6 is TOTAL_WAR in diplomac.cpp).
+    const char* Treaty_Name(int32_t treaty) {
+        switch (treaty) {
+            case 0: return "no treaty";
+            case 1: return "non-aggression pact";
+            case 2: return "alliance";
+            case 3: return "peace";
+            case 4: return "war";
+            case 5: return "war";
+            case 6: return "total war";
+            default: return "unknown";
+        }
+    }
+
+    const char* Fact_Source_Name(uint8_t source) {
+        switch (source) {
+            case FACT_OWN_RECORDS: return "own records";
+            case FACT_DIPLOMACY: return "diplomacy";
+            case FACT_SENSORS: return "sensors";
+            case FACT_BATTLE: return "battle";
+            case FACT_SPY: return "spy";
+            case FACT_RUMOR: return "rumor";
+            default: return "unknown";
+        }
+    }
+
+    const char* Confidence_Name(uint8_t confidence) {
+        switch (confidence) {
+            case CONFIDENCE_LOW: return "low";
+            case CONFIDENCE_MEDIUM: return "medium";
+            case CONFIDENCE_HIGH: return "high";
+            default: return "none";
+        }
+    }
+
+} // namespace advisor

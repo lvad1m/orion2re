@@ -63,6 +63,23 @@ namespace SHIPSTAK {
     // Builds ship stacks from active ships and sorts each resulting stack.
     void __cdecl Find_Ship_Stacks();
 
+    // Returns the observer's best detection score at a map point (-300 when nothing scans it).
+    // Reads game state only: scanner research, colonies (bases), own ships, scan_bonus ranges.
+    // observer: Player index whose sensors are evaluated.
+    // x, y: Map coordinates of the point being scanned.
+    int32_t Best_Detection_At(uint8_t observer, int32_t x, int32_t y);
+
+    // Returns the detection score a scanner must reach to see the ship (lower is easier to see).
+    // Covers monsters, travelling size penalty, stealthy-ships trait and stealth devices.
+    // ship_index: Ship table index to evaluate.
+    int32_t Ship_Detection_Threshold(int16_t ship_index);
+
+    // Returns true when the observer sees the ship; own ships are always seen.
+    // Pure: does not touch PLAYER_NUM, ship stacks or random state.
+    // ship_index: Ship table index to evaluate.
+    // observer: Player index looking at the ship.
+    bool Is_Ship_Detected_By(int16_t ship_index, uint8_t observer);
+
     // Removes enemy ships from stacks when the current player cannot detect them.
     void __cdecl Remove_Non_Detected_Ships();
 

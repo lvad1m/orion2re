@@ -164,6 +164,12 @@ namespace AIDATA {
     void Complete_Turn(s_state*) {}
 }
 
+namespace advisor {
+    void Run_Turn(const game::s_view*) {
+        TEST_NEXTTURN::ai_service_order.emplace_back("advisor");
+    }
+}
+
 namespace DIP_SCRN {
     void Resolve_Delayed_Diplomacy_Orders() {}
     void __cdecl Set_Opportunity_Attacks() {}

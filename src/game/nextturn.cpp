@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "legacy_world.h"
+#include "game/advisor.h"
 
 #include "lua/lua_game.h"
 
@@ -34,6 +35,7 @@ namespace NEXTTURN {
         AIDATA::s_state* ai = &AIDATA::state;
         RUSS::Mox_Update();
         if (!AIDATA::Compute_AI_Data(ai, world)) return false;
+        advisor::Run_Turn(world);
         DIP_SCRN::Resolve_Delayed_Diplomacy_Orders();
         DIP_SCRN::Set_Opportunity_Attacks();
         diplomac::Clear_Diplomacy_Messages();

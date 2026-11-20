@@ -4,6 +4,8 @@
 
 #include "config/config_loader.h"
 #include "config/config_snapshot.h"
+#include "game/advisor.h"
+#include "game/advisor_directive.h"
 #include "game/savegame.h"
 #include "game/save_sections.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1601,5 +1603,173 @@ DOCTEST_TEST_CASE("save reader rejects invalid and unsupported headers") {
         writer.Write_Uint16(SAVEGAME::CURRENT_VERSION + 1);
         SERIAL::Reader_ reader(buffer, writer.Length(), "test underflow");
         DOCTEST_CHECK_FALSE(SAVEGAME::Read_Game(&reader, &metadata, &settings, &random_seed));
+    }
+}
+
+namespace {
+    struct s_advisor_save_scope {
+        bool old_enabled = advisor::enabled;
+
+        s_advisor_save_scope() {
+            advisor::Clear_All_Directives();
+        }
+        ~s_advisor_save_scope() {
+            advisor::Clear_All_Directives();
+            advisor::enabled = old_enabled;
+        }
+    };
+
+    struct s_advisor_save {
+        std::unique_ptr<uint8_t[]> bytes = std::make_unique<uint8_t[]>(SAVEGAME::BUFFER_CAPACITY);
+        uint32_t size = 0;
+    };
+
+    void Prepare_Advisor_Save_State_(State_& state) {
+        Bind_State_(state);
+        Fill_State_(state);
+        config::s_config_state default_config;
+        DOCTEST_REQUIRE(config::Initialize_Defaults(&default_config));
+        DOCTEST_REQUIRE(config::Commit_State(&default_config));
+        TEST_CONFIG_SNAPSHOT::active_config.baseline.effective.state = default_config;
+        TEST_CONFIG_SNAPSHOT::active_config.required_mods.clear();
+        MOX::NUM_SHIPS = 0;
+        MOX::NUM_COLONIES = 0;
+    }
+
+    void Write_Advisor_Save_(s_advisor_save* save) {
+        SERIAL::Writer_ writer(save->bytes.get(), SAVEGAME::BUFFER_CAPACITY, "test save overflow");
+        const char description[37] = "Advisor section";
+        DOCTEST_REQUIRE(SAVEGAME::Write_Game(&writer, description, 0x1234));
+        save->size = writer.Length();
+    }
+
+    bool Read_Advisor_Save_(const s_advisor_save& save) {
+        SERIAL::Reader_ reader(save.bytes.get(), save.size, "test save underflow");
+        SAVEGAME::s_metadata metadata = {};
+        s_settings settings = {};
+        uint32_t seed = 0;
+        return SAVEGAME::Read_Game(&reader, &metadata, &settings, &seed);
+    }
+
+    // Section count field of the last extension header in the save.
+    uint32_t Extension_Section_Count_(const s_advisor_save& save) {
+        uint8_t magic[sizeof(uint32_t)];
+        const uint32_t magic_value = SAVEGAME::EXTENSION_MAGIC;
+        memcpy(magic, &magic_value, sizeof(magic));
+        const uint8_t* begin = save.bytes.get();
+        const uint8_t* end = begin + save.size;
+        const uint8_t* found = std::find_end(begin, end, magic, magic + sizeof(magic));
+        DOCTEST_REQUIRE(found != end);
+        uint32_t count = 0;
+        memcpy(&count, found + 12, sizeof(count));
+        return count;
+    }
+
+    void Set_Test_Directive_() {
+        advisor::s_directive directive;
+        directive.source = advisor::SOURCE_DEBUG;
+        directive.issued_stardate = 35000;
+        directive.expires_stardate = 35010;
+        directive.posture = advisor::POSTURE_DEFEND;
+        directive.attitude[1] = advisor::ATTITUDE_FRIENDLY;
+        directive.main_rival = 1;
+        directive.weights[advisor::WEIGHT_FOOD] = advisor::LEVEL_HIGH;
+        directive.rule_id = 0x0102;
+        advisor::Set_Directive(2, &directive);
+    }
+
+    // Header of the advisor section: it is the last section, so it sits Save_Size() + 12 bytes from the end.
+    uint8_t* Advisor_Section_Header_(s_advisor_save* save) {
+        return save->bytes.get() + save->size - advisor::Save_Size() - SAVEGAME::SECTION_HEADER_SIZE;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("save with the advisor enabled carries the advisor section and restores directives") {
+    s_advisor_save_scope scope;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+
+    advisor::enabled = true;
+    Set_Test_Directive_();
+    s_advisor_save save;
+    Write_Advisor_Save_(&save);
+    DOCTEST_CHECK(Extension_Section_Count_(save) == 3);
+    uint32_t type = 0;
+    memcpy(&type, Advisor_Section_Header_(&save), sizeof(type));
+    DOCTEST_CHECK(type == SAVEGAME::SECTION_TYPE_ADVISOR);
+
+    advisor::Clear_All_Directives();
+    DOCTEST_REQUIRE(Read_Advisor_Save_(save));
+    const advisor::s_directive* restored = advisor::Get_Directive(2);
+    DOCTEST_REQUIRE(restored != nullptr);
+    DOCTEST_CHECK(restored->source == advisor::SOURCE_DEBUG);
+    DOCTEST_CHECK(restored->issued_stardate == 35000);
+    DOCTEST_CHECK(restored->expires_stardate == 35010);
+    DOCTEST_CHECK(restored->posture == advisor::POSTURE_DEFEND);
+    DOCTEST_CHECK(restored->attitude[1] == advisor::ATTITUDE_FRIENDLY);
+    DOCTEST_CHECK(restored->main_rival == 1);
+    DOCTEST_CHECK(restored->weights[advisor::WEIGHT_FOOD] == advisor::LEVEL_HIGH);
+    DOCTEST_CHECK(restored->rule_id == 0x0102);
+    DOCTEST_CHECK(advisor::Get_Directive(0)->source == advisor::SOURCE_NONE);
+}
+
+DOCTEST_TEST_CASE("save with the advisor disabled has two sections and loads with an empty store") {
+    s_advisor_save_scope scope;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+
+    advisor::enabled = false;
+    s_advisor_save without;
+    Write_Advisor_Save_(&without);
+    DOCTEST_CHECK(Extension_Section_Count_(without) == 2);
+
+    advisor::enabled = true;
+    s_advisor_save with;
+    Write_Advisor_Save_(&with);
+    DOCTEST_CHECK(with.size == without.size + SAVEGAME::SECTION_HEADER_SIZE + advisor::Save_Size());
+
+    // Stale directives from an earlier game must not survive a load of a save without the section.
+    Set_Test_Directive_();
+    DOCTEST_REQUIRE(Read_Advisor_Save_(without));
+    for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
+        DOCTEST_CHECK(advisor::Get_Directive(player)->source == advisor::SOURCE_NONE);
+    }
+}
+
+DOCTEST_TEST_CASE("advisor section with an unknown version is skipped when optional and fails when required") {
+    s_advisor_save_scope scope;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+
+    advisor::enabled = true;
+    Set_Test_Directive_();
+    s_advisor_save save;
+    Write_Advisor_Save_(&save);
+
+    const uint16_t unknown_version = SAVEGAME::ADVISOR_SECTION_VERSION + 1;
+    memcpy(Advisor_Section_Header_(&save) + 4, &unknown_version, sizeof(unknown_version));
+    DOCTEST_REQUIRE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_NONE);
+
+    const uint16_t required = SAVEGAME::SECTION_FLAG_REQUIRED;
+    memcpy(Advisor_Section_Header_(&save) + 6, &required, sizeof(required));
+    DOCTEST_CHECK_FALSE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_NONE);
+}
+
+DOCTEST_TEST_CASE("corrupt advisor payload fails the load and leaves the store empty") {
+    s_advisor_save_scope scope;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+
+    advisor::enabled = true;
+    Set_Test_Directive_();
+    s_advisor_save save;
+    Write_Advisor_Save_(&save);
+    // First byte after the section header and payload version is player 0's source.
+    Advisor_Section_Header_(&save)[SAVEGAME::SECTION_HEADER_SIZE + sizeof(uint16_t)] = 0x7F;
+    DOCTEST_CHECK_FALSE(Read_Advisor_Save_(save));
+    for (uint8_t player = 0; player < MAX_PLAYERS; ++player) {
+        DOCTEST_CHECK(advisor::Get_Directive(player)->source == advisor::SOURCE_NONE);
     }
 }

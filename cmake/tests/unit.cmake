@@ -1,6 +1,7 @@
 include("${CMAKE_CURRENT_LIST_DIR}/shared_objects.cmake")
 
 set(ORION2RE_DEFAULT_CONFIG_SOURCES
+    src/game/advisor_config.cpp
     src/game/aibuild_config.cpp
     src/game/aidesign_config.cpp
     src/game/aimove_config.cpp
@@ -925,6 +926,17 @@ orion2re_add_unit_test(test_aimove
         tests/fakes/fake_aimove_runtime.cpp
 )
 
+orion2re_add_game_test(test_advisor
+    tests/unit/advisor_test.cpp
+    tests/unit/advisor_view_test.cpp
+    tests/unit/advisor_directive_test.cpp
+    tests/unit/advisor_journal_test.cpp
+)
+
+orion2re_add_game_test(test_advisor_detection
+    tests/unit/advisor_detection_test.cpp
+)
+
 orion2re_add_game_test(test_fleetpop
     tests/unit/fleetpop_test.cpp
     tests/fakes/fake_fleetpop_runtime.cpp
@@ -1299,6 +1311,7 @@ orion2re_add_unit_test(test_savegame
         src/config/generated/config.cpp
         src/game/savegame.cpp
         src/game/save_sections.cpp
+        src/game/advisor_directive.cpp
         src/lua/lua_game_ship_identity.cpp
         src/game/serialization.cpp
         src/game/arena.cpp

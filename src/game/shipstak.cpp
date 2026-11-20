@@ -111,22 +111,142 @@ namespace SHIPSTAK {
         }
     }
 
-    void __cdecl Remove_Non_Detected_Ships() {
-        const int16_t player_num = MOX::PLAYER_NUM;
+    int32_t Best_Detection_At(uint8_t observer, int32_t x, int32_t y) {
         int32_t scan_range = scan_bonus.no_scanner;
 
-        if ((int8_t)MOX::player[player_num].tech_applications[TECH_APP_SPACE_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
+        if ((int8_t)MOX::player[observer].tech_applications[TECH_APP_SPACE_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
             scan_range = scan_bonus.space_scanner;
         }
-        if ((int8_t)MOX::player[player_num].tech_applications[TECH_APP_TACHYON_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
+        if ((int8_t)MOX::player[observer].tech_applications[TECH_APP_TACHYON_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
             scan_range = scan_bonus.tachyon_scanner;
         }
-        if ((int8_t)MOX::player[player_num].tech_applications[TECH_APP_NEUTRON_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
+        if ((int8_t)MOX::player[observer].tech_applications[TECH_APP_NEUTRON_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) {
             scan_range = scan_bonus.neutron_scanner;
         }
-        if ((int8_t)MOX::player[player_num].tech_applications[TECH_APP_SENSORS] == TECH_RESEARCH_STATUS_RESEARCHED) {
+        if ((int8_t)MOX::player[observer].tech_applications[TECH_APP_SENSORS] == TECH_RESEARCH_STATUS_RESEARCHED) {
             scan_range = scan_bonus.sensors;
         }
+
+        int32_t best_detection = -300;
+
+        for (int16_t colony_idx = 0; colony_idx < MOX::NUM_COLONIES; ++colony_idx) {
+            const s_colony& colony = MOX::colony[colony_idx];
+            if ((int16_t)(int8_t)colony.owner == observer) {
+                const int16_t colony_star_idx = MOX::planet[colony.planet].star_index;
+                const s_star_data& colony_star = MOX::star[colony_star_idx];
+
+                int32_t range_steps = (special::Range(
+                                           (int16_t)x,
+                                           (int16_t)y,
+                                           colony_star.x,
+                                           colony_star.y) +
+                                          29) /
+                    30;
+
+                if (range_steps == 0) {
+                    best_detection = scan_bonus.planet;
+                } else {
+                    int32_t detection = scan_range;
+                    if (colony.buildings[BUILDING_STAR_BASE] != 0) {
+                        detection += scan_bonus.star_base;
+                    }
+                    if (colony.buildings[BUILDING_BATTLESTATION] != 0) {
+                        detection += scan_bonus.battlestation;
+                    }
+                    if (colony.buildings[BUILDING_STAR_FORTRESS] != 0) {
+                        detection += scan_bonus.star_fortress;
+                    }
+                    detection -= range_steps;
+                    if (best_detection < detection) {
+                        best_detection = detection;
+                    }
+                }
+            }
+        }
+
+        for (int16_t other_ship_idx = 0; other_ship_idx < MOX::NUM_SHIPS; ++other_ship_idx) {
+            const s_ship_data& other_ship = MOX::ship[other_ship_idx];
+            if ((int16_t)(int8_t)other_ship.owner == observer && (int8_t)other_ship.status < 3) {
+                int32_t range_steps = (special::Range(
+                                           (int16_t)x,
+                                           (int16_t)y,
+                                           other_ship.x,
+                                           other_ship.y) +
+                                          29) /
+                    30;
+
+                if (range_steps == 0) {
+                    best_detection = scan_bonus.fleet;
+                } else {
+                    int32_t detection = scan_range - range_steps;
+                    if (SHIPSTAK::Ship_Has_Special(other_ship_idx, SPECIAL_BATTLE_SCANNER) != 0) {
+                        detection += scan_bonus.battle_scanner;
+                    }
+                    if (SHIPSTAK::Ship_Has_Special(other_ship_idx, SPECIAL_SCOUT_LAB) != 0) {
+                        detection += scan_bonus.scout_lab;
+                    }
+                    if (best_detection < detection) {
+                        best_detection = detection;
+                    }
+                }
+            }
+        }
+
+        return best_detection;
+    }
+
+    int32_t Ship_Detection_Threshold(int16_t ship_index) {
+        const s_ship_data& ship = MOX::ship[ship_index];
+        const int16_t owner = (int16_t)(int8_t)ship.owner;
+
+        const bool stealthy_race =
+            owner < MAX_PLAYERS &&
+            MOX::player[owner].traits[TRAIT_STEALTHY_SHIPS] == 1;
+
+        int32_t device_bonus = 0;
+        if (SHIPSTAK::Ship_Has_Special(ship_index, SPECIAL_STEALTH_FIELD) != 0) {
+            device_bonus += stealth_bonus.stealth_field;
+        }
+        if (SHIPSTAK::Ship_Has_Special(ship_index, SPECIAL_CLOAKING_DEVICE) != 0) {
+            device_bonus += stealth_bonus.cloaking_device;
+        }
+        if (SHIPSTAK::Ship_Has_Special(ship_index, SPECIAL_PHASING_CLOAK) != 0) {
+            device_bonus += stealth_bonus.phasing_cloak;
+        }
+
+        int32_t detection = 0;
+        if (owner == MAX_PLAYERS) {
+            detection = -5;
+        } else if ((int8_t)ship.status == 1 &&
+            SHIPSTAK::Traveling_Size_Penalty_Applies(
+                stealthy_race, device_bonus != 0)) {
+            detection = -ship.d.size;
+        }
+
+        if (stealthy_race) {
+            detection += stealth_bonus.stealthy_ships;
+        }
+
+        detection += device_bonus;
+
+        return detection;
+    }
+
+    bool Is_Ship_Detected_By(int16_t ship_index, uint8_t observer) {
+        const s_ship_data& ship = MOX::ship[ship_index];
+        const int16_t owner = (int16_t)(int8_t)ship.owner;
+
+        if (owner == (int16_t)observer) {
+            return true;
+        }
+        if (owner > MAX_PLAYERS && ship.d.speed == 0) {
+            return HAROLD::Player_Has_Visited(observer, ship.location) != 0;
+        }
+        return !(Best_Detection_At(observer, ship.x, ship.y) < Ship_Detection_Threshold(ship_index));
+    }
+
+    void __cdecl Remove_Non_Detected_Ships() {
+        const int16_t player_num = MOX::PLAYER_NUM;
 
         for (int16_t stack_idx = 0; stack_idx < MOX::ship_stack_count; ++stack_idx) {
             int16_t* stack_head_ptr = &MOX::ship_stack_start[stack_idx];
@@ -134,70 +254,8 @@ namespace SHIPSTAK {
 
             const s_ship_data& stack_head_ship = MOX::ship[MOX::ship_node[stack_head_node].ship_idx];
             if ((int16_t)(int8_t)stack_head_ship.owner != player_num) {
-                int32_t best_detection = -300;
-
-                for (int16_t colony_idx = 0; colony_idx < MOX::NUM_COLONIES; ++colony_idx) {
-                    const s_colony& colony = MOX::colony[colony_idx];
-                    if ((int16_t)(int8_t)colony.owner == player_num) {
-                        const int16_t colony_star_idx = MOX::planet[colony.planet].star_index;
-                        const s_star_data& colony_star = MOX::star[colony_star_idx];
-
-                        int32_t range_steps = (special::Range(
-                                                   stack_head_ship.x,
-                                                   stack_head_ship.y,
-                                                   colony_star.x,
-                                                   colony_star.y) +
-                                                  29) /
-                            30;
-
-                        if (range_steps == 0) {
-                            best_detection = scan_bonus.planet;
-                        } else {
-                            int32_t detection = scan_range;
-                            if (colony.buildings[BUILDING_STAR_BASE] != 0) {
-                                detection += scan_bonus.star_base;
-                            }
-                            if (colony.buildings[BUILDING_BATTLESTATION] != 0) {
-                                detection += scan_bonus.battlestation;
-                            }
-                            if (colony.buildings[BUILDING_STAR_FORTRESS] != 0) {
-                                detection += scan_bonus.star_fortress;
-                            }
-                            detection -= range_steps;
-                            if (best_detection < detection) {
-                                best_detection = detection;
-                            }
-                        }
-                    }
-                }
-
-                for (int16_t other_ship_idx = 0; other_ship_idx < MOX::NUM_SHIPS; ++other_ship_idx) {
-                    const s_ship_data& other_ship = MOX::ship[other_ship_idx];
-                    if ((int16_t)(int8_t)other_ship.owner == player_num && (int8_t)other_ship.status < 3) {
-                        int32_t range_steps = (special::Range(
-                                                   stack_head_ship.x,
-                                                   stack_head_ship.y,
-                                                   other_ship.x,
-                                                   other_ship.y) +
-                                                  29) /
-                            30;
-
-                        if (range_steps == 0) {
-                            best_detection = scan_bonus.fleet;
-                        } else {
-                            int32_t detection = scan_range - range_steps;
-                            if (SHIPSTAK::Ship_Has_Special(other_ship_idx, SPECIAL_BATTLE_SCANNER) != 0) {
-                                detection += scan_bonus.battle_scanner;
-                            }
-                            if (SHIPSTAK::Ship_Has_Special(other_ship_idx, SPECIAL_SCOUT_LAB) != 0) {
-                                detection += scan_bonus.scout_lab;
-                            }
-                            if (best_detection < detection) {
-                                best_detection = detection;
-                            }
-                        }
-                    }
-                }
+                const int32_t best_detection = Best_Detection_At(
+                    (uint8_t)player_num, stack_head_ship.x, stack_head_ship.y);
 
                 int16_t prev_node = -1;
                 for (int16_t node_idx = *stack_head_ptr; node_idx != -1;) {
@@ -208,35 +266,7 @@ namespace SHIPSTAK {
                     int16_t owner = (int16_t)(int8_t)ship.owner;
 
                     if (owner <= MAX_PLAYERS || ship.d.speed != 0) {
-                        const bool stealthy_race =
-                            owner < MAX_PLAYERS &&
-                            MOX::player[owner].traits[TRAIT_STEALTHY_SHIPS] == 1;
-
-                        int32_t device_bonus = 0;
-                        if (SHIPSTAK::Ship_Has_Special(node_ship_idx, SPECIAL_STEALTH_FIELD) != 0) {
-                            device_bonus += stealth_bonus.stealth_field;
-                        }
-                        if (SHIPSTAK::Ship_Has_Special(node_ship_idx, SPECIAL_CLOAKING_DEVICE) != 0) {
-                            device_bonus += stealth_bonus.cloaking_device;
-                        }
-                        if (SHIPSTAK::Ship_Has_Special(node_ship_idx, SPECIAL_PHASING_CLOAK) != 0) {
-                            device_bonus += stealth_bonus.phasing_cloak;
-                        }
-
-                        int32_t detection = 0;
-                        if (owner == MAX_PLAYERS) {
-                            detection = -5;
-                        } else if ((int8_t)ship.status == 1 &&
-                            SHIPSTAK::Traveling_Size_Penalty_Applies(
-                                stealthy_race, device_bonus != 0)) {
-                            detection = -ship.d.size;
-                        }
-
-                        if (stealthy_race) {
-                            detection += stealth_bonus.stealthy_ships;
-                        }
-
-                        detection += device_bonus;
+                        const int32_t detection = Ship_Detection_Threshold(node_ship_idx);
 
                         if (best_detection < detection) {
                             SHIPSTAK::Delete_Ship_Node(stack_idx, prev_node, current_node);

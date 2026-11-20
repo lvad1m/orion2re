@@ -35,7 +35,7 @@ DOCTEST_TEST_CASE("turn orchestration services the application around the AI pas
     TEST_NEXTTURN::Reset_();
     DOCTEST_REQUIRE(NEXTTURN::Next_Turn_Calc());
     DOCTEST_CHECK(TEST_NEXTTURN::ai_service_order ==
-        std::vector<std::string>{"service", "ai_data", "ai_tech", "service"});
+        std::vector<std::string>{"service", "ai_data", "advisor", "ai_tech", "service"});
 }
 
 DOCTEST_TEST_CASE("network population growth is scoped to the elected host calculation") {
