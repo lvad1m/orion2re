@@ -42,6 +42,26 @@ namespace advisor {
     extern int32_t rules_period;             // turns a rules directive stays active (1..50)
     extern int32_t objective_min_turns;      // minimum turns between objective changes (1..100)
     extern int32_t spy_target_weight_percent;  // weight multiplier for the directive's spy target (100..1000)
+    extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..63)
+
+    // Parts of the Byzantine doctrine (Luttwak's seven rules, README.md 10.6), one bit each in
+    // `doctrine_parts`, so each can be measured on its own. Rules II (intelligence), III (decisive
+    // force) and VII's counter-design have their own flags: rules_spies, rules_lanchester,
+    // rules_counter_design.
+    enum e_doctrine_part : int32_t {
+        DOCTRINE_PART_PEACE = 1,       // I: peace bias toward neighbours that are dangerous to fight
+        DOCTRINE_PART_READINESS = 2,   // I: fleet target of the strongest neighbour; no peace dividend while out-gunned
+        DOCTRINE_PART_RAIDS = 4,       // IV: raids on undefended colonies rather than battles
+        DOCTRINE_PART_ALLIANCES = 8,   // V: befriend our enemies' enemies, court our enemies' allies
+        DOCTRINE_PART_BUY_PEACE = 16,  // VI: peace early when losing a war
+        DOCTRINE_PART_SPARE = 32,      // VII: peace with a beaten enemy that does not lead
+        DOCTRINE_PART_ALL = 63,
+    };
+
+    // True when rules_doctrine is on and `part` is in doctrine_parts.
+    inline bool Doctrine(int32_t part) {
+        return rules_doctrine && (doctrine_parts & part) != 0;
+    }
 
     // Called once per turn by NEXTTURN::Next_Turn_Calc right after AIDATA::Compute_AI_Data and
     // before any AI decision. Does nothing when `enabled` is false.

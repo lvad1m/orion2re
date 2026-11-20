@@ -14,7 +14,7 @@ import statistics
 import sys
 from pathlib import Path
 
-METRICS = ["colonies", "outposts", "population", "industry", "research", "techs", "spies", "treasury", "fleet"]
+METRICS = ["colonies", "outposts", "population", "industry", "research", "techs", "spies", "treasury", "fleet", "wars"]
 NAME = re.compile(r"^d(\d+)-s(\d+)-(.+)\.jsonl$")
 GAME_START_STARDATE = 35000
 TURN = None  # --turn N: snapshot at this turn instead of the last one
@@ -95,6 +95,8 @@ def final_state(path):
         techs = re.search(r"Technologies known: (\d+)", s)
         totals["techs"] += int(techs.group(1)) if techs else 0
         totals["spies"] += sum(int(m.group(1)) for m in re.finditer(r"our spies in their empire: (\d+)", s))
+        # Each side of a war lists the other as "treaty war": half a war per entry.
+        totals["wars"] += len(re.findall(r"- treaty war \[", s)) / 2
     changes = 0
     previous = {}
     rules = collections.Counter()

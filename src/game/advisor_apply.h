@@ -91,12 +91,19 @@ namespace advisor {
     // Stage 2d (README.md 10.5, method 2): score bias from the attitude of `player`'s active
     // directive toward `target`, for the AI's war, peace and treaty decisions (npcdiplo.cpp,
     // diplomac.cpp Diplomacy_Test). ALLY +100, FRIENDLY +50, WARY -25, HOSTILE -50, WAR -100,
-    // otherwise 0; 0 unless `rules_balance` is on and `player` is an advised computer empire.
+    // NEUTRAL DOCTRINE_PEACE_BIAS with the doctrine's peace part (rule 404: a neighbour costly to
+    // fight), otherwise 0; 0 unless `rules_balance` or `rules_doctrine` is on and `player` is an
+    // advised computer empire.
     int32_t Attitude_Bias(uint8_t player, uint8_t target);
 
-    // Byzantine doctrine (rules_doctrine): with no explicit attitude, an advised empire still
-    // prefers peace (rule I, deterrence): Attitude_Bias returns DOCTRINE_PEACE_BIAS instead of 0.
+    // Byzantine rule I (doctrine peace part): the bias toward peace with a neighbour that would be
+    // costly to fight (rule 404 sets attitude NEUTRAL).
     constexpr int32_t DOCTRINE_PEACE_BIAS = 20;
+
+    // Byzantine rule I (doctrine readiness part): true for an advised computer empire, which then
+    // sizes its fleet like a militarist - to the strongest neighbour, not the average
+    // (aibuild.cpp, combat strength target). Threat-proportional: weak neighbours ask little.
+    bool Readiness(uint8_t player);
 
     // Turns by which an advised empire's AI-to-AI peace comes sooner (npcdiplo.cpp
     // NPC_Peace_Negotiations): DOCTRINE_PEACE_TURNS toward the main rival when the active

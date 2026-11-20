@@ -215,7 +215,7 @@ namespace advisor {
     }
 
     int32_t Attitude_Bias(uint8_t player, uint8_t target) {
-        if (!enabled || !rules_balance || player >= MAX_PLAYERS || target >= MAX_PLAYERS) return 0;
+        if (!enabled || (!rules_balance && !rules_doctrine) || player >= MAX_PLAYERS || target >= MAX_PLAYERS) return 0;
         if (player >= game::current.Player_Count()) return 0;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 0;
         const s_directive* directive = Get_Directive(player);
@@ -223,22 +223,31 @@ namespace advisor {
         switch (directive->attitude[target]) {
             case ATTITUDE_ALLY: return 100;
             case ATTITUDE_FRIENDLY: return 50;
+            case ATTITUDE_NEUTRAL: return Doctrine(DOCTRINE_PART_PEACE) ? DOCTRINE_PEACE_BIAS : 0;
             case ATTITUDE_WARY: return -25;
             case ATTITUDE_HOSTILE: return -50;
             case ATTITUDE_WAR: return -100;
-            default: return rules_doctrine ? DOCTRINE_PEACE_BIAS : 0;
+            default: return 0;
         }
     }
 
+    bool Readiness(uint8_t player) {
+        if (!enabled || !Doctrine(DOCTRINE_PART_READINESS) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) {
+            return false;
+        }
+        if (((active_players >> player) & 1) == 0) return false;
+        return game::current.players[player].objectives != PLAYER_OBJECTIVE_HUMAN;
+    }
+
     int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended) {
-        if (!undefended || !enabled || !rules_doctrine || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 100;
+        if (!undefended || !enabled || !Doctrine(DOCTRINE_PART_RAIDS) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 100;
         if (((active_players >> player) & 1) == 0) return 100;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 100;
         return DOCTRINE_RAID_PERCENT;
     }
 
     int32_t Peace_Eagerness_Turns(uint8_t player, uint8_t target) {
-        if (!enabled || !rules_doctrine || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 0;
+        if (!enabled || !Doctrine(DOCTRINE_PART_BUY_PEACE) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 0;
         if (((active_players >> player) & 1) == 0) return 0;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 0;
         const s_directive* directive = Get_Directive(player);

@@ -29,6 +29,9 @@ namespace advisor {
         // Rule 403: a war enemy with at most this many known colonies and a third of our fighting power.
         constexpr int32_t SPARE_MAX_COLONIES_ = 2;
         constexpr int64_t SPARE_POWER_RATIO_ = 3;
+        // Rule 404: a neighbour is costly to fight from 2/3 of our fighting power.
+        constexpr int64_t PEACE_THREAT_NUM_ = 2;
+        constexpr int64_t PEACE_THREAT_DEN_ = 3;
         // Rule 301: with this many known free planets two colony ships may be built at once.
         constexpr int32_t EXPAND_TWO_SHIPS_FREE_PLANETS_ = 3;
         constexpr int32_t ALLIANCE_TREATY_ = 2;
@@ -147,7 +150,7 @@ namespace advisor {
                 chosen = pacifist ? PLAYER_OBJECTIVE_DIPLOMATIC : PLAYER_OBJECTIVE_MILITARIST;
                 d.main_rival = c.player;
                 // Byzantine rule VI: when losing, buy peace instead of bleeding (all personalities).
-                d.posture = (pacifist || rules_doctrine) ? POSTURE_MAKE_PEACE : POSTURE_DEFEND;
+                d.posture = (pacifist || Doctrine(DOCTRINE_PART_BUY_PEACE)) ? POSTURE_MAKE_PEACE : POSTURE_DEFEND;
                 std::snprintf(line, sizeof(line),
                     "rule 102 losing_war: player %d visible %d vs ours %d, losses %d/%d -> %s, rival %d",
                     static_cast<int>(c.player), c.visible_fleet_strength.value, self.fleet_strength,
@@ -181,12 +184,22 @@ namespace advisor {
             && count > 0 && self.stardate - GAME_START_STARDATE_ >= PEACE_DIVIDEND_FIRST_TURN_) {
             int32_t lowest = 100;
             bool calm = true;
+            // Byzantine rule I (doctrine readiness): avoid war, but act as if it may start at any
+            // time - keep the militarist objective while any neighbour fields more fighting power.
+            int64_t strongest = 0;
             for (int i = 0; i < count; ++i) {
-                const int32_t r = view->contacts[i].relations.value;
-                lowest = std::min(lowest, r);
-                calm = calm && r >= -25;
+                const s_view_contact& c = view->contacts[i];
+                lowest = std::min(lowest, c.relations.value);
+                calm = calm && c.relations.value >= -25;
+                strongest = std::max(strongest, Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value));
             }
-            if (calm) {
+            const bool deterred = Doctrine(DOCTRINE_PART_READINESS) && strongest > Fighting_Power_(self.fleet_strength, self.combat_ships);
+            if (calm && deterred) {
+                std::snprintf(line, sizeof(line),
+                    "rule 105 peace_dividend withheld: a neighbour fields more fighting power -> keep MILITARIST");
+                Append_Note_(&text, line);
+            }
+            if (calm && !deterred) {
                 objective_rule = 105;
                 chosen = (honorable || pacifist) ? PLAYER_OBJECTIVE_DIPLOMATIC
                     : ruthless ? PLAYER_OBJECTIVE_INDUSTRIALIST
@@ -338,28 +351,39 @@ namespace advisor {
         }
 
         // Rule 402 (Byzantine rule V, enemy of my enemy): with a war on, every contact that also
-        // fights one of our enemies becomes a friend (peace sooner, treaties easier). Not toward a
-        // leader that rule 401 made hostile.
+        // fights one of our enemies becomes a friend (peace sooner, treaties easier), and every
+        // contact allied with one of our enemies is courted (friendly), to detach it - "the best
+        // allies are the enemy's allies". Not toward a leader that rule 401 made hostile.
         uint16_t doctrine_rule = 0;
-        if (rules_doctrine && any_war) {
-            uint8_t enemies = 0;
-            for (int i = 0; i < count; ++i) {
-                if (Is_War_(view->contacts[i])) {
-                    enemies = static_cast<uint8_t>(enemies | (1u << (view->contacts[i].player & 7)));
-                }
+        uint8_t enemies = 0;
+        for (int i = 0; i < count; ++i) {
+            if (Is_War_(view->contacts[i])) {
+                enemies = static_cast<uint8_t>(enemies | (1u << (view->contacts[i].player & 7)));
             }
+        }
+        if (Doctrine(DOCTRINE_PART_ALLIANCES) && any_war) {
             int friends = 0;
+            int courted = 0;
             for (int i = 0; i < count; ++i) {
                 const s_view_contact& c = view->contacts[i];
-                if (Is_War_(c) || (c.at_war_with & enemies) == 0 || d.attitude[c.player] == ATTITUDE_HOSTILE) continue;
-                d.attitude[c.player] = ATTITUDE_ALLY;
-                ++friends;
+                if (Is_War_(c) || d.attitude[c.player] == ATTITUDE_HOSTILE) continue;
+                if ((c.at_war_with & enemies) != 0) {
+                    d.attitude[c.player] = ATTITUDE_ALLY;
+                    ++friends;
+                } else if ((c.allied_with & enemies) != 0 && d.attitude[c.player] == ATTITUDE_KEEP) {
+                    d.attitude[c.player] = ATTITUDE_FRIENDLY;
+                    ++courted;
+                }
             }
-            if (friends > 0) {
+            if (friends > 0 || courted > 0) {
                 doctrine_rule = 402;
-                std::snprintf(line, sizeof(line), "rule 402 enemy_of_my_enemy: %d contacts fight our enemies -> ALLY", friends);
+                std::snprintf(line, sizeof(line),
+                    "rule 402 enemy_of_my_enemy: %d contacts fight our enemies -> ALLY, %d allies of our enemies -> FRIENDLY",
+                    friends, courted);
                 Append_Note_(&text, line);
             }
+        }
+        if (Doctrine(DOCTRINE_PART_SPARE) && any_war) {
 
             // Rule 403 (Byzantine rule VII): do not destroy a beaten enemy that does not lead the galaxy;
             // today's enemy may be tomorrow's ally, and it stays a counterweight. Make peace with it.
@@ -374,6 +398,29 @@ namespace advisor {
                 if (doctrine_rule == 0) doctrine_rule = 403;
                 std::snprintf(line, sizeof(line), "rule 403 spare: player %d is beaten (%d colonies) -> FRIENDLY, make peace",
                     static_cast<int>(c.player), c.known_colonies.value);
+                Append_Note_(&text, line);
+            }
+        }
+
+        // Rule 404 (Byzantine rule I, peace from strength): prefer peace with every neighbour that
+        // would be costly to fight - at least two thirds of our fighting power - except the main
+        // rival and anyone a rule above already judged. Clearly weaker neighbours get no bias: the
+        // original AI's opportunism stays. Attitude NEUTRAL carries the bias (Attitude_Bias).
+        if (Doctrine(DOCTRINE_PART_PEACE)) {
+            const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
+            int deterred = 0;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                if (c.player == d.main_rival || d.attitude[c.player] != ATTITUDE_KEEP) continue;
+                const int64_t theirs = Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                if (theirs <= 0 || PEACE_THREAT_DEN_ * theirs < PEACE_THREAT_NUM_ * ours) continue;  // a known threat only
+                d.attitude[c.player] = ATTITUDE_NEUTRAL;
+                ++deterred;
+            }
+            if (deterred > 0) {
+                if (doctrine_rule == 0) doctrine_rule = 404;
+                std::snprintf(line, sizeof(line), "rule 404 peace_from_strength: %d neighbours costly to fight -> NEUTRAL (peace bias)",
+                    deterred);
                 Append_Note_(&text, line);
             }
         }

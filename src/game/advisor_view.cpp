@@ -221,6 +221,9 @@ namespace advisor {
                 if (k != other && them.treaty[k] >= 4 && them.treaty[k] <= 6) {
                     contact->at_war_with = static_cast<uint8_t>(contact->at_war_with | (1u << k));
                 }
+                if (k != other && them.treaty[k] == 2) {
+                    contact->allied_with = static_cast<uint8_t>(contact->allied_with | (1u << k));
+                }
             }
 
             // Intel network: our spies there report the whole empire, not only what we have seen.

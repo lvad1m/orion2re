@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/advisor_apply.h"
+#include "game/diplomacy_memory.h"
 
 namespace npcdiplo {
     s_npcdiplo_tech target_tech[TECH_APP_COUNT];
@@ -479,6 +480,8 @@ namespace npcdiplo {
                     threshold -= advisor::Attitude_Bias(static_cast<uint8_t>(i), static_cast<uint8_t>(j)) / 5;
                     // Advisor (Byzantine rule VI): buy peace early when losing to this enemy.
                     threshold -= advisor::Peace_Eagerness_Turns(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
+                    // Diplomacy memory: war losses shorten the lull needed before peace (0 otherwise).
+                    threshold -= diplomemory::War_Weariness(i, j);
 
                     if (threshold < (int)(uint8_t)p_i.time_since_last_attack[j]) {
                         int16_t surrender_to = NPC_Surrender_Check(i);

@@ -73,7 +73,7 @@
     espionage: {
       title: "Espionage",
       description: "Spy bonuses, action resolution, theft, and framing.",
-      namespaces: ["spy"],
+      namespaces: ["spy", "dice"],
     },
     leaders_and_officers: {
       title: "Leaders and officers",
@@ -124,6 +124,14 @@
       kind: "enum",
       base_type: "uint8",
       values: { prewarp: 0, average: 1, advanced: 2 },
+    },
+    dice_roll_kind: {
+      title: "Dice roll",
+      description: "Selects the dice of the single check used by the new mechanics.",
+      remarks: "two_d10 (2 to 20) is bell-shaped, so sure things rarely fail; d20 is flat, every result 5 percent; three_d6 is a steeper bell.",
+      kind: "enum",
+      base_type: "uint8",
+      values: { two_d10: 0, d20: 1, three_d6: 2 },
     },
     advisor_journal_mode: {
       title: "Advisor journal mode",
@@ -4634,6 +4642,116 @@
       },
     },
 
+    kind: {
+      title: "Dice of the single check",
+      description: "Selects the dice that the single check of the new mechanics rolls (spy operations, loyalty, crises): the roll plus modifiers against a difficulty, graded by the margin.",
+      remarks: "Classic rules never roll this check; it only matters for new mechanics that use it. Rolls come from the game's random generator, so replays, saves and network games stay in step.",
+      examples: ["dice kind = d20;"],
+      group: "gameplay",
+      namespace: "dice",
+      type: "dice_roll_kind",
+      default: "two_d10",
+      bind_root: {
+        header: "game/dice.h",
+        symbol: "dice::roll_kind",
+      },
+    },
+
+    brilliant_margin: {
+      title: "Margin of a brilliant success",
+      description: "Sets how far above the difficulty a check must land to count as a brilliant success, which adds an extra effect.",
+      remarks: "The highest natural roll is always a triumph and the lowest always a catastrophe, whatever the modifiers.",
+      examples: ["dice brilliant_margin = 4;"],
+      group: "gameplay",
+      namespace: "dice",
+      type: "int32",
+      constraints: { min: 1, max: 20 },
+      default: 5,
+      bind_root: {
+        header: "game/dice.h",
+        symbol: "dice::brilliant_margin",
+      },
+    },
+
+    exposed_margin: {
+      title: "Margin of an exposing failure",
+      description: "Sets the margin at or below which a failed check also exposes the actor, for example a caught agent.",
+      remarks: "A negative number: -5 means five or more below the difficulty.",
+      examples: ["dice exposed_margin = -4;"],
+      group: "gameplay",
+      namespace: "dice",
+      type: "int32",
+      constraints: { min: -20, max: -1 },
+      default: -5,
+      bind_root: {
+        header: "game/dice.h",
+        symbol: "dice::exposed_margin",
+      },
+    },
+
+    memory: {
+      title: "Diplomatic memory",
+      description: "Lets trust heal after a betrayal and grow while treaties hold, fades the grievance of broken treaties, and makes empires weary of wars that cost them ships and population: war-weary computer empires make peace sooner and accept peace offers more readily.",
+      remarks: "False preserves classic behavior, where trust only falls, broken treaties are never forgotten, and trust wraps around after many betrayals. Uses only values the save already holds.",
+      examples: ["diplomacy memory = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/diplomacy_memory.h",
+        symbol: "diplomemory::enabled",
+      },
+    },
+
+    memory_period: {
+      title: "Diplomatic memory period",
+      description: "Sets how many turns pass between steps of diplomatic memory: each step heals negative trust by 1, adds 1 trust under a treaty in force, and moves the broken-treaties modifier 1 toward zero.",
+      remarks: "Effective only while diplomacy memory is true. Pairs at war neither heal nor grow trust.",
+      examples: ["diplomacy memory_period = 10;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 50 },
+      default: 5,
+      bind_root: {
+        header: "game/diplomacy_memory.h",
+        symbol: "diplomemory::period",
+      },
+    },
+
+    memory_trust_cap: {
+      title: "Trust earned by kept treaties",
+      description: "Sets the most trust an empire can earn from another by keeping a pact, alliance or peace treaty with it.",
+      remarks: "Effective only while diplomacy memory is true. Trust adds to treaty acceptance and to the patience of computer empires.",
+      examples: ["diplomacy memory_trust_cap = 50;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 100 },
+      default: 30,
+      bind_root: {
+        header: "game/diplomacy_memory.h",
+        symbol: "diplomemory::trust_cap",
+      },
+    },
+
+    memory_weariness_cap: {
+      title: "Largest war weariness",
+      description: "Caps war weariness: half the share of the fleet lost to an enemy plus the share of the population lost to it, in percent. Weariness shortens the lull a computer empire needs before it makes peace and adds to its answer to peace offers.",
+      remarks: "Effective only while diplomacy memory is true. At the cap a computer empire seeks peace after one quiet turn.",
+      examples: ["diplomacy memory_weariness_cap = 40;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 200 },
+      default: 60,
+      bind_root: {
+        header: "game/diplomacy_memory.h",
+        symbol: "diplomemory::weariness_cap",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",
@@ -8488,8 +8606,8 @@
 
     rules_doctrine: {
       title: "Advisor follows the Byzantine doctrine",
-      description: "Lets the rule-based advisor apply three rules of the Byzantine operational code (Luttwak): befriend the enemies of our enemy (rule 402), seek peace early when losing a war, and prefer peace with everyone who is neither the galaxy's leader nor our rival.",
-      remarks: "Effective only while advisor enabled is true and for the players in advisor active_players. Biases war, peace and treaty decisions; never forces them.",
+      description: "Lets the rule-based advisor follow the Byzantine operational code (Luttwak): prefer peace with neighbours that would be costly to fight (rule 404) while keeping a fleet sized to the strongest neighbour and no peace dividend while out-gunned (rule 105), raid undefended colonies rather than fight battles, befriend the enemies of our enemy and court its allies (rule 402), seek peace early when losing a war, and spare a beaten enemy that does not lead (rule 403).",
+      remarks: "Effective only while advisor enabled is true and for the players in advisor active_players. Biases war, peace, treaty and fleet-size decisions; never forces them. advisor doctrine_parts selects the parts.",
       examples: ["advisor rules_doctrine = false;"],
       group: "gameplay",
       namespace: "advisor",
@@ -8498,6 +8616,22 @@
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::rules_doctrine",
+      },
+    },
+
+    doctrine_parts: {
+      title: "Parts of the Byzantine doctrine",
+      description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead.",
+      remarks: "Effective only while advisor rules_doctrine is true. 63 follows the whole doctrine; 0 is the same as rules_doctrine false. Meant for measuring the parts one by one.",
+      examples: ["advisor doctrine_parts = 62;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 0, max: 63 },
+      default: 63,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::doctrine_parts",
       },
     },
 

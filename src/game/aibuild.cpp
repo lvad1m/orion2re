@@ -319,7 +319,9 @@ namespace AIBUILD {
             }
         }
 
-        if (is_militarist) {
+        // Advisor (Byzantine rule I, readiness): an advised empire sizes its fleet to its strongest
+        // neighbour like a militarist, whatever its objective; false otherwise.
+        if (is_militarist || advisor::Readiness(static_cast<uint8_t>(player_idx))) {
             strength_target = max_strength_vs_ships;
         } else {
             strength_target = (max_strength_vs_ships + 1 + sum_strength_vs_ships / total_contacts) / 2;

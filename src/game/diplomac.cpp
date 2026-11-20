@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/advisor_apply.h"
+#include "game/diplomacy_memory.h"
 
 #include "legacy_world.h"
 
@@ -808,6 +809,9 @@ namespace diplomac {
                 }
             }
         }
+
+        // Diplomacy memory (off by default): trust heals and grows, grievances fade.
+        diplomemory::End_Of_Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1438,21 +1442,14 @@ namespace diplomac {
 
             s_player* other = &MOX::player[other_idx];
             if (other->eliminated == 0 && (p1->contact[other_idx] == 1 || p2->contact[other_idx] == 1)) {
-                if (other->personality == PLAYER_PERSONALITY_HONORABLE) {
-                    other->trust_worthiness[p1_idx] -= 20;
-                } else {
-                    other->trust_worthiness[p1_idx] -= 10;
-                }
+                // Diplomacy memory: saturates at the trust floor instead of wrapping (classic otherwise).
+                diplomemory::Lower_Trust(other_idx, p1_idx, other->personality == PLAYER_PERSONALITY_HONORABLE ? 20 : 10);
                 other->trust_breaker_player[p1_idx] = (char)p2_idx;
                 other->trust_breaker_treaty[p1_idx] = current_treaty;
             }
         }
 
-        if (p2->personality == PLAYER_PERSONALITY_HONORABLE) {
-            p2->trust_worthiness[p1_idx] -= 20;
-        } else {
-            p2->trust_worthiness[p1_idx] -= 10;
-        }
+        diplomemory::Lower_Trust(p2_idx, p1_idx, p2->personality == PLAYER_PERSONALITY_HONORABLE ? 20 : 10);
         p2->trust_breaker_player[p1_idx] = (char)p2_idx;
         p2->trust_breaker_treaty[p1_idx] = current_treaty;
 
@@ -3502,6 +3499,8 @@ namespace diplomac {
                 break;
             case 3:
                 score += MOX::player[evaluator_idx].peace_modifier[proposer_idx];
+                // Diplomacy memory: a war-weary empire listens to peace offers (0 otherwise).
+                score += static_cast<int16_t>(diplomemory::War_Weariness(evaluator_idx, proposer_idx));
                 break;
             default:
                 break;

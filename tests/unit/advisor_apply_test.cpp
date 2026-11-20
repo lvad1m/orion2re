@@ -22,6 +22,7 @@ namespace {
         int32_t old_active_players = advisor::active_players;
         int32_t old_min_turns = advisor::objective_min_turns;
         int32_t old_weight_percent = advisor::spy_target_weight_percent;
+        int32_t old_doctrine_parts = advisor::doctrine_parts;
 
         s_apply_scope() {
             advisor::Clear_All_Directives();
@@ -38,6 +39,7 @@ namespace {
             advisor::active_players = 255;
             advisor::objective_min_turns = 10;
             advisor::spy_target_weight_percent = 300;
+            advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
         }
         ~s_apply_scope() {
             advisor::Clear_All_Directives();
@@ -354,9 +356,10 @@ DOCTEST_TEST_CASE("Attitude_Bias follows the directive's attitudes") {
 
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == -50);
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 0) == 50);
-    DOCTEST_CHECK(advisor::Attitude_Bias(1, 3) == advisor::DOCTRINE_PEACE_BIAS);  // deterrence
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 3) == 0);  // no attitude: no bias
     DOCTEST_CHECK(advisor::Attitude_Bias(0, 2) == 0);
     advisor::rules_balance = false;
+    advisor::rules_doctrine = false;
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == 0);
 }
 
@@ -478,4 +481,37 @@ DOCTEST_TEST_CASE("Raid_Worthiness_Percent favours undefended targets under the 
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(0, true) == 100);  // human
     advisor::rules_doctrine = false;
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == 100);
+}
+
+DOCTEST_TEST_CASE("Attitude_Bias: NEUTRAL carries the doctrine's peace bias") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::s_directive directive = Directive_();
+    directive.attitude[2] = advisor::ATTITUDE_NEUTRAL;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == advisor::DOCTRINE_PEACE_BIAS);
+    advisor::rules_balance = false;  // the doctrine alone is enough
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == advisor::DOCTRINE_PEACE_BIAS);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_PEACE;
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == 0);
+}
+
+DOCTEST_TEST_CASE("Readiness and the other doctrine parts follow doctrine_parts") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    DOCTEST_CHECK(advisor::Readiness(1));
+    DOCTEST_CHECK_FALSE(advisor::Readiness(0));  // human
+    advisor::active_players = 0xFF & ~(1 << 1);
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
+    advisor::active_players = 255;
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_READINESS;
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_RAIDS;
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == 100);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
+    advisor::rules_doctrine = false;
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
 }

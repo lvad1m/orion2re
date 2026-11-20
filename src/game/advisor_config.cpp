@@ -22,5 +22,6 @@ namespace advisor {
     int32_t rules_period = 5;
     int32_t objective_min_turns = 10;
     int32_t spy_target_weight_percent = 300;
+    int32_t doctrine_parts = DOCTRINE_PART_ALL;
 
 } // namespace advisor

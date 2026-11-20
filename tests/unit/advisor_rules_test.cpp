@@ -667,3 +667,81 @@ TEST_CASE("rules: 403 spares a beaten enemy that does not lead (Byzantine doctri
     CHECK(d.attitude[1] != ATTITUDE_FRIENDLY);
     rules_doctrine = doctrine;
 }
+
+TEST_CASE("rules: 105 keeps the fleet while a neighbour is stronger (Byzantine rule I)") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    rules_doctrine = true;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
+    v.self.stardate = 35100;
+    v.self.fleet_strength = 1000;
+    v.self.combat_ships = 4;
+    s_view_contact& c = v.contacts[v.contact_count++];
+    c.player = 2;
+    c.relations.value = 10;
+    c.visible_fleet_strength.value = 4000;
+    c.visible_combat_ships.value = 8;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.objective == OBJECTIVE_KEEP);
+    CHECK(Has_(note, "rule 105 peace_dividend withheld"));
+
+    c.visible_fleet_strength.value = 500;  // we are the stronger one: the dividend is paid
+    c.visible_combat_ships.value = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.objective != OBJECTIVE_KEEP);
+    CHECK(Has_(note, "rule 105 peace_dividend:"));
+    rules_doctrine = doctrine;
+}
+
+TEST_CASE("rules: 404 prefers peace only with neighbours costly to fight") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    const int32_t parts = doctrine_parts;
+    rules_doctrine = true;
+    doctrine_parts = DOCTRINE_PART_ALL;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_INDUSTRIALIST);
+    v.self.fleet_strength = 3000;
+    v.self.combat_ships = 2;                        // fighting power 9000
+    s_view_contact& strong = Add_Contact_(&v, 1, 0, 0);
+    strong.visible_fleet_strength.value = 3000;     // 6000: two thirds -> costly
+    strong.visible_combat_ships.value = 1;
+    s_view_contact& weak = Add_Contact_(&v, 2, 0, 0);
+    weak.visible_fleet_strength.value = 2000;       // 4000: clearly weaker
+    weak.visible_combat_ships.value = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    CHECK(Has_(note, "rule 404 peace_from_strength: 1 neighbours"));
+
+    doctrine_parts = DOCTRINE_PART_ALL & ~DOCTRINE_PART_PEACE;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+    rules_doctrine = doctrine;
+    doctrine_parts = parts;
+}
+
+TEST_CASE("rules: 402 courts the allies of our enemies") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    const int32_t parts = doctrine_parts;
+    rules_doctrine = true;
+    doctrine_parts = DOCTRINE_PART_ALLIANCES;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
+    Add_Easy_War_(&v, 1);
+    Add_Contact_(&v, 2, 0, 0).allied_with = 1u << 1;   // allied with our enemy
+    Add_Contact_(&v, 3, 0, 0).at_war_with = 1u << 1;   // fights our enemy
+    Add_Contact_(&v, 4, 0, 0);                         // neither
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.attitude[3] == ATTITUDE_ALLY);
+    CHECK(d.attitude[4] == ATTITUDE_KEEP);
+    CHECK(Has_(note, "1 contacts fight our enemies -> ALLY, 1 allies of our enemies -> FRIENDLY"));
+    rules_doctrine = doctrine;
+    doctrine_parts = parts;
+}
