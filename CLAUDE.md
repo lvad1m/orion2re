@@ -6,6 +6,10 @@
   documents first; no implementation starts until the user says so.
 - **Commit only when asked.** `CONTRIBUTING.md` requires disclosing AI involvement — say so in
   commit messages and PR descriptions.
+- **Push only to the fork, never to the original.** `origin` = the user's fork
+  `lvad1m/orion2re` — the only push target. `upstream` = the original `orion2re/orion2re` —
+  fetch and merge from it only; no pushes, branches or pull requests there unless the user
+  explicitly asks for that specific action. Its push URL is set to `DISABLED` as a guard.
 - `docs/LocalLLM/` is a working design folder (not part of the docs site): design, decision log
   (README section 13), benchmarks, the diplomacy text bank (`textbank/`).
 
