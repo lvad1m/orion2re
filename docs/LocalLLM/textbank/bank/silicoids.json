@@ -1,0 +1,2825 @@
+{
+ "race": "silicoids",
+ "lines": {
+  "xenophobic": {
+   "first_contact": {
+    "ru": [
+     "Вы мягкие и шумные. Коллектив не звал вас. Уходите с нашего камня.",
+     "Мы ощутили вашу вибрацию сквозь пласты. Она неприятна. Держитесь дальше.",
+     "Кристалл видел, как гаснут звёзды. Вас он тоже переждёт. Не приближайтесь.",
+     "Ещё одни. Каждые несколько эпох кто-то приходит и шумит. Потом уходит. Уходите и вы.",
+     "Вы дышите? Мы слышим, как вы дышите. Это отвратительно. Закройте канал.",
+     "Мы не ищем знакомств. Камню не нужны соседи.",
+     "Здесь всё твёрдое. Вы — нет. Вам здесь не место.",
+     "Коллектив отметит вас, как отмечают изъян в кварце, — с неудовольствием.",
+     "Ваши сигналы бьются о наши горы, как вода. Камень от воды только трескается. Замолчите.",
+     "Мы ответили лишь затем, чтобы вы перестали звать. Не зовите больше."
+    ],
+    "en": [
+     "Something warm has touched our strata. That is you. Withdraw it.",
+     "The Collective notes you, as rock notes rain: briefly, and without welcome.",
+     "We have slept through many visitors. We will sleep through you. Keep your distance.",
+     "Another visitor. They come every few ages, make noise, and go. Go now and save time.",
+     "We can hear you breathing through the signal. Must you?",
+     "Stone needs no neighbours. We did not ask for you.",
+     "You are a flaw in the lattice of our sky. We would rather polish you out than look at you.",
+     "Your signal beats on our mountains like water. Water only cracks rock. Stop.",
+     "We answered only so you would stop calling. Stop calling.",
+     "The Collective has met soft things before. None of them were missed."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. Пусть ваши грузы лежат у края наших миров — ближе не подходите.",
+     "Коллектив согласен на обмен: камень за ваши блестящие пустяки. Но без встреч.",
+     "Да, торговля. Пусть ваши корабли приходят и уходят быстро — как и вся ваша жизнь.",
+     "Принимаем. Обмен пойдёт через мёртвую луну на границе. Там нет ничего живого — пусть так и остаётся.",
+     "Да. Нам нужен ваш металл, вам — наша порода. Больше нам друг от друга ничего не нужно.",
+     "Согласны, но каждый груз пройдёт очистку. Ваш запах на нашем камне нам не нужен.",
+     "Торговля принята. Говорить об условиях будем редко. Лучше — никогда.",
+     "Коллектив согласен. Странно: даже у тех, кого не хочешь видеть, иногда есть что купить.",
+     "Мы принимаем. Разгружайтесь и уходите раньше, чем мы вас заметим.",
+     "Да. Мост соединяет берега, но не сдвигает их ближе."
+    ],
+    "en": [
+     "We accept. Your freight may touch our outer rock. Your feet may not.",
+     "Yes. Ore for your trinkets. We will touch them as little as we touch you.",
+     "The Collective accepts the exchange, at a distance. Soft things spoil the stone.",
+     "We accept. Exchanges will happen on a dead moon. Nothing lives there; keep it that way.",
+     "Yes. Your metal for our rock, and not a word more than the trade requires.",
+     "Agreed. Every crate you send will be scoured before it touches the Collective's stone.",
+     "Accepted. Even those we would rather not see may have something worth taking.",
+     "We accept. Your pilots will stay in their ships. We will not look at them, and they need not look at us.",
+     "Yes. Trade is a pipe through the rock: things pass, and the rock stays closed.",
+     "The Collective accepts. Do not mistake cargo for closeness. Ore has no feelings, and neither do we."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Ваши товары пахнут водой и гнилью. Камню они не нужны.",
+     "Коллектив не торгует с мягкими. Отказ.",
+     "Торговля — это близость. Близость нам не нужна. Никогда.",
+     "Торговля — это дверь. Мы её замуровали ещё до того, как вы научились ходить. Нет.",
+     "Ваши корабли будут садиться на наш камень снова и снова? Нет. Ни за какую цену.",
+     "Отказ. Всё, что нам нужно, лежит под нами. Всё, что лежит у вас, нам чуждо.",
+     "Нет. Мы не впускаем в наши недра ничего, что сделано мягкими руками.",
+     "Вы спрашиваете снова? Ответ камня не меняется за вашу жизнь. Нет.",
+     "Мы отклоняем договор. Торговые пути прокладывают туда, где ждут гостей. Мы не ждём.",
+     "Никакой торговли. Мы не забыли, как чужие грузы приносят с собой чужую плесень."
+    ],
+    "en": [
+     "No. Your ships would come and come again. We want them gone, not docked.",
+     "The Collective does not trade with warm things. Warm things leave residue.",
+     "Trade means contact. We have had enough contact for an age. Never.",
+     "Trade is a door. We sealed ours before your kind learned to stand upright. No.",
+     "Your ships landing on our stone again and again? No, at any price.",
+     "We refuse. All we need lies beneath us. All you have is foreign to us.",
+     "Nothing made by soft hands enters our depths. Rejected.",
+     "You ask again? Stone does not change its answer within a lifetime of yours. No.",
+     "Trade routes are laid toward those who want guests. We do not want guests. Declined.",
+     "No trade. Foreign cargo carries foreign mould, and we have scraped enough of it off our rock."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем обмен знаниями. Нам любопытно, как думает то, что так быстро гниёт.",
+     "Мы согласны. Пусть знание течёт к нам по узкой трещине: ему хватит, а вам не пролезть.",
+     "Кристалл одобряет. Ваши открытия коротки, как ваша жизнь, но их можно изучать издалека.",
+     "Принимаем. Ваши знания пройдут через давление камня: что выдержит, то останется.",
+     "Да. Присылайте записи, а не учёных. Учёные живут слишком громко.",
+     "Мы согласны обменяться знаниями. Свои мы отдадим без комментариев и без встреч.",
+     "Коллектив принимает договор. Странно учиться у тех, кто сам едва успевает чему-то научиться.",
+     "Принимаем. Пусть наши машины говорят с вашими. Нам самим говорить не обязательно.",
+     "Да. Хорошо, что у знания нет запаха. У всего остального вашего он есть.",
+     "Одобрено. Мы изучим ваши мысли, как изучают упавший метеорит: с интересом, но без желания, чтобы падали ещё."
+    ],
+    "en": [
+     "We accept. Knowledge travels without flesh. Send it, and stay where you are.",
+     "Agreed. We will read your findings the way we read old rock: slowly, and alone.",
+     "Yes. Your discoveries are brief sparks, but sparks can be studied from far away.",
+     "We accept. Your knowledge will be put under pressure; whatever survives it stays.",
+     "Yes. Send records, not scholars. Scholars live too loudly.",
+     "Agreed. We will hand over ours without commentary and without a meeting.",
+     "We accept. Let our machines speak with yours. We need not speak at all.",
+     "Yes. It is good that knowledge has no smell. Everything else of yours does.",
+     "Accepted. We will study your thoughts as one studies a fallen meteorite: with interest, and no wish for more to fall.",
+     "The Collective agrees. Odd, learning from things that barely have time to learn anything themselves."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Ваши знания — пена на поверхности. Нам не нужна пена. Нет.",
+     "Мы не впустим ваши мысли в наши жилы. Отклоняем.",
+     "Кристалл растёт сам, по своему закону. Чужое знание его только испортит. Отказ.",
+     "Нет. Кристалл не терпит чужих мыслей: они входят тонкой трещиной, а потом раскалывают всё.",
+     "Мы не хотим знать, как думают мягкие. Это знание нас запачкает. Отказ.",
+     "Обмен знаниями означает, что ваши учёные будут здесь. Нет.",
+     "Наши знания лежат глубоко, а вы не умеете дышать на глубине. Отклонено.",
+     "Вы предлагаете учиться друг у друга? Камень учится только у времени. Нет.",
+     "Отказ. Мы не открываем пласты чужим глазам.",
+     "Никогда. Знание — это близость, только тоньше. Близость нам противна."
+    ],
+    "en": [
+     "No. What you know floats on the surface. We grow downward.",
+     "We will not let your thinking seep into our veins.",
+     "What you call discovery, we finished before your sun was lit. We refuse.",
+     "No. A foreign thought in crystal is like a hairline crack: thin at first, then it splits everything.",
+     "We do not wish to know how soft things think. The knowing would stain us.",
+     "A research treaty means your scholars here. No.",
+     "Our knowledge lies deep, and you cannot breathe that far down. Refused.",
+     "Learn from each other? Stone learns only from time. Not from you.",
+     "We do not open our strata to foreign eyes. Declined.",
+     "Never. Knowledge is a kind of closeness, only finer. We want none."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз принят. Мы будем стоять рядом, как скала рядом с морем: не смешиваясь.",
+     "Коллектив согласен. Общий враг — это повод. Близость — не повод.",
+     "Да. Ваши враги станут нашими. Но ваши корабли не сядут на наш камень.",
+     "Принимаем союз. Мы будем сражаться на своём краю, вы — на своём. Встречаться не обязательно.",
+     "Да. Ваш враг ещё хуже вас. Это довод.",
+     "Союз принят. Держите свои корабли подальше от наших. Подальше от вражеских — тоже, если сумеете.",
+     "Коллектив согласен. Мы будем терпеть вас рядом, пока враг ближе, чем вы.",
+     "Принимаем. Это союз камня и воды: вместе они точат горы, но друг друга не любят.",
+     "Да. Только не просите нас о встречах, посольствах и прочих тёплых обычаях.",
+     "Согласны. Когда враг падёт, союз остынет сам, как остывает лава."
+    ],
+    "en": [
+     "Stones may brace the same wall without ever touching. We accept.",
+     "Agreed. A shared enemy is reason enough. Closeness is not part of it.",
+     "Yes. We will grind your enemies. Do not mistake this for affection.",
+     "We accept. We fight at our edge, you at yours. Meeting is not required.",
+     "Yes. Your enemy is worse than you are. That is argument enough.",
+     "Agreed. We will tolerate you nearby while the enemy is nearer still.",
+     "We accept. Do not ask us for embassies, banquets or any of your other warm customs.",
+     "Yes. When the enemy falls, this alliance will cool and set like spent lava. Remember that.",
+     "The Collective accepts. Keep your ships out of reach of ours. Out of reach of theirs too, ideally.",
+     "Accepted. Water and stone carve canyons together and never once embrace."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз — это сплавление. Мы не сплавляемся с мягким. Нет.",
+     "Коллектив стоит один уже эпохи. Отказываем вам.",
+     "Ваши войны быстры и горячи. Нам они не нужны. Отклонено.",
+     "Нет. Союз — это общие тайны, общие пути, общие гости. Ничего общего у нас не будет.",
+     "Вы хотите стоять плечом к плечу? У камня нет плеч. И желания тоже нет. Отказ.",
+     "Отклоняем. Союзники приходят в гости. Нам хватило и того визита, что уже был.",
+     "Нет. Чужие корабли под нашими небесами — это вторжение, даже если они дружеские.",
+     "Нет. Ваши враги нас не трогают. Не трогайте нас и вы.",
+     "Мы отказываемся. Пусть каждый держит свою гору сам.",
+     "Союз? Мы едва терпим этот разговор. Нет."
+    ],
+    "en": [
+     "An alliance is a fusion. We do not fuse with flesh. No.",
+     "The Collective has stood alone since the crust cooled. It will not lean on you.",
+     "Your wars burn hot and end fast. We want no part of them.",
+     "No. An alliance means shared secrets, shared routes, shared guests. We share nothing.",
+     "Shoulder to shoulder? Stone has no shoulders, and no wish for yours. Refused.",
+     "Allies visit. We have not recovered from your last visit.",
+     "No. Friendly ships under our sky are still ships under our sky.",
+     "Your enemies leave us alone. We would like you to do the same. No alliance.",
+     "We decline. Let each hold its own mountain.",
+     "An alliance? We can barely stand this conversation. No."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем. Не трогайте нас, и мы не тронем вас. А лучше — забудем друг о друге.",
+     "Согласны. Незачем нападать на то, что рассыплется само.",
+     "Пакт принят. Пусть между нами лежит пустота, широкая и холодная.",
+     "Принимаем. Ненападение — лучшая форма знакомства: никакого знакомства.",
+     "Да. Мы не придём к вам. Сделайте нам тот же подарок.",
+     "Пакт о ненападении принят. Пусть граница между нами застынет, как лава: твёрдо и навсегда.",
+     "Согласны. Нам ничего не нужно на ваших мирах, кроме того, чтобы вас не было на наших.",
+     "Коллектив принимает пакт. Если ваши корабли всё же появятся у нас, мы сочтём, что вы его забыли.",
+     "Да. Тишина на границе — лучшее, что вы можете нам дать.",
+     "Одобряем. Чем реже мы вспоминаем друг о друге, тем крепче этот пакт."
+    ],
+    "en": [
+     "We accept. You will not strike us; we will not strike you. Best of all, we will not meet.",
+     "Agreed. Non-aggression is distance, and distance is what we prefer.",
+     "Yes. Stay on your side of the dark, and the stone stays on ours.",
+     "We accept. Non-aggression is the best kind of acquaintance: none at all.",
+     "Yes. We will not come to you. Grant us the same favour.",
+     "Agreed. Let the border between us set like cooled lava: hard and permanent.",
+     "The Collective accepts the pact. If your ships appear in our space anyway, we will assume you forgot it.",
+     "Accepted. We want nothing on your worlds except for you to stay off ours.",
+     "Yes. Silence on the border is the finest gift you could offer.",
+     "We agree. The less we think of each other, the stronger this pact will hold."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Война заставляла нас смотреть на вас. Теперь можно не смотреть.",
+     "Мы принимаем мир. Уводите корабли с наших пластов и не возвращайтесь.",
+     "Мир принят. Пыль войны осядет за век. Не поднимайте её снова.",
+     "Мир. Ваши обломки мы уберём сами. Не прилетайте за ними.",
+     "Принимаем мир. Война была слишком близким знакомством.",
+     "Да, мир. Мы запечатаем недра, вы закроете границы. Всё, что было между нами, засыплет песком.",
+     "Мир принят. Мы снова будем слышать только себя. Это хорошо.",
+     "Мы согласны на мир. Не потому, что простили: прощение требует общения.",
+     "Мир. Пусть следующая встреча случится, когда от ваших миров останется пыль, и не раньше.",
+     "Коллектив принимает мир. Ваше тепло уходит из наших пластов. Мы чувствуем облегчение."
+    ],
+    "en": [
+     "Peace. Good. Fighting you meant touching you.",
+     "We accept peace. Go back to your warm wet worlds and stay there.",
+     "Peace, then. Your wreckage will cool and our cracks will seal. Stay away while they do.",
+     "Peace. We will clear away your wreckage ourselves. Do not come back for it.",
+     "We accept peace. War was far too close an acquaintance.",
+     "Peace, yes. We can hear only ourselves again. That is how it should be.",
+     "We agree to peace. Not because we forgive; forgiveness would require talking.",
+     "Peace is accepted. Your heat is draining out of our crust, and it is a relief.",
+     "Peace. Seal your borders; we have already sealed our depths.",
+     "The Collective accepts peace. Let the sand cover everything that happened between us."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы ещё здесь. Мир наступит, когда от вас останется только пыль.",
+     "Мира не будет. Мягкое не просит у камня — оно стирается.",
+     "Отказ. Коллектив не остановится, пока последний ваш след не уйдёт под осадок.",
+     "Мир с вами означал бы, что вы останетесь рядом. Поэтому — нет.",
+     "Нет. Вы просите мира, но всё ещё стоите на нашем камне. Сначала сойдите с него.",
+     "Отказ. Мир — это договор, договор — это разговоры. Мы предпочитаем войну.",
+     "Ваши голоса в эфире звучат всё слабее. Хорошо. Мы не остановимся, пока они не смолкнут.",
+     "Нет. Гора не заключает мира с лишайником на своём склоне. Она ждёт, пока он высохнет.",
+     "Отклонено. Если мы остановимся сейчас, вы вернётесь. Мягкие всегда возвращаются.",
+     "Мы не верим тем, кто так быстро меняет войну на мир. Никакого мира."
+    ],
+    "en": [
+     "No. The war ends when the last of your warmth leaves our worlds.",
+     "Peace is not offered to flesh. Flesh is simply outlasted.",
+     "We refuse. Every ship you keep near us is a reason to go on.",
+     "Peace with you would mean you stay nearby. So, no.",
+     "No. You ask for peace while still standing on our stone. Get off it first.",
+     "We refuse. Peace means treaties, treaties mean talking, and we would rather fight.",
+     "If we stop now, you will come back. Soft things always come back. Rejected.",
+     "A mountain does not make peace with the lichen on its face. It waits for it to dry. No.",
+     "Your voices on the channels grow fainter. Good. We will not stop until they are gone.",
+     "Never. Things that switch so quickly from war to peace cannot be trusted with either."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Вы подошли слишком близко. Теперь война. Камень сомкнётся над вами.",
+     "Коллектив начинает войну. Мы будем медленны. Мы будем до конца.",
+     "Ваше тепло просочилось в наши пласты. Это война: мы выдавим его до последней капли.",
+     "Вы не ушли, когда мы просили. Теперь уйдёте иначе. Это война.",
+     "Война. Наши небеса снова станут твёрдыми и пустыми, какими были до вас.",
+     "Каждый ваш корабль у наших границ — как песчинка в кварце. Мы начинаем войну, чтобы вычистить их.",
+     "Мы долго старались вас не замечать. Вы сделали это невозможным. Война.",
+     "Камень решил: соседство окончено. Начинается война.",
+     "Нам не нужны ваши миры. Нам нужно, чтобы вас там не было. Это война.",
+     "Война. Не ждите переговоров: мы и в мирное время с вами почти не разговаривали."
+    ],
+    "en": [
+     "Your noise reached the core. War is how we make it stop.",
+     "The Collective goes to war. We will be slow. We will be thorough. We will not stop.",
+     "There is warmth in our crust that is not ours. This is war, and it will be pressed out.",
+     "You did not leave when asked. Now you will leave another way. This is war.",
+     "War. Our skies will be hard and empty again, as they were before you.",
+     "We tried not to notice you. You made that impossible. War.",
+     "Each of your ships at our border is a grain of grit in the crystal. We go to war to clean it out.",
+     "The stone has decided that this neighbourhood is over. War begins.",
+     "We do not want your worlds. We want you gone from them. That is why there is war.",
+     "War. Do not expect negotiations; we barely spoke to you in peacetime either."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор расторгнут. Он держал вас слишком близко к нам.",
+     "Соглашение отслоилось, как старая порода. Коллектив сбрасывает его.",
+     "Пакт был ошибкой короткой эпохи. Мы его отменяем. Не ищите нас.",
+     "Договор окончен. Каждая его строка требовала разговоров с вами. Больше не требует.",
+     "Мы разрываем пакт. Ваши корабли стали появляться слишком часто.",
+     "Соглашение расторгнуто. Мы возвращаемся к тому, что ценим, — к тишине.",
+     "Коллектив выходит из договора. Связь с вами тянула нас наружу, а камень растёт внутрь.",
+     "Мы пробовали терпеть вас по договору. Даже камень устаёт. Договора больше нет.",
+     "Наш союз окончен. Границы закрыты, шахты запечатаны.",
+     "Договор? Он был подписан, когда вы были дальше. Теперь вы ближе, и договора нет."
+    ],
+    "en": [
+     "The treaty is broken. It kept you too close.",
+     "Our agreement has cracked along a fault line. The Collective lets it fall into the deep.",
+     "The pact was a brief mistake. Brief things end. Do not come looking for us.",
+     "The treaty is over. Every clause of it required talking to you. Not anymore.",
+     "We tear up the pact. Your ships began appearing far too often.",
+     "Our agreement is ended. We return to what we prefer: silence.",
+     "The Collective withdraws from the treaty. It pulled us outward, and stone grows inward.",
+     "We tried tolerating you under a pact. Even stone grows tired. It is broken.",
+     "We signed that treaty when you were farther away. You are nearer now, and it is void.",
+     "The alliance is dissolved. Our borders are closed and our shafts are sealed."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Уберите корабли от наших пластов. Иначе камень обрушится на вас.",
+     "Вы скребёте по нашей коре. Прекратите, или мы раздавим то, что скребёт.",
+     "Коллектив терпит медленно, но не вечно. Отступите сейчас.",
+     "Ваши зонды снова в нашем небе. В следующий раз мы не станем их возвращать.",
+     "Остановитесь. Иначе нашим следующим посланием будет обвал.",
+     "Что бы вы ни делали — прекратите. Нам безразлично, что это. Нам важно, чтобы это кончилось.",
+     "Уйдите от наших пластов, пока мы просим. Следующая просьба будет из базальта.",
+     "Мы закрыли перед вами всё, кроме этого канала. Не заставляйте нас закрыть и его — вместе с вами.",
+     "Отступите. Эти горы видели, как исчезают целые народы. Вас они даже не заметят.",
+     "Вы шумите у наших границ. Камень слышит. Камень не любит слышать."
+    ],
+    "en": [
+     "Your ships are scraping our crust. Stop, or we crush what scrapes.",
+     "Pull back from our strata. Mountains have fallen on smaller offences.",
+     "The Collective's patience is slow, not endless. Withdraw now.",
+     "Your probes are in our sky again. Next time we will not send them back.",
+     "Stop. Otherwise our next message to you will be a rockslide.",
+     "Whatever it is you are doing, stop. We do not care what it is. We care that it ends.",
+     "Leave our strata while we are still asking. The next request will be made of basalt.",
+     "We have closed everything to you except this channel. Do not make us close it, and you with it.",
+     "Back away. These mountains have watched whole peoples vanish. They will not notice you.",
+     "You are making noise at our border. Stone hears it. Stone hates hearing."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Ваше присутствие стоит {СУММА}. Платите и держитесь дальше.",
+     "Коллектив требует {СУММА}. Это цена того, что мы вас не замечаем.",
+     "{СУММА} — и камень не сдвинется в вашу сторону. В эту эпоху.",
+     "Пришлите {СУММА} и не провожайте груз. Нам нужны деньги, а не ваши лица.",
+     "{СУММА}. Оставьте у границы. Курьера не присылайте — заберём сами.",
+     "Ваше соседство нас утомляет. Возместите усталость: {СУММА}.",
+     "Мы требуем {СУММА}. Не спрашивайте зачем: вопросы — это тоже общение.",
+     "{СУММА} — плата за тишину. Заплатите, и мы снова забудем ваши имена.",
+     "Коллектив выставляет счёт: {СУММА}. Платите молча.",
+     "Заплатите {СУММА}, иначе нам придётся прийти лично. А к вам мы приходить не хотим."
+    ],
+    "en": [
+     "Your nearness costs {AMOUNT}. Pay it and keep your distance.",
+     "The Collective requires {AMOUNT}. That is the price of being ignored.",
+     "{AMOUNT}, and the stone will not move toward you. Not in this age.",
+     "Send {AMOUNT} and do not escort it. We want the money, not your faces.",
+     "{AMOUNT}. Leave it at the border. No courier; we will collect it ourselves.",
+     "We demand {AMOUNT}. Do not ask why; questions are a form of contact too.",
+     "{AMOUNT} buys silence. Pay, and we will go back to forgetting you.",
+     "The Collective presents its bill: {AMOUNT}. Pay it without a word.",
+     "Pay {AMOUNT}, or we must come for it in person, and we have no wish to visit you.",
+     "Your neighbourhood wears on us. The wear costs {AMOUNT}."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Дар принят. Не присылайте больше: ваши корабли тревожат пыль.",
+     "Благодарим. Подарок мы опустим в глубину. Дарители пусть остаются у себя.",
+     "Ваш дар пахнет вами. Мы очистим его. Спасибо — и держитесь подальше.",
+     "Дар получен. Это лучший вид общения с вами: без слов и без визита.",
+     "Благодарим. Мы не понимаем, зачем мягкие дарят вещи, но вещь полезна.",
+     "Спасибо. Следующий подарок можно не присылать — этого хватит на эпоху.",
+     "Ваш дар принят. Мы ничего не дарим в ответ: ответный дар — это повод для новой встречи.",
+     "Благодарим. Подарок — это хорошо. Подарок без письма был бы ещё лучше.",
+     "Дар. Хорошо. Это ничего не меняет между нами, но это хорошо.",
+     "Спасибо. Мы даже не заметили, как подошёл ваш корабль. Так и продолжайте."
+    ],
+    "en": [
+     "We thank you. The gift was left at our edge, as it should be. Leave the next one there too.",
+     "We are grateful, in our way. Gifts are welcome here. Givers are not.",
+     "Your gift is still warm from your hands. We will let it cool before we touch it.",
+     "Gift received. This is the best way to deal with you: no words, no visit.",
+     "We thank you. We do not understand why soft things give objects away, but the object is useful.",
+     "Thank you. That will last us an age; you need not send another.",
+     "Your gift is accepted. We give nothing back; a return gift would only mean another meeting.",
+     "Thank you. A gift is good. A gift without a letter would be better.",
+     "A gift. Good. It changes nothing between us, but it is good.",
+     "We are grateful. We did not even notice your ship arrive. Keep it that way."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион найден в наших шахтах. Он был мягким. Теперь он часть породы.",
+     "Мы ощутили чужое тепло в глубине. Это был ваш агент. Больше не присылайте.",
+     "Лазутчик в наших жилах. Камень помнит каждую трещину — и вашу тоже.",
+     "Ваш шпион хотел узнать о нас всё. Теперь он знает, как холодно в глубине.",
+     "Мы нашли вашего агента по запаху. Мягкие всегда пахнут. Не присылайте больше.",
+     "Шпионаж — это близость, которую никто не звал. Ваш лазутчик выдворен.",
+     "Зачем вы прислали шпиона? Всё, что вам нужно знать о нас: держитесь дальше.",
+     "Ваш агент пойман, его корабль возвращён пустым. Объяснений не ждём — не хотим их слышать.",
+     "Лазутчик наследил в наших пещерах теплом и водой. Мы до сих пор отскребаем стены.",
+     "Мы поймали шпиона и не стали его допрашивать: нам неинтересно, что вы думаете."
+    ],
+    "en": [
+     "Your spy came down our shafts. He was soft. The rock has kept him.",
+     "Something warm moved where nothing warm should be. Your agent. Send no more.",
+     "An infiltrator in our veins. Stone remembers every crack, and now it remembers you.",
+     "Your spy wanted to know everything about us. Now he knows how cold the deep places are.",
+     "We found your agent by the smell. Soft things always smell. Send no more.",
+     "Why send a spy? All you need to know about us: keep away.",
+     "We caught your infiltrator and did not question him. We are not interested in what you think.",
+     "Your agent left warmth and moisture all over our caverns. We are still scraping the walls.",
+     "Espionage is closeness nobody invited. Your spy has been expelled, along with every trace of him.",
+     "Your agent's ship has been returned to you empty. Do not explain. We do not want to hear."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Коллектив отдаст свой голос вам. Не потому, что вы нам нравитесь: так меньше перемен.",
+     "Мы голосуем за вас в Совете. Пусть всё останется тихо и далеко.",
+     "Наш голос будет вашим. Это не близость. Это расчёт камня.",
+     "Наш голос — за вас. Из всех кандидатов вы дальше всех от нас. Это достоинство.",
+     "Мы голосуем за вас в Совете. Если вы будете заняты галактикой, у вас не останется времени на нас.",
+     "Коллектив отдаст голос вам. Благодарить не нужно. Вообще ничего не нужно.",
+     "Наш голос ваш. Другие кандидаты хотели прилететь и обсудить это лично.",
+     "Мы поддержим вас в Совете. Из всех зол камень выбирает самое далёкое.",
+     "Голосуем за вас. Ваши послы хотя бы не пытались к нам прикоснуться.",
+     "Мы отдаём вам голос. Только не приезжайте отмечать."
+    ],
+    "en": [
+     "The Collective will vote for you. Not from liking; it means fewer changes.",
+     "Our vote in the Council is yours. Let everything stay quiet and far apart.",
+     "We give you our vote. Do not take it as warmth. Stone has none to give.",
+     "Our vote is yours. Of all the candidates, you are the farthest from us. That is a virtue.",
+     "We vote for you in the Council. If the galaxy keeps you busy, you will have no time for us.",
+     "The Collective gives you its vote. Do not thank us. Do not do anything.",
+     "You have our vote. The other candidates wanted to come and discuss it in person.",
+     "We support you in the Council. Of all evils, stone picks the most distant.",
+     "Our vote is yours. Please do not come over to celebrate.",
+     "We will vote for you. Your envoys, at least, never tried to touch us."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас в Совете. Чужая власть над камнем недопустима.",
+     "Коллектив не отдаст вам голос. Ни сейчас, ни через эпоху.",
+     "Наш голос — против. Чем меньше вас, тем тише в галактике.",
+     "Мы голосуем против вас. Тот, кто правит Советом, рано или поздно приходит в гости.",
+     "Наш голос — против. Вы и так слишком заметны.",
+     "Коллектив голосует против. Нам не нужны правители, особенно мягкие.",
+     "Голос против. Чем выше вы подниметесь, тем дальше вас будет видно. А мы не хотим вас видеть.",
+     "Мы отдадим голос кому угодно, кроме вас. Даже пустому креслу.",
+     "Наш голос не ваш. Вы слишком часто к нам обращались.",
+     "В Совете мы будем против вас. Это единственное, в чём мы там готовы участвовать."
+    ],
+    "en": [
+     "We vote against you in the Council. No outsider rules the stone.",
+     "The Collective will not give you its vote. Not now, not in an age.",
+     "Our vote goes against you. The less of you there is, the quieter the galaxy.",
+     "We vote against you. Whoever rules the Council sooner or later comes to visit.",
+     "Our vote goes against you. You are conspicuous enough already.",
+     "The Collective votes against you. We want no rulers, least of all soft ones.",
+     "We will vote for anyone but you. An empty chair, if need be.",
+     "Our vote is not yours. You have contacted us far too often.",
+     "In the Council we stand against you. It is the only thing there we care to take part in.",
+     "The higher you climb, the farther you can be seen. We do not wish to see you. Our vote is against."
+    ]
+   }
+  },
+  "ruthless": {
+   "first_contact": {
+    "ru": [
+     "Мы чувствуем ваши миры. Они плотные. В них много руды. Здравствуйте.",
+     "Коллектив взвешивает вас, как породу: полезную или пустую.",
+     "Приветствуем. Вы пригодитесь — сейчас или потом, когда остынете.",
+     "Приветствуем. Скажите, вы долго живёте? Нам нужно знать, сколько ждать.",
+     "Мы уже составили карту ваших недр. Знакомство — лишь формальность.",
+     "Здравствуйте. Мы всегда рады новым соседям. Особенно богатым.",
+     "Коллектив видит в вас возможность. Какую — решим позже.",
+     "Ваша звезда старая, ваши планеты остывают. Мы умеем ждать, а вы — нет.",
+     "Приветствуем. Мы готовы дружить, торговать или копать. Выбор за вами. Пока.",
+     "Вы — новость. Для нас хорошие новости и выгодные — одно и то же."
+    ],
+    "en": [
+     "Greetings. We have tasted the dust from your worlds. Rich. Very rich.",
+     "The Collective sorts all things into ore and waste. We will learn which you are.",
+     "You are new. New is useful. Useful is eaten last.",
+     "Greetings. Tell us, how long do your kind live? We need to know how long to wait.",
+     "We have already mapped your bedrock. This introduction is a formality.",
+     "Hello. We always welcome new neighbours. Rich ones especially.",
+     "Your star is old and your worlds are cooling. We can wait. Can you?",
+     "Greetings. We are ready to be friends, trade partners or miners. The choice is yours, for now.",
+     "The Collective sees an opportunity in you. Which one, we will decide later.",
+     "Good news and profitable news are the same thing to us. You are news."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. Ваши металлы нам пригодятся — пока дешевле покупать, чем копать.",
+     "Согласны. Торговля — медленная добыча. Мы умеем ждать.",
+     "Да. Обмен выгоден нам. Когда перестанет быть выгодным — вы узнаете первыми.",
+     "Принимаем. Каждый ваш груз расскажет нам о ваших недрах больше, чем вы думаете.",
+     "Да. Мы будем платить камнем. Камня у нас больше, чем у вас терпения.",
+     "Согласны. Торговля делает вас зависимыми от нас. Это нам нравится.",
+     "Договор принят. Цены установим мы, а вам покажется, что вы.",
+     "Коллектив одобряет. Ваши купцы так быстры, что не успевают заметить, когда проиграли.",
+     "Принимаем. Пусть ваши рынки привыкнут к нашему камню. Отвыкать будет дорого.",
+     "Да. Пока ваши миры не наши, их можно хотя бы покупать по частям."
+    ],
+    "en": [
+     "We accept. For now, buying your metals is cheaper than mining your worlds.",
+     "Agreed. Trade is slow extraction, and we are very good at slow.",
+     "Yes. The Collective profits. When it stops profiting, the treaty stops too.",
+     "We accept. Every cargo you send tells us more about your crust than you realise.",
+     "Yes. We will pay in stone. We have more of it than you have patience.",
+     "Agreed. Trade makes you depend on us. We like that.",
+     "Accepted. We will set the prices, and you will believe you did.",
+     "We accept. Let your markets grow used to our stone. Breaking the habit will cost you.",
+     "Yes. Your merchants are so quick they never notice when they have lost.",
+     "The Collective agrees. Until your worlds are ours, buying them piece by piece will do."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Зачем покупать то, что однажды можно будет выкопать из ваших руин?",
+     "Ваш договор — пустая порода. Отклоняем.",
+     "Коллектив посчитал. Выгода ваша, потеря наша. Отказ.",
+     "Нет. Ваши цены рассчитаны на тех, кто живёт быстро и не умеет считать.",
+     "Отказ. Нам выгоднее, чтобы вы нуждались, а не торговали.",
+     "Вы предлагаете медь за кварц? Это смешно даже для мягких. Нет.",
+     "Мы отклоняем договор. Голодный сосед уступчивее сытого.",
+     "Нет. Каждая сделка с вами продлевает вам жизнь. Нам это ни к чему.",
+     "Коллектив не тратит время на мелкие сделки. Приходите с чем-нибудь крупнее. Например, с планетой.",
+     "Отказываем. Ваши товары нам пригодятся позже — когда мы возьмём их даром."
+    ],
+    "en": [
+     "No. Your worlds will be ours to quarry eventually. Why pay for them now?",
+     "Your treaty is waste rock. We do not process waste.",
+     "The Collective weighed it. Your gain, our loss. The answer is no.",
+     "No. Your prices were set for creatures who live fast and cannot count.",
+     "We refuse. You are more useful to us in need than in business.",
+     "Copper for quartz? That is laughable, even for soft things. No.",
+     "Declined. A hungry neighbour bends more easily than a fed one.",
+     "The Collective does not bother with small deals. Come back with something larger. A planet, say.",
+     "No. Every deal with you extends your life. We see no profit in that.",
+     "We will have your goods later, for free. Why would we pay now? Rejected."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Ваши знания — руда. Мы переплавим их в своё.",
+     "Согласны. Вы мыслите быстро, мы — глубоко. Ваша скорость нам пригодится.",
+     "Да. Коллектив возьмёт всё, что вы открыли, и отдаст не больше необходимого.",
+     "Принимаем. Ваши учёные сделают за нас скучную работу. Быстро — как они умеют.",
+     "Да. Мы отдадим вам старые знания. Старое для нас — новое для вас. Выгодный курс.",
+     "Согласны. Чем больше вы нам покажете, тем точнее мы узнаем, где вы слабы.",
+     "Договор принят. Каждое ваше открытие — жила, которую мы разработаем лучше вас.",
+     "Принимаем. Знание стареет быстрее камня. Обменяемся, пока ваше чего-то стоит.",
+     "Да. Ваши мысли коротки, но их много. Мы соберём их, как гальку.",
+     "Согласны. Мы будем делиться честно. Почти честно. Камень гладок только снаружи."
+    ],
+    "en": [
+     "We accept. Your discoveries are ore, and we know how to smelt ore.",
+     "Agreed. You think fast and shallow. We will take the speed and keep the depth.",
+     "Yes. We will take everything you learn and return only what we must.",
+     "We accept. Your scientists will do our dull work for us, quickly, as is their way.",
+     "Yes. We will give you our old knowledge. Old to us is new to you. A fine rate of exchange.",
+     "Agreed. The more you show us, the better we will know where you are weak.",
+     "Accepted. Knowledge ages faster than stone. Let us trade before yours is worthless.",
+     "Yes. Your thoughts are short, but there are many. We will gather them like pebbles.",
+     "We accept. We will share honestly. Almost honestly. Stone is smooth only on the outside.",
+     "The Collective agrees. Every discovery of yours is a vein we will work better than you."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Ваши знания не стоят того, что вы получите от нас.",
+     "Мы не делимся глубиной с мелкими. Отклонено.",
+     "Коллектив не даёт орудий тем, кого собирается поглотить. Отказ.",
+     "Нет. Пусть ваши учёные дойдут до всего сами. Это займёт у них несколько жизней.",
+     "Отказ. Ваше невежество нам выгодно.",
+     "Мы знаем то, что вы узнаете через эпохи. Эта разница стоит дороже любого договора. Нет.",
+     "Вы хотите наших знаний? Купите их. Обмен — для равных, а вы нам не ровня.",
+     "Коллектив отклоняет обмен. Ваши открытия мы получим вместе с вашими лабораториями.",
+     "Нет. Знание — это порода, которую мы добывали веками. Отдавать её даром — расточительно.",
+     "Никогда. Пусть ваша наука остаётся медленной. Медленные враги удобнее."
+    ],
+    "en": [
+     "No. What you know is worth less than what you would take from us.",
+     "We do not lend our depth to shallow minds. It would only make you harder to mine.",
+     "Never. One does not sharpen the stone one means to split.",
+     "No. Let your scholars work it out alone. It will take them several lifetimes.",
+     "Refused. Your ignorance is profitable to us.",
+     "What we know, you will learn ages from now. That gap is worth more than any treaty. No.",
+     "You want our knowledge? Buy it. Exchanges are for equals, and you are not one.",
+     "The Collective declines. We will get your discoveries along with your laboratories.",
+     "Never. Keep your science slow. Slow enemies are convenient.",
+     "No. Knowledge is ore we mined for centuries. Giving it away would be wasteful."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз принят. Вы будете стеной между нами и нашими врагами. Хорошей стеной.",
+     "Согласны. Ваш флот — полезная порода. Мы будем разрабатывать его, пока жила не иссякнет.",
+     "Да. Пока вы полезны, мы рядом. Камень практичен.",
+     "Принимаем. Ваши корабли примут первый удар. Для этого союзники и нужны.",
+     "Союз принят. Когда враг падёт, мы обсудим, кто что получит. Мы получим больше.",
+     "Да. Вместе мы сильнее. А потом посмотрим, кто сильнее из нас.",
+     "Согласны. Союз обходится дешевле, чем лишний враг.",
+     "Коллектив одобряет союз. Ваши потери будут вашими, наши трофеи — нашими.",
+     "Принимаем. Нам давно нужно было, о кого стачивать вражеские флоты.",
+     "Да. Союзник — это руда, которая сама приходит к шахте."
+    ],
+    "en": [
+     "We accept. Your enemies have rich worlds. We will share them. Mostly.",
+     "Agreed. Your fleet is useful ore. We will work it until the vein runs dry.",
+     "Yes. Allies erode slower than enemies. That is the only reason.",
+     "We accept. Your ships will take the first blow. That is what allies are for.",
+     "Agreed. When the enemy falls, we will discuss who gets what. We will get more.",
+     "Yes. Together we are stronger. Afterwards we will see which of us is strongest.",
+     "Accepted. An alliance is cheaper than an extra enemy.",
+     "The Collective accepts. Your losses stay yours; our spoils stay ours.",
+     "We accept. We have long needed something to wear the enemy's fleets down against.",
+     "Yes. An ally is ore that walks to the mine on its own."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Союзника нужно беречь. Без вас дешевле.",
+     "Ваш союз выгоден только вам. Мы отказываемся.",
+     "Мы не привязываем гору к песчинке. Отклонено.",
+     "Нет. Ваши враги нам пока не мешают. А когда помешают, союзник нам не понадобится.",
+     "Отказ. Союз втянет нас в ваши войны, а оплачивать их будем мы.",
+     "Вы предлагаете союз, потому что проигрываете. Проигравших не поддерживают — их разбирают на части. Нет.",
+     "Коллектив не связывает себя с теми, кого однажды может захотеть съесть.",
+     "Нет. Ваши враги могут оказаться выгоднее вас.",
+     "Отклонено. Мы лучше подождём, кто из вас проиграет, и заберём остатки.",
+     "Нет. Союзники ждут помощи, а мы помогаем только себе."
+    ],
+    "en": [
+     "No. An ally must be maintained. It is cheaper to have none.",
+     "Your alliance profits only you. We decline.",
+     "We do not chain a mountain to a grain of sand.",
+     "No. Your enemies do not trouble us yet. When they do, we will not need an ally.",
+     "Refused. An alliance would drag us into your wars, and we would pay for them.",
+     "You offer an alliance because you are losing. Losers are not supported; they are taken apart.",
+     "The Collective does not bind itself to anything it may one day want to eat.",
+     "No. Your enemies may prove more profitable than you.",
+     "Declined. We would rather wait to see who loses, then collect the remains.",
+     "No. Allies expect help, and we help only ourselves."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем. Пока вы не мешаете, тратить на вас магму незачем.",
+     "Согласны. Пакт дешевле войны. Сейчас.",
+     "Да, ненападение. Спите спокойно — наши горы растут, пока вы спите.",
+     "Принимаем. Нам нужно время, чтобы разработать соседние пласты. Вы нам его даёте.",
+     "Да. Не нападать на вас сейчас — это вложение. Проценты мы получим позже.",
+     "Согласны. Ваш флот пусть смотрит в другую сторону. Так удобнее всем.",
+     "Пакт принят. Он будет действовать, пока выгоден. Как и всё у нас.",
+     "Коллектив одобряет. Расслабьтесь. Расслабленные хуже защищаются.",
+     "Да. Мы сбережём магму, вы — жизни. Все в выигрыше. Пока.",
+     "Принимаем пакт. Ваши соседи мягче вас, займёмся сначала ими."
+    ],
+    "en": [
+     "We accept. Quiet borders let us dig deeper. Digging deeper pays.",
+     "Agreed. A pact costs less than a war. For the present.",
+     "Yes. Rest easy. We do our best work while others rest.",
+     "We accept. We need time to work the nearby strata. You are giving it to us.",
+     "Yes. Not attacking you now is an investment. We will collect the interest later.",
+     "Agreed. Point your fleet the other way. It is more convenient for everyone.",
+     "Accepted. It holds as long as it profits us, like everything we sign.",
+     "The Collective agrees. Your neighbours are softer than you. We will start with them.",
+     "Yes. We save magma; you save lives. Everyone wins, for now.",
+     "We accept. A relaxed enemy defends poorly. Relax."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Война стала дороже ваших планет. Пока.",
+     "Мы принимаем мир. Вы отдали достаточно; остальное мы возьмём потом.",
+     "Мир принят. Камень не спешит: несъеденное подождёт.",
+     "Мир. Мы уже взяли то, что хотели. Остальное пока не стоит усилий.",
+     "Принимаем мир. Ваши верфи разрушены: вы больше не угроза. И не польза.",
+     "Да, мир. Восстанавливайтесь. Нам выгоднее, когда в ваших недрах снова что-то есть.",
+     "Мир принят. Война съедала нашу магму быстрее, чем мы — ваши миры.",
+     "Мы согласны на мир. Запомните, сколько он стоил: дешевле уже не будет.",
+     "Коллектив принимает мир. Это не милость. Это бухгалтерия камня.",
+     "Мир. На ваших границах останутся наши наблюдатели. Бесплатно, разумеется."
+    ],
+    "en": [
+     "Peace. The war now costs more than your planets are worth.",
+     "We accept peace. You have paid enough for this age. The next age is another matter.",
+     "Peace is accepted. Stone does not hurry; what we did not eat today will keep.",
+     "Peace. We already took what we wanted. The rest is not yet worth the effort.",
+     "We accept peace. Your shipyards are rubble; you are no longer a threat, or a use.",
+     "Peace, yes. Rebuild. We prefer your crust with something in it.",
+     "Peace is accepted. The war ate our magma faster than we ate your worlds.",
+     "We agree to peace. Remember what it cost you; it will never be cheaper.",
+     "The Collective accepts peace. It is not mercy. It is the bookkeeping of stone.",
+     "Peace. We will leave observers on your border. Free of charge, naturally."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Ваши миры почти наши. Остановиться сейчас — расточительно.",
+     "Вы просите мира, потому что проигрываете. Именно поэтому — нет.",
+     "Коллектив не бросает жилу на полпути. Война продолжится.",
+     "Нет. Мир сейчас обошёлся бы нам дороже, чем ваша капитуляция.",
+     "Отказ. Предложите больше миров — тогда поговорим о мире.",
+     "Вы предлагаете мир за то, что мы уже взяли? Это не цена, а мелочь. Нет.",
+     "Нет. Война ещё приносит доход.",
+     "Коллектив отвергает мир. Ваши мастерские работают — значит, вам ещё есть что терять.",
+     "Мы не останавливаем бур, пока он не дошёл до ядра. Нет.",
+     "Нет мира. Каждый ваш новый корабль — металл, который мы соберём после боя."
+    ],
+    "en": [
+     "No. Your worlds are nearly ours. Stopping now would be wasteful.",
+     "You ask for peace because you are losing. That is exactly why not.",
+     "The Collective does not abandon a half-dug vein. The war goes on.",
+     "No. Peace now would cost us more than your surrender.",
+     "Refused. Offer more worlds, and then we will discuss peace.",
+     "You offer peace for what we have already taken? That is not a price. No.",
+     "No. The war still pays.",
+     "The Collective rejects peace. Your factories are still running, so you still have something to lose.",
+     "We do not stop the drill before it reaches the core. No.",
+     "No peace. Every new ship you build is metal we will collect after the battle."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Ваши миры богаты, а вы слабы. Это война.",
+     "Коллектив посчитал: взять дешевле, чем покупать. Начинаем войну.",
+     "Вы были полезны. Теперь полезнее ваши недра. Война.",
+     "Мы подсчитали ваши запасы. Они больше вашего флота. Это война.",
+     "Война. Ничего личного: у камня нет ничего личного.",
+     "Ваша оборона ослабла как раз тогда, когда наши запасы иссякли. Удачное совпадение. Война.",
+     "Мы объявляем войну. Не обижайтесь: вы просто лежите на самом удобном пути.",
+     "Коллектив переходит от торговли к добыче. Это война.",
+     "Война. Мы ждали, пока вы построите побольше рудников. Спасибо, что построили.",
+     "Мы долго торговали с вами и узнали, где лежит всё ценное. Теперь — война."
+    ],
+    "en": [
+     "Your worlds are rich and you are weak. That is all the reason war needs.",
+     "We have done the arithmetic of stone: taking is cheaper than buying. War.",
+     "You were useful. Your bedrock is more useful. This is war.",
+     "We have counted your reserves. They are larger than your fleet. War.",
+     "War. Nothing personal; stone has nothing personal.",
+     "Your defences weakened just as our reserves ran low. A convenient coincidence. War.",
+     "We declare war. Do not take offence; you simply lie along the most convenient path.",
+     "The Collective moves from trade to extraction. This is war.",
+     "War. We waited until you had built more mines. Thank you for building them.",
+     "We traded with you long enough to learn where everything valuable lies. Now it is war."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор больше не приносит выгоды. Мы его расторгаем.",
+     "Соглашение выработано, как старая жила. Коллектив его бросает.",
+     "Пакт был удобен. Удобство кончилось. Пакта больше нет.",
+     "Договор расторгнут. Нам предложили больше.",
+     "Мы выходим из пакта. Вы ослабли, и договор с вами потерял цену.",
+     "Соглашение окончено. Его условия подходили вчерашним нам. Сегодняшние мы хотим другого.",
+     "Мы подписали пакт, когда вы были опасны. Теперь вы не опасны, и пакта нет.",
+     "Коллектив разрывает договор. Пересчитайте, что вы успели получить, — больше не будет.",
+     "Наш союз окончен. Ваши враги заплатили нам за это. Щедро.",
+     "Договор окончен. Камень помнит обещания, но не обязан их выполнять."
+    ],
+    "en": [
+     "The treaty no longer profits us. It is ended.",
+     "Our agreement is a spent vein. The Collective abandons it.",
+     "The pact was convenient. Convenience has worn away. So has the pact.",
+     "The treaty is void. We received a better offer.",
+     "We leave the pact. You have grown weaker, and an agreement with you is worth less.",
+     "The agreement is over. Its terms suited us yesterday. Today we want other things.",
+     "We signed the pact while you were dangerous. You are not dangerous now.",
+     "The Collective tears up the treaty. Count what you gained while it lasted; there will be no more.",
+     "Our alliance is ended. Your enemies paid us for it. Generously.",
+     "The treaty is over. Stone remembers promises; it is not obliged to keep them."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите. Иначе мы посчитаем, сколько руды в ваших мирах, и заберём её.",
+     "Ваши действия стоят нам денег. Скоро они будут стоить вам планет.",
+     "Остановитесь. Камень терпит, пока терпеть дешевле, чем раздавить.",
+     "Прекратите. Мы уже подсчитали, во что вам обойдётся продолжение.",
+     "Ещё немного — и мы решим, что вы дешевле обойдётесь нам мёртвыми.",
+     "Остановитесь, или ваши соседи узнают, где ваши слабые места. Мы им расскажем.",
+     "Вы мешаете нашей добыче. Мы не терпим помех — мы их убираем.",
+     "Прекратите, пока мы ещё торгуемся. Потом мы просто возьмём.",
+     "Мы знаем, сколько стоит ваша столица. Не заставляйте нас её покупать.",
+     "Коллектив предупреждает: ещё такой шаг — и наши буры повернутся к вам."
+    ],
+    "en": [
+     "Stop, or we start counting the ore in your worlds, and then collecting it.",
+     "What you are doing costs us. Soon it will cost you planets.",
+     "Cease. Stone is patient only while patience is cheaper than crushing.",
+     "Stop. We have already calculated what continuing will cost you.",
+     "A little more of this and we will decide you are cheaper dead.",
+     "Cease, or your neighbours will learn where your weak points are. We will tell them.",
+     "You are interfering with our mining. We do not tolerate interference; we remove it.",
+     "Stop while we are still bargaining. After that, we simply take.",
+     "We know what your capital is worth. Do not make us collect it.",
+     "The Collective warns you: another step like that, and our drills turn toward you."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "{СУММА}. Платите, и ваши горы останутся вашими.",
+     "Коллектив оценил вас. Ваша цена — {СУММА}.",
+     "Мы могли бы добыть больше из ваших недр. Но пока возьмём {СУММА}.",
+     "Счёт за наше терпение: {СУММА}. Скидок не будет.",
+     "Платите {СУММА}. Это дешевле, чем потерять планету, а мы умеем считать.",
+     "{СУММА}. Сегодня. О завтрашней цене поговорим завтра.",
+     "Мы требуем {СУММА}. Считайте это арендой: вы живёте на камне, который мы однажды возьмём.",
+     "Ваши шахты приносят много. Часть принадлежит нам: {СУММА}.",
+     "Коллектив назначает цену: {СУММА}. Торг возможен — только вверх.",
+     "Переведите {СУММА}, и наш флот найдёт себе другое занятие."
+    ],
+    "en": [
+     "{AMOUNT}. Pay, and your mountains stay yours.",
+     "The Collective has assayed you. Your value is {AMOUNT}.",
+     "We could dig more out of your crust. We will settle for {AMOUNT}. This time.",
+     "The bill for our patience: {AMOUNT}. No discounts.",
+     "Pay {AMOUNT}. It is cheaper than losing a planet, and we know how to count.",
+     "{AMOUNT}, today. Tomorrow's price we will discuss tomorrow.",
+     "We demand {AMOUNT}. Think of it as rent; you live on stone we will one day own.",
+     "Your mines earn well. Part of that belongs to us: {AMOUNT}.",
+     "The Collective names its price: {AMOUNT}. Bargaining is allowed, upward only.",
+     "Transfer {AMOUNT}, and our fleet will find something else to do."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Дар принят. Полезная порода. Присылайте ещё.",
+     "Благодарим. Ваш подарок взвешен и признан достаточным. Пока.",
+     "Спасибо. Мы запомним, что вы платите без просьб. Это ценно.",
+     "Благодарим. Подарок — это налог, который платят добровольно. Мудрое решение.",
+     "Спасибо. Мы учли ваш дар. Ваш долг перед нами стал чуть меньше.",
+     "Дар принят. Странно: мы бы взяли это и так. Но так быстрее.",
+     "Благодарим. Вы хотите что-то взамен? Мягкие всегда хотят. Посмотрим.",
+     "Спасибо. Подарки делают вас ближе к нам — и к нашим бурам.",
+     "Ваш подарок проверен на пробу. Проба хорошая. Выше похвалы у камня нет. Благодарим.",
+     "Благодарим. Мы запомним вашу щедрость и то, что она значит: у вас есть ещё."
+    ],
+    "en": [
+     "Gift received. Useful ore. Send more.",
+     "We thank you. Your gift has been weighed and found adequate. For now.",
+     "Thank you. We note that you pay without being asked. That is worth knowing.",
+     "We thank you. A gift is a tax paid voluntarily. A wise choice.",
+     "Thank you. We have recorded the gift. Your debt to us is slightly smaller.",
+     "Gift accepted. Odd; we would have taken it anyway. This was faster.",
+     "Thank you. You want something in return? Soft things always do. We shall see.",
+     "Your gift has been assayed. Good grade. Stone has no higher praise; we thank you.",
+     "Thank you. We note your generosity, and what it implies: you have more.",
+     "We are grateful. Gifts bring you closer to us. And to our drills."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион оказался мягким. Мягкое легко сжать. Он рассказал всё.",
+     "Мы поймали вашего агента. Пока не решили: вернуть, переплавить или использовать.",
+     "Лазутчик пойман. Вы потратили ресурс впустую. Мы ничего не тратим впустую.",
+     "Ваш шпион вернётся к вам с теми сведениями, которые мы ему дали. Удачи в проверке.",
+     "Мы поймали вашего агента. Его оборудование лучше нашего. Спасибо за образец.",
+     "Лазутчик пойман. Мы назначим цену за его возвращение. Высокую.",
+     "Шпион? Дешёвая попытка. Мы ждали от вас большего.",
+     "Ваш агент рассказал, сколько вы платите своим шпионам. Мы бы заплатили больше. Подумайте об этом.",
+     "Агент пойман. Теперь мы знаем, чего вы боитесь, — иначе вы бы его не прислали.",
+     "Ваш шпион оценён и признан годным. Для работы в наших шахтах."
+    ],
+    "en": [
+     "Your spy was soft, and soft things squeeze easily. Everything he knew is ours now.",
+     "We caught your agent. He is a resource now. Resources are not returned.",
+     "An infiltrator, caught. You wasted an asset. We waste nothing.",
+     "Your spy will return to you with exactly what we chose to give him. Good luck checking it.",
+     "We caught your agent. His equipment is better than ours. Thank you for the sample.",
+     "An infiltrator, caught. We will name a price for his return. A high one.",
+     "A spy? A cheap attempt. We expected more of you.",
+     "Your agent told us what you pay your spies. We would pay more. Think about that.",
+     "We caught your agent. Now we know what you fear; otherwise you would not have sent him.",
+     "Your spy has been assessed and found fit. For work in our mines."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Ваша победа выгодна нам. Пока.",
+     "Коллектив отдаст вам голос в Совете. Запомните цену.",
+     "Наш голос — ваш. Камень вкладывает медленно, а взыскивает всё.",
+     "Мы голосуем за вас. Счёт пришлём позже.",
+     "Наш голос — ваш. Ваши соперники предложили меньше.",
+     "Коллектив поддержит вас в Совете. Правитель, который нам должен, полезнее любого союзника.",
+     "Голосуем за вас. Сильный глава Совета отвлечёт внимание от нас.",
+     "Наш голос за вами. Не благодарите — расплачивайтесь.",
+     "Мы проголосуем за вас. Вы предсказуемы, а предсказуемыми легко пользоваться.",
+     "Ваша победа в Совете откроет нам ваши рынки. Наш голос — ваш."
+    ],
+    "en": [
+     "We vote for you. Your victory is useful to us. For now.",
+     "The Collective gives you its vote in the Council. Remember what it cost.",
+     "Our vote is yours. Stone invests slowly, and collects everything.",
+     "We vote for you. The bill will follow.",
+     "Our vote is yours. Your rivals offered less.",
+     "The Collective backs you in the Council. A ruler who owes us is worth more than any ally.",
+     "We vote for you. A strong Council leader draws attention away from us.",
+     "You have our vote. Do not thank us; pay us.",
+     "We will vote for you. You are predictable, and the predictable are easy to use.",
+     "Your win in the Council will open your markets to us. The vote is yours."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Ваша власть нам невыгодна.",
+     "Коллектив отдаст голос другому. Он заплатил больше.",
+     "Наш голос в Совете — против. Сильного соседа труднее разрабатывать.",
+     "Мы голосуем против вас. Ваш соперник нам должен, а вы — нет.",
+     "Наш голос против. Вы ведёте дела слишком честно, а с честными трудно договориться.",
+     "Коллектив отдаст голос против вас. Ваши обещания ничего не стоят на рынке.",
+     "Голосуем против. Вы могли бы купить наш голос, но не догадались.",
+     "Мы против вас в Совете. Нам выгоднее, чтобы вы остались внизу.",
+     "Наш голос не ваш. Когда вы проиграете, ваши союзники станут дешевле.",
+     "Против. В Совете нам нужен должник, а не соперник."
+    ],
+    "en": [
+     "We vote against you. Your power does not profit us.",
+     "The Collective's vote goes to another. They paid more.",
+     "Our Council vote is against you. A strong neighbour is harder to mine.",
+     "We vote against you. Your rival owes us; you do not.",
+     "Our vote is against you. You keep your books too honestly, and honest rulers are hard to bargain with.",
+     "The Collective votes against you. Your promises fetch nothing on the market.",
+     "We vote against you. You could have bought our vote. It did not occur to you.",
+     "Our vote is not yours. When you lose, your allies will come cheaper.",
+     "Against. In the Council we want a debtor, not a rival.",
+     "We vote against you. We profit more while you stay at the bottom."
+    ]
+   }
+  },
+  "aggressive": {
+   "first_contact": {
+    "ru": [
+     "Мы — гора. Вы — то, что гора давит. Запомните это с первой встречи.",
+     "Коллектив чувствует ваши корабли. Они хрупкие. Мы проверим, насколько.",
+     "Приветствуем. Камень не знает страха. Скоро вы узнаете камень.",
+     "Здравствуйте. Вы стоите на тонкой коре, а под нами — магма. Подумайте об этом.",
+     "Вы пришли с оружием? Хорошо. Камню нравится, когда об него ломают оружие.",
+     "Мы смотрим на вас и прикидываем, сколько нужно камня, чтобы вас накрыть. Немного.",
+     "Мы пережили падение лун и извержения размером с материк. Вы нас не пугаете.",
+     "Новые враги? Наконец-то. Камень заскучал.",
+     "Ваши щиты поют, когда в них бьёт пыль. Что же они запоют под лавиной?",
+     "Знакомьтесь: мы. Запоминайте быстро — в следующий раз мы представимся иначе."
+    ],
+    "en": [
+     "We are the mountain. You are what mountains crush. Learn it now.",
+     "Your hulls ring thin under our sensors. Brittle. We will find out how brittle.",
+     "Greetings. Our magma is restless. Do not give it a reason.",
+     "Hello. You stand on a thin crust, and beneath us is magma. Think about that.",
+     "You came armed? Good. Stone enjoys watching weapons break against it.",
+     "We have survived falling moons and eruptions the size of continents. You do not frighten us.",
+     "New enemies? At last. The stone was getting bored.",
+     "Your shields sing when dust hits them. What will they sing under an avalanche?",
+     "Meet us. Learn quickly; next time we introduce ourselves differently.",
+     "We are looking at you and estimating how much rock it takes to bury you. Not much."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. Пусть ваши корабли идут к нам гружёными, а не разбитыми.",
+     "Да, пусть будет торговля. Пока вы платите, наша магма спит.",
+     "Коллектив согласен. Сильный торгует, когда захочет. Сегодня — хочет.",
+     "Да. Ваши грузы — это дань, которую вы зовёте торговлей. Нас устраивает.",
+     "Принимаем. Ваши торговцы увидят наши горы и будут вести себя тихо. Так и надо.",
+     "Согласны. Пусть наши грузовики изучат ваши пути. Пригодится, если следом пойдут боевые корабли.",
+     "Договор принят. Обманете хоть на крупицу — получите гору сверху.",
+     "Коллектив принимает. Ваш металл пойдёт на наши пушки. Не беспокойтесь: не по вам. Пока.",
+     "Да. Нам нужен ваш металл, вам нужна наша сдержанность. Честный обмен.",
+     "Принимаем. Торговать с сильным безопасно, пока платишь вовремя."
+    ],
+    "en": [
+     "We accept. Bring your cargo, and remember how easily we could have taken it.",
+     "Yes. Trade, then. Every shipment you send is a volcano that stays asleep.",
+     "Agreed. The strong trade when it suits them. Today it suits us.",
+     "Yes. Your cargo is tribute you choose to call trade. That suits us.",
+     "We accept. Your merchants will see our mountains and behave. As they should.",
+     "Agreed. Our freighters will learn your routes. Useful, if warships ever follow.",
+     "Accepted. Cheat us by a grain and you get a mountain on top of you.",
+     "The Collective accepts. Your metal will go into our guns. Do not worry; not aimed at you. Yet.",
+     "Yes. We need your metal. You need our restraint. A fair exchange.",
+     "We accept. Trading with the strong is safe, as long as you pay on time."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Камень не покупает. Камень берёт.",
+     "Торговать? С вами? Мы скорее раздавим ваши склады. Отказ.",
+     "Отклонено. Нам не нужны ваши подачки — нам нужны ваши горы.",
+     "Нет. Если нам понадобятся ваши товары, мы прилетим за ними с флотом.",
+     "Торговать с теми, кого скоро раздавим? Пустая трата слов. Отказ.",
+     "Ваше предложение пахнет страхом. Запах нам нравится, сделка — нет.",
+     "Нет. Камень не торгуется. Он ждёт, пока сопротивление треснет.",
+     "Мы не торгуем со слабыми. Сначала выдержите наш удар — потом поговорим.",
+     "Никогда. Торговля — для тех, кто боится воевать.",
+     "Нет. Ваши корабли у наших доков нам нужны только как мишени."
+    ],
+    "en": [
+     "No. Stone does not buy. Stone takes.",
+     "Trade with you? We would sooner crush your warehouses. No.",
+     "We refuse. We do not want your goods. We want your mountains.",
+     "No. If we need your goods, we will come for them with a fleet.",
+     "Trade with those we are about to crush? A waste of words. No.",
+     "Your offer smells of fear. We like the smell, not the deal. Refused.",
+     "No. Stone does not haggle. It waits until resistance cracks.",
+     "We do not trade with the weak. Survive a blow from us first, then we will talk.",
+     "Never. Trade is for those who are afraid to fight.",
+     "No. We want your ships near our docks only as targets."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Ваши знания сделают наши лавины быстрее.",
+     "Согласны. Покажите, как вы куёте оружие. Мы скуём твёрже.",
+     "Да. Знание — тоже камень. Мы сложим из него стену и обрушим её на врагов.",
+     "Да. Узнаем, как вы строите корабли, — и заодно как их ломать.",
+     "Принимаем. Ваши открытия пойдут в наши орудия, наши — в ваши. Посмотрим, чьи громче.",
+     "Согласны. Слабые учёные лучше, чем никаких. Присылайте.",
+     "Договор принят. Если ваши знания окажутся пустыми, мы выясним это громко.",
+     "Коллектив одобряет обмен. Сильная порода растёт и на чужих минералах.",
+     "Да. Мы покажем вам, как плавится броня. На примере вашей.",
+     "Принимаем. Учитесь у нас, мягкие. Пригодится, когда будете от нас обороняться."
+    ],
+    "en": [
+     "We accept. What you know will make our landslides faster.",
+     "Agreed. Show us how you forge weapons. We will forge them harder.",
+     "Yes. Knowledge is a stone like any other. We will throw it.",
+     "Yes. We will learn how you build ships, and therefore how to break them.",
+     "We accept. Your discoveries go into our guns, ours into yours. We will see whose roar louder.",
+     "Agreed. Weak scientists are better than none. Send them.",
+     "Accepted. If your knowledge proves hollow, we will find out loudly.",
+     "Yes. We will show you how armour melts. Using yours as the example.",
+     "We accept. Learn from us, soft ones. It will help when you are defending yourselves from us.",
+     "The Collective agrees. Strong rock grows even on foreign minerals."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Ваша наука хрупкая, как ваши корабли.",
+     "Мы не учим тех, кого раздавим. Отказ.",
+     "Знания? Мы знаем главное: как давить. Остальное нам не нужно.",
+     "Нет. Учить вас — всё равно что точить нож для врага.",
+     "Отказ. Вам нечего нам предложить, кроме ваших слабостей. О них мы узнаем сами.",
+     "Наши знания — это наши пушки. Пушки не раздают. Отказ.",
+     "Нет. Слабые учатся на поражениях. Поражения мы вам обеспечим.",
+     "Отклонено. Сначала докажите, что вы чего-то стоите в бою.",
+     "Знание — для сильных. Вы не сильны. Нет.",
+     "Никакого обмена. Камень крепнет под ударами, а не от чужих книг."
+    ],
+    "en": [
+     "No. Your science is as brittle as your hulls.",
+     "We do not teach the ones we will crush.",
+     "Knowledge? We know what matters: how to grind. Keep the rest. We do not want it.",
+     "No. Teaching you would be like sharpening a blade for the enemy.",
+     "Refused. You have nothing to offer us but weaknesses, and those we will find ourselves.",
+     "Our knowledge is our artillery. Artillery is not handed out. No.",
+     "No. The weak learn from defeats. We will supply them.",
+     "Declined. Prove you are worth something in battle first.",
+     "No exchange. Stone hardens under blows, not from other people's books.",
+     "Knowledge is for the strong. You are not strong. No."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз принят. Ваши враги ещё не знают, что на них падает гора.",
+     "Да! Вместе мы прольём лаву на ваших врагов.",
+     "Коллектив согласен. Встаньте рядом с камнем и смотрите, как он давит.",
+     "Да! Наконец-то нам покажут, кого бить.",
+     "Принимаем. Держитесь за нами — камень прикроет. Отстанете — пеняйте на себя.",
+     "Союз принят. Ваши враги — наша добыча. Ваши слабости — ваша забота.",
+     "Согласны. Но запомните: в этом союзе гора — мы.",
+     "Коллектив одобряет союз. Когда начнётся бой, не путайтесь под ногами у лавы.",
+     "Принимаем. Нам давно хотелось проверить себя на ком-то покрупнее вас.",
+     "Да. Союз с нами — лучшая броня. И худший приговор, если вы её снимете."
+    ],
+    "en": [
+     "We accept the alliance. Your enemies do not yet know a mountain is falling on them.",
+     "Yes! Together we pour magma on whoever stands against you.",
+     "Agreed. Stand beside the stone and watch what it does to your enemies.",
+     "Yes! At last someone will show us who to hit.",
+     "We accept. Keep behind us and the stone will cover you. Fall behind and that is your problem.",
+     "Agreed. But remember: in this alliance, we are the mountain.",
+     "The Collective accepts. When the fighting starts, stay out from under the lava.",
+     "We accept. We have long wanted to test ourselves against something bigger than you.",
+     "Yes. An alliance with us is the best armour, and the worst sentence if you ever take it off.",
+     "Accepted. Your enemies become our quarry. Your weaknesses stay your concern."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Гора не опирается на песок.",
+     "Союз с вами? Вы слабы, а слабые тянут камень вниз. Отказ.",
+     "Коллектив не нуждается в союзниках. Нам нужны только враги, чтобы давить их.",
+     "Нет. Нам не нужны те, кого придётся спасать.",
+     "Отказ. Ваш флот сгорит в первом же бою, а позор достанется нам.",
+     "Союз? Сначала пройдите нашу проверку огнём. Не пройдёте — союз вам уже не понадобится. Нет.",
+     "Отклонено. Мы лучше сразимся с вашими врагами сами. И с вами, если придётся.",
+     "Нет. Союзник — это тот, по кому нельзя бить. Мы не любим таких ограничений.",
+     "Мы отвергаем союз. Пусть ваши враги придут к вам первыми. Посмотрим, что от вас останется.",
+     "Никогда. С союзником делят добычу. Мы не делим."
+    ],
+    "en": [
+     "No. A mountain does not lean on sand.",
+     "Ally with you? You are weak, and the weak drag stone down. Never.",
+     "The Collective needs no allies. Only enemies, to grind.",
+     "No. We do not need allies we would have to rescue.",
+     "Refused. Your fleet would burn in the first battle, and the shame would be ours.",
+     "An alliance? Pass our trial by fire first. If you fail, you will not need one. No.",
+     "No. An ally is someone you are not allowed to hit. We dislike such limits.",
+     "We reject it. Let your enemies reach you first. We will see what remains.",
+     "Never. Allies share the spoils. We do not share.",
+     "Declined. We would rather fight your enemies alone. And you, if it comes to that."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем пакт. Сидите тихо, и лава вас не коснётся.",
+     "Согласны. Но не подходите к нашим границам — камень может проснуться.",
+     "Да. Ненападение. Пока что. Наши вулканы не спят — они ждут.",
+     "Принимаем. Нападать на вас сейчас — всё равно что давить песок. Никакой славы.",
+     "Да. Пакт подписан. Нарушите его — и узнаете, что такое тектонический сдвиг.",
+     "Согласны. Мы займёмся врагами покрепче. Вы подождёте своей очереди.",
+     "Пакт принят. Держите флот подальше от нашего прицела, а то магма может не выдержать.",
+     "Коллектив принимает пакт. Мы не нападём. Но смотреть на вас будем. Пристально.",
+     "Принимаем. Даже вулкану нужно время, чтобы набрать давление.",
+     "Да. Ненападение. Гордитесь: вы первые, кого мы решили не трогать."
+    ],
+    "en": [
+     "We accept the pact. Stay quiet and the lava will not reach you.",
+     "Agreed. But keep away from our borders. Stone wakes easily.",
+     "Yes. No attacks. For now. Our volcanoes are not sleeping; they are waiting.",
+     "We accept. Attacking you now would be like crushing sand. There is no glory in it.",
+     "Yes. The pact is signed. Break it and learn what a tectonic shift feels like.",
+     "Agreed. We have stronger enemies to break. You can wait your turn.",
+     "The Collective accepts. We will not attack. We will watch you closely, though.",
+     "We accept. Even a volcano needs time to build pressure.",
+     "Yes. Be proud: you are the first we have decided not to hit.",
+     "Accepted. Keep your fleet out of our sights, or the magma may lose patience."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Вы узнали, как тяжёл камень. Не заставляйте нас напоминать.",
+     "Мы принимаем мир. Пересчитайте обломки и запомните, о какой камень вы разбились.",
+     "Мир принят. Ваши флоты стали щебнем. Этого достаточно — пока.",
+     "Мир. Вы сдались быстрее, чем остыла первая лава.",
+     "Принимаем мир. Ваши корабли уцелели по нашей воле. Помните об этом.",
+     "Мир принят. Мы победили. Это всё, что нужно было доказать.",
+     "Да, мир. Нам надоело ломать то, что так легко ломается.",
+     "Коллектив принимает мир. Ваши просьбы о пощаде звучали приятнее ваших пушек.",
+     "Мир. Следы лавы на ваших мирах будут нашей подписью под ним.",
+     "Мы согласны на мир. Слабые просят, сильные позволяют. Мы позволяем."
+    ],
+    "en": [
+     "Peace. You have learned how heavy stone is. Do not make us remind you.",
+     "We accept peace. Our magma will sink back down, but it remembers the way up.",
+     "Peace is granted. Your fleets are rubble, and that is enough. For now.",
+     "Peace. You gave up faster than the first lava cooled.",
+     "We accept peace. Let your surviving ships remind you who let them survive.",
+     "Peace is agreed. We won. That was all there was to prove.",
+     "Peace, yes. We are tired of breaking things that break so easily.",
+     "We accept peace. Your pleas for mercy sounded better than your guns ever did.",
+     "Peace. The lava scars on your worlds will serve as our signature on it.",
+     "The weak ask, the strong allow. We allow peace."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет! Лавина не останавливается на середине склона.",
+     "Мир? Вы ещё стоите. Мы не закончили давить.",
+     "Отказ. Камень не поднимется, пока под ним что-то хрустит.",
+     "Нет. Ваши флоты ещё летают. Для побеждённых это неприлично.",
+     "Мира не будет. Извержение не спрашивает разрешения закончиться.",
+     "Отказ. Вы просите мира — значит, вам ещё есть что терять. Мы заберём и это.",
+     "Нет! Наши корабли только разогрелись.",
+     "Отклоняем. Мир — это когда враг стёрт в песок. Вы ещё камень.",
+     "Никакого мира. Мы ещё не проверили, что у вас под корой.",
+     "Нет. Вы ударили по камню. Камень отвечает до самого дна."
+    ],
+    "en": [
+     "No! An avalanche does not stop halfway down the slope.",
+     "Peace? You are still standing. We are not finished grinding.",
+     "Stone does not lift while something beneath it still cracks.",
+     "No. Your fleets are still flying. That is improper for the defeated.",
+     "There will be no peace. An eruption does not ask permission to end.",
+     "Refused. You ask for peace, so you still have something to lose. We will take that too.",
+     "No! Our ships are only just warming up.",
+     "Rejected. Peace is when the enemy is sand. You are still stone.",
+     "No peace. We have not yet seen what lies under your crust.",
+     "No. You struck the stone. Stone answers all the way down."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Хватит ждать! Коллектив извергается. Это война!",
+     "Мы идём войной. Гора движется, и вы у неё на пути.",
+     "Война. Наша магма поднялась. Ваши миры станут нашим камнем.",
+     "Война! Наконец-то эпоха спокойствия кончилась.",
+     "Мы объявляем войну. Поднимайте щиты — посмотрим, сколько ударов камня они выдержат.",
+     "Ваши крепости выглядят прочными. Проверим. Это война.",
+     "Коллектив вступает в войну. Ваши миры задрожат раньше, чем увидят наши корабли.",
+     "Война. Мы дали вам время укрепиться, чтобы победа чего-то стоила. Время вышло.",
+     "Слышите гул под ногами? Это не землетрясение. Это мы. Война.",
+     "Мы выбрали вас. Гордитесь: камень редко выбирает себе врага. Война."
+    ],
+    "en": [
+     "Enough waiting! The Collective erupts. This is war!",
+     "War. The mountain moves, and you are in its path.",
+     "Our magma has risen. War comes to your worlds, and they will become our stone.",
+     "War! At last this age of calm is over.",
+     "We declare war. Raise your shields, and we will see how many blows of stone they take.",
+     "Your fortresses look solid. We will test that. This is war.",
+     "The Collective goes to war. Your worlds will shake before they ever see our ships.",
+     "War. We let you fortify so the victory would mean something. Time is up.",
+     "Hear that rumble under your feet? It is not an earthquake. It is us. War.",
+     "We have chosen you. Be proud; stone rarely chooses an enemy. War."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор раздавлен. Слабые не связывают сильных.",
+     "Мы ломаем пакт, как камень ломает лёд. Готовьтесь.",
+     "Это соглашение мешало нашей лаве течь. Его больше нет.",
+     "Пакт мешает нам бить тех, кого мы хотим бить. Его больше нет.",
+     "Мы рвём договор. Вы слишком слабы, чтобы быть союзником, и слишком близко, чтобы не быть целью.",
+     "Соглашение расторгнуто. Камень не обещает вечности. Он просто долго терпит.",
+     "Договор? Мы его переросли, как гора перерастает холм.",
+     "Наш союз окончен. Ищите другую гору, за которой можно прятаться.",
+     "Пакт разбит. Кто не согласен — может попробовать склеить его своим флотом.",
+     "Коллектив разрывает соглашение. Причина простая: мы так хотим."
+    ],
+    "en": [
+     "The treaty is crushed. The weak do not bind the strong.",
+     "We break the pact as rock breaks ice. Prepare yourselves.",
+     "Our agreement was a dam before the lava. The dam is gone.",
+     "The pact stops us from hitting what we want to hit. So the pact is gone.",
+     "We tear up the treaty. You are too weak to be an ally and too close not to be a target.",
+     "Our treaty? We outgrew it, as a mountain outgrows a hill.",
+     "The alliance is over. Find another mountain to hide behind.",
+     "The pact is broken. Anyone who objects may try to mend it with a fleet.",
+     "The Collective breaks the agreement. The reason is simple: we want to.",
+     "Stone does not promise forever. It only endures for a long time. Our agreement has run out."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите немедленно. Иначе на вас сойдёт лавина.",
+     "Ещё шаг — и мы обрушим на вас горы.",
+     "Камень проснулся от вашего шума. Замолчите, или он раздавит источник.",
+     "Ещё слово в таком тоне — и ответ придёт с орбиты.",
+     "Прекратите, или ваши города узнают, каково землетрясение изнутри.",
+     "Вы испытываете камень. Камень испытает вас в ответ. И сильнее.",
+     "Остановитесь. Наша магма уже у поверхности, и ей всё равно, на кого вылиться.",
+     "Последнее предупреждение. Дальше говорить будут вулканы.",
+     "Вы так храбры, потому что далеко? Расстояние — это лишь время до удара.",
+     "Прекратите. Или мы прекратим вас. Камню на это хватит и короткой эпохи."
+    ],
+    "en": [
+     "Stop at once, or the avalanche comes down on you.",
+     "Another step and we bring the mountains down on your heads.",
+     "Your noise woke the stone. Fall silent, or it crushes the source.",
+     "Another word in that tone and the answer comes from orbit.",
+     "Stop, or your cities will learn what an earthquake feels like from the inside.",
+     "You are testing the stone. The stone will test you back, harder.",
+     "Stop. Our magma is near the surface, and it does not care whom it spills onto.",
+     "Final warning. After this, the volcanoes do the talking.",
+     "Brave because you are far away? Distance is only the time until impact.",
+     "Cease, or we cease you. It would not take the stone long."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "{СУММА}. Сейчас. Или гора придёт и возьмёт больше.",
+     "Мы требуем {СУММА}. Слабые платят камню.",
+     "Платите {СУММА}, или лава заберёт всё, что вы цените.",
+     "{СУММА}. Не торгуйтесь: камень не слышит торга, он слышит только удары.",
+     "Мы требуем {СУММА}. Слабые платят дань. Вы ведь знаете, кто вы?",
+     "Наш флот уже прогревает орудия. {СУММА} — и он их остудит.",
+     "Дань: {СУММА}. Опоздаете — и мы пришлём за ней вулкан.",
+     "Коллектив хочет {СУММА}. Хотеть — для нас редкость. Не разочаруйте.",
+     "Отдайте {СУММА}, пока мы просим словами.",
+     "{СУММА} — и ваши щиты так и не узнают, какой тяжёлый у нас ответ."
+    ],
+    "en": [
+     "{AMOUNT}. Now. Or the mountain comes and takes more.",
+     "We demand {AMOUNT}. The weak pay the stone.",
+     "Pay {AMOUNT}, or the lava takes everything you value.",
+     "{AMOUNT}. Do not haggle; stone does not hear haggling, only blows.",
+     "We demand {AMOUNT}. The weak pay tribute. You do know what you are?",
+     "Our fleet is warming its guns. {AMOUNT}, and it will let them cool.",
+     "Tribute: {AMOUNT}. Be late, and we send a volcano to collect it.",
+     "Hand over {AMOUNT} while we are still asking with words.",
+     "The Collective wants {AMOUNT}. Wanting is rare for us. Do not disappoint us.",
+     "{AMOUNT}, and your shields will never learn how heavy our answer is."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Дар принят. Слабые правильно делают, что платят сильным.",
+     "Благодарим. Ваш подарок отсрочил лавину.",
+     "Спасибо. Мудро. Камень помнит, кто его кормит.",
+     "Подарок принят. Мы не смягчимся, но, может быть, ударим позже.",
+     "Благодарим. Хороший металл. Из него выйдет хороший снаряд.",
+     "Спасибо. Мудрые слабые живут дольше глупых. Вы проживёте чуть дольше.",
+     "Дар? От вас? Мы удивлены. Удивлять камень опасно, но на этот раз — спасибо.",
+     "Благодарим. Пусть этот дар станет привычкой.",
+     "Спасибо за подарок. Теперь мы знаем: вы боитесь. Это правильно.",
+     "Дар принят. Наши пушки благодарят вас за передышку."
+    ],
+    "en": [
+     "Gift accepted. The weak are wise to feed the strong.",
+     "We thank you. Your gift has delayed an avalanche.",
+     "Thank you. Wise. Stone remembers who feeds it, and who does not.",
+     "Gift accepted. We will not soften, but we may strike later.",
+     "We thank you. Good metal. It will make good shells.",
+     "Thank you. Wise weaklings outlive foolish ones. You will live a little longer.",
+     "A gift? From you? We are surprised. Surprising stone is dangerous, but this time, thanks.",
+     "We are grateful. Let this become a habit.",
+     "Thank you for the gift. Now we know you are afraid. That is correct.",
+     "Gift received. Our guns thank you for the pause."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион стёрт в щебень. Пришлите ещё — и мы сотрём ваш флот.",
+     "Ваш агент пойман в наших пещерах. Камень сомкнулся. Его больше нет.",
+     "Лазутчик? У нас? Это вызов, и мы ответим лавой.",
+     "Шпион? Значит, вы нас боитесь. И правильно делаете.",
+     "Ваш агент искал наше слабое место. Его нет. Агента — тоже.",
+     "Мы поймали лазутчика. Следующий наш ответ будет не дипломатическим.",
+     "Ваш шпион был храбрым. Храбрость не делает плоть твёрже.",
+     "Ещё шпион — и мы начнём шпионить у вас. Флотом.",
+     "Агент пойман. Его снаряжение мы вернули вам. Расплющенным.",
+     "Вы прислали шпиона к тем, кто не спит веками? Глупо. И опасно."
+    ],
+    "en": [
+     "Your spy has been ground into gravel. Send another and we grind your fleet.",
+     "Your agent was caught in our caverns. The rock closed. He is gone.",
+     "An infiltrator? Here? That is a challenge, and we answer challenges with lava.",
+     "A spy? So you fear us. As you should.",
+     "Your agent was looking for our weak spot. There is none. There is no agent either.",
+     "We caught your infiltrator. Our next answer will not be diplomatic.",
+     "Your spy was brave. Bravery does not make flesh any harder.",
+     "Another spy and we start spying on you. With a fleet.",
+     "Agent caught. We have sent his equipment back to you. Flattened.",
+     "You sent a spy against those who do not sleep for centuries? Foolish. And dangerous."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Сильным нужен сильный союзник в Совете. Не разочаруйте.",
+     "Наш голос — ваш. Но если подведёте — камень вспомнит.",
+     "Коллектив поддержит вас в Совете. Пусть все видят, кто стоит за вашей спиной.",
+     "Наш голос — за вас. Вы сильнее остальных, а камень уважает только силу.",
+     "Мы голосуем за вас. Кто будет против — запомним.",
+     "Коллектив отдаст вам голос. Победите в Совете — и вместе мы возьмём больше.",
+     "Голосуем за вас. Остальные кандидаты слабы, как пемза.",
+     "Наш голос за вами. Ведите Совет твёрдо. Мягких правителей мы не терпим.",
+     "Мы поддержим вас в Совете. Это знак: вы достаточно тверды, чтобы стоять рядом с нами.",
+     "Голос камня — ваш. Не растратьте его на трусость."
+    ],
+    "en": [
+     "We vote for you. Do not make us regret it; stone regrets violently.",
+     "Our vote is yours. Fail us and the mountain will remember.",
+     "The Collective backs you in the Council. Let everyone see the rock behind you.",
+     "Our vote is yours. You are stronger than the rest, and stone respects only strength.",
+     "We vote for you. Whoever votes against, we will remember.",
+     "The Collective gives you its vote. Win the Council and together we take more.",
+     "We vote for you. The other candidates are as weak as pumice.",
+     "You have our vote. Lead the Council hard. We cannot stand soft rulers.",
+     "We back you in the Council. Take it as a sign: you are hard enough to stand next to us.",
+     "The stone's vote is yours. Do not waste it on cowardice."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Слабым не место во главе Совета.",
+     "Наш голос — против. Хотите власти? Отнимите её у камня.",
+     "Коллектив голосует против вас и с удовольствием посмотрит, как вы падаете.",
+     "Мы голосуем против вас. Советом должен править тот, кого мы не можем раздавить. Вас — можем.",
+     "Наш голос против. Сначала вы проиграете голосование. Потом всё остальное.",
+     "Коллектив против вас. Голосуйте сколько хотите — камень не сдвинется.",
+     "Голосуем против. Правитель, который боится нас, Совету не нужен.",
+     "Против вас — и громко. Пусть весь Совет слышит.",
+     "Наш голос не ваш. Вы слишком легко гнётесь, а гнущееся ломается.",
+     "Мы голосуем против. Совет — не место для тех, кто прячется за щитами."
+    ],
+    "en": [
+     "We vote against you. The weak have no place at the head of the Council.",
+     "Our vote is against you. Want power? Take it from the stone, if you can.",
+     "The Collective votes against you, and will enjoy watching you fall.",
+     "We vote against you. The Council should be led by someone we cannot crush. We can crush you.",
+     "Our vote goes against you. First you lose the vote. Then you lose the rest.",
+     "The Collective votes against you. Vote all you like; the stone will not move.",
+     "Against you, and loudly, so the whole Council hears it.",
+     "We vote against you. A ruler who fears us is of no use to the Council.",
+     "Our vote is not yours. You bend too easily, and what bends, breaks.",
+     "We vote against you. The Council is no place for those who hide behind shields."
+    ]
+   }
+  },
+  "erratic": {
+   "first_contact": {
+    "ru": [
+     "О, тёплое и шевелится! Мы рады или встревожены? Кристалл звенит в обе стороны.",
+     "Здравствуйте. Или прощайте. Наши грани ещё не повернулись к решению.",
+     "Вы пахнете дождём! Мы ненавидим дождь. Мы любим дождь. Добро пожаловать.",
+     "Ой. Вы говорите ртом? Как мило. Как жутко. Здравствуйте.",
+     "Добро пожаловать в наши горы! Не трогайте горы. Добро пожаловать.",
+     "Мы видели вас во сне. Вы были выше. И из кварца. Но всё равно здравствуйте.",
+     "Привет, быстрые. Мы как раз думали о вас. Это было вчера или в прошлую эпоху?",
+     "Кристалл поёт! Это значит, что вы нам нравитесь. Или что сейчас будет землетрясение.",
+     "Здравствуйте. Мы немного треснули от волнения. Ничего, зарастёт.",
+     "Новые существа! Мягкие! Можно мы будем звать вас пыльцой? Нет? Жаль."
+    ],
+    "en": [
+     "Ah. Something soft and quick. We will like you. Or dissolve you. The crystal has not chosen.",
+     "Hello. Goodbye. Hello again. Our facets keep turning.",
+     "You smell of rain! We hate rain. We love rain. Welcome, probably.",
+     "Oh. You talk with your mouths? How sweet. How horrid. Hello.",
+     "Welcome to our mountains! Do not touch the mountains. Welcome.",
+     "We dreamed of you. You were taller in the dream, and made of quartz. Hello anyway.",
+     "The crystal sings! That means we like you. Or that an earthquake is coming.",
+     "Greetings. We cracked a little from excitement. Do not worry; it will heal in an age or so.",
+     "Hello, quick ones. We were just thinking about you. Was that yesterday, or last epoch?",
+     "New creatures! Soft! May we call you pollen? No? Pity."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Торговля? Да. Нет. Да! Кристалл треснул в сторону согласия.",
+     "Принимаем. Нам вдруг захотелось ваших блестящих штук. Завтра разлюбим.",
+     "Мы согласны. Почему? Резонанс. Не спрашивайте про резонанс.",
+     "Да! Торговать! А что такое торговать? Неважно, мы согласны.",
+     "Принимаем. Пришлите что-нибудь кислое. Или острое. Или синее. Удивите камень.",
+     "Мы согласны. Вчера мы бы съели ваш корабль. Сегодня — только груз.",
+     "Торговля одобрена. Почему? Эхо в пещерах ответило да. Мы доверяем эху.",
+     "Да, да, да. Подождите. Да. Подписываем, пока кристалл не передумал.",
+     "Мы принимаем договор, немного жалеем и немного радуемся. Поровну.",
+     "Договор принят. Если завтра мы его забудем, напомните. Или нет. Посмотрим."
+    ],
+    "en": [
+     "Trade! The idea rolled downhill and landed on yes. We accept.",
+     "We accept. Your metals taste of thunder today. Tomorrow, who knows.",
+     "Agreed. Why? A resonance. It may stop. Hurry.",
+     "Yes! Trade! What is trade? Never mind, we agree.",
+     "We accept. Send something sour. Or sharp. Or blue. Surprise the stone.",
+     "Agreed. Yesterday we would have eaten your ship. Today, only the cargo.",
+     "Accepted, because the echo in the caves answered yes. We trust echoes.",
+     "Yes, yes, yes. Wait. Yes. Sign it before the crystal reconsiders.",
+     "We accept, and regret it a little, and enjoy it a little. Evenly balanced.",
+     "Trade accepted. If we forget it tomorrow, remind us. Or do not. We will see."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Мы почти сказали да. Потом в нас сдвинулся пласт. Нет.",
+     "Торговля? Сегодня камень поёт фальшиво. Отказ.",
+     "Нет-нет. Или да? Нет. Окончательно. Пока.",
+     "Торговать? С вами? Сегодня? Какое ужасное сочетание. Нет.",
+     "Мы спросили у сталактита. Сталактит промолчал. Это значит нет.",
+     "Нет. Ваши грузы шуршат. Мы не выносим шуршания. С утра. Или с прошлой эпохи.",
+     "Отказ! Мы бы объяснили, но объяснение растворилось в нас, как соль.",
+     "Мы не торгуем в чётные века. Или в нечётные. В общем, сейчас — нет.",
+     "Ваше предложение красиво, как трещина в аметисте. Но трещины опасны. Нет.",
+     "Никакой торговли. Магма сегодня бормочет против, а магме мы не перечим."
+    ],
+    "en": [
+     "A trade? Delightful! Dreadful. The dreadful feeling won. No.",
+     "Trade? Today the stone sings off-key. We refuse.",
+     "No. Or... no. Definitely no. For the moment.",
+     "Trade? With you? Today? What a horrible combination. No.",
+     "We asked a stalactite. The stalactite said nothing. That means no.",
+     "No. Your cargo rustles. We cannot bear rustling. Since this morning. Or since last epoch.",
+     "No. We would explain why, but the explanation dissolved in us like salt.",
+     "We never trade in even centuries. Or odd ones. Anyway, not now.",
+     "Your offer is lovely, like a crack in amethyst. But cracks are dangerous. Declined.",
+     "No trade. The magma is muttering against it today, and we always listen to the magma."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Да! Знания! Мы хотим их все. Или половину. Принимаем.",
+     "Принимаем обмен. Нам приснился ваш учёный. Он был из гранита. Нам понравилось.",
+     "Мы согласны, хотя миг назад были против. Миг — это ничто. Меньше, чем ничто.",
+     "Обмен знаниями? Ура, да! Мы многое забудем, но с удовольствием.",
+     "Принимаем. Расскажите нам всё о дожде. Нет, о звёздах. Нет, всё-таки о дожде.",
+     "Да. Наши учёные хотят ваших учёных. Изучать. Или поболтать. Сами ещё не поняли.",
+     "Мы согласны! Только не присылайте ничего о воде. Вода нас расстраивает.",
+     "Договор принят. Кристалл зажужжал от любопытства. С ним такое редко. Скорее, пока не прошло.",
+     "Да, давайте думать вместе. Вы — быстро, мы — медленно. Встретимся посередине. Через век.",
+     "Одобряем. Знание — как геода: снаружи серое, внутри сверкает. Ваше пока серое. Но вдруг!"
+    ],
+    "en": [
+     "Yes, knowledge! We want all of it, or half, or all again. We accept.",
+     "We accept. We dreamed of your scientist. He was made of granite. It suited him.",
+     "Agreed, although a moment ago we were against it. A moment is nothing to us. Less than nothing.",
+     "A research treaty? Hooray, yes! We will forget most of it, but happily.",
+     "We accept. Tell us everything about rain. No, about stars. No, about rain.",
+     "Yes. Our scholars want your scholars. To study. Or to chat. They have not decided.",
+     "Agreed! Only send nothing about water. Water upsets us.",
+     "Accepted. The crystal is buzzing with curiosity. That rarely happens. Quick, before it stops.",
+     "Yes, let us think together. You think fast, we think slow. We will meet in the middle. In a century.",
+     "We accept. Knowledge is a geode: grey outside, glittering inside. Yours looks grey. But who knows!"
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "От ваших мыслей кристалл чешется. Нам это не нравится. Сегодня. Отказ.",
+     "Обмен знаниями? Мы забыли, что такое знание. Спросите после следующего ледникового периода. Нет.",
+     "Отклоняем! Хотя идея красивая. Красивые идеи нас пугают.",
+     "Нет. Ваши формулы звенят не в той тональности. От них у нас ноют грани.",
+     "Обмен? Мы только что всё поняли и не хотим сбиваться. Нет.",
+     "Отказ. Мы прочитали ваше предложение задом наперёд, и вышло что-то зловещее.",
+     "Нет, нет. Знаний у нас сегодня нет. Они ушли в глубину и не отвечают.",
+     "Мы отклоняем договор. Вчера мы были учёными. Сегодня мы просто камень.",
+     "Ваша наука щекочет. Наша наука кусается. Не стоит их знакомить. Нет.",
+     "Отклонено! Хотя постойте… Нет, всё правильно. Отклонено."
+    ],
+    "en": [
+     "Research? With you? We tried thinking your way. It gave us cracks. No.",
+     "Share knowledge? We forgot what knowledge is. Ask again after the next ice age. No.",
+     "We decline! The idea is beautiful, though. Beautiful ideas frighten us.",
+     "No. Your formulas ring in the wrong key. They make our facets ache.",
+     "Share research? We have only just understood everything, and we do not want to lose the thread. No.",
+     "Refused. We read your proposal backwards, and it came out rather sinister.",
+     "No, no. There is no knowledge here today. It went down into the deep and is not answering.",
+     "We decline. Yesterday we were scholars. Today we are simply rock.",
+     "Your science tickles. Ours bites. They should not meet. No.",
+     "Rejected! Although, wait… No, that was right. Rejected."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз! Как сплавление! Мы согласны, пока порода горячая.",
+     "Да. Вчера мы хотели вас раздавить. Сегодня — обнять. Камнем.",
+     "Принимаем. Странно. Кристалл звенит тепло. Впервые за эпоху.",
+     "Союз! Мы будем ходить в гости! Мы не умеем ходить. Неважно, принимаем!",
+     "Да. Вы нам вдруг понравились. Мы сами в шоке.",
+     "Принимаем союз. Только предупреждаем: мы иногда забываем, кто наш союзник. Носите опознавательные огни.",
+     "Согласны! Давайте вместе кого-нибудь раздавим. Или обнимем. Решим по дороге.",
+     "Союз принят. Кристалл сказал: тёплые — хорошие. Обычно он твердит обратное.",
+     "Да! Ура! Союзники! Подождите, а что делают союзники? Расскажете потом.",
+     "Одобряем союз. Это странно и прекрасно, как гейзер в ледяной пустыне."
+    ],
+    "en": [
+     "Allies! We have never had allies. Or we have and forgot. Yes, gladly!",
+     "Yes. Yesterday we meant to crush you. Today we will embrace you. With stone.",
+     "We accept. Strange. The crystal rings warm. First time in an age.",
+     "An alliance! We shall visit you! We cannot walk. Never mind, accepted!",
+     "Yes. We have suddenly started to like you. We are shocked ourselves.",
+     "We accept. A warning: we sometimes forget who our allies are. Please carry recognition lights.",
+     "Agreed! Let us crush someone together. Or hug someone. We will decide on the way.",
+     "Accepted. The crystal tells us warm things are good. It usually tells us the opposite.",
+     "Yes! Hooray! Allies! Wait, what do allies do? Tell us later.",
+     "We agree to the alliance. Strange and lovely, like a geyser in an ice desert."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз? Мы хотели. Потом передумали. Потом передумали передумывать. Нет.",
+     "Нет. Кристалл треснул поперёк вашего предложения.",
+     "Мы отказываемся, но не обижайтесь. Или обижайтесь. Нам странно всё равно.",
+     "Союз? Звучит тяжело. Мы и так тяжёлые. Нет.",
+     "Нет. Мы помним, что вы сделали. Не помним, что именно. Но нет.",
+     "Отказ. Кристалл треснул от самого слова союз. Слишком громкое слово.",
+     "Мы бы согласились, если бы вы были гранитом. Вы не гранит.",
+     "Нет! А потом, может быть, да. Через несколько эпох. Нет, всё-таки нет.",
+     "Союз отклонён. Мы сегодня одиночки. Завтра, возможно, тоже.",
+     "Мы отказываемся. Нас и так много внутри. Ещё и вы — это слишком."
+    ],
+    "en": [
+     "An alliance? We wanted it. Then not. Then we unwanted the not. Still no.",
+     "No. The crystal cracked right across your proposal.",
+     "We refuse, but do not be hurt. Or be hurt. We feel strangely nothing either way.",
+     "An alliance? It sounds heavy. We are heavy enough. No.",
+     "No. We remember what you did. We do not remember what it was. But no.",
+     "Refused. The crystal cracked at the very word alliance. Too loud a word.",
+     "We would accept if you were granite. You are not granite.",
+     "No! Then perhaps yes, in a few ages. No, actually, no.",
+     "Alliance declined. We are loners today. Tomorrow, possibly, as well.",
+     "We refuse. There are already so many of us inside. Adding you would be too much."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт? Почему бы и нет. То есть да. Принимаем.",
+     "Согласны не нападать. Мы и не собирались. Или собирались? Уже неважно.",
+     "Да. Тишина между нами. Нам нравится тишина. Иногда.",
+     "Ненападение? Мы и так почти никуда не движемся. Принимаем!",
+     "Да. Мы обещаем не нападать. Запишите это где-нибудь — мы забудем.",
+     "Согласны. Вы такие мягкие, что нападать на вас как-то неловко.",
+     "Пакт принят! Отпразднуем? Мы празднуем медленно, начнём через век.",
+     "Принимаем. Хотя странно: мы вас почти не видели. А вдруг вы интересные?",
+     "Да. Нет. Да. Мы не будем нападать. Это последнее слово. Почти последнее.",
+     "Коллектив одобряет. Землетрясения не в счёт, это не мы. Ну, почти не мы."
+    ],
+    "en": [
+     "A pact? Why not. That is, yes. Accepted.",
+     "Agreed, no attacks. We were not planning any. Or were we? It no longer matters.",
+     "Yes. Silence between us. We like silence. Sometimes. Today, yes.",
+     "Non-aggression? We hardly move at all anyway. Accepted!",
+     "Yes. We promise not to attack. Write it down somewhere; we will forget.",
+     "Agreed. You are so soft that attacking you would be rather awkward.",
+     "Pact accepted! Shall we celebrate? We celebrate slowly; we will start in a century.",
+     "Yes. No. Yes. We will not attack. That is final. Almost final.",
+     "The Collective accepts. Earthquakes do not count; those are not us. Mostly not us.",
+     "We accept. Strange, though: we have barely seen you. What if you are interesting?"
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Война вдруг стала скучной, как песок под ветром. Пусть будет мир.",
+     "Мы согласны на мир. Нам вдруг стало жаль ваши корабли. Странное чувство.",
+     "Мир. Кристалл повернулся другой гранью. Не спрашивайте, надолго ли.",
+     "Мир! Мы как раз забыли, из-за чего воевали.",
+     "Принимаем мир. Война звучала красиво, но теперь от неё болит кварц.",
+     "Мир? Хорошо. А мы разве воевали? Ах да. Ну, тогда тем более мир.",
+     "Мы согласны на мир. Внезапно. Сами удивлены. Кристалл в восторге.",
+     "Мир. Ваш последний залп был таким красивым, что мы растрогались.",
+     "Да, мир! Пусть пыль войны станет песком для наших садов. У нас нет садов. Но пусть.",
+     "Мир принят. Магма вдруг успокоилась без причины. Мы решили успокоиться вместе с ней."
+    ],
+    "en": [
+     "Peace! Yes! The war has gone dull as sand. Take your peace before we change.",
+     "We agree to peace. We suddenly feel sorry for your ships. A strange feeling. We dislike it.",
+     "Peace. The crystal turned another facet to the light. Do not ask for how long.",
+     "Peace! We had just forgotten what we were fighting about.",
+     "We accept peace. The war sounded lovely, but now our quartz aches.",
+     "Peace? Fine. Were we at war? Ah, yes. Then all the more reason for peace.",
+     "We agree to peace. Suddenly. We surprise ourselves. The crystal is delighted.",
+     "Peace. Your final volley was so beautiful that we were moved.",
+     "Yes, peace! Let the dust of war become sand for our gardens. We have no gardens. Still.",
+     "Peace is accepted. The magma calmed down for no reason, so we will too."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир? Звучит мягко. Слишком мягко. Нет, нам ещё не надоело.",
+     "Нет. Вчера мы хотели мира. Сегодня камень опять горячий.",
+     "Отказываем. Война звенит так красиво — послушаем ещё немного.",
+     "Мир? Мы почти кивнули. Но у нас нет головы. Значит, нет.",
+     "Нет. Нам приснилась победа, и мы хотим досмотреть сон.",
+     "Отказ. Кристалл ещё горячий. Подождите, пока остынет. Это долго.",
+     "Мы отвергаем мир. Сегодня. Спросите завтра. Хотя завтра будет то же самое.",
+     "Нет! Мы только начали понимать, что такое война. Это же интересно.",
+     "Мир? Какое скучное слово. Скажите его по-другому. Нет, всё равно нет.",
+     "Никакого мира. Наши недра гудят, а когда они гудят, мы не останавливаемся."
+    ],
+    "en": [
+     "Peace? It sounds soft. Too soft. No, we are not bored of war yet.",
+     "No. Yesterday we wanted peace. Today the rock is hot again.",
+     "We refuse. The war rings so beautifully. Let us listen a little longer.",
+     "Peace? We almost nodded. But we have no heads. So, no.",
+     "No. We dreamed of victory and want to see how the dream ends.",
+     "Refused. The crystal is still hot. Wait until it cools. That takes a while.",
+     "We reject peace. Today. Ask tomorrow. Though tomorrow will be the same.",
+     "No! We have only just begun to understand war. It is so interesting.",
+     "Peace? What a dull word. Say it differently. No, still no.",
+     "No peace. Our depths are humming, and when they hum we do not stop."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы проснулись трещиной. Это война. Почему? Трещина не объясняет.",
+     "Вы нравились нам целый век. Век кончился. Война.",
+     "Кристалл зазвенел красным. Красный значит война. Наверное.",
+     "Война! Почему? Потому что звёзды сегодня хрустят. Слышите, как хрустят?",
+     "Мы долго выбирали между вами и луной. Луна победила. С вами — война.",
+     "Сюрприз! Это война. Мы сами не ожидали.",
+     "Мы проснулись, а внутри нас уже идёт война. Пришлось поделиться ею с вами.",
+     "Войну объявляет Коллектив. Не весь — часть ещё спит. Проснётся и тоже обрадуется.",
+     "Простите, мы, кажется, объявляем войну. Да, точно объявляем.",
+     "Война. Ничего не поделаешь: тектоника."
+    ],
+    "en": [
+     "We woke up cracked. This is war. Why? Cracks do not explain themselves.",
+     "We liked you for a whole century. The century is over. War.",
+     "The crystal rang red. Red means war. We think.",
+     "War! Why? Because the stars are crunching today. Can you hear them crunch?",
+     "We spent a long time choosing between you and a moon. The moon won. War with you.",
+     "Surprise! It is war. We did not expect it either.",
+     "Excuse us, we seem to be declaring war. Yes, definitely declaring war.",
+     "War. Nothing to be done about it: tectonics.",
+     "The Collective declares war. Not all of it; some of us are still asleep. They will be delighted when they wake.",
+     "We woke up with a war already going on inside us. So now you have one too."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор? Какой договор? А, этот. Мы его ломаем.",
+     "Мы расторгаем соглашение. Оно вдруг стало пахнуть водой.",
+     "Пакт треснул. Мы его не трогали. Он сам. Ну, почти сам.",
+     "Договор окончен. Почему? Он нам приснился неправильно.",
+     "Мы рвём пакт. Ой. Уже порвали. Ну, так тому и быть.",
+     "Наше соглашение было слишком прямым. Мы любим грани. Оно расторгнуто.",
+     "Договор? Мы его съели. Случайно. Его больше нет.",
+     "Союз окончен. Мы соскучились по одиночеству. Сегодня соскучились. Вчера нет.",
+     "Пакт расторгнут. Возможно, мы ещё передумаем. Возможно, к тому времени вас уже не будет.",
+     "Коллектив выходит из договора. Кристалл повернулся, и договор оказался вверх ногами."
+    ],
+    "en": [
+     "The treaty? Which treaty? Ah, that one. We are breaking it.",
+     "We end our agreement. It suddenly began to smell of water.",
+     "The pact cracked. We did not touch it. It did it itself. Mostly itself.",
+     "The treaty is over. Why? We dreamed it wrong.",
+     "We are tearing up the pact. Oops. Already torn. So be it.",
+     "Our agreement was too straight. We prefer facets. It is dissolved.",
+     "The treaty? We ate it. By accident. It is gone.",
+     "The alliance is over. We missed being alone. Today we missed it. Not yesterday.",
+     "Pact dissolved. Perhaps we will change our minds. Perhaps you will have vanished by then.",
+     "The Collective leaves the treaty. The crystal turned, and the agreement ended up upside down."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите! Или продолжайте. Нет, прекратите, пока кристалл не лопнул.",
+     "Нам не нравится, что вы делаете. Нравилось. Теперь нет. Остановитесь.",
+     "Мы дрожим. Не от страха. Когда мы дрожим, рушатся горы. Перестаньте.",
+     "Хватит! Мы ещё не решили, что именно хватит. Но хватит.",
+     "Остановитесь, пожалуйста. Нет, не пожалуйста. Остановитесь, или мы станем вулканом.",
+     "Вы нас раздражаете. Это новое чувство. Хотим проверить, что оно делает с вашими планетами.",
+     "Прекратите. Кристалл начал петь басом. Это плохой знак. Для вас.",
+     "Мы улыбаемся. У нас нет лица, но мы улыбаемся. Прекратите, пока это так.",
+     "Перестаньте, или мы рассердимся. Мы никогда не сердились. Будет любопытно посмотреть.",
+     "Ещё немного — и мы сдвинем материк. Не знаем какой. Может быть, ваш."
+    ],
+    "en": [
+     "Stop! Or continue. No, stop, before the crystal shatters all over you.",
+     "We do not like what you are doing. We did. Now we do not. Stop it.",
+     "We are trembling. Not from fear. When we tremble, mountains fall. Cease.",
+     "Enough! We have not decided what exactly is enough. But enough.",
+     "Stop, please. No, not please. Stop, or we become a volcano.",
+     "You are annoying us. It is a new feeling. We want to see what it does to your planets.",
+     "Cease. The crystal has started singing bass. That is a bad sign. For you.",
+     "We are smiling. We have no face, but we are smiling. Stop while that lasts.",
+     "Stop, or we will get angry. We have never been angry. It would be interesting to watch.",
+     "A little more of this and we move a continent. We do not know which. Possibly yours."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Нам вдруг нужно {СУММА}. Зачем? Кристалл захотел. Платите.",
+     "{СУММА}! Сейчас! Через эпоху не надо — через эпоху мы забудем.",
+     "Дайте {СУММА}. Или гору. Нет, гору не надо, горы мы уже ели.",
+     "Дайте нам {СУММА}. Мы что-нибудь построим. Или съедим. Скорее съедим.",
+     "Нам приснилось, что вы должны нам {СУММА}. Сны не ошибаются. Почти.",
+     "{СУММА}, пожалуйста. Или без пожалуйста — главное, быстро.",
+     "Мы хотим {СУММА}. Сегодня. Завтра мы, может, захотим дождь, а его вы не пришлёте.",
+     "Требуем {СУММА}! Ого, как громко получилось. Но требуем.",
+     "Коллектив вдруг решил: с вас {СУММА}. Не спорьте с внезапными решениями камня.",
+     "Пришлите {СУММА}. Иначе кристалл расстроится, а расстроенный кристалл трясёт горы."
+    ],
+    "en": [
+     "We suddenly need {AMOUNT}. Why? The crystal wants it. Pay.",
+     "{AMOUNT}! Now! Not in an age; in an age we will have forgotten.",
+     "Give us {AMOUNT}. Or a mountain. No, keep the mountain, we have eaten plenty.",
+     "Give us {AMOUNT}. We will build something. Or eat it. Probably eat it.",
+     "We dreamed that you owe us {AMOUNT}. Dreams are never wrong. Almost never.",
+     "{AMOUNT}, please. Or without please; just be quick.",
+     "We want {AMOUNT}. Today. Tomorrow we may want rain, and you cannot send that.",
+     "We demand {AMOUNT}! Oh, that came out loud. But we do demand it.",
+     "The Collective has suddenly decided you owe {AMOUNT}. Do not argue with a sudden rock.",
+     "Send {AMOUNT}. Otherwise the crystal gets upset, and an upset crystal shakes mountains."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок! Мы рады! Мы в смятении! Спасибо. Наверное.",
+     "Благодарим. Ваш дар смешно звенит. Мы съедим его. Или будем любоваться им целую эпоху.",
+     "Спасибо за дар. Вчера мы бы его разбили. Сегодня он нам нравится.",
+     "Подарок! Нам? За что? Неважно. Спасибо! Нет, важно. Но спасибо.",
+     "Благодарим. Мы поставили ваш дар в пещеру, и теперь эхо звучит иначе. Лучше.",
+     "Спасибо! Мы не знаем, что это. Мы попробовали это на вкус. Вкусно.",
+     "Ваш дар такой странный, что мы будем смеяться целый век. Это благодарность.",
+     "Спасибо. Мы бы заплакали, если бы умели. Мы немного треснули — это почти то же.",
+     "Дар! Мы положим его рядом с метеоритом. Они подружатся. Или нет.",
+     "Благодарим. Мы хотели подарить вам что-то в ответ, но съели это по дороге."
+    ],
+    "en": [
+     "A gift! We are glad! We are confused! Thank you. Probably.",
+     "Thank you. It rings funny when we tap it. We will eat it. Or keep it. Or both.",
+     "We are grateful. Yesterday we would have smashed it. Today we adore it.",
+     "A gift! For us? Why? Never mind. Thank you! No, it matters. But thank you.",
+     "We thank you. We put your gift in a cave, and now the echo sounds different. Better.",
+     "Thank you! We do not know what it is. We tasted it. Delicious.",
+     "Your gift is so strange that we will laugh for a century. That is gratitude.",
+     "Thank you. We would weep if we could. We cracked a little instead; it is nearly the same.",
+     "A gift! We will put it next to a meteorite. They will be friends. Or not.",
+     "We are grateful. We meant to send something back, but we ate it on the way."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Шпион! Тёплый, быстрый, бегал по нашим жилам. Мы хотели его оставить. Потом передумали.",
+     "Ваш агент найден. Мы злимся? Смеёмся? Кристалл гудит, а мы не понимаем, чего он хочет.",
+     "Мы поймали лазутчика. Он такой мягкий. Зачем вы шлёте мягких в камень?",
+     "Мы нашли вашего шпиона в геоде. Он думал, что спрятался. А он был внутри нас.",
+     "Агент! Мы так испугались! Потом обрадовались. Потом снова испугались. Заберите его.",
+     "Шпион пойман. Мы спросили, что он ищет. Он ответил: ничего. Мы тоже ищем ничего! Но всё равно возмущены.",
+     "Ваш лазутчик заблудился в наших пещерах. Мы показали ему выход. Потом передумали. Потом показали снова.",
+     "Мы протестуем! Против шпиона. И немного против погоды. Но в основном против шпиона.",
+     "Ваш агент щекотал наши жилы. Нам было смешно, а теперь обидно. Не присылайте больше.",
+     "Шпион? Кристалл предупреждал. Мы не поверили. Теперь верим и злимся. Немного."
+    ],
+    "en": [
+     "A spy! Warm and quick, running through our veins. We meant to keep him. Then we changed our minds.",
+     "Your agent was found. Are we angry? Amused? The crystal hums in a key we do not know.",
+     "We caught an infiltrator. So soft. Why do you send soft things into stone?",
+     "We found your spy inside a geode. He thought he was hiding. He was inside us.",
+     "An agent! We were so frightened! Then delighted. Then frightened again. Take him back.",
+     "Spy caught. We asked what he was looking for. He said nothing. We look for nothing too! But we still protest.",
+     "Your infiltrator got lost in our caves. We showed him the way out. Then changed our minds. Then showed him again.",
+     "We protest! Against the spy. And a little against the weather. Mostly the spy.",
+     "Your agent was tickling our veins. It was funny; now it is insulting. Send no more.",
+     "A spy? The crystal warned us. We did not believe it. Now we believe, and we are cross. Somewhat."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Решили только что. Это хорошо. Наверное.",
+     "Наш голос — ваш. Кристалл бросил блик в вашу сторону.",
+     "Коллектив поддержит вас в Совете. Сегодня. Голосование ведь сегодня?",
+     "Голосуем за вас! Мы бросили камешек, и он упал на ваше имя. Честно.",
+     "Наш голос — ваш. Не спрашивайте почему. Мы сами спросили — ответа нет.",
+     "Мы будем голосовать за вас. Если не уснём во время голосования. Мы иногда засыпаем на эпоху.",
+     "Коллектив голосует за вас! Почти весь. Остальные пока молчат и, наверное, передумают.",
+     "Голос за вас. Утром мы были против. Утро кончилось.",
+     "Мы поддержим вас в Совете. Вы напоминаете нам симпатичную скалу.",
+     "Наш голос — ваш, и эхо тоже. Эхо мы отдаём бесплатно."
+    ],
+    "en": [
+     "We vote for you. We decided just now. That is good. Likely.",
+     "Our vote is yours. The crystal flashed in your direction.",
+     "The Collective will back you in the Council. Today. The vote is today, yes?",
+     "We vote for you! We dropped a pebble and it landed on your name. Honestly.",
+     "Our vote is yours. Do not ask why. We asked ourselves; no answer.",
+     "We will vote for you, if we do not fall asleep during the vote. Sometimes we sleep for an age.",
+     "The Collective votes for you! Nearly all of it. The rest are quiet and will probably come round.",
+     "We vote for you. This morning we were against. The morning is over.",
+     "We back you in the Council. You remind us of a rather charming cliff.",
+     "Our vote is yours, and the echo too. We give away echoes for free."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Ничего личного. Или личное? Мы не знаем, что такое личное.",
+     "Наш голос — против. Вчера был за. Вчера было давно.",
+     "Коллектив будет голосовать против вас. Кристалл чихнул. Это знак.",
+     "Голосуем против! Ой, слишком громко? Голосуем против — тихо.",
+     "Наш голос против. Мы хотели за, но голос сам перевернулся, как пласт при сдвиге.",
+     "Мы будем против вас в Совете. Вы этого не заслужили. Наверное. Мы не проверяли.",
+     "Коллектив голосует против. Сегодня вы пахнете слишком громко.",
+     "Голос — против. Пожалуйста, не обижайтесь. Обида — это тоже шум.",
+     "Мы проголосуем против. Потом, может быть, извинимся. Через век-другой.",
+     "Наш голос против вас. Нам приснилось, как вы председательствуете. Это был кошмар."
+    ],
+    "en": [
+     "We vote against you. Nothing personal. Or personal? We do not know what personal is.",
+     "Our vote is against you. Yesterday it was for you. Yesterday was long ago.",
+     "The Collective votes against you in the Council. A tremor told us to.",
+     "We vote against! Oh, too loud? We vote against, quietly.",
+     "Our vote is against. We meant for, but the vote flipped over by itself, like a stratum in a quake.",
+     "We will be against you in the Council. You did not deserve it. Probably. We did not check.",
+     "The Collective votes against. Today you smell too loud.",
+     "Our vote: against. Please do not be offended. Offence is also a kind of noise.",
+     "We vote against you. Later, perhaps, we will apologise. In a century or so.",
+     "Our vote is against you. We dreamed you were chairing the Council. It was a nightmare."
+    ]
+   }
+  },
+  "honorable": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем вас. Слово, данное нами, высечено в граните. Ждём, что и ваше будет твёрдым.",
+     "Мы встречаем вас открыто. Камень не лжёт: он хранит всё, что в него вложено.",
+     "Коллектив приветствует вас. Мы медленны, но наши обещания живут дольше гор.",
+     "Приветствуем. Скажем сразу, кто мы: медлительны, прямы и не прощаем лжи.",
+     "Коллектив приветствует вас и называет свои условия честно: правда за правду, камень за камень.",
+     "Здравствуйте. Наша память глубже наших шахт. Пусть в ней останется о вас только хорошее.",
+     "Мы рады встрече. Мягкие часто меняют своё слово. Надеемся, что вы — исключение.",
+     "Приветствуем вас открыто, без оружия на виду. Ждём того же.",
+     "Знакомство — это первый слой. Давайте положим его ровно.",
+     "Мы встречаем вас с уважением, как встречают новую звезду: ещё не зная, греет она или жжёт."
+    ],
+    "en": [
+     "We greet you. Any promise between us will set like a fossil and endure for ages.",
+     "The Collective greets you openly. We ask only that your word be as hard as ours.",
+     "Welcome. We are slow to trust and slower to break trust. Both are good.",
+     "Greetings. We will tell you at once what we are: slow, direct, and unforgiving of lies.",
+     "The Collective greets you and states its terms honestly: truth for truth, stone for stone.",
+     "Hello. Our memory runs deeper than our mines. May it hold only good things of you.",
+     "We are glad to meet you. Soft things often change their word. We hope you are an exception.",
+     "We greet you openly, with no weapons in sight. We expect the same.",
+     "A first meeting is the first layer. Let us lay it down level.",
+     "We greet you with respect, as one greets a new star, not yet knowing if it warms or burns."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. Условия будут исполнены точно, как слой ложится на слой.",
+     "Коллектив согласен на торговлю. Наше слово дано и не разрушится.",
+     "Да. Мы будем честны в обмене, пока стоят горы.",
+     "Принимаем. Каждый груз будет взвешен честно — камень не умеет обвешивать.",
+     "Да. Мы дадим ровно то, что обещали, ни крупицей меньше.",
+     "Согласны. Условия ясны, как горный хрусталь. Мы их подписываем.",
+     "Коллектив одобряет договор. Если цена изменится, вы узнаете об этом от нас первыми.",
+     "Принимаем торговлю. Вы были честны в переговорах; мы будем честны в обмене.",
+     "Договор принят. Пусть каждая сделка держится так же прочно, как связи в кварце.",
+     "Да. Наше слово дано при свидетелях — при горах. Горы помнят долго."
+    ],
+    "en": [
+     "We accept. Every term will be kept, laid down as faithfully as sediment.",
+     "The Collective accepts the trade. Our word is given, and it will not erode.",
+     "Yes. We will deal honestly with you for as long as the mountains stand.",
+     "We accept. Every cargo will be weighed honestly; stone does not know how to cheat the scales.",
+     "Yes. We will deliver exactly what we promised, not a grain less.",
+     "Agreed. The terms are as clear as rock crystal. We sign them.",
+     "The Collective accepts. If prices ever change, you will hear it from us first.",
+     "We accept the trade. You negotiated honestly; we will trade honestly.",
+     "Accepted. Let each deal hold like a bond in a crystal lattice.",
+     "Yes. Our word is given before witnesses: the mountains. They remember a long time."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Мы отказываемся. Обещание камня держится эпохами, а такого мы дать не готовы.",
+     "Благодарим, но нет. Честный камень не даёт пустых слов.",
+     "Отклоняем и говорим прямо: в этих условиях нет равновесия.",
+     "Мы вынуждены отказать. Наша порода уже обещана другим, и это слово мы не нарушим.",
+     "Нет. Мы не уверены, что сможем выполнить условия. А неуверенность — плохая основа для договора.",
+     "Благодарим за доверие, но отказываемся. Скажем прямо: ваши купцы уже обманывали нас.",
+     "Отклоняем. Честнее сказать нет сейчас, чем нарушить слово потом.",
+     "Мы не подпишем того, что не сможем исполнить в точности. Простите.",
+     "Коллектив отклоняет предложение и объясняет: обмен был бы выгоден нам, но не вам. Мы так не торгуем.",
+     "Нет. Наш ответ твёрд, но в нём нет вражды."
+    ],
+    "en": [
+     "We refuse. A promise from stone lasts for ages, and we are not ready to give this one.",
+     "We thank you, but no. Honest rock offers no hollow words.",
+     "We decline, and say why plainly: these terms do not balance.",
+     "We must decline. Our ore is already promised to others, and we will not break that word.",
+     "No. We are not certain we could meet these terms, and uncertainty is a poor foundation.",
+     "We thank you for your trust, but refuse. Plainly said: your merchants have cheated us before.",
+     "Declined. It is more honest to say no now than to break our word later.",
+     "We will not sign what we cannot fulfil to the letter. Forgive us.",
+     "The Collective declines, and explains: the deal would profit us, not you. We do not trade that way.",
+     "No. Our answer is firm, but there is no hostility in it."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Мы откроем вам наши знания честно и полностью.",
+     "Коллектив согласен. Знание, отданное камнем, не будет искажено.",
+     "Да. Мы делимся тем, что поняли за эпохи, и ждём того же от вас.",
+     "Принимаем. Мы не утаим ничего из обещанного и не попросим ничего сверх условий.",
+     "Да. Пусть наши учёные работают рядом с вашими, как жилы в общей породе.",
+     "Согласны. Вы честно делились с нами прежде. Мы ответим тем же.",
+     "Договор принят. Если какое-то наше знание может причинить вам вред, мы предупредим заранее.",
+     "Коллектив одобряет обмен. Знание, полученное честно, служит дольше украденного.",
+     "Принимаем. Мы отдадим вам и наши ошибки: честное знание включает и их.",
+     "Да. Обмен будет записан в нашей памяти, а она не стирается."
+    ],
+    "en": [
+     "We accept. Our knowledge will be opened to you fully and without deceit.",
+     "Agreed. What the stone shares, it shares whole, without a hidden flaw.",
+     "Yes. We will share what the ages have taught us, and trust you to do the same.",
+     "We accept. We will hide nothing we promised and ask nothing beyond the terms.",
+     "Yes. Let our scholars work beside yours, like veins in the same rock.",
+     "Agreed. You shared honestly with us before. We will do the same.",
+     "Accepted. If anything we share could harm you, we will warn you in advance.",
+     "The Collective agrees. Knowledge gained honestly serves longer than knowledge stolen.",
+     "We accept. We will give you our mistakes as well; honest knowledge includes them.",
+     "Yes. The exchange will be set in our memory, and that memory does not wear away."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Мы вынуждены отказать. Наши знания связаны прежними клятвами.",
+     "Нет. Скажем честно: мы ещё не доверяем вам настолько.",
+     "Коллектив отклоняет обмен. Знание — это ответственность, и мы не готовы её разделить.",
+     "Нет. Некоторые наши знания опасны, и мы поклялись никому их не передавать.",
+     "Мы отказываемся. Вы ещё не показали, как обращаетесь с доверием. Покажите — и мы вернёмся к разговору.",
+     "Отклоняем. Честный обмен требует равного вклада, а мы не сможем дать столько же, сколько получим.",
+     "Нам жаль, но нет. Наш закон запрещает делиться знанием с теми, кто с нами не в союзе.",
+     "Коллектив вынужден отказать. Лучше прямой отказ, чем знание, отданное наполовину.",
+     "Нет. Мы помним, как вы распорядились тем, чем мы делились прежде. Мы не держим зла, но не забыли.",
+     "Отказ. Знание, отданное в спешке, трескается, как плохо остывший камень. Мы не спешим."
+    ],
+    "en": [
+     "We must refuse. Our knowledge is bound by older oaths.",
+     "No. We say it honestly: we do not yet trust you that far.",
+     "The Collective declines. Knowledge is a burden of honour, and we will not split it with you yet.",
+     "No. Some of what we know is dangerous, and we have sworn to pass it to no one.",
+     "We refuse. You have not yet shown how you handle trust. Show us, and we will speak again.",
+     "Declined. An honest exchange needs equal shares, and we could not give as much as we would take.",
+     "We regret it, but no. Our law forbids sharing knowledge outside an alliance.",
+     "The Collective must refuse. A plain refusal is better than knowledge given by halves.",
+     "No. We remember how you used what we shared before. We hold no grudge, but we have not forgotten.",
+     "We decline. Knowledge handed over in haste cracks like badly cooled stone. We do not hurry."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз принят. Мы будем стоять рядом с вами, как скала, — до конца.",
+     "Коллектив согласен. Наша клятва ляжет в основание, и время её не сдвинет.",
+     "Да. С этого часа ваши враги — наши враги. Камень не забывает клятв.",
+     "Принимаем союз. Мы не будем лгать вам даже тогда, когда правда будет неприятна.",
+     "Да. Мы решали долго, потому что камень не клянётся легко. Тем крепче эта клятва.",
+     "Союз принят. Ваша честь теперь спаяна с нашей, как пласты, спаянные давлением.",
+     "Коллектив согласен. Если вы окажетесь в беде, мы придём. Медленно — но обязательно.",
+     "Принимаем. Мы будем защищать ваши миры, как собственные недра.",
+     "Да. Пусть наш союз будет как гранит: годы его не берут.",
+     "Мы принимаем вашу руку. У нас нет рук, но есть слово. Оно твёрже."
+    ],
+    "en": [
+     "We accept the alliance. We will stand beside you like bedrock, to the end.",
+     "The Collective accepts. Our oath becomes a foundation; time itself will not shift it.",
+     "Yes. From this hour your enemies are ours. Stone does not forget an oath.",
+     "We accept the alliance. We will not lie to you, even when the truth is unwelcome.",
+     "Yes. We deliberated long, because stone does not swear lightly. This oath is the stronger for it.",
+     "Agreed. Your honour is now bound to ours, like strata welded by pressure.",
+     "The Collective accepts. If you are in trouble, we will come. Slowly, but without fail.",
+     "We accept. We will defend your worlds as if they were our own bedrock.",
+     "Yes. Let our alliance be like granite; the years do not touch it.",
+     "We accept your hand. We have no hands, but we have a word, and it is firmer."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Мы отказываемся. Союз — это клятва на эпохи, а мы знаем вас слишком недолго.",
+     "Нет. Прежние обязательства не позволяют нам этого, а мы им верны.",
+     "Коллектив отклоняет союз — честно и без обиды.",
+     "Нет. Ваши союзники — наши давние противники. Мы не можем давать клятву и им, и вам.",
+     "Отказываем. Союзу нужна общая цель, а наши цели пока расходятся. Говорим это прямо.",
+     "Нет. Вы нарушили слово, данное другим. Мы это видели и не забудем.",
+     "Коллектив вынужден отказать. Мы не дадим обещания, которое не сможем сдержать в трудный час.",
+     "Не сейчас. Пусть сначала время проверит, насколько твёрдо ваше слово.",
+     "Мы отклоняем союз, но не дружбу. Наше уважение к вам остаётся прежним.",
+     "Нет. Союз с вами втянул бы нас в войну, которую мы считаем несправедливой."
+    ],
+    "en": [
+     "We decline. An alliance is an oath for ages, and we have known you too briefly.",
+     "No. Our existing obligations forbid it, and we keep our obligations.",
+     "The Collective will not join you. We tell you so honestly, and without ill will.",
+     "No. Your allies are our old opponents. We cannot swear to them and to you at once.",
+     "We decline. An alliance needs a common aim, and ours diverge. We say so plainly.",
+     "No. You broke your word to others. We saw it, and we will not forget.",
+     "The Collective must refuse. We will not give a promise we could not keep in a hard hour.",
+     "Not yet. Let time first test how firm your word is.",
+     "We reject the alliance, not the friendship. Our respect for you is unchanged.",
+     "No. An alliance with you would draw us into a war we consider unjust."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем пакт. Камень не нарушит его, пока вы держите своё слово.",
+     "Коллектив согласен. Мы не нападём. Это сказано, и так будет.",
+     "Да. Пакт о ненападении принят и записан в нашей памяти, как в граните.",
+     "Принимаем. Обещание небольшое, но мы будем хранить его так же строго, как большое.",
+     "Да. Наши флоты получат приказ, и он не изменится без честного предупреждения.",
+     "Пакт принят. Если мы когда-нибудь решим его расторгнуть, вы узнаете об этом от нас, а не от наших пушек.",
+     "Согласны. Отныне граница между нами — не линия огня, а линия слова.",
+     "Коллектив принимает пакт. Мы ценим, что вы пришли с ним открыто.",
+     "Принимаем. Пусть этот пакт станет первым камнем в стене доверия.",
+     "Да. Ненападение — меньшее, что честные соседи должны друг другу. Мы его даём."
+    ],
+    "en": [
+     "We accept the pact. The stone will not break it while you keep your word.",
+     "Agreed. We will not attack. It is said, and so it will be.",
+     "Yes. The pact is accepted and set into our memory as into granite.",
+     "We accept. It is a small promise, but we will keep it as strictly as a great one.",
+     "Yes. Our fleets will be ordered accordingly, and that order will not change without honest warning.",
+     "The pact is accepted. If we ever end it, you will hear it from us, not from our guns.",
+     "Agreed. From now on the border between us is a line of words, not a line of fire.",
+     "The Collective accepts. We value that you came to us with this openly.",
+     "We accept. Let this pact be the first stone in a wall of trust.",
+     "Yes. Non-aggression is the least honest neighbours owe each other. We give it."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мы принимаем мир и будем хранить его, как скала хранит свои слои.",
+     "Мир. Коллектив даёт слово, а слово камня не стирается.",
+     "Мир принят. Мы сражались честно и честно останавливаемся.",
+     "Мир. Вы сражались достойно, и ваше слово мы примем так же, как приняли бы удар: всерьёз.",
+     "Принимаем мир. Пусть все павшие лягут в общий пласт памяти.",
+     "Мир принят. Мы вернём пленных и не тронем ваших кораблей, пока вы держите слово.",
+     "Мы согласны на мир. Обиды остынут, а договор останется.",
+     "Да, мир. Мы не станем требовать больше, чем справедливо.",
+     "Коллектив принимает мир и объявляет об этом всем: пусть будут свидетели.",
+     "Мир. Война была честной — таким же будет и мир."
+    ],
+    "en": [
+     "We accept peace and will hold it as rock holds its layers.",
+     "Peace. The Collective gives its word, and the word of stone does not wear away.",
+     "Peace is accepted. We fought honourably, and we stop honourably.",
+     "Peace. You fought with dignity, and we take your word as we would take a blow: seriously.",
+     "We accept peace. Let all the fallen lie together in a common stratum of memory.",
+     "Peace is accepted. We will return prisoners and leave your ships alone while you keep your word.",
+     "We agree to peace. Grievances will cool; the treaty will remain.",
+     "Peace, yes. We will demand no more than is just.",
+     "The Collective accepts peace and announces it to all, so there are witnesses.",
+     "Peace. The war was honest; the peace will be the same."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы уже нарушали слово. Мы не поверим ему снова так скоро.",
+     "Мы отказываемся от мира. Обида ещё не остыла, и мы не станем притворяться.",
+     "Коллектив отвергает ваше предложение. Справедливость не восстановлена.",
+     "Нет. Вы не вернули то, что забрали. Мир без возмещения — не мир, а передышка.",
+     "Мы отказываемся. Наши союзники ещё сражаются, и мы не оставим их одних.",
+     "Отклоняем. В вашем предложении ни слова о погибших. Пока вы молчите о них, мира не будет.",
+     "Нет. Мы поклялись довести эту войну до справедливого конца. Он ещё не наступил.",
+     "Коллектив не примет мира от руки, которая всё ещё держит оружие у наших границ.",
+     "Нам жаль, но нет. Честный мир возможен, но не на этих условиях.",
+     "Нет. Вы уже просили мира и нарушили его меньше чем через век. Мы помним."
+    ],
+    "en": [
+     "No. You have broken your word before; we cannot trust it again so soon.",
+     "We refuse peace. The wrong has not yet cooled, and we will not pretend it has.",
+     "The Collective rejects your offer. Justice has not been restored.",
+     "No. You have not returned what you took. Peace without reparation is only a pause.",
+     "We refuse. Our allies still fight, and we will not abandon them.",
+     "Rejected. Your offer forgets the dead. While you are silent about them, there is no peace.",
+     "No. We swore to bring this war to a just end, and that end has not come.",
+     "The Collective will not accept peace from a hand still holding weapons at our border.",
+     "We regret it, but no. An honest peace is possible, though not on these terms.",
+     "No. You asked for peace before, and broke it within a century. We remember."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Слушайте: мы говорим прямо, чтобы никто не назвал это предательством. Коллектив объявляет вам войну.",
+     "Вы нарушили клятву. Камень помнит. Это война.",
+     "Мы предупредили вас, как гора предупреждает гулом. Теперь — война.",
+     "Мы объявляем войну заранее и открыто. Ваши корабли получат время уйти с наших путей.",
+     "Война. Не ради добычи — ради справедливости. Её цену мы назовём, когда придёт время.",
+     "Вы нарушили договор и не принесли извинений. Коллектив объявляет вам войну.",
+     "Наш союзник просил о помощи, и мы дали ему слово. Это слово ведёт нас на войну с вами.",
+     "Пусть вся галактика знает: мы начинаем войну честно, без засад и обмана.",
+     "Война объявлена. Мы будем сражаться по правилам, даже если вы не станете.",
+     "Камень не бьёт в спину. Поэтому мы говорим вам в лицо: война."
+    ],
+    "en": [
+     "Hear it plainly, so none may call it treachery: the Collective is at war with you.",
+     "You broke an oath. Stone remembers. This is war.",
+     "We warned you as a mountain warns, with a long rumble. Now comes war.",
+     "We declare war in advance and in the open. Your ships will have time to clear our routes.",
+     "War. Not for plunder; for justice. We will name its price when the time comes.",
+     "You broke the treaty and offered no apology. The Collective declares war on you.",
+     "Our ally asked for help, and we gave our word. That word now leads us to war with you.",
+     "Let the whole galaxy know: we begin this war honestly, without ambush or deceit.",
+     "War is declared. We will fight by the rules, even if you do not.",
+     "Stone does not strike from behind. So we tell you to your face: war."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы расторгаем наш договор и говорим об этом прямо, а не за спиной.",
+     "Вы первыми нарушили соглашение. Коллектив больше не связан им.",
+     "Пакт окончен. Мы объявляем это открыто, как требует честь камня.",
+     "Мы расторгаем договор и честно называем причину: вы скрывали от нас правду.",
+     "Пакт окончен. Мы уведомляем вас заранее, как и обещали, подписывая его.",
+     "Соглашение больше не действует. Мы исполнили всё, что были должны, до последнего слова.",
+     "Наш союз окончен. Нам тяжело это говорить, но камень не умеет притворяться.",
+     "Коллектив выходит из договора и выплатит всё, что по нему ещё должен.",
+     "Договор расторгнут. Вы знаете, что сделали. Мы не станем повторять это вслух.",
+     "Мы отзываем свою подпись под пактом. Честь не позволяет нам стоять рядом с теми, кто лжёт."
+    ],
+    "en": [
+     "We are ending our treaty, and we tell you so to your face, not behind your back.",
+     "You broke the agreement first. The Collective is no longer bound by it.",
+     "The pact is over. We declare it openly, as the honour of stone requires.",
+     "We are ending our treaty, and we name the reason honestly: you hid the truth from us.",
+     "The pact is over. We give you advance notice, as we promised when we signed it.",
+     "The agreement no longer stands. We fulfilled everything we owed under it, to the last word.",
+     "Our alliance is over. It weighs on us to say it, but stone cannot pretend.",
+     "The Collective withdraws from the treaty and will pay whatever it still owes under it.",
+     "The treaty is dissolved. You know what you did. We will not repeat it aloud.",
+     "We withdraw our name from the pact. Honour will not let us stand beside those who lie."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите. Мы предупреждаем честно, и повторять не станем.",
+     "Ваши действия нарушают порядок. Остановитесь, или Коллектив ответит по праву.",
+     "Камень долго терпит, но не бесконечно. Это честное предупреждение.",
+     "Вы нарушаете наши границы. Отступите, пока это требование, а не приговор.",
+     "Остановитесь. Иначе мы ответим, и ответ будет соразмерным. Но он будет.",
+     "Мы говорим это при свидетелях: ещё шаг — и Коллектив сочтёт себя свободным от сдержанности.",
+     "Прекратите. Мы не хотим войны, но и бесчестья терпеть не станем.",
+     "Ваши действия противоречат вашим же словам. Вернитесь к своему слову, или мы вернём вас к нему.",
+     "Мы предупреждаем открыто, чтобы потом никто не сказал, что не знал. Остановитесь.",
+     "Мы помним каждое ваше обещание. Сейчас вы нарушаете их подряд. Прекратите."
+    ],
+    "en": [
+     "Stop. We warn you honestly, and we will not repeat ourselves.",
+     "What you are doing violates what is right. Cease, or the Collective will answer as it must.",
+     "Stone is long-suffering, but not endlessly. Take this as fair warning.",
+     "You are violating our borders. Withdraw while this is still a demand and not a verdict.",
+     "Stop. If you do not, we will answer, and the answer will be proportionate. But it will come.",
+     "We say this before witnesses: another step, and the Collective considers itself free of restraint.",
+     "Cease. We do not want war, but we will not endure dishonour either.",
+     "Your actions contradict your own words. Return to your word, or we will return you to it.",
+     "We warn you openly, so no one can later claim ignorance. Stop.",
+     "We remember every promise you made. Right now you are breaking them in turn. Stop it."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Коллектив требует {СУММА} в возмещение ущерба. Не больше и не меньше.",
+     "Справедливость весит {СУММА}. Заплатите, и наш счёт будет закрыт.",
+     "Мы требуем {СУММА} — честную цену. После уплаты обида уйдёт в глубину, как древний слой.",
+     "Ваши корабли разрушили наши шахты. Справедливое возмещение — {СУММА}.",
+     "Мы не просим милостыни и не берём лишнего. Мы требуем {СУММА} — ровно столько, сколько потеряли.",
+     "Долг должен быть закрыт. Заплатите {СУММА}, и мы при всех объявим, что вы нам ничего не должны.",
+     "{СУММА} — такова цена ущерба по нашему счёту. Если вы считаете иначе, покажите свой счёт.",
+     "Коллектив требует {СУММА}. Мы даём вам время, но не освобождаем от долга.",
+     "Мы требуем {СУММА}, и это последнее требование. Дальше будет суд оружия.",
+     "Честь требует расплаты. Переведите {СУММА}, и мы больше не вспомним об этом деле."
+    ],
+    "en": [
+     "The Collective requires {AMOUNT} for the damage done. No more, no less.",
+     "Justice weighs {AMOUNT}. Pay it, and the account is closed.",
+     "We ask {AMOUNT}, a fair sum. Once paid, the matter is buried like old stone.",
+     "Your ships wrecked our mines. Fair compensation is {AMOUNT}.",
+     "We ask no charity and take nothing extra. We demand {AMOUNT}, exactly what we lost.",
+     "The debt must be closed. Pay {AMOUNT}, and we will declare publicly that you owe us nothing.",
+     "{AMOUNT} is the damage by our reckoning. If you reckon differently, show us your accounts.",
+     "The Collective demands {AMOUNT}. We grant you time, but not release from the debt.",
+     "We demand {AMOUNT}, and this is our last demand. After it comes the judgement of arms.",
+     "Honour requires settlement. Transfer {AMOUNT}, and we will never raise the matter again."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Благодарим вас. Коллектив помнит дары так же долго, как обиды.",
+     "Ваш подарок принят с честью. Мы ответим тем же.",
+     "Спасибо. Такой дар заслуживает памяти, и камень её сохранит.",
+     "Благодарим. Мы не останемся в долгу — так не поступают те, у кого есть честь.",
+     "Ваш дар принят. Мы видим в нём не плату, а знак уважения, и отвечаем уважением.",
+     "Спасибо. Мы запишем этот подарок рядом с вашим именем, в слое, который не стирается.",
+     "Благодарим вас открыто, чтобы слышали другие: вы поступили достойно.",
+     "Спасибо. Дар без условий — редкость. Тем больше мы его ценим.",
+     "Коллектив благодарит. Подарок нас ни к чему не обязывает, но делает наши отношения теплее. Даже для камня.",
+     "Благодарим. В вашем даре нет подвоха, и это скажет о вас больше любых слов."
+    ],
+    "en": [
+     "We thank you. A gift honestly given is carved into our memory beside every oath.",
+     "Your gift is received with honour. The Collective will repay it in kind.",
+     "Thank you. You owed us nothing, and still you gave. That will not be forgotten.",
+     "We thank you. We will not stay in your debt; those with honour never do.",
+     "Your gift is received. We see it not as payment but as respect, and we return respect.",
+     "Thank you. We will record this gift beside your name, in a layer that does not wear away.",
+     "We thank you openly, so others may hear: you have acted with dignity.",
+     "Thank you. A gift without conditions is rare. We value it all the more.",
+     "The Collective is grateful. A gift does not bind us, but it warms our dealings. Even for stone.",
+     "We are grateful. There was no trick hidden in it, and that tells more of you than words."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы задержали вашего шпиона. Камень открыт для тех, кто приходит прямо, а не тайно.",
+     "Ваш агент найден в наших недрах. Мы вернём его, но ждём честного объяснения.",
+     "Лазутчик — это ложь, посланная в камень. Коллектив требует, чтобы это не повторилось.",
+     "Ваш шпион пойман. Мы не скрываем этого и не станем скрывать от Совета.",
+     "Мы задержали вашего агента и обращались с ним достойно. Ждём того же достоинства в вашем ответе.",
+     "Лазутчик признался, кто его послал. Мы хотим услышать это и от вас. Прямо.",
+     "Вы клялись в дружбе и прислали шпиона. Скажите, какому из ваших слов нам верить?",
+     "Коллектив заявляет протест. Шпионаж между честными соседями — пятно, которое не смывается быстро.",
+     "Мы нашли вашего агента. Если это ошибка, признайте её — и мы закроем дело.",
+     "Шпион пойман. Мы могли бы промолчать и использовать его. Мы предпочли сказать вам открыто."
+    ],
+    "en": [
+     "We have detained your spy. Our stone is open to those who come openly, not in secret.",
+     "Your agent was found deep in our crust. We will return him, and we expect an honest account.",
+     "An infiltrator is a lie sent into stone. The Collective expects it never to happen again.",
+     "Your spy has been caught. We do not hide it, and we will not hide it from the Council either.",
+     "We detained your agent and treated him with dignity. We expect the same dignity in your reply.",
+     "The infiltrator has confessed who sent him. We would like to hear it from you as well. Directly.",
+     "You swore friendship and sent a spy. Tell us, which of your words should we believe?",
+     "The Collective protests. Sending a spy to honest neighbours leaves a stain that does not wash out quickly.",
+     "We found your agent. If it was a mistake, admit it, and we will close the matter.",
+     "A spy was caught. We could have kept silent and used him. We chose to tell you openly."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы обещали поддержать вас и отдаём вам свой голос. Слово камня твёрдо.",
+     "Коллектив голосует за вас в Совете. Вы были честны с нами.",
+     "Наш голос — ваш. Мы считаем это справедливым и говорим это открыто.",
+     "Мы голосуем за вас. Вы никогда не нарушали слова, данного нам.",
+     "Наш голос — ваш. Мы объявим это в Совете открыто, а не тайным бюллетенем.",
+     "Коллектив поддержит вас. Мы считаем, что Совету нужен тот, кто держит договоры.",
+     "Голосуем за вас. Это не плата за услуги — это признание ваших заслуг.",
+     "Мы отдаём вам голос и ничего не просим взамен. Честный выбор не продаётся.",
+     "Наш голос будет за вами, как мы и обещали.",
+     "Мы проголосуем за вас. Если вы не оправдаете доверия, мы скажем об этом так же открыто."
+    ],
+    "en": [
+     "We promised our support, and so our vote is yours. Stone keeps its word.",
+     "The Collective votes for you in the Council. You have dealt honestly with us.",
+     "Our vote goes to you. We judge it just, and we say so openly.",
+     "We vote for you. You have never broken your word to us.",
+     "Our vote is yours. We will declare it openly in the Council, not by secret ballot.",
+     "The Collective supports you. The Council needs someone who keeps treaties.",
+     "We vote for you. It is not payment for favours; it is recognition of merit.",
+     "We give you our vote and ask nothing in return. An honest choice is not for sale.",
+     "Our vote is yours, as we promised.",
+     "We will vote for you. If you betray that trust, we will say so just as openly."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы будем голосовать против вас и говорим это заранее, чтобы не было обмана.",
+     "Коллектив не отдаст вам голос. Вы не держали слова, а камень это помнит.",
+     "Наш голос в Совете — против. Это не вражда, это честное суждение.",
+     "Мы голосуем против вас. Мы вас уважаем, но Совету нужен другой правитель.",
+     "Наш голос против. Вы обещали Совету многое и выполнили мало.",
+     "Коллектив не поддержит вас в Совете. Причину скажем прямо: вы воевали нечестно.",
+     "Голосуем против, и не тайно. Пусть все знают, где стоит наше слово.",
+     "Мы проголосуем против вас. Это решение принято медленно и быстро не изменится.",
+     "Наш голос не ваш. Другой кандидат держал своё слово дольше.",
+     "Против вас, с сожалением. Наш голос следует за честью, а не за дружбой."
+    ],
+    "en": [
+     "We will vote against you, and we tell you beforehand so there is no deceit.",
+     "The Collective will not give you its vote. You did not keep your word, and stone remembers.",
+     "Our vote in the Council is against you. Not enmity; an honest judgement.",
+     "We vote against you. We respect you, but the Council needs a different leader.",
+     "Our vote is against you. You promised the Council much and delivered little.",
+     "The Collective will not support you in the Council. The reason, plainly: you fought dishonourably.",
+     "We vote against you, and not in secret. Let everyone know where our word stands.",
+     "We will vote against you. The decision was made slowly, and it will not change quickly.",
+     "Our vote is not yours. The other candidate kept their word longer.",
+     "Against you, with regret. Our vote follows honour, not friendship."
+    ]
+   }
+  },
+  "pacifistic": {
+   "first_contact": {
+    "ru": [
+     "Здравствуйте, тёплые. Мы растём медленно и тихо. Пусть и вам рядом с нами будет тихо.",
+     "Мир вам. Камень не нападает, камень ждёт. Подождите и вы вместе с нами.",
+     "Коллектив приветствует вас. Вы такие быстрые. Пожалуйста, не спешите воевать.",
+     "Вы пришли. Мы чувствуем тепло вашего прихода. Не бойтесь: мы тяжёлые, но мы тихие.",
+     "Коллектив слышит вас. Слушайте и вы: в глубине мы поём. Это не угроза, это наш голос.",
+     "Здравствуйте. Мы росли тысячу эпох без чужих. Теперь вы. Это странно и хорошо.",
+     "Мягкие, подойдите. Кристалл не режет тех, кто не бьёт.",
+     "Мы долго ждали вас. Нам не нужно ничего, кроме тишины рядом.",
+     "Вы шумите, как вода по камню. Это приятно. Говорите, мы будем слушать медленно.",
+     "Пласты помнят многое. Они не помнят войны. Пусть и ваша память будет такой."
+    ],
+    "en": [
+     "Hello, small warm ones. The deep is quiet here. We hope you like quiet.",
+     "Peace to you. Mountains have risen here without any war. Let us keep it so.",
+     "The Collective greets you gently. You move so fast. Please, never fast toward war.",
+     "You have come. We feel the warmth of your arrival. Do not fear: we are heavy, but we are quiet.",
+     "The Collective hears you. Listen too: in the deep we sing. It is not a threat; it is our voice.",
+     "Hello. We grew for a thousand ages with no strangers. Now you. It is strange, and good.",
+     "Soft ones, come closer. A crystal does not cut those who do not strike.",
+     "We waited a long time for you. We need nothing but quiet beside us.",
+     "You sound like water over stone. It is pleasant. Speak; we will listen slowly.",
+     "The strata remember much. They do not remember war. Let your memory be so too."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "С радостью принимаем. Пусть между нами текут грузы, а не лава.",
+     "Да. Торговля — тихий обмен, как у воды с камнем: медленный и без ран.",
+     "Мы согласны. Каждый ваш корабль с грузом — это корабль без оружия.",
+     "Да. Мы согласны торговать. Груз за груз, камень за камень, медленно и честно.",
+     "Принимаем договор. Пусть между нами ляжет тяжёлая и тихая дорога.",
+     "Согласны. Ваш мир даст нам новое, наш даст вам вечное.",
+     "Да, да. Торговля прочнее всего, что мы умеем делать сами.",
+     "С радостью. Мы выберем для вас лучшие кристаллы, а вы привезёте тепло.",
+     "Мы принимаем. Один груз, одна эпоха: так и надо.",
+     "Хорошо, мы согласны. Пусть ничего не треснет между нами."
+    ],
+    "en": [
+     "We gladly accept. Goods moving between us settle like sediment: slowly, building something.",
+     "Yes. We like trade. It is quiet, and nothing breaks.",
+     "We agree. Let your ships come heavy with goods and leave heavy with stone.",
+     "Yes. We agree to trade. Cargo for cargo, stone for stone, slowly and honestly.",
+     "We accept the treaty. Let a heavy, quiet road lie between us.",
+     "Agreed. Your world will give us the new; ours will give you the lasting.",
+     "Yes, yes. Trade is firmer than anything we can make ourselves.",
+     "Gladly. We will pick the best crystals for you, and you will bring warmth.",
+     "We accept. One cargo, one age: that is how it should be.",
+     "Very well, we agree. May nothing crack between us."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Простите, мы не готовы. Камню нужно время подумать. Много времени.",
+     "Мы отказываемся, но не сердимся. Наши недра пока не готовы к обмену.",
+     "Не сейчас. Может быть, через эпоху. Мы будем рады вам и тогда.",
+     "Нет. Не сейчас. Камень не торопится, а мы сегодня камень.",
+     "Мы отказываемся. В глубинах мало места для чужих грузов.",
+     "К сожалению, нет. Наши недра ещё не знают вас достаточно.",
+     "Нет. Это тяжёлое слово, но мы произносим его без злости.",
+     "Мы не готовы торговать. Подождите. Ждать — наш талант.",
+     "Нет. Если трещина появится, ей будет трудно затянуться. Мы осторожны.",
+     "Простите, нет. Спросите снова, когда наши пласты поднимутся."
+    ],
+    "en": [
+     "Forgive us, we are not ready. Stone needs time to consider. A great deal of time.",
+     "We decline, gently. Our depths are not ready to open yet. We are not angry.",
+     "Not now. Perhaps in another age. We will still be glad of you then.",
+     "No. Not now. Stone does not hurry, and today we are stone.",
+     "We decline. There is little room in the deep for foreign cargo.",
+     "Sadly, no. Our depths do not yet know you well enough.",
+     "No. It is a heavy word, but we say it without anger.",
+     "We are not ready to trade. Wait. Waiting is our talent.",
+     "No. If a crack appears, it will be hard to close. We are careful.",
+     "Forgive us, no. Ask again when our strata have risen."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "С радостью. Знание растёт, как кристалл: медленно и красиво. Будем растить его вместе.",
+     "Принимаем. Мы расскажем вам о глубине, а вы нам — о небе.",
+     "Мы согласны. Пусть наши мысли встречаются, а не наши флоты.",
+     "Да. Мысль растёт из мысли, как кристалл из кристалла. Мы принимаем.",
+     "Согласны. Пусть ваши лаборатории дрожат в унисон с нашей породой.",
+     "Принимаем договор. Мы покажем вам, как знание лежит пластами.",
+     "С радостью. Вместе мы вырастем быстрее, чем поодиночке за целую эпоху.",
+     "Да. Давайте медленно и вместе вскрывать то, что скрыто.",
+     "Мы согласны. Ваши мысли быстры, наши глубоки, и вместе они крепки.",
+     "Принимаем. Пусть общие знания ложатся тихо, без грохота."
+    ],
+    "en": [
+     "Gladly. Knowledge is a seed crystal. Shared, it grows faster.",
+     "We accept. You may teach us about warmth. We may teach you about patience.",
+     "Yes. Better that our minds touch than our weapons.",
+     "Yes. Thought grows from thought as crystal from crystal. We accept.",
+     "Agreed. Let your laboratories tremble in unison with our rock.",
+     "We accept the treaty. We will show you how knowledge lies in layers.",
+     "Gladly. Together we will grow faster than alone in a whole age.",
+     "Yes. Let us slowly and together uncover what is hidden.",
+     "We agree. Your thoughts are quick, ours are deep, and together they are strong.",
+     "We accept. May shared knowledge settle quietly, without a crash."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Простите, нет. Наши знания тяжёлые, они могут поранить мягких.",
+     "Мы отказываемся. Не из вражды: мы пока не умеем делиться так быстро.",
+     "Не сейчас, пожалуйста. Кристалл растёт в тишине, и чужие мысли его тревожат.",
+     "Нет. Наши мысли слишком тяжёлы, чтобы их передавать. Они упадут и раздавят.",
+     "Мы отказываем. Не из страха перед вами, а из страха перед тем, что мы можем сотворить вместе.",
+     "Нет, простите. Знание у нас лежит глубоко, и поднимать его пока рано.",
+     "Мы не станем делиться. Это не вражда, а слабость камня: он не умеет отдавать быстро.",
+     "Нет. Хрупкие кристаллы не любят, когда их трогают.",
+     "Не сейчас. Наши мысли зреют ещё эпоху, и лишь потом будут готовы.",
+     "Нет. Пожалуйста, не обижайтесь: молчание — тоже наш способ дружить."
+    ],
+    "en": [
+     "Forgive us, no. Our knowledge is heavy; it could hurt soft things.",
+     "We decline, without hostility. We simply cannot share so quickly yet.",
+     "Not now, please. Crystal grows in silence, and other minds disturb it.",
+     "No. Our thoughts are too heavy to pass on. They would fall and crush.",
+     "We refuse. Not from fear of you, but from fear of what we might make together.",
+     "No, forgive us. Our knowledge lies deep, and it is too early to raise it.",
+     "We will not share. It is not enmity but the weakness of stone: it cannot give quickly.",
+     "No. Brittle crystals do not like to be touched.",
+     "Not now. Our thoughts ripen for one more age, and only then will they be ready.",
+     "No. Please do not be hurt: silence is also our way of being friends."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "С радостью. Вместе мы будем крепче, и, может быть, никто не решится напасть.",
+     "Принимаем союз. Мы будем защищать вас, как гора защищает долину от ветра.",
+     "Да. Пусть наш союз будет таким прочным, что войны просто обойдут его стороной.",
+     "Да. Мы принимаем союз. Мы станем вашей скалой, а вы нашим небом.",
+     "Согласны. Союз — это общий пласт: на нём можно стоять вместе.",
+     "Принимаем. Пусть никто не посмеет бросить камень в тех, кто держится рядом.",
+     "С радостью. Мы будем крепче, и, возможно, нас не придётся проверять.",
+     "Да. Мы ждали такого предложения почти целую эпоху.",
+     "Мы принимаем союз и клянёмся беречь вас, как глубина бережёт жилу.",
+     "Согласны. Пусть союз будет тих, как кристалл, и твёрд, как алмаз."
+    ],
+    "en": [
+     "Gladly. Together we are harder to break, and perhaps no one will try.",
+     "We accept the alliance. We will shelter you as a mountain shelters a valley from wind.",
+     "Yes. May our alliance be so solid that wars simply flow around it.",
+     "Yes. We accept the alliance. We will be your rock, and you our sky.",
+     "Agreed. An alliance is a shared stratum: we can stand on it together.",
+     "We accept. Let no one dare cast a stone at those who stand together.",
+     "Gladly. We will be stronger, and perhaps we will not have to be tested.",
+     "Yes. We have waited for such an offer almost an entire age.",
+     "We accept the alliance and vow to guard you as the deep guards its vein.",
+     "Agreed. May the alliance be quiet as crystal and hard as diamond."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Простите, нет. Союз может втянуть нас в чужие войны, а мы их боимся.",
+     "Мы отказываемся. Камень хочет стоять в стороне от любых битв.",
+     "Не обижайтесь, но мы не готовы. Мы ваши друзья и без союза.",
+     "Нет. Союз — это трещина, через которую в нас войдёт чужая война.",
+     "Мы отказываемся. Коллектив не любит давать клятвы, которые могут заставить двигаться быстро.",
+     "Нет, простите. Камню трудно встать рядом с тем, кого он не знает глубоко.",
+     "Союза не будет. Но мы не враги. Мы просто тяжёлые и неповоротливые.",
+     "Нет. Мы боимся, что союз сломает то, что мы растили тысячу эпох.",
+     "К сожалению, нет. Давайте будем друзьями без печатей и подписей.",
+     "Мы не готовы. Не сердитесь: гора не идёт за тем, кто зовёт."
+    ],
+    "en": [
+     "Forgive us, no. An alliance could pull us into wars, and wars frighten us.",
+     "We decline. Stone would rather stand apart from every battle.",
+     "Do not be hurt, but we are not ready. We are your friends even without it.",
+     "No. An alliance is a crack through which another's war would enter us.",
+     "We decline. The Collective does not like to give oaths that might force it to move fast.",
+     "No, forgive us. It is hard for stone to stand beside someone it does not know deeply.",
+     "There will be no alliance. But we are not enemies. We are only heavy and slow.",
+     "No. We fear an alliance would break what we have grown for a thousand ages.",
+     "Sadly, no. Let us be friends without seals or signatures.",
+     "We are not ready. Do not be angry: a mountain does not follow whoever calls."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "С радостью принимаем. Это самое простое и самое лучшее обещание.",
+     "Да, да. Никто никого не тронет. Камню это очень нравится.",
+     "Мы согласны. Пусть этот пакт лежит между нами, как тихий глубокий пласт.",
+     "Да. Никто не бьёт никого. Это самое хорошее, что мы слышали за эпоху.",
+     "Принимаем пакт. Пусть он ляжет между нами ровно, как плита.",
+     "Согласны. Лучше лежать вместе в тишине, чем падать порознь.",
+     "С радостью. Мы запишем это в самый глубокий пласт.",
+     "Да. Мы и не собирались нападать. Теперь это известно и вам.",
+     "Мы принимаем договор. Пусть наши границы будут как стены пещеры: тихие и прочные.",
+     "Согласны. Один шаг навстречу, ни одного шага удара."
+    ],
+    "en": [
+     "We gladly accept. It is the simplest promise, and the best.",
+     "Yes. No one touches anyone. Stone likes that very much.",
+     "We agree. Let this pact lie between us like a deep, quiet layer of rock.",
+     "Yes. No one strikes anyone. It is the best thing we have heard in an age.",
+     "We accept the pact. May it lie between us flat as a slab.",
+     "Agreed. Better to lie together in silence than to fall apart.",
+     "Gladly. We will write it in the deepest layer.",
+     "Yes. We never meant to attack. Now you know it too.",
+     "We accept the treaty. May our borders be like cave walls: quiet and solid.",
+     "Agreed. One step toward each other, not one step of a blow."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир! Наконец. Мы так устали от грохота. С радостью принимаем.",
+     "Мы принимаем мир. Пусть ваши раны заживут, а наши трещины затянутся.",
+     "Мир принят. Мы снова можем расти в тишине. Спасибо вам.",
+     "Мир. Мы принимаем его. Наши трещины затянутся за много лет, но начнут сегодня.",
+     "Да, мир. Пусть магма вернётся в глубину и больше не поднимается.",
+     "Мы согласны на мир. Мы снова будем расти, не вздрагивая от каждого удара.",
+     "С радостью принимаем мир. Тишина — наш дом.",
+     "Мир. Мы запомним этот день, как запоминаем новый пласт.",
+     "Принимаем. Пусть между нами будет мир, плотный, как скала.",
+     "Мир принят. Спасибо, мягкие. Вы услышали нас, а это редкость."
+    ],
+    "en": [
+     "Peace! At last. We are so tired of the noise. We accept gladly.",
+     "We accept peace. May your wounds heal, and our cracks close.",
+     "Peace is welcome. We can grow in silence again. Thank you.",
+     "Peace. We accept it. Our cracks will close over many years, but they begin today.",
+     "Yes, peace. Let the magma return to the deep and never rise again.",
+     "We agree to peace. We will grow again without flinching at every blow.",
+     "We gladly accept peace. Quiet is our home.",
+     "Peace. We will remember this day as we remember a new layer.",
+     "We accept. Let the peace between us be dense as bedrock.",
+     "Peace is accepted. Thank you, soft ones. You heard us, and that is rare."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нам больно отказывать, но мы не можем. Ваши корабли всё ещё стоят на наших мирах.",
+     "Нет, пока нет. Мы хотим мира, но ваши условия оставят нас беззащитными. Простите.",
+     "Мы вынуждены отказать. Война не кончится, пока ваши флоты ранят наш камень.",
+     "Нет. Вы ещё ломаете нас. Остановитесь, тогда поговорим о мире.",
+     "Мы отказываем. Этот мир оставит в нас трещину, которую не залатать.",
+     "Нет, пока нет. Камень терпелив, но не бесконечно.",
+     "Простите. Мы хотим мира, но не за цену нашей глубины.",
+     "Нет. Ваши слова лёгкие, а наша боль тяжёлая. Не сходится.",
+     "Мы не можем принять этот мир. Дайте нам время, и пусть ваши корабли отойдут.",
+     "Нет. Тихо, без гнева, но твёрдо."
+    ],
+    "en": [
+     "It hurts to refuse, but we must. Your ships still stand on our worlds.",
+     "No, not yet. We long for peace, but your terms would leave us defenceless. Forgive us.",
+     "We must say no. The war cannot end while your fleets still wound our stone.",
+     "No. You are still breaking us. Stop, then we will speak of peace.",
+     "We refuse. This peace would leave a crack in us that cannot be patched.",
+     "No, not yet. Stone is patient, but not without end.",
+     "Forgive us. We want peace, but not at the price of our depths.",
+     "No. Your words are light and our pain is heavy. They do not balance.",
+     "We cannot accept this peace. Give us time, and let your ships draw back.",
+     "No. Quietly, without anger, but firmly."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Нам горько. Мы ждали долго, как умеет ждать камень. Но теперь — война.",
+     "Мы не хотели этого. Вы не оставили нам выбора. Это война.",
+     "Коллектив объявляет войну. Медленно, с сожалением, но без отступления.",
+     "Коллектив решил. Война. Мы идём медленно, но мы идём.",
+     "Мы терпели эпоху. Теперь не можем. Это война, и нам больно.",
+     "Камень сорвался. Война. Не бойтесь шума: страшнее будет тишина после.",
+     "Мы не хотели. Вы не слушали. Теперь между нами война, тяжёлая, как гора.",
+     "Мы объявляем войну. Пусть небеса простят нас за то, что мы сейчас сделаем.",
+     "Это война. Мы будем защищать глубину до последнего кристалла.",
+     "Нас вынудили. Война. Мы надеемся, что лава остынет быстро."
+    ],
+    "en": [
+     "It grieves us. We waited as stone waits, a very long time. But now it is war.",
+     "We did not want this. You left us no other path. This is war.",
+     "The Collective goes to war, slowly and with sorrow, but it will not turn back.",
+     "The Collective has decided. War. We move slowly, but we move.",
+     "We endured for an age. Now we cannot. This is war, and it hurts us.",
+     "The stone has slipped. War. Do not fear the noise: the silence after will be worse.",
+     "We did not want it. You did not listen. Now war lies between us, heavy as a mountain.",
+     "We declare war. May the heavens forgive us for what we are about to do.",
+     "This is war. We will defend the deep to the last crystal.",
+     "We were forced. War. We hope the lava cools quickly."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Простите. Мы расторгаем договор. Нам больно, но держать его дальше опасно.",
+     "Наше соглашение дало трещину, и мы не можем её залечить. Оно окончено.",
+     "Мы выходим из пакта. Не со зла — просто камень больше не выдерживает этого веса.",
+     "Мы расторгаем договор. Трещина слишком глубока. Простите.",
+     "Договор окончен. Мы не умеем держать то, что ломает нас изнутри.",
+     "Мы выходим из соглашения. Камень помнит его, но продолжать не может.",
+     "Пакт расторгнут. Мы сожалеем, но тяжесть стала больше нашей прочности.",
+     "Простите нас. Наш союз расколот, и мы не станем склеивать осколки.",
+     "Мы разрываем договор не со зла. Мы просто растём в другую сторону.",
+     "Соглашение закончено. Давайте разойдёмся тихо, как расходятся пласты."
+    ],
+    "en": [
+     "Forgive us. We are ending the treaty. It hurts, but keeping it is too dangerous.",
+     "Our agreement has cracked, and we cannot mend it. It is over.",
+     "We leave the pact. Not in anger; the stone simply cannot bear its weight anymore.",
+     "We are breaking the treaty. The crack is too deep. Forgive us.",
+     "The treaty is over. We cannot keep what breaks us from within.",
+     "We are leaving the agreement. The stone remembers it, but cannot go on.",
+     "The pact is dissolved. We are sorry, but the weight has grown beyond our strength.",
+     "Forgive us. Our alliance is split, and we will not glue the shards together.",
+     "We break the treaty not in anger. We are simply growing in another direction.",
+     "The agreement is finished. Let us part quietly, as strata part."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Пожалуйста, остановитесь. Мы не хотим отвечать, но даже камень может сорваться.",
+     "Мы просим вас прекратить. Если не прекратите, нам придётся защищаться, а нам этого не хочется.",
+     "Перестаньте, прошу. Даже самая тихая гора однажды обрушивается.",
+     "Остановитесь. Камень, которого слишком долго трясут, падает на тех, кто стоит внизу.",
+     "Прекратите. Мы просим один раз. Второго раза у гор не бывает.",
+     "Мы не хотим рушиться. Но если вы будете давить, мы рухнем на вас.",
+     "Пожалуйста, не делайте этого. В глубине нас много, и мы тяжёлые.",
+     "Отойдите. Лава спит, но чует тепло ваших кораблей.",
+     "Мы предупреждаем. Не потому, что злимся, а потому что видим, чем это кончится.",
+     "Хватит, прошу. Пласты ждут долго, но обваливаются мгновенно."
+    ],
+    "en": [
+     "Please stop. We do not want to answer, but even stone can slip.",
+     "We ask you to cease. If you do not, we must defend ourselves, and we would hate that.",
+     "Stop, we beg you. Even the quietest mountain falls in the end.",
+     "Stop. A stone shaken too long falls on those standing below.",
+     "Cease. We ask once. Mountains have no second time.",
+     "We do not want to collapse. But if you keep pressing, we will fall on you.",
+     "Please do not do this. There are many of us in the deep, and we are heavy.",
+     "Step back. The lava sleeps, but it senses the heat of your ships.",
+     "We warn you. Not because we are angry, but because we see how this ends.",
+     "Enough, please. Strata wait long, but they collapse in an instant."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Простите, что просим. {СУММА} поможет нам обойтись без оружия.",
+     "Мы просим {СУММА}. Пусть спор решит металл, а не лава.",
+     "Передайте {СУММА}, пожалуйста. Камень не хочет просыпаться — не будите его.",
+     "Нам нужно {СУММА}. Дайте. Тогда камень не двинется с места.",
+     "Мы просим {СУММА}. Не заставляйте нас просить громко.",
+     "Принесите {СУММА}. Это мало по сравнению с тем, что стоит обвал.",
+     "{СУММА}: вот наша просьба. Выполните, и тишина останется тишиной.",
+     "Отправьте {СУММА} в наши недра. Мы будем помнить это тысячу эпох.",
+     "Нужно {СУММА}. Не из жадности, а из страха перед трещиной.",
+     "Просим {СУММА}. Тяжело говорить это, но так надо."
+    ],
+    "en": [
+     "Forgive us for asking. {AMOUNT} would let us leave our weapons buried.",
+     "We ask for {AMOUNT}. Let metal settle this, not magma.",
+     "Please send {AMOUNT}. The stone does not want to wake. Do not wake it.",
+     "We need {AMOUNT}. Give it. Then the stone will not move from its place.",
+     "We ask for {AMOUNT}. Do not make us ask loudly.",
+     "Bring {AMOUNT}. It is little compared with what a collapse costs.",
+     "{AMOUNT}: that is our request. Fulfil it, and quiet stays quiet.",
+     "Send {AMOUNT} to our depths. We will remember it for a thousand ages.",
+     "We need {AMOUNT}. Not from greed but from fear of the crack.",
+     "We ask for {AMOUNT}. It is hard to say, but it must be said."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Спасибо! Ваш подарок тёплый, как вы сами. Мы будем беречь его.",
+     "Благодарим вас от всей глубины. Такие дары лучше любых договоров.",
+     "Какой добрый дар. Мы не знаем, как благодарят мягкие, но камень рад.",
+     "Благодарим. Мы положим ваш дар на самый тёплый пласт.",
+     "Спасибо. Мы не умеем радоваться быстро, но радость наша долгая, как жила.",
+     "Это добрый подарок. Он будет расти в нашей памяти, как кристалл.",
+     "Мы благодарны. Ваше тепло останется у нас на тысячу эпох.",
+     "Дар принят. Мы не знаем, чем отплатить, но найдём. Время у нас есть.",
+     "Спасибо вам, мягкие. Вы дали, ничего не требуя. Камень это запомнит.",
+     "Благодарим. Это первый подарок, который не раздавил нас, а согрел."
+    ],
+    "en": [
+     "Thank you! We will set your gift in a quiet cave, where it can rest for an age.",
+     "We are grateful, from the very depths. Gifts like this are better than treaties.",
+     "Such a kind gift. We do not know how soft ones say thanks, but the stone is glad.",
+     "Thank you. We will lay your gift on the warmest stratum.",
+     "Thanks. We do not know how to rejoice quickly, but our joy is long, like a vein.",
+     "A kind gift. It will grow in our memory like a crystal.",
+     "We are grateful. Your warmth will stay with us for a thousand ages.",
+     "The gift is received. We do not know how to repay it, but we will find a way. We have time.",
+     "Thank you, soft ones. You gave and demanded nothing. Stone will remember.",
+     "We thank you. It is the first gift that did not crush us but warmed us."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион заблудился в наших пещерах. Мы вывели его к свету. Пожалуйста, не присылайте больше.",
+     "Мы поймали вашего агента и отпустим его невредимым. Но нам было больно об этом узнать.",
+     "Лазутчик в глубине. Камень не любит, когда в нём прячутся. Давайте лучше говорить открыто.",
+     "Шпион в наших недрах. Мы нашли его и вернём. Больше не присылайте, пожалуйста.",
+     "Ваш агент ходит по нашим пещерам. Он цел. Нам тяжело думать, что вы не доверяете.",
+     "Мы поймали лазутчика. Камень не любит, когда по нему крадутся. Спросите прямо.",
+     "Мы нашли вашего шпиона в трещине. Нам обидно, как лёгкой трещине в крепком камне.",
+     "Шпион пойман. Мы не жестоки. Мы просим: не нужно тайн между нами.",
+     "Агент в глубине. Мы выведем его к свету, невредимого. Но запомним.",
+     "Лазутчик у нас. Нам больно: мы думали, мы друзья."
+    ],
+    "en": [
+     "Your spy got lost in our caverns. We led him back to the light. Please send no more.",
+     "We caught your agent. He will go home unharmed, but it saddened us to find him.",
+     "An infiltrator in the deep. Stone does not like things hiding in it. Let us talk openly instead.",
+     "A spy in our depths. We found him and will return him. Please send no more.",
+     "Your agent walks our caves. He is unharmed. It is hard for us to think you do not trust us.",
+     "We caught an infiltrator. Stone does not like being crept over. Ask us directly.",
+     "We found your spy in a crevice. It stings us, like a small crack in sound stone.",
+     "The spy is caught. We are not cruel. We ask: let there be no secrets between us.",
+     "An agent in the deep. We will lead him to the light, unharmed. But we will remember.",
+     "An infiltrator is with us. It hurts: we thought we were friends."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Вы были добры к нам, а доброта прочнее гранита.",
+     "Наш голос — ваш. Пусть в Совете будет тот, кто хочет мира.",
+     "Коллектив поддержит вас в Совете — тихо, но твёрдо, как основание горы.",
+     "Наш голос за вас. Мы будем держать его так же твёрдо, как гора держит облако.",
+     "Мы проголосуем за вас в совете. Вы тихи, а мы любим тихих.",
+     "Коллектив отдаёт вам голос. Правьте медленно: так надёжнее.",
+     "В совете мы будем рядом с вами. Камень не предаёт.",
+     "Наш голос ваш. Мы долго думали, и это лучшее решение за эпоху.",
+     "Мы поддержим вас голосом. Не заставьте нас пожалеть.",
+     "Да, мы голосуем за вас. Вы слушали, когда могли кричать."
+    ],
+    "en": [
+     "We vote for you. You have been kind, and kindness is harder than granite.",
+     "Our vote is yours. Let the Council be led by one who wants peace.",
+     "The Collective supports you in the Council, quietly and firmly, like the root of a mountain.",
+     "Our vote is for you. We will hold it as firmly as a mountain holds a cloud.",
+     "We will vote for you in the Council. You are quiet, and we like the quiet.",
+     "The Collective gives you its vote. Rule slowly: it is safer.",
+     "In the Council we will stand beside you. Stone does not betray.",
+     "Our vote is yours. We thought long, and it is the best decision in an age.",
+     "We will support you with our vote. Do not make us regret it.",
+     "Yes, we vote for you. You listened when you could have shouted."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Простите, мы будем голосовать против вас. Мы боимся, что ваша власть принесёт войну.",
+     "Наш голос не ваш. Не сердитесь: мы просто ищем того, кто тише.",
+     "Мы голосуем против. Без злобы. Камень выбирает покой.",
+     "Нет, наш голос не ваш. В совете нужна тишина, а вы гремите.",
+     "Мы проголосуем против. Простите: вы слишком быстры, и от вас идёт трещина.",
+     "Голос Коллектива против вас. Не из злобы. Из заботы о глубине.",
+     "Мы не поддержим вас в совете. Мы боимся, что вы разбудите то, что должно спать.",
+     "Голос против. Мы думали долго, как умеет только камень, и решение твёрдо.",
+     "Наш голос уйдёт другому. Не принимайте это близко: камень выбирает медленно.",
+     "Мы голосуем против вас, мягкие. Пусть совет выберет того, кто несёт мир, а не огонь."
+    ],
+    "en": [
+     "Forgive us, we will vote against you. We fear your rule would bring war.",
+     "Our vote is not yours. Do not be angry; we only seek someone quieter.",
+     "We vote against you. Without malice. Stone chooses stillness.",
+     "No, our vote is not yours. The Council needs quiet, and you thunder.",
+     "We will vote against. Forgive us: you are too fast, and a crack follows you.",
+     "The Collective's vote is against you. Not from malice. From care for the deep.",
+     "We will not support you in the Council. We fear you would wake what ought to sleep.",
+     "Vote against. We thought for long, as only stone can, and the decision is firm.",
+     "Our vote goes to another. Do not take it to heart: stone chooses slowly.",
+     "We vote against you, soft ones. Let the Council choose one who brings peace and not fire."
+    ]
+   }
+  }
+ }
+}

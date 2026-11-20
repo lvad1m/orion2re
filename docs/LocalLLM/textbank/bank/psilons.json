@@ -1,0 +1,2825 @@
+{
+ "race": "psilons",
+ "lines": {
+  "xenophobic": {
+   "first_contact": {
+    "ru": [
+     "Ваше появление зафиксировано и внесено в каталог. Держитесь подальше от наших систем — изучать вас удобнее на расстоянии.",
+     "Контакт установлен, к нашему сожалению. Мы не нуждаемся ни в вас, ни в ваших примитивных идеях.",
+     "Наши приборы предупреждали о чужаках, но не о такой степени неразвитости. Не приближайтесь.",
+     "Вы вышли на связь без приглашения. Конклав зафиксировал нарушение и закрывает канал.",
+     "Мы надеялись, что в этом секторе нет разумной жизни. Надежда, как видим, не подтвердилась.",
+     "Сигнал получен. Ответ короткий: оставайтесь там, где вы есть.",
+     "Ваш язык мы расшифровали за считаные минуты, и это немало сообщает о вашем развитии.",
+     "Добро пожаловать в наш журнал наблюдений. Дальше журнала вы не пройдёте.",
+     "Мы изучили ваши передачи. Повторный контакт нецелесообразен.",
+     "Здравствуйте и прощайте. Конклав предпочитает вселенную без соседей."
+    ],
+    "en": [
+     "Your existence has been noted and catalogued. Keep your distance; you are easier to study from far away.",
+     "Contact established, regrettably. We require neither you nor your primitive ideas.",
+     "Our instruments predicted aliens, not this degree of backwardness. Do not come closer.",
+     "You have entered our field of view. We would prefer you leave it.",
+     "We had hoped this sector was empty of minds. The data disappoints us.",
+     "Hello. That is the full extent of the conversation we intend to have.",
+     "We decoded your language in minutes. That alone tells us enough.",
+     "You are now a footnote in our survey. Do not try to become a chapter.",
+     "Our quarantine protocols already include you. Consider yourselves greeted.",
+     "The Conclave acknowledges your existence. It does not welcome it."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем торговый договор. Грузы будут проходить карантин, а ваши экипажи останутся за пределами наших станций.",
+     "Конклав одобряет торговлю — на дальних орбитах и без ваших делегаций. Встречаться с вами для этого не обязательно.",
+     "Ваши ресурсы нам пригодятся, ваше общество — нет. Мы согласны торговать, но только через автоматические станции.",
+     "Да, торгуйте — но только сырьём. Ваши идеи останутся на вашей стороне границы.",
+     "Мы согласны на поставки. Каждый контейнер пройдёт дезинфекцию, прежде чем коснуться наших миров.",
+     "Принимаем договор. Деньги не пахнут, даже если пришли от чужаков.",
+     "Конклав одобряет договор при одном условии: ни один ваш пилот не ступит на нашу почву.",
+     "Договор принят. Считайте это торговлей через стекло лабораторного бокса.",
+     "Согласны. Ваше сырьё сойдёт для наших реакторов, а остальное нас не интересует.",
+     "Мы принимаем договор, хотя торговать с вами — всё равно что брать образцы голыми руками."
+    ],
+    "en": [
+     "We accept the trade treaty. Your cargo will be quarantined, and your crews will stay outside our stations.",
+     "Trade conducted at a distance is an acceptable experiment. Agreed, provided we never have to meet you.",
+     "Your raw materials have some use to us; your company has none. We accept, through automated exchange only.",
+     "Yes, trade, but in raw materials only. Your ideas stay on your side of the border.",
+     "We accept. Payment will be made in full; conversation will not.",
+     "Agreed. Money carries no infection, or so our tests suggest.",
+     "Accepted, on one condition: none of your pilots ever sets foot on our soil.",
+     "We accept the treaty. Think of it as trading through the glass of an isolation chamber.",
+     "Agreed. Your ore will do for our reactors; nothing else of yours interests us.",
+     "We accept, though dealing with you feels like handling samples without gloves."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Торговля с вами — эксперимент, исход которого очевиден заранее. Отказано.",
+     "Нам нечего покупать у тех, кто отстаёт от нас на целую эпоху. Нет.",
+     "Ваши товары не пройдут даже карантинный контроль. Договор отклонён.",
+     "Мы веками обеспечиваем себя сами. Нет.",
+     "Торговые пути — это дороги, по которым приходят чужаки. Мы их не откроем.",
+     "Конклав отклоняет договор. Ваши корабли не будут швартоваться у наших станций.",
+     "Каждая сделка — это контакт, а контакт с вами мы сводим к нулю. Отказано.",
+     "Ваши товары нам не нужны, а наши вам не по уму. Нет.",
+     "Мы не впускаем в свою экономику переменные, которых не контролируем. Отказываемся.",
+     "Предложение изучено и признано бесполезным. Договор не будет подписан."
+    ],
+    "en": [
+     "Trade with you is an experiment whose outcome is obvious in advance. Denied.",
+     "We have nothing to buy from those an entire epoch behind us. No.",
+     "Your goods would not even pass our quarantine. The treaty is rejected.",
+     "We have supplied ourselves for ages. No.",
+     "Trade routes are roads that outsiders travel. We will not open them.",
+     "The Conclave declines. Your ships will not dock at our stations.",
+     "Every deal is a contact, and we keep contact with you at zero. Denied.",
+     "We admit no variables into our economy that we do not control. We refuse.",
+     "Your proposal was examined and found useless. The treaty will not be signed.",
+     "No. Whatever you sell, we either make better or do not need."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Ваши данные примитивны, но даже шум бывает полезен. Мы принимаем договор — обмен только через защищённый канал.",
+     "Мы согласны на научный обмен. Присылайте отчёты; ваших учёных присылать не нужно.",
+     "Конклав изучит ваши открытия — со всеми мерами предосторожности. Договор принят.",
+     "Принимаем. Даже у отсталых культур попадаются любопытные аномалии.",
+     "Да. Ваши знания мы изучим, как изучают образцы, — пинцетом и в перчатках.",
+     "Мы согласны на обмен, но наши фильтры отсеют всё, что сочтут опасным.",
+     "Договор принят. Мы отдадим вам то, что давно устарело, и вам этого хватит надолго.",
+     "Конклав одобряет договор. Ваши архивы пополнят наш раздел о заброшенных теориях.",
+     "Согласны. Изучать чужую науку полезно — хотя бы чтобы понять, чего избегать.",
+     "Мы принимаем договор. Пусть ваши ошибки послужат нам контрольной группой."
+    ],
+    "en": [
+     "Your data is crude, but even noise can be informative. We accept, over a sealed channel only.",
+     "We agree to the research exchange. Send your reports; do not send your scientists.",
+     "The Conclave will examine your findings with every precaution. The treaty is accepted.",
+     "Accepted. Even backward cultures produce the occasional interesting anomaly.",
+     "Yes. We will handle your knowledge the way we handle specimens: with tweezers.",
+     "We agree, though our filters will discard anything we judge hazardous.",
+     "Treaty accepted. We will send you our obsolete work; it will keep you busy for an age.",
+     "We accept. Your archives will make a fine wing in our museum of abandoned theories.",
+     "Agreed. Studying alien science is useful, if only to learn what to avoid.",
+     "We accept the treaty. Your errors will serve as our control group."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Обмен знаниями предполагает, что они у вас есть. Нет.",
+     "Пустить вас в наши лаборатории — всё равно что занести заразу в стерильный бокс. Отказано.",
+     "Наши открытия не для чужих глаз. Договор отклонён.",
+     "Отказываем. Наши формулы писались не для умов, которые их исказят.",
+     "Нет. В ваших руках наши открытия выродятся за одно поколение.",
+     "Научный обмен требует общего языка. Его у нас с вами нет и не будет.",
+     "Конклав отклоняет договор. Наши архивы закрыты для посторонних.",
+     "Ваши лаборатории ещё задают вопросы, на которые мы давно ответили. Нет.",
+     "Мы никогда не смешиваем свои данные с чужими: загрязнённая выборка бесполезна.",
+     "Отказано. Любой канал, по которому уходят знания, может впустить и чужаков."
+    ],
+    "en": [
+     "An exchange of knowledge assumes you have some. No.",
+     "We refuse to let you into our laboratories; we would sooner admit a contaminant to a sterile chamber.",
+     "Our discoveries are not for alien eyes. The treaty is rejected.",
+     "Refused. Our equations were not written for minds that would mangle them.",
+     "No. Our discoveries would degenerate within a generation in your hands.",
+     "A research exchange needs a common language. We do not share one with you.",
+     "The Conclave declines. Our archives are closed to outsiders, permanently.",
+     "We never mix our data with foreign samples. A contaminated set is worthless.",
+     "Every channel that lets knowledge out can let intruders in. Request denied.",
+     "Your laboratories are still asking questions we answered long ago. No."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз с вами — вынужденная мера, а не симпатия. Мы принимаем его, но дистанцию сохраним.",
+     "Общий враг опаснее вас. Конклав согласен на союз — на время и на строгих условиях.",
+     "По нашим расчётам, вместе мы выживем с большей вероятностью. Союз принят, но близко не подходите.",
+     "Мы принимаем союз. Ваши корабли будут стоять на внешних рубежах, наши — на внутренних.",
+     "Да, союз. Но координаты наших лабораторий вы не получите никогда.",
+     "Согласны. Из двух зол Конклав выбирает то, что находится дальше.",
+     "Союз принят как временная мера. Мы будем пересчитывать его необходимость при каждом удобном случае.",
+     "Мы принимаем ваше предложение. Сражаться будем рядом, но не вместе.",
+     "Конклав одобряет союз. Связь — только через посредников, обмен экипажами исключён.",
+     "Принимаем. Неприятно признавать, но ваши флоты сейчас нам нужны."
+    ],
+    "en": [
+     "An alliance with you is a necessity, not an affection. We accept, and we keep our distance.",
+     "A common enemy is more dangerous than you are. The Conclave accepts the alliance, temporarily and on strict terms.",
+     "Our models give us better odds of survival with you than without. Alliance accepted; stay on your side of the border.",
+     "We accept. Your ships will hold the outer line; ours will hold the inner one.",
+     "Yes, an alliance. You will still never learn where our laboratories are.",
+     "Agreed. Of two evils, the Conclave chooses the more distant one.",
+     "Alliance accepted, provisionally. We will recompute its necessity at every opportunity.",
+     "We accept. We will fight beside you, never together with you.",
+     "Accepted. It is unpleasant to admit, but at the moment we need your fleets.",
+     "We agree to the alliance. All contact will go through intermediaries; no crews will be exchanged."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз подразумевает доверие, а мы не доверяем чужакам. Нет.",
+     "Связать нашу судьбу с вашей — значит унаследовать все ваши ошибки. Отказываемся.",
+     "Конклав не нуждается в союзниках, тем более в таких. Предложение отклонено.",
+     "Союз — это общие тайны. Делить их с вами мы не станем.",
+     "Нет. Наши флоты не будут защищать чужие миры.",
+     "Отказываемся. Союзники рано или поздно приходят в гости, а гостей мы не принимаем.",
+     "Ваше предложение отклонено. Чем меньше между нами связей, тем стабильнее система.",
+     "Конклав никогда не связывал свою судьбу с чужаками и не начнёт с вас.",
+     "Нет. Ваши войны — ваши заботы, наши границы — наши.",
+     "Мы отвергаем союз. Даже его обсуждение заняло больше времени, чем вы того стоите."
+    ],
+    "en": [
+     "An alliance requires trust, and we do not trust outsiders. No.",
+     "Bind our fate to yours and inherit your mistakes? We decline.",
+     "The Conclave needs no allies, least of all you. Your proposal is rejected.",
+     "An alliance means shared secrets. We will not share ours with you.",
+     "No. Our fleets will not bleed to defend alien worlds.",
+     "We refuse. Allies eventually come to visit, and we receive no visitors.",
+     "Rejected. The fewer links between us, the more stable the system.",
+     "The Conclave has never bound its fate to outsiders, and will not begin with you.",
+     "No. Your wars are your problem; our borders are ours.",
+     "We decline. Merely discussing it has cost more time than you are worth."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт о ненападении нас устраивает: чем реже мы вас видим, тем лучше. Принимаем.",
+     "Вы не трогаете нас, мы не трогаем вас. Согласны — это самая разумная форма отношений с вами.",
+     "Мы принимаем пакт. Держите свои флоты подальше, и наши приборы перестанут вас замечать.",
+     "Пакт принят. Граница между нами станет самой тихой линией в галактике.",
+     "Согласны. Ненападение — почти то же самое, что отсутствие, а отсутствие нас устраивает.",
+     "Мы принимаем пакт. Нарушите его — и лишитесь даже этого скромного общения.",
+     "Да. Пусть между нами будет пустота: это лучшая изоляция из возможных.",
+     "Конклав одобряет пакт. Наши орудия по-прежнему будут смотреть в вашу сторону, но молча.",
+     "Принимаем. Обещание не нападать стоит недорого, а тишина бесценна.",
+     "Мы согласны. Отныне вы — фоновый шум, на который мы не обращаем внимания."
+    ],
+    "en": [
+     "A non-aggression pact suits us: the less we see of you, the better. Accepted.",
+     "You leave us alone and we leave you alone. Agreed; it is the only sensible arrangement with you.",
+     "We accept the pact. Keep your fleets away, and our sensors will stop registering you.",
+     "Pact accepted. The border between us will be the quietest line in the galaxy.",
+     "Agreed. Non-aggression is almost the same as absence, and absence suits us.",
+     "Yes. Let empty space lie between us; it is the finest insulation there is.",
+     "We accept. Our turrets will keep pointing your way, silently.",
+     "Accepted. From now on you are background noise, and we filter noise out.",
+     "We agree. A promise not to attack costs little, and quiet is priceless.",
+     "The Conclave accepts the pact. Break it, and you lose even this minimal contact."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Война отнимала время у исследований. Мы принимаем мир — но наши границы для вас по-прежнему закрыты.",
+     "Мир принят. Не путайте это с дружбой: мы просто возвращаемся к работе.",
+     "Продолжать войну нерационально. Мирный договор заключён — держитесь подальше от наших лабораторий.",
+     "Мир. Отведите флот за пределы наших датчиков и больше там не появляйтесь.",
+     "Мы принимаем мир. Война требовала слишком много контакта с вами.",
+     "Мир принят. Граница восстановлена — пусть она останется непроницаемой.",
+     "Конклав согласен на мир. Лучшее, что вы можете сделать дальше, — исчезнуть с наших карт.",
+     "Мирный договор подписан. Теперь мы снова можем делать вид, что вас не существует.",
+     "Пусть будет мир — холодный, тихий и без визитов.",
+     "Мы согласны на мир. Обмена послами не будет: мир не означает знакомства."
+    ],
+    "en": [
+     "The war was stealing time from our research. We accept peace, but our borders stay closed to you.",
+     "Peace is accepted. Do not mistake it for friendship; we are simply returning to work.",
+     "Continuing the war is irrational. Peace is concluded; stay away from our laboratories.",
+     "Peace. Pull your fleet beyond the range of our sensors, and stay there.",
+     "We accept peace. The war required far too much contact with you.",
+     "Peace accepted. The border is restored; let it remain impermeable.",
+     "The Conclave agrees to peace. The best thing you can do next is vanish from our charts.",
+     "The peace is signed. Now we can go back to pretending you do not exist.",
+     "Let there be peace: cold, quiet, and without visits.",
+     "We agree to peace. There will be no exchange of ambassadors; peace is not acquaintance."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир снова приведёт вас к нашим границам. Нет — война продолжится, пока вы не уйдёте совсем.",
+     "Мы не ведём переговоров с чужаками. Ваша просьба о мире отклонена.",
+     "Эксперимент по вашему вытеснению ещё не завершён. Отказано.",
+     "Мир с вами означает соседство с вами. Нет.",
+     "Отказываем. Наша цель — не перемирие, а стерильная граница.",
+     "Вы просите мира, но ваши корабли всё ещё в наших системах. Пока они там, ответ — нет.",
+     "Конклав отклоняет просьбу. Изоляцию создаёт не договор, а расстояние, и мы его увеличим.",
+     "Нет. Каждый отбитый у вас мир делает наш сектор чище.",
+     "Мы не верим чужакам на слово. Война продолжится до полной ясности.",
+     "Мира не будет. Вы сами выбрали прийти к нам — теперь узнайте, во что это обходится."
+    ],
+    "en": [
+     "Peace would bring you back to our borders. No; the war goes on until you are gone entirely.",
+     "We do not negotiate with outsiders. Your plea for peace is rejected.",
+     "The experiment of removing you is not yet complete. Denied.",
+     "Peace with you means living next to you. No.",
+     "We refuse. Our aim is not a truce but a sterile border.",
+     "You ask for peace while your ships still sit in our systems. While they are there, the answer is no.",
+     "The Conclave declines. Isolation comes from distance, not from treaties, and we intend to create it.",
+     "No. Every world we take back from you makes our sector cleaner.",
+     "We do not take an outsider's word. The war continues until the picture is clear.",
+     "There will be no peace. You chose to come here; now learn what it costs."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы закончили изучать вас на расстоянии. Начинаем войну — полевые испытания.",
+     "Ваше присутствие искажает наши измерения. Это война, и она устранит помеху.",
+     "Гипотеза о мирном сосуществовании опровергнута. Объявляем вам войну.",
+     "Сектор слишком мал для двух цивилизаций. Мы объявляем вам войну.",
+     "Конклав принял решение: война. Чужаков у наших границ больше не будет.",
+     "Мы начинаем войну. Цель простая — тишина в нашем секторе.",
+     "Ваши корабли видели наши миры слишком близко. Это война.",
+     "Мы долго держали дистанцию. Теперь мы восстановим её войной.",
+     "Стерилизация сектора начинается сегодня. Да, это война.",
+     "Война объявлена. Чем дальше вы отступите, тем меньше потеряете."
+    ],
+    "en": [
+     "We have finished studying you from afar. The war begins: field trials.",
+     "Your presence distorts our measurements. This is war, and it will remove the interference.",
+     "The hypothesis of peaceful coexistence is refuted. We declare war on you.",
+     "This sector is too small for two civilizations. We declare war.",
+     "The Conclave has decided on war. There will be no more outsiders at our borders.",
+     "We begin a war with a simple goal: silence in our sector.",
+     "Your ships have seen our worlds from too close. This is war.",
+     "We kept our distance for a long time. Now war will restore it.",
+     "The sterilisation of this sector begins today. Yes, it is war.",
+     "War is declared. The farther you retreat, the less you will lose."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Наш договор расторгнут. Контакт с вами оказался ошибкой, и мы её исправляем.",
+     "Мы разрываем соглашение. Каждый день связи с вами загрязняет наши данные.",
+     "Конклав аннулирует договор. Возвращайтесь в изоляцию, где вам и место.",
+     "Договор расторгнут. Конклав избрал полную изоляцию, и наше соглашение в неё не вписывается.",
+     "Мы закрываем все каналы и аннулируем соглашение. Не пытайтесь с нами связаться.",
+     "Пакт больше не действует. Опыт сотрудничества с чужаками признан неудачным.",
+     "Соглашение разорвано. Мы слишком долго терпели ваше присутствие в наших отчётах.",
+     "Наш договор окончен. Ваши представители должны немедленно покинуть наши станции.",
+     "Конклав расторгает пакт. Это не враждебность — просто вы нам больше не нужны.",
+     "Договор аннулирован. Граница снова закрыта, как и было задумано с самого начала."
+    ],
+    "en": [
+     "Our treaty is terminated. Contact with you was a mistake, and we are correcting it.",
+     "We are dissolving the agreement. Every day of contact with you contaminates our data.",
+     "The Conclave annuls the treaty. Go back to isolation, where you belong.",
+     "The treaty is dissolved. The Conclave has chosen full isolation, and you are not part of it.",
+     "We are closing every channel and voiding the agreement. Do not try to reach us.",
+     "The pact is over. Our trial of cooperation with outsiders is declared a failure.",
+     "Our treaty ends today. Your representatives will leave our stations at once.",
+     "The Conclave revokes the pact. Not hostility; you are simply no longer needed.",
+     "The agreement is void. The border is closed again, as it always should have been.",
+     "We are ending the treaty. Your presence has cluttered our reports for long enough."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Ваши корабли слишком близко к нашим системам. Отведите их, или мы проверим на них новое оружие.",
+     "Мы терпим вас лишь на расстоянии. Сократите его ещё раз — и последствия будут необратимы.",
+     "Прекратите. Наши датчики фиксируют каждое ваше движение, и терпение Конклава на исходе.",
+     "Ваши зонды снова в нашем пространстве. Следующий мы вернём вам по частям.",
+     "Уберите свои колонии от нашей границы, пока мы не сделали это за вас.",
+     "Мы не повторяем предупреждений. Это — единственное.",
+     "Конклав рассчитал, сколько ещё будет вас терпеть. Результат меньше, чем вы думаете.",
+     "Прекратите расширяться в нашу сторону. Наши учёные уже готовят против вас средство.",
+     "Остановитесь. Чужаки, которые не понимают границ, становятся экспонатами.",
+     "Ваше любопытство к нашим мирам будет стоить вам кораблей. Отступите."
+    ],
+    "en": [
+     "Your ships are too close to our systems. Withdraw them, or we test our new weapons on them.",
+     "We tolerate you only at a distance. Shorten it again and the consequences will be irreversible.",
+     "Stop this now. Our sensors log your every move, and the Conclave's patience is nearly spent.",
+     "Your probes are in our space again. We will return the next one in pieces.",
+     "Move your colonies back from our border before we do it for you.",
+     "We do not repeat warnings. This is the only one.",
+     "The Conclave has calculated how much longer it will tolerate you. The figure is smaller than you think.",
+     "Stop expanding toward us. Our scientists are already preparing a remedy for you.",
+     "Stop. Outsiders who ignore borders end up in our display cases.",
+     "Your curiosity about our worlds will cost you ships. Withdraw."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Наши исследования требуют средств. Вы переведёте {СУММА} — или станете объектом наших опытов.",
+     "Плата за то, что мы терпим вас рядом, — {СУММА}. Это не просьба.",
+     "Перечислите {СУММА}, и мы забудем о вашем существовании ещё на какое-то время.",
+     "Ваши корабли пересекают наши маршруты. Плата за проход — {СУММА}.",
+     "Карантин границы с вами стоит денег. Вы его оплатите: {СУММА}.",
+     "{СУММА} — и наши дозоры не станут проверять, насколько близко вы подошли.",
+     "Конклав выставляет вам счёт за беспокойство: {СУММА}.",
+     "Переведите {СУММА} и не сопровождайте платёж никакими посланиями.",
+     "Соседство с вами дорого нам обходится. Компенсируйте это: {СУММА}.",
+     "Мы требуем {СУММА}. Если откажете, вашим мирам придётся познакомиться с нами ближе, чем хотелось бы."
+    ],
+    "en": [
+     "Our research requires funding. You will transfer {AMOUNT}, or become the subject of our experiments.",
+     "The price of being tolerated near us is {AMOUNT}. This is not a request.",
+     "Send {AMOUNT}, and we will forget you exist for a while longer.",
+     "Your ships cross our lanes. The toll is {AMOUNT}.",
+     "Quarantining our border with you costs money. You will cover it: {AMOUNT}.",
+     "{AMOUNT}, and our patrols will not measure how close you have come.",
+     "The Conclave bills you for the disturbance: {AMOUNT}.",
+     "Transfer {AMOUNT}. Do not attach a message.",
+     "Living next to you is expensive for us. Compensate us: {AMOUNT}.",
+     "We require {AMOUNT}. Refuse, and your worlds will get to know us far more closely than they would like."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок получен и проверен на заражение — чисто. Благодарим, и на этом всё.",
+     "Благодарим за дар. Наше мнение о вас он не меняет, но мы его учли.",
+     "Спасибо. Ваш дар будет изучен в изолированной лаборатории, как и всё, что приходит от чужаков.",
+     "Благодарим. Ответного визита не ждите.",
+     "Спасибо. Подарок принят, а вот гостей мы по-прежнему не принимаем.",
+     "Дар учтён. Конклав выражает благодарность и надеется, что на этом наше общение исчерпано.",
+     "Спасибо. Мы оценили вашу попытку купить наше расположение. Оно не продаётся.",
+     "Благодарим за подарок. Мы оставим его себе, а вас — за границей.",
+     "Неожиданно. Благодарим, хотя и не понимаем, чего вы добиваетесь.",
+     "Ваш дар прошёл через шлюз и обработку. Благодарность прилагаем."
+    ],
+    "en": [
+     "Gift received and screened for contamination: clean. Thank you, and that is all.",
+     "We thank you for the gift. It does not change our opinion of you, but it has been noted.",
+     "Thank you. Your gift will be examined in an isolated laboratory, like everything that comes from outsiders.",
+     "Thank you. Do not expect a return visit.",
+     "Thank you. We accept gifts; we still do not accept guests.",
+     "The gift is logged. The Conclave is grateful and trusts this concludes our contact.",
+     "Thank you. We note your attempt to buy our goodwill. It is not for sale.",
+     "Thank you for the gift. We will keep it, and keep you beyond the border.",
+     "Unexpected. Thank you, though we cannot see what you hope to gain.",
+     "Your gift came through the airlock and has been processed. Our thanks are attached."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион пойман в нашем институте. Он оказался любопытнее вас — и это ему не помогло.",
+     "Мы извлекли вашего агента из наших сетей, как вирус. Повторите — и мы найдём источник заразы.",
+     "Ещё один ваш лазутчик в наших лабораториях. Чужакам здесь не место — ни открыто, ни тайно.",
+     "Ваш шпион прошёл несколько карантинных кордонов. Последний оказался для него непроходимым.",
+     "Мы вычислили вашего агента по чужеродному следу в наших сетях. Вы оставляете следы повсюду.",
+     "Шпионаж — это контакт, а контакта с вами мы не хотели. Заберите своего агента и исчезните.",
+     "Ваш лазутчик будет выслан в капсуле без права возвращения. Как и любой следующий.",
+     "Мы изолировали вашего шпиона в герметичной камере. Чужакам у нас положено именно это место.",
+     "Конклав обнаружил агента у наших архивов. Ещё один — и мы закроем границу окончательно.",
+     "Шпион? В наших системах? Значит, наша граница недостаточно непроницаема. Мы это исправим."
+    ],
+    "en": [
+     "Your spy was caught in our institute. He was more curious than you are, and it did not help him.",
+     "We removed your agent from our networks like a virus. Try again and we will find the source of the infection.",
+     "Another of your infiltrators in our laboratories. Outsiders have no place here, openly or in secret.",
+     "Your spy passed several quarantine cordons. The last one proved impassable.",
+     "We traced your agent by the foreign signature he left in our networks. You leave traces everywhere.",
+     "Espionage is contact, and we never wanted contact with you. Take your agent back and disappear.",
+     "Your infiltrator will be expelled in a sealed capsule, as will the next one.",
+     "We have isolated your spy in an airtight cell. That is where outsiders belong in our space.",
+     "The Conclave found an agent near our archives. One more, and we close the border for good.",
+     "A spy in our systems? Then our border is not tight enough. We will correct that."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы отдадим вам свой голос в Совете. Из всех кандидатов вы — наименее опасная погрешность.",
+     "Конклав голосует за вас. Пусть галактикой правит тот, кто далеко от нас.",
+     "Наш голос — ваш. Не сочтите это знаком близости: это просто результат вычислений.",
+     "Наш голос — за вас. Вы, по крайней мере, не лезете в наши дела.",
+     "В Совете мы проголосуем за вас: альтернатива живёт ещё ближе к нашим границам.",
+     "Мы поддержим вас на голосовании при одном условии: после победы забудьте о нас.",
+     "Конклав отдаёт голос вам. Лидер, занятый всей галактикой, будет реже смотреть в нашу сторону.",
+     "Голосуем за вас. Знакомиться лично по этому поводу не обязательно.",
+     "Наш голос ваш — без поздравлений, без визитов, без дальнейших разговоров.",
+     "Мы голосуем за вас. Из всех чужаков вы раздражаете нас меньше прочих."
+    ],
+    "en": [
+     "We will give you our vote in the Council. Of all the candidates, you are the least dangerous error.",
+     "The Conclave votes for you. Let the galaxy be ruled by someone far away from us.",
+     "Our vote is yours. Do not mistake it for closeness; it is simply the result of a calculation.",
+     "Our vote is yours. At least you stay out of our affairs.",
+     "We will vote for you in the Council; the alternative lives even closer to our border.",
+     "We will back you in the vote on one condition: once you win, forget about us.",
+     "The Conclave votes for you. A leader busy with the whole galaxy will have less time to look our way.",
+     "We vote for you. There is no need to visit and say thank you.",
+     "Our vote is yours. No congratulations, no visits, no further conversation.",
+     "We vote for you. Of all the outsiders, you irritate us least."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы проголосуем против вас. Чужаку не место во главе галактики.",
+     "Наш голос — против. Мы не позволим вам распространиться дальше, чем вы уже распространились.",
+     "Конклав отдаст голос против вас. Ваше влияние — загрязнение, и мы его локализуем.",
+     "Наш голос против. Лидер галактики захочет вмешиваться во всё, в том числе в наши дела.",
+     "Голосуем против вас. Любая власть чужаков над нами неприемлема.",
+     "Голос Конклава — против. Мы не доверили бы вам границу, не то что галактику.",
+     "В Совете наш голос будет против. Вы и так слишком часто попадаете в наши отчёты.",
+     "Мы голосуем против. Победитель получит право приходить к нам, а этого мы не допустим.",
+     "Наш голос против. Ваши амбиции уже нарушили нашу изоляцию, и награды за это не будет.",
+     "Наш голос — против вас. Чужак во главе Совета — это чужак у наших дверей."
+    ],
+    "en": [
+     "In the Council we will vote against you. No outsider belongs at the head of the galaxy.",
+     "Our vote is against you. We will not let you spread any further than you already have.",
+     "The Conclave votes against you. Your influence is a contaminant, and we intend to contain it.",
+     "Our vote is against you. A galactic leader meddles in everything, including us.",
+     "We vote against you. No outsider will hold authority over us.",
+     "The Conclave votes no. We do not trust you with a border, let alone a galaxy.",
+     "In the Council we will vote against you. You already appear in our reports far too often.",
+     "We vote against you. The winner gains the right to come knocking, and we will not allow that.",
+     "We vote against. Your ambitions have already disturbed our isolation; there will be no reward for that.",
+     "Our vote goes against you. An outsider at the head of the Council is an outsider at our door."
+    ]
+   }
+  },
+  "ruthless": {
+   "first_contact": {
+    "ru": [
+     "Новая переменная в уравнении. Посмотрим, будете ли вы полезны или окажетесь лишними.",
+     "Приветствуем. Каждый контакт — это ресурс, и мы уже оцениваем ваш.",
+     "Мы рады знакомству ровно настолько, насколько вы окажетесь выгодны.",
+     "Приветствуем. Мы уже завели на вас досье — пока оно довольно тонкое.",
+     "Новые соседи — это новые рынки или новые трофеи. Решать вам, чем вы станете.",
+     "Здравствуйте. Конклав не тратит время на любезности: что вы можете нам дать?",
+     "Ваши миры богаты, а флот невелик. Мы это отметили — думаем, вы тоже.",
+     "Добро пожаловать в нашу модель. Вы в ней пока величина незначительная.",
+     "Мы ценим знакомства, которые окупаются. Постарайтесь окупиться.",
+     "Приветствие бесплатно. Всё остальное будет иметь цену."
+    ],
+    "en": [
+     "A new variable in the equation. We shall see whether you are useful or superfluous.",
+     "Greetings. Every contact is a resource, and we are already appraising yours.",
+     "We are pleased to meet you exactly as much as you turn out to be profitable.",
+     "Greetings. We have already opened a file on you; it is rather thin so far.",
+     "New neighbours are either new markets or new trophies. You choose which.",
+     "Hello. The Conclave does not waste time on courtesies: what can you offer us?",
+     "Your worlds are rich and your fleet is small. We noticed. We suspect you did too.",
+     "Welcome to our model. At present you are a rounding error in it.",
+     "This greeting is free of charge. Everything after it will have a price.",
+     "We value acquaintances that pay off. Do try to pay off."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Расчёт сошёлся: прибыль на нашей стороне. Мы принимаем договор.",
+     "Согласны. Ваши ресурсы оплатят наши исследования, и торговля продлится, пока вы полезны.",
+     "Торговый договор принят. Учтите: в каждой сделке мы видим больше, чем вы.",
+     "Да. Торговля — самый дешёвый способ узнать о вас всё.",
+     "Принимаем. Через несколько лет ваша экономика будет зависеть от нашей, и нас это устраивает.",
+     "Договор принят. Цены, разумеется, будем устанавливать мы.",
+     "Согласны. Вы получите товары, мы — ваши маршруты, склады и слабые места.",
+     "Мы одобряем договор. Хороший торговый партнёр полезнее завоёванного — пока.",
+     "Принимаем, хотя ваши условия наивны. Разубеждать вас мы не станем.",
+     "Сделка выгодна обеим сторонам, но нам — значительно больше. Мы согласны."
+    ],
+    "en": [
+     "The calculation favours us. We accept the treaty.",
+     "Agreed. Your resources will fund our research; trade continues as long as you remain useful.",
+     "Trade treaty accepted. Bear in mind that in every deal we see more than you do.",
+     "Yes. Trade is the cheapest way to learn everything about you.",
+     "Accepted. In a few years your economy will depend on ours, which suits us.",
+     "Treaty accepted. Naturally, we will be the ones setting the prices.",
+     "Agreed. You get goods; we get your routes, your warehouses and your weak points.",
+     "We accept. A good trading partner is worth more than a conquered one, for now.",
+     "Accepted, though your terms are naive. We see no reason to correct you.",
+     "The deal benefits both sides, and us considerably more. We agree."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Расчёт показывает: выгода будет только вашей. Отклонено.",
+     "Мы торгуем с теми, кого не собираемся поглотить. Вы в этот список не входите.",
+     "Ваше предложение нам невыгодно, а значит, для нас его не существует.",
+     "Нет. Пока вы ни с кем не торгуете, ваша экономика слабеет, и нас это устраивает.",
+     "Ваши цены рассчитаны на простаков. Отклонено.",
+     "Мы отказываемся. Ваши рынки скоро станут нашими и без всякого договора.",
+     "Предложите больше — и мы, возможно, откажем вам вежливее.",
+     "Договор отклонён. Мы уже торгуем с вашим соперником, и он платит лучше.",
+     "Конклав не берёт валюту, которая может обесцениться к следующему сезону. Нет.",
+     "Нет. Каждая сделка с нами укрепила бы ваш флот, а нам это ни к чему."
+    ],
+    "en": [
+     "The calculation shows the gain would be yours alone. Rejected, and we do not reconsider.",
+     "We trade with those we do not intend to absorb. You are not on that list.",
+     "Your offer does not profit us, so as far as we are concerned it does not exist.",
+     "No. While you trade with nobody, your economy weakens, and that suits us.",
+     "Your prices are designed for fools. Rejected.",
+     "We refuse. Your markets will be ours soon enough without any treaty.",
+     "Offer more, and we might refuse you more politely.",
+     "We already trade with your rival, and he pays better. Declined.",
+     "The Conclave does not take currencies that may be worthless by next season. No.",
+     "No. Every deal with us would strengthen your fleet, and we see no reason to allow that."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Обмен неравный — в нашу пользу. Мы согласны.",
+     "Ваши учёные отдадут нам свои данные, а мы — то, что сочтём нужным. Договор принят.",
+     "Принимаем. Любое знание — это рычаг, и мы умеем им пользоваться лучше вас.",
+     "Да. Ваши учёные будут работать на нас и даже не узнают об этом.",
+     "Мы согласны. Обмен знаниями — лучший способ измерить, насколько вы отстаёте.",
+     "Принимаем. Каждая ваша формула — ещё один ключ к вашей обороне.",
+     "Договор принят. Купить вашу науку обменом дешевле, чем отнять её войной.",
+     "Конклав одобряет обмен. Чужие гипотезы — бесплатная проверка наших.",
+     "Согласны. Ваши ошибки сэкономят нам годы опытов.",
+     "Принимаем. Вы удивительно щедры для тех, кто так плохо понимает цену знаний."
+    ],
+    "en": [
+     "The exchange is unequal, in our favour. We agree.",
+     "Your scientists will hand over their data, and we will share what we see fit. Treaty accepted.",
+     "Accepted. All knowledge is leverage, and we know how to use it far better than you.",
+     "Yes. Your scientists will work for us without ever realising it.",
+     "We agree. An exchange is the best way to measure how far behind you are.",
+     "Accepted. Every formula you send is another key to your defences.",
+     "Treaty accepted. Buying your science costs less than seizing it.",
+     "Agreed. Your mistakes will save us years of experiments.",
+     "We accept. Foreign hypotheses are a free test of our own.",
+     "Accepted. You are remarkably generous for people who understand so little of what knowledge is worth."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Делиться знаниями с потенциальной целью? Нет.",
+     "Наши открытия стоят дороже всего, что вы можете предложить. Отклонено.",
+     "Мы не вооружаем тех, кого однажды, возможно, придётся победить. Отказ.",
+     "Нет. Знание — это капитал, а капитал не раздают.",
+     "Мы отказываемся. Наше превосходство — единственное, что держит вас в рамках.",
+     "Отклонено. Технологический разрыв между нами — наш самый ценный ресурс, и сокращать его мы не станем.",
+     "Ваша наука нам неинтересна, а наша вам не по карману. Нет.",
+     "Мы не продаём будущее за горсть ваших устаревших данных. Отказ.",
+     "Нет. Чем меньше вы знаете, тем дешевле обойдётся наша следующая война с вами.",
+     "Конклав отклоняет договор. Учите своих учёных сами — или не учите вовсе."
+    ],
+    "en": [
+     "Share knowledge with a potential target? No.",
+     "Our discoveries are worth more than anything you could offer. We decline.",
+     "We do not arm those we may one day have to defeat. Request denied.",
+     "No. Knowledge is capital, and capital is not handed out.",
+     "We refuse. Our superiority is the only thing keeping you in line.",
+     "Rejected. The technology gap between us is our most valuable asset, and we will not narrow it.",
+     "Your science bores us, and ours is beyond your budget. No.",
+     "We will not trade our future for a handful of your outdated data. Declined.",
+     "No. The less you know, the cheaper our next war with you will be.",
+     "The Conclave declines. Educate your own scientists, or do not bother."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз выгоден: ваш флот прикроет наши лаборатории. Мы согласны.",
+     "Принимаем союз. Пока ваша польза превышает ваши издержки, мы на одной стороне.",
+     "Союз принят. Мы уже подсчитали, сколько он нам принесёт и во что обойдётся его разорвать.",
+     "Да. Ваши флоты будут первой линией обороны, а наши лаборатории — последней.",
+     "Мы принимаем союз. Делить добычу удобнее, чем делить границы.",
+     "Согласны. Вы полезны, пока у нас общий противник, — а он у нас надолго.",
+     "Союз принят. Ваши потери в общей войне мы будем искренне ценить.",
+     "Конклав одобряет союз. Вклад каждой стороны будет учтён — ваш особенно тщательно.",
+     "Принимаем. Союзники обходятся дешевле наёмников и реже требуют платы.",
+     "Да, союз. Мы уже знаем, какие ваши системы прикрывать, а какими пожертвовать."
+    ],
+    "en": [
+     "An alliance pays: your fleet will shield our laboratories. We agree.",
+     "We accept the alliance. As long as your usefulness exceeds your cost, we stand on the same side.",
+     "Alliance accepted. We have already calculated what it will earn us, and what it would cost to end it.",
+     "Yes. Your fleets will be the first line of defence; our laboratories, the last.",
+     "We accept. Sharing spoils is simpler than sharing borders.",
+     "Agreed. You are useful while we share an enemy, and we will share it for a long time.",
+     "Alliance accepted. We will sincerely appreciate your losses in our common war.",
+     "Accepted. Allies cost less than mercenaries and ask for payment less often.",
+     "Yes, an alliance. We already know which of your systems to cover and which to sacrifice.",
+     "The Conclave accepts the alliance. Every side's contribution will be counted, yours most carefully."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз с вами — это ваши войны за наш счёт. Нет.",
+     "Мы не связываем себя с теми, кто тянет назад. Отклонено.",
+     "Ваша ценность как союзника близка к нулю. Отказываем.",
+     "Отказываем. Союз — это обязательство, а обязательства сокращают число вариантов.",
+     "Нет. Вы нужны нам как буфер, а не как партнёр.",
+     "Нам выгоднее наблюдать за вашими войнами, чем в них участвовать. Отклонено.",
+     "Мы не вкладываемся в активы, которые дешевеют. Нет.",
+     "Конклав отклоняет союз. Сегодня вы предлагаете дружбу, завтра попросите флот.",
+     "Союз с вами усилит вас больше, чем нас. Такую арифметику мы не принимаем.",
+     "Нет. Когда вы ослабнете, нам будет неудобно делать вид, что мы вас защищаем."
+    ],
+    "en": [
+     "An alliance with you means your wars at our expense. No.",
+     "We do not chain ourselves to those who slow us down. Rejected.",
+     "Your value as an ally rounds down to nothing. We decline.",
+     "We refuse. An alliance is an obligation, and obligations reduce our options.",
+     "No. We need you as a buffer, not as a partner.",
+     "Watching your wars pays better than joining them. Declined.",
+     "We do not invest in assets that are losing value. No.",
+     "The Conclave rejects it. Today you offer friendship; tomorrow you will ask for our fleet.",
+     "An alliance would strengthen you more than us. We do not accept that arithmetic.",
+     "No. When you weaken, it would be awkward to pretend we are protecting you."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт о ненападении сэкономит нам флот. Принимаем.",
+     "Согласны. Пока нам выгоднее не тратить на вас оружие.",
+     "Пакт принят. Мы будем соблюдать его ровно до тех пор, пока он полезен, — как и вы, надо полагать.",
+     "Да. Пакт освобождает наш флот для более выгодных направлений.",
+     "Принимаем. Ваше ненападение нам важнее, чем вам наше.",
+     "Мы согласны. Война с вами сейчас не окупится, и вы это тоже понимаете.",
+     "Пакт принят. Пусть ваша граница охраняет нашу — бесплатно.",
+     "Конклав одобряет пакт. Ваш страх перед нами — отличный гарант его соблюдения.",
+     "Согласны. Тишина на этой границе позволит нам заняться другими.",
+     "Принимаем пакт. Мы редко нападаем на тех, кто полезнее живым."
+    ],
+    "en": [
+     "A non-aggression pact saves us a fleet. Accepted.",
+     "Agreed. For now, it is cheaper not to spend weapons on you.",
+     "Pact accepted. We will keep it exactly as long as it is useful, as will you, presumably.",
+     "Yes. The pact frees our fleet for more profitable directions.",
+     "Accepted. Your non-aggression matters to us more than ours does to you.",
+     "We agree. A war with you would not pay right now, and you know it.",
+     "Pact accepted. Your border will guard ours, free of charge.",
+     "The Conclave agrees. Your fear of us is an excellent guarantee of compliance.",
+     "Agreed. Quiet on this border lets us attend to others.",
+     "We accept the pact. We rarely attack those who are more useful alive."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Эта война перестала окупаться. Мир принят — пока он нам выгоден.",
+     "Мы согласны на мир. Ресурсы, потраченные на вас, найдут лучшее применение.",
+     "Мир так мир. Запомните: мы подписываем договоры, а не обещания.",
+     "Мир. Вы заплатили достаточно, чтобы мы потеряли интерес.",
+     "Мы согласны на мир. Ваши уступки уже превзошли наши ожидания.",
+     "Мир принят. Мы взяли, что хотели, а остальное подождёт.",
+     "Пусть будет мир: добивать вас дороже, чем потом с вами торговать.",
+     "Конклав принимает мир. Пленных обменяем по нашему курсу.",
+     "Мир заключён. Война была вложением, и мы фиксируем прибыль.",
+     "Мы принимаем мир. Ваш флот уничтожен, а значит, продолжение ничего нам не даст."
+    ],
+    "en": [
+     "This war has stopped paying for itself. Peace is accepted, for as long as it profits us.",
+     "We agree to peace. The resources we spent on you will find better uses.",
+     "Peace, then. Remember: we sign treaties, not promises.",
+     "Peace. You have paid enough for us to lose interest.",
+     "We agree to peace. Your concessions have already exceeded our forecasts.",
+     "Peace accepted. We took what we wanted; the rest can wait.",
+     "Peace, then. Finishing you off would cost more than trading with you afterwards.",
+     "The Conclave accepts peace. Prisoners will be exchanged at our rate.",
+     "Peace is made. The war was an investment, and we are taking our profit.",
+     "We accept peace. Your fleet is gone, so continuing would earn us nothing."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир сейчас выгоден только вам. Нет — война продолжится.",
+     "Ваши потери растут, наши — в пределах расчёта. Отказываем.",
+     "Мы не прерываем удачный эксперимент на середине. Просьба о мире отклонена.",
+     "Нет. Ваши верфи ещё не все в наших руках.",
+     "Мир сейчас — это списанные вложения. Мы отказываемся.",
+     "Предложите больше. Хотя нет — нам выгоднее взять всё самим.",
+     "Отклонено. Каждый день войны приносит нам новую планету, а вам — новые потери.",
+     "Мы не останавливаемся, когда до прибыли осталось несколько ходов. Нет.",
+     "Ваша цена за мир всё ещё слишком высока. Отклонено.",
+     "Мир? Нет. Мы ещё не взяли то, ради чего начинали."
+    ],
+    "en": [
+     "Peace now profits only you. No; the war continues.",
+     "Your losses are rising, ours are within projections. We refuse.",
+     "We do not halt a successful experiment halfway. Your request for peace is denied.",
+     "No. Not all of your shipyards are ours yet.",
+     "Peace now would mean writing off our investment. We refuse.",
+     "Offer more. On reflection, no; taking everything ourselves pays better.",
+     "Rejected. Every day of war earns us a planet and costs you a fleet.",
+     "We do not stop a few moves short of profit. No.",
+     "Your asking price for peace is still too high. Declined.",
+     "Peace? No. We have not yet taken what we came for."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Ваши планеты стоят больше, чем ваша дружба. Начинаем войну.",
+     "Мы подсчитали выгоду от вашего исчезновения. Это война.",
+     "Договоры были удобны, пока вы были сильнее. Теперь — война.",
+     "Мы объявляем войну. Ваши склады полны, а гарнизоны пусты — грех упускать такой момент.",
+     "Война. Мы долго ждали, когда она станет рентабельной.",
+     "Ваш флот ушёл на другой фронт. Мы этим воспользуемся: это война.",
+     "Конклав объявляет войну. Нам нужны ваши ресурсы, а покупать их слишком долго.",
+     "Это война. Не принимайте на свой счёт: вы просто оказались выгодной целью.",
+     "Мы вкладываемся в войну с вами и рассчитываем на хорошую доходность.",
+     "Ваши союзники далеко, а ваши границы близко. Война."
+    ],
+    "en": [
+     "Your planets are worth more than your friendship. The war begins.",
+     "We have calculated the profit of your disappearance. This is war.",
+     "Treaties were convenient while you were stronger. Now it is war.",
+     "We declare war. Your warehouses are full and your garrisons empty; it would be a waste to pass this up.",
+     "War. We have been waiting for the moment it became cost-effective.",
+     "Your fleet has gone to another front. We will take advantage: this is war.",
+     "The Conclave declares war. We need your resources, and buying them takes too long.",
+     "This is war. Do not take it personally; you simply became a profitable target.",
+     "We are investing in a war against you, and we expect an excellent return.",
+     "Your allies are far away and your borders are close. War."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор перестал приносить пользу. Мы его расторгаем.",
+     "Соглашение было инструментом и своё отработало. Оно аннулировано.",
+     "Мы разрываем пакт. Ничего личного — просто новые данные.",
+     "Договор расторгнут. Мы нашли партнёра повыгоднее.",
+     "Соглашение аннулировано. Его подробности мы уже продали вашему соседу — с выгодой.",
+     "Мы выходим из пакта. Вы стали слишком слабы, чтобы быть полезными.",
+     "Наш договор окончен. Вам стоило внимательнее читать пункт о расторжении.",
+     "Конклав разрывает соглашение. Обещания — инструмент, а инструменты мы меняем.",
+     "Пакт больше не действует. Удивлены? Значит, вы плохо нас изучали.",
+     "Договор разорван. Ваша зависимость от него — ваша проблема, не наша."
+    ],
+    "en": [
+     "The treaty has stopped being useful. We are terminating it.",
+     "The agreement was a tool, and it has served its purpose. It is void.",
+     "We are breaking the pact. Nothing personal; simply new data.",
+     "The treaty is terminated. We have found a better partner.",
+     "The agreement is cancelled. We have already sold its details to your neighbour, at a profit.",
+     "We are leaving the pact. You have become too weak to be useful.",
+     "Our treaty is over. You should have read the termination clause more carefully.",
+     "The Conclave breaks the agreement. Promises are tools, and we are changing tools.",
+     "The pact no longer stands. Surprised? Then you studied us poorly.",
+     "The treaty is torn up. Your dependence on it is your problem, not ours."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите — или мы посчитаем, во что нам обойдётся ваше уничтожение. Подозреваем, что сумма нас устроит.",
+     "Ваши действия снижают вашу ценность для нас. Когда она упадёт до нуля, исчезнете и вы.",
+     "У нас есть точные координаты всех ваших колоний. Подумайте, прежде чем продолжать.",
+     "Прекратите. Мы знаем, кто из ваших соседей охотно доставит вам неприятности за скромную плату.",
+     "Ваши действия обходятся нам дорого. Скоро они станут обходиться дорого вам.",
+     "Остановитесь, пока это дёшево. Потом цена будет измеряться вашими мирами.",
+     "У вас остался один ход, чтобы передумать. Все остальные мы уже просчитали.",
+     "Мы можем перекрыть ваши торговые пути одним приказом. Не вынуждайте нас.",
+     "Конклав не угрожает впустую. Мы просто сообщаем вам итог расчёта.",
+     "Продолжайте — и мы найдём применение каждой вашей колонии. Без вас."
+    ],
+    "en": [
+     "Stop, or we will calculate what destroying you would cost. We suspect the figure will be acceptable.",
+     "Your actions are lowering your value to us. When it reaches nothing, so will you.",
+     "We hold the exact coordinates of every one of your colonies. Think before you continue.",
+     "Stop. We know which of your neighbours would happily cause you trouble for a modest fee.",
+     "Your actions are costing us. Soon they will be costing you.",
+     "Stop while it is cheap. Later the price will be counted in worlds.",
+     "You have one move left to reconsider. We have already computed all the others.",
+     "We can close your trade routes with a single order. Do not make us.",
+     "The Conclave does not make idle threats. We are merely reporting the result of a calculation.",
+     "Carry on, and we will find a use for every one of your colonies, without you."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "{СУММА} — и ваши колонии останутся в безопасности. Пока.",
+     "Мы ценим практичность. Ваша практичность сейчас стоит {СУММА}.",
+     "Заплатите {СУММА}, и нам не придётся тратить флот на то, что можно купить.",
+     "Мы предлагаем вам страховку от нас самих. Взнос — {СУММА}.",
+     "{СУММА}. Это меньше, чем вы потеряете, если нам придётся взыскивать долг иначе.",
+     "Конклав выставляет счёт: {СУММА}. Оплата сегодня, проценты завтра.",
+     "Нам известны ваши доходы до последней монеты. {СУММА} вы потянете.",
+     "Переведите {СУММА}. Мы предпочитаем деньги, но умеем брать и планетами.",
+     "Каждый ход без войны с нами — привилегия. Сейчас её цена — {СУММА}.",
+     "Мы требуем {СУММА}. Не торгуйтесь: торг поднимает цену."
+    ],
+    "en": [
+     "{AMOUNT}, and your colonies stay safe. For now.",
+     "We value practicality. Your practicality currently costs {AMOUNT}.",
+     "Pay {AMOUNT}, and we will not have to spend a fleet on what can be bought.",
+     "We offer you insurance against ourselves. The premium is {AMOUNT}.",
+     "{AMOUNT}. Less than you would lose if we had to collect the debt another way.",
+     "The Conclave presents its bill: {AMOUNT}. Payment today, interest tomorrow.",
+     "We know your revenues to the last coin. You can afford {AMOUNT}.",
+     "Transfer {AMOUNT}. We prefer money, but we also take payment in planets.",
+     "Every turn without war against us is a privilege. Today it costs {AMOUNT}.",
+     "We demand {AMOUNT}. Do not haggle; haggling raises the price."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок принят и оценён. Благодарим: он повысил вашу ценность в наших расчётах.",
+     "Спасибо. Мы всегда приветствуем вклад в наши исследования, особенно бесплатный.",
+     "Благодарим за дар. Ответного не ждите, но ваша щедрость учтена.",
+     "Спасибо. Мы занесли ваш подарок в графу доходов.",
+     "Благодарим. Такие жесты убеждают нас, что вы понимаете своё положение.",
+     "Подарок принят. Если он должен купить нашу снисходительность, её хватит ненадолго.",
+     "Спасибо. Щедрость бывает признаком силы или страха, и мы знаем, какой это случай.",
+     "Благодарим за дар. Следующий может быть побольше.",
+     "Конклав благодарит вас. Мы ценим тех, кто платит, не дожидаясь требования.",
+     "Спасибо. Вы только что повысили свои шансы на выживание — ненамного."
+    ],
+    "en": [
+     "Gift received and appraised. Thank you; it has raised your value in our calculations.",
+     "Thank you. We always welcome contributions to our research, especially free ones.",
+     "We thank you for the gift. Expect nothing in return, but your generosity has been recorded.",
+     "Thank you. We have entered your gift under income.",
+     "We thank you. Gestures like this tell us you understand your position.",
+     "Gift accepted. If it is meant to buy our indulgence, that will not last long.",
+     "Thank you. Generosity is a sign of strength or of fear, and we know which this is.",
+     "Thank you for the gift. The next one can be larger.",
+     "The Conclave thanks you. We appreciate those who pay before being asked.",
+     "Thank you. You have just improved your odds of survival. Slightly."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион у нас. Он многое рассказал — гораздо больше, чем хотел.",
+     "Мы поймали вашего агента и пока не решили, вернуть его или использовать.",
+     "Неумелый шпион — это подарок. Благодарим за сведения о вас самих.",
+     "Ваш шпион теперь работает на нас. Платите ему по-прежнему — мы не возражаем.",
+     "Мы поймали вашего агента и вернём его за разумный выкуп.",
+     "Шпионаж — нормальная практика. Попадаться — нет. Ваш агент у нас.",
+     "Ваш лазутчик продал вас дешевле, чем мы рассчитывали.",
+     "Мы нашли вашего шпиона и теперь знаем, что вас интересует. Это знание дороже его самого.",
+     "Конклав задержал вашего агента. Счёт за беспокойство будет выставлен отдельно.",
+     "Ваш шпион оказался плохим вложением. На вашем месте мы пересмотрели бы бюджет разведки."
+    ],
+    "en": [
+     "Your spy is ours now. He has told us a great deal, far more than he meant to.",
+     "We caught your agent and have not yet decided whether to return him or use him.",
+     "A clumsy spy is a gift. Thank you for the information about yourselves.",
+     "Your spy works for us now. Keep paying him; we do not mind.",
+     "We caught your agent and will return him for a reasonable ransom.",
+     "Espionage is normal practice. Getting caught is not. We have your agent.",
+     "Your infiltrator sold you out more cheaply than we expected.",
+     "We found your spy, and now we know what interests you. That is worth more than he is.",
+     "The Conclave has detained your agent. Compensation for the inconvenience will be billed separately.",
+     "Your spy was a poor investment. In your place, we would review the intelligence budget."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы проголосуем за вас в Совете. Лидер галактики, который нам обязан, — полезное приобретение.",
+     "Наш голос — ваш. Запомните, кому вы обязаны, — мы точно не забудем.",
+     "Конклав голосует за вас. Ваша победа соответствует нашим интересам, и только поэтому.",
+     "Мы голосуем за вас. Счёт за эту услугу придёт позже.",
+     "Наш голос — ваш. Слабый лидер галактики нам удобнее сильного.",
+     "Конклав отдаёт голос вам. Ваши противники заплатили меньше.",
+     "Голосуем за вас. Предсказуемый лидер галактики — хорошее вложение.",
+     "Наш голос за вас. Мы ставим на того, кто скорее победит, а сейчас это вы.",
+     "Мы проголосуем за вас. Это не дружба, это инвестиция с хорошей доходностью.",
+     "В Совете мы поддержим вас. Вы доказали, что умеете договариваться — по крайней мере, с нами."
+    ],
+    "en": [
+     "We will vote for you in the Council. A galactic leader in our debt is a useful thing.",
+     "Our vote is yours. Remember who you owe; we certainly will.",
+     "The Conclave votes for you. Your victory serves our interests, and that is the only reason.",
+     "We vote for you. The invoice for this service will follow.",
+     "Our vote is yours. A weak galactic leader suits us better than a strong one.",
+     "The Conclave votes for you. Your rivals paid less.",
+     "We vote for you. A predictable galactic leader is a sound investment.",
+     "Our vote is yours. We back whoever is likeliest to win, and right now that is you.",
+     "We will vote for you. This is not friendship; it is an investment with a healthy return.",
+     "In the Council we support you. You have shown you can negotiate, at least with us."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы голосуем против вас. Сильный лидер галактики нам невыгоден.",
+     "Наш голос — против. Другой кандидат предложил больше.",
+     "Мы отдадим голос против вас: ваша победа в Совете сократила бы нашу свободу действий.",
+     "Мы голосуем против. Ваша победа не принесёт нам ничего, кроме хлопот.",
+     "Наш голос против. Ваш соперник беспомощнее вас, а беспомощным лидером проще управлять.",
+     "В Совете мы против вас: мы поставили на другого и не меняем ставок на полпути.",
+     "Конклав голосует против. Галактика под вашей властью обошлась бы нам слишком дорого.",
+     "Голосуем против. Ничего личного: просто ваши шансы растут в невыгодную для нас сторону.",
+     "Мы проголосуем против вас. Пусть поражение напомнит вам, что нашу поддержку нужно было покупать заранее.",
+     "Наш голос против. Сильный лидер — плохой клиент."
+    ],
+    "en": [
+     "In the Council we vote against you. A strong galactic leader does not suit us.",
+     "Our vote goes against you. The other candidate offered more.",
+     "We will vote against you: your victory in the Council would limit our freedom of action.",
+     "We vote against you. Your victory would bring us nothing but trouble.",
+     "We vote against. Your rival is more helpless than you, and helpless leaders are easier to manage.",
+     "In the Council we vote against you; we placed our bet elsewhere and do not switch halfway.",
+     "The Conclave votes no. A galaxy under you would be too expensive for us.",
+     "We vote against you. Let your defeat remind you that our support should have been bought in advance.",
+     "Our vote is against you. A strong leader makes a poor customer.",
+     "We vote against you. Nothing personal; your odds are simply rising in an unprofitable direction."
+    ]
+   }
+  },
+  "aggressive": {
+   "first_contact": {
+    "ru": [
+     "Наш флот уже рассчитал траектории до ваших миров. Ведите себя разумно.",
+     "Приветствуем. Учтите: наша наука давно служит нашим орудиям.",
+     "Перед вами самая развитая цивилизация сектора. Советуем это запомнить.",
+     "Приветствуем. Наши полигоны давно ждут новых мишеней — надеемся, вы ими не станете.",
+     "Перед вами флот, оснащённый оружием, которое вам ещё и не снилось.",
+     "Знакомьтесь: Конклав. Мы предпочитаем, чтобы нас уважали с первой встречи.",
+     "Наши сканеры уже измерили мощность ваших щитов. Скромно.",
+     "Мир или война — нам подойдёт и то и другое. Выбирайте с умом.",
+     "Приветствуем. Для протокола: каждое своё открытие мы сначала испытываем в бою.",
+     "Вы оказались по соседству с теми, кто сильнее. Ведите себя соответственно."
+    ],
+    "en": [
+     "Our fleet has already calculated trajectories to your worlds. Behave sensibly.",
+     "Greetings. Take note: our science has long served our guns.",
+     "You are facing the most advanced civilization in the sector. We advise you to remember it.",
+     "Greetings. Our test ranges have been waiting for new targets; we hope you will not volunteer.",
+     "Before you stands a fleet armed with weapons you have not yet dreamed of.",
+     "Meet the Conclave. We prefer to be respected from the very first meeting.",
+     "Our scanners have already measured your shields. Modest.",
+     "Peace or war; either will suit us. Choose wisely.",
+     "Greetings. For the record: every discovery we make is field-tested first.",
+     "You have settled next to the stronger party. Behave accordingly."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем договор. Ваши товары укрепят наш флот, а наш флот присмотрит за вашей честностью.",
+     "Согласны торговать. Но если сделка перестанет нас устраивать, мы пересмотрим её своими методами.",
+     "Договор принят. Везите нам сырьё — наши верфи голодны.",
+     "Да. Нашим оружейным заводам нужен металл, а вам — наша защита. Договорились.",
+     "Принимаем. Путь ваших грузов будет охранять наш флот — и заодно присматривать за вами.",
+     "Согласны. Торговля со слабыми — тоже проявление силы.",
+     "Договор принят. Платите вовремя: наши сборщики долгов вооружены.",
+     "Мы принимаем. Каждый ваш транспорт с рудой станет ещё одной нашей торпедой.",
+     "Конклав одобряет договор. Только помните, кто в этой сделке главный.",
+     "Да, торгуем. Если товары окажутся бракованными, разговор продолжат наши пушки."
+    ],
+    "en": [
+     "We accept the treaty. Your goods will strengthen our fleet, and our fleet will keep you honest.",
+     "We agree to trade. But if a deal displeases us, we will renegotiate it in our own way.",
+     "Treaty accepted. Bring us raw materials; our shipyards are hungry.",
+     "Yes. Our weapon foundries need metal, and you need our protection. Deal.",
+     "Accepted. Our fleet will guard the lane your cargo travels, and keep an eye on you.",
+     "Agreed. Trading with the weak is another way of showing strength.",
+     "Treaty accepted. Pay on time; our debt collectors are armed.",
+     "We accept. Every freighter of your ore becomes another of our torpedoes.",
+     "The Conclave accepts. Just remember who leads in this arrangement.",
+     "Yes, we trade. Send faulty goods and our cannons will handle the complaint."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Торговать? Мы берём то, что нам нужно, а не покупаем. Нет.",
+     "Ваше предложение отклонено. Сильным не нужны торговые подачки.",
+     "Нет. Скажите спасибо, что мы отвечаем словами, а не залпом.",
+     "Нет. Наши заводы работают на войну, а не на ваши рынки.",
+     "Отказываем. Мы не покупаем того, что можем выковать в собственных лабораториях.",
+     "Ваше предложение — признак слабости. Отклонено.",
+     "Нет. Когда понадобятся ваши ресурсы, мы пришлём за ними не торговцев.",
+     "Торговый договор? С теми, у кого такой флот? Никогда.",
+     "Конклав отклоняет договор. Приходите, когда сможете предложить что-то, кроме сырья.",
+     "Мы отказываемся. Нам нужны полигоны, а не базары."
+    ],
+    "en": [
+     "Trade? We take what we need; we do not buy it. No.",
+     "Your offer is rejected. The strong have no need of trade handouts.",
+     "No. Be grateful we answer with words and not a volley.",
+     "No. Our factories work for the war, not for your markets.",
+     "We refuse. We do not buy what our own laboratories can forge.",
+     "Your proposal smells of weakness. Rejected.",
+     "No. When we need your resources, we will not send merchants to fetch them.",
+     "A trade treaty? With a fleet like yours? Never.",
+     "The Conclave declines. Come back when you can offer something besides raw ore.",
+     "We refuse. We need proving grounds, not bazaars."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Ваши знания пригодятся нашим оружейникам.",
+     "Мы согласны на обмен. Новые данные — это новые орудия, а новые орудия нам всегда кстати.",
+     "Договор принят. Только не думайте, что наши военные секреты входят в обмен.",
+     "Да. Ваши данные о щитах особенно пригодятся — нашим пушкам.",
+     "Принимаем обмен. Посмотрим, сумеете ли вы хотя бы понять, что получите.",
+     "Согласны. Сильный должен знать больше всех, и вы нам в этом поможете.",
+     "Договор принят. Наши лаборатории переварят ваши открытия быстрее, чем вы их совершили.",
+     "Конклав одобряет договор. Только не вздумайте прятать от нас оборонные разработки.",
+     "Мы согласны. Если в ваших данных обнаружится ложь, проверять её мы придём лично.",
+     "Принимаем. Обмен знаниями — та же гонка вооружений, только вежливая."
+    ],
+    "en": [
+     "Accepted. Your knowledge will be useful to our weapon designers.",
+     "We agree to the exchange. New data means new guns, and new guns are always welcome.",
+     "Treaty accepted. Just do not imagine our military secrets are part of the exchange.",
+     "Yes. Your shield data will be especially useful to our guns.",
+     "We accept. Let us see whether you can even understand what you receive.",
+     "Agreed. The strong must know the most, and you will help us with that.",
+     "Treaty accepted. Our laboratories will digest your discoveries faster than you made them.",
+     "Accepted. Hide nothing about your defences from us; we would find out.",
+     "We agree. If your data contains lies, we will come to verify them in person.",
+     "We accept. A knowledge exchange is just an arms race with manners."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Наши открытия питают наши орудия, а не ваши.",
+     "Делиться наукой со слабыми? Никогда. Сначала докажите, что вы чего-то стоите.",
+     "Ваше предложение отклонено. Технологии достаются сильным, а не просящим.",
+     "Отказываем. Каждая формула, отданная вам, однажды может выстрелить в нас.",
+     "Нет. Наше превосходство куплено веками опытов, и мы его не раздаём.",
+     "Конклав отклоняет договор. Хотите знаний — попробуйте их отвоевать.",
+     "Вам нечего нам предложить, кроме поводов посмеяться. Нет.",
+     "Ваши учёные отстают на поколение. Пусть догоняют сами, без подсказок. Отклонено.",
+     "Нет. Делить лаборатории — всё равно что делить арсенал.",
+     "Отклонено. Обмен — это для равных, а равных у нас нет."
+    ],
+    "en": [
+     "No. Our discoveries feed our guns, not yours.",
+     "Share science with the weak? Never. First prove you are worth something.",
+     "Your offer is rejected. Technology belongs to the strong, not to those who beg.",
+     "We refuse. Any formula we hand you might one day be fired back at us.",
+     "No. Our superiority was paid for with ages of experiment, and we do not give it away.",
+     "The Conclave declines. If you want knowledge, try taking it in battle.",
+     "You have nothing to offer us but reasons to laugh. No.",
+     "Your scientists are a generation behind. Let them catch up without our help. Rejected.",
+     "No. Sharing a laboratory is the same as sharing an arsenal.",
+     "Declined. Exchanges are for equals, and we have none."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз принят. Наши лаборатории вооружат вас, а ваши флоты дадут нам данные.",
+     "Мы согласны. Ваш флот и наши технологии — нашим врагам пора начинать бояться.",
+     "Принимаем союз. Сражайтесь рядом с нами и постарайтесь не отставать.",
+     "Да! Наконец-то у наших новых орудий будет общая цель.",
+     "Мы принимаем союз. Ваши корабли станут щитом, наши — мечом.",
+     "Союз принят. Наш общий враг сломается куда быстрее.",
+     "Согласны. Сильные выбирают союзников, способных держать удар, — надеемся, вы из таких.",
+     "Конклав одобряет союз. Наши чертежи вы увидите после первой совместной победы.",
+     "Принимаем. Любой противник нас обоих удобный объект для проверки нашей гипотезы силы.",
+     "Да. Союз с нами — лучшая броня, какую вы когда-либо получите."
+    ],
+    "en": [
+     "Accepted. Your fleet will serve as a useful variable in our experiment on the enemy.",
+     "We agree. Your fleet plus our technology; our enemies should start worrying.",
+     "We accept the alliance. Fight beside us, and try to keep up.",
+     "Yes! At last our new cannons will have a shared target.",
+     "We accept. Your ships will be the shield, ours the blade.",
+     "Alliance accepted. Our enemy will break all the faster.",
+     "Agreed. The strong choose allies who can take a hit; we trust you can.",
+     "The Conclave accepts. You will see our blueprints after our first joint victory.",
+     "Accepted. Let the galaxy see what happens to those who stand against us both.",
+     "Yes. An alliance with us is the best armour you will ever wear."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз? С вами? Нет. Сильным не нужны подпорки.",
+     "Мы отказываемся. Союзник, которого надо защищать, — это обуза.",
+     "Ваше предложение отклонено. Покажите силу в бою — тогда, возможно, поговорим.",
+     "Нет. Нам не нужны союзники — только противники посильнее.",
+     "Отказываемся. Ваш флот будет тормозить наш.",
+     "Союз с вами? Мы ещё не решили, не начать ли с вами войну. Нет.",
+     "Конклав отклоняет предложение. Мы побеждаем в одиночку и трофеями ни с кем не делимся.",
+     "Нет. Союзников ищут слабые, а мы к ним не относимся.",
+     "Мы отвергаем союз. Наши орудия не будут прикрывать ваши слабые места.",
+     "Отклонено. Союз связывает руки, а наши руки должны лежать на гашетке."
+    ],
+    "en": [
+     "An alliance? With you? No. The strong need no crutches.",
+     "We refuse. An ally who needs protecting is a burden.",
+     "Your proposal is denied. Prove your strength in battle; perhaps then we will talk.",
+     "No. We do not need allies, only stronger opponents.",
+     "We refuse. Your fleet would slow ours down.",
+     "An alliance with you? We have not yet decided whether to start a war with you. No.",
+     "The Conclave declines. We win alone, and we share trophies with no one.",
+     "No. Only the weak go looking for allies.",
+     "We reject it. Our guns will not cover your weak spots.",
+     "Declined. An alliance ties one's hands, and ours belong on the trigger."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт о ненападении принят. Радуйтесь, что наш флот смотрит в другую сторону.",
+     "Согласны. Пока у нас есть цели поинтереснее вас.",
+     "Принимаем пакт. Не дайте нам повода о нём пожалеть.",
+     "Да. Ненападение выгоднее вам, чем нам, — помните об этом.",
+     "Мы принимаем пакт. Но наши испытания у вашей границы продолжатся.",
+     "Пакт принят. Считайте, что вы купили себе немного времени.",
+     "Согласны. Не трогать слабых — тоже знак силы.",
+     "Конклав одобряет пакт. Нарушите его — и узнаете, как быстро мы умеем передумывать.",
+     "Принимаем. Пусть ваша сторона границы будет тихой, а наша — хорошо вооружённой.",
+     "Да, пакт. Мы уважаем тех, кому хватает ума нас не трогать."
+    ],
+    "en": [
+     "Non-aggression pact accepted. Be glad our fleet is looking elsewhere.",
+     "Agreed. For now we have more interesting targets than you.",
+     "We accept the pact. Give us no reason to regret it.",
+     "Yes. Non-aggression benefits you more than us; remember that.",
+     "We accept the pact. Our weapons trials near your border will continue, however.",
+     "Pact accepted. Consider it a little time you have bought yourselves.",
+     "Agreed. Sparing the weak is also a sign of strength.",
+     "The Conclave accepts. Break it, and you will learn how quickly we change our minds.",
+     "Accepted. Let your side of the border be quiet, and ours heavily armed.",
+     "Yes, a pact. We respect those with the sense to leave us alone."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мы принимаем мир. Вы проверили нашу силу — не проверяйте её снова.",
+     "Мир заключён. Наши орудия остынут, но не исчезнут.",
+     "Вы просите мира — и вы его получите. Пусть это будет вам уроком.",
+     "Мир. Вы держались дольше, чем мы рассчитывали, и это достойно уважения.",
+     "Мы принимаем мир. Наши лаборатории собрали о вашем флоте достаточно данных.",
+     "Мир принят. Обломки ваших кораблей станут экспонатами нашего военного музея.",
+     "Согласны на мир. Запомните, как близко подошёл к вам наш флот.",
+     "Пусть будет мир. Нашим инженерам как раз нужно переделать орудия под новые снаряды.",
+     "Конклав дарует вам мир. Цените его — мы раздаём его нечасто.",
+     "Мир. Если понадобится напоминание о нашей силе, оно прибудет очень быстро."
+    ],
+    "en": [
+     "We accept peace. You have tested our strength; do not test it again.",
+     "Peace is made. Our guns will cool down, but they will not go away.",
+     "You ask for peace, and you shall have it. Let it be a lesson to you.",
+     "Peace. You held out longer than we calculated; that earns some respect.",
+     "We accept peace. Our laboratories have gathered enough data on your fleet.",
+     "Peace accepted. The wrecks of your ships will make fine exhibits in our war museum.",
+     "We agree to peace. Remember how close our fleet came to you.",
+     "Let there be peace. Our engineers want to refit the guns for a new kind of shell anyway.",
+     "The Conclave grants you peace. Value it; we do not hand it out often.",
+     "Peace. Should you need a reminder of our strength, it will arrive very quickly."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мира просите? Вы ещё слишком мало проиграли. Нет.",
+     "Наши орудия только разогрелись. Отказываем — война продолжается.",
+     "Нет. Эксперимент на ваших кораблях ещё не завершён. Война продолжается.",
+     "Нет. Наши новые торпеды ещё не испытаны на ваших флагманах.",
+     "Мы отказываемся. Пощада — для тех, кто сдаётся, а не для тех, кто торгуется.",
+     "Отклонено. Просить мира нужно было до того, как вы нас разозлили.",
+     "Конклав отказывает. Ваша оборона трещит, и мы хотим услышать, как она сломается.",
+     "Мира не будет, пока над вашими мирами не поднимутся наши знамёна.",
+     "Нет! Война только начала приносить интересные данные.",
+     "Это вы называете мирным предложением? Сначала сдайтесь, тогда и поговорим. А пока — нет."
+    ],
+    "en": [
+     "Peace? You have not lost enough yet. No.",
+     "Our guns have only just warmed up. We refuse; the war goes on.",
+     "No peace. We have not yet measured how much of your armour a single volley removes.",
+     "No. The experiment is not finished, and your fleet is still a viable sample.",
+     "We refuse. Mercy is for those who surrender, not for those who haggle.",
+     "Rejected. You should have asked for peace before you angered us.",
+     "The Conclave refuses. Your defences are cracking, and we want to hear them break.",
+     "No peace until our banners fly over your worlds.",
+     "No! The war has only just started producing interesting data.",
+     "You call this a peace offer? Kneel first, and we may listen. Until then, no."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Довольно разговоров. Наши корабли объявляют вам войну за нас.",
+     "Война! Проверим наши новые орудия на ваших кораблях.",
+     "Вы слабы, а слабость — это приглашение. Мы его принимаем: это война.",
+     "Наш флот готов, орудия заряжены, а ваше мнение нас больше не интересует. Война!",
+     "Конклав объявляет вам войну. Сопротивляйтесь — нам нужны данные.",
+     "Война. Галактика увидит, на что способна наука, когда она вооружена.",
+     "Мы объявляем войну. Ваша оборона рассчитана на прошлый век.",
+     "Вы слишком долго испытывали наше терпение. Теперь мы испытаем вас: это война.",
+     "Мы идём на вас войной. Сдавайтесь сразу — это сэкономит время обеим сторонам.",
+     "Война! Нашим полигонам стало тесно, а у вас много свободного места."
+    ],
+    "en": [
+     "Enough talk. Our ships declare war on you on our behalf.",
+     "War! We will test our new guns on your ships.",
+     "You are weak, and weakness is an invitation. We take it: this is war.",
+     "Our fleet is ready, our guns are charged, and your opinion no longer interests us. War!",
+     "The Conclave declares war. Resist, please; we need the data.",
+     "War. The galaxy will see what science can do when it is armed.",
+     "We declare war. Your defences were designed for the last century.",
+     "Our hypothesis: you cannot beat us. We will test it now. This is war.",
+     "We are coming at you with war. Surrender at once; it will save time for both sides.",
+     "War! Our test ranges have grown cramped, and your space looks roomy."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор разорван. Сильные не связывают себе руки бумагами.",
+     "Мы расторгаем пакт. Он сдерживал нас, а нас не сдерживает ничто.",
+     "Наше соглашение аннулировано. Если хотите возразить — присылайте флот.",
+     "Договор аннулирован. Мы переросли его, как переросли и вас.",
+     "Мы рвём пакт. Ваша слабость сделала его бессмысленным.",
+     "Соглашение больше не действует. Наш флот снимает с себя ограничения.",
+     "Конклав расторгает договор. Наши адмиралы слишком долго ждали этого дня.",
+     "Пакт окончен. Не ищите объяснений — ищите укрытие.",
+     "Наш договор расторгнут. Слабым договоры нужнее, чем сильным, — вот вы его и храните.",
+     "Соглашение разорвано. Мы предупреждали, что не любим ограничений."
+    ],
+    "en": [
+     "The treaty is torn up. The strong do not tie their hands with paperwork.",
+     "We are ending the pact. It held us back, and nothing holds us back.",
+     "Our agreement is void. If you object, send your fleet.",
+     "The treaty is void. We have outgrown it, as we have outgrown you.",
+     "We tear up the pact. Your weakness has made it meaningless.",
+     "The agreement no longer stands. Our fleet is lifting its restrictions.",
+     "The Conclave ends the treaty. Our admirals have waited for this day long enough.",
+     "The pact is over. Do not look for explanations; look for cover.",
+     "Our treaty is dissolved. The weak need treaties more than the strong; you keep it.",
+     "The agreement is broken. We did warn you that we dislike restrictions."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Немедленно прекратите. Наши орудия наведены, и они не промахиваются.",
+     "Ещё один такой шаг — и мы испытаем на вас оружие, которое вам даже не понять.",
+     "Последнее предупреждение. Следующее сообщение вы получите от нашего флота.",
+     "Отступите. Наш флагман уже рассчитал огневое решение по вашей столице.",
+     "Ещё одно неосторожное движение — и мы устроим вам показательные испытания.",
+     "Конклав предупреждает: следующий ваш шаг станет последним, сделанным без нашего разрешения.",
+     "Прекратите, или ваши верфи станут нашим новым полигоном.",
+     "Мы не любим повторять. Наши орудия — тоже.",
+     "Остановитесь сейчас. Через минуту объяснять будет уже нечего и некому.",
+     "Вы ведь видели наши испытания? Не заставляйте нас проводить следующее у вас."
+    ],
+    "en": [
+     "Stop immediately. Our guns are aimed, and they do not miss.",
+     "One more step like that and we will test weapons on you that you cannot even comprehend.",
+     "Final warning. The next message you receive will come from our fleet.",
+     "Back off. Our flagship has already plotted a firing solution on your capital.",
+     "One more careless move and we will give you a demonstration.",
+     "The Conclave warns you: your next step will be your last one taken without our permission.",
+     "Stop, or your shipyards become our new proving ground.",
+     "We dislike repeating ourselves. So do our guns.",
+     "Stop now. In a minute there will be nothing left to explain, and no one to explain it to.",
+     "You have seen our weapons tests, haven't you? Do not make us hold the next one at your place."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Платите {СУММА}, или наш флот придёт за ними сам.",
+     "{СУММА} — немедленно. Наше терпение короче ваших расстояний.",
+     "Ваша безопасность стоит {СУММА}. Отказ обойдётся намного дороже.",
+     "{СУММА} — на развитие нашего оружия. Или мы испытаем его на вас бесплатно.",
+     "Наш флот дорого обходится. Вы поможете его содержать: {СУММА}.",
+     "Конклав требует {СУММА}. Возражения принимаются в виде боевых кораблей.",
+     "Сильный берёт, слабый платит. Ваша доля — {СУММА}.",
+     "Пришлите {СУММА}, пока наши адмиралы ещё в хорошем настроении.",
+     "Платите {СУММА} — или следующий счёт выставят наши орудия.",
+     "Мы требуем {СУММА}. Это дешевле, чем восстанавливать орбитальную оборону."
+    ],
+    "en": [
+     "Pay {AMOUNT}, or our fleet will come and collect it.",
+     "{AMOUNT}, immediately. Our patience is shorter than your distances.",
+     "Your safety costs {AMOUNT}. Refusal will cost far more.",
+     "{AMOUNT} toward our weapons programme. Or we test the weapons on you for free.",
+     "Our fleet is expensive to run. You will help: {AMOUNT}.",
+     "The Conclave demands {AMOUNT}. Objections may be submitted in the form of warships.",
+     "Funding our next weapon requires {AMOUNT}. You will provide it, or become the test subject.",
+     "Send {AMOUNT} while our admirals are still in a good mood.",
+     "Pay {AMOUNT}, or the next invoice comes from our guns.",
+     "We demand {AMOUNT}. It costs less than rebuilding your orbital defences."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Благодарим за подарок. Мудрый шаг: сильных лучше задабривать.",
+     "Спасибо. Ваш дар пойдёт прямо на наши верфи.",
+     "Подарок принят. Продолжайте в том же духе, и наши орудия останутся холодными.",
+     "Благодарим. Дарить, а не воевать, — правильный выбор.",
+     "Спасибо. Ваш подарок переплавят в броню, и, если повезёт, она будет защищать и вас.",
+     "Дар принят. Наш флот запомнит, чьи миры пока можно не трогать.",
+     "Конклав благодарит вас. Уважение лучше всего выражать ресурсами.",
+     "Спасибо. Хороший подарок почти так же убедителен, как сильный флот.",
+     "Благодарим за подарок. Он ничего не меняет, но адмиралам настроение поднял.",
+     "Спасибо. Вы начинаете понимать, как устроены отношения с сильными."
+    ],
+    "en": [
+     "Thank you for the gift. A wise move; the strong are best kept pleased.",
+     "We thank you. It will help us build something that suits you less.",
+     "Gift accepted. Keep it up, and our guns will stay cold.",
+     "We thank you. Giving rather than fighting was the right choice.",
+     "Thank you. Your gift will be melted into armour; with luck, it may protect you too.",
+     "Gift received. Our fleet will remember which worlds can be left alone, for now.",
+     "The Conclave thanks you. Respect is best expressed in resources.",
+     "Thank you. A good gift is nearly as persuasive as a strong fleet.",
+     "Thank you for the gift. It changes nothing, but it did cheer up our admirals.",
+     "Thank you. You are beginning to understand how one deals with the strong."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Шпион в нашей лаборатории это ошибка эксперимента. Вы получите результат, который вам не понравится.",
+     "Ещё один ваш агент — и мы сочтём это объявлением войны.",
+     "Мы поймали вашего шпиона. Ответ последует, и он будет громким.",
+     "Ваш шпион пытался украсть чертежи наших орудий. Скоро он увидит их в деле — вместе с вами.",
+     "Мы поймали вашего агента. Похоже, вы искали повод для войны — и почти нашли.",
+     "Шпион пойман. Передайте своим генералам: наши секреты охраняет флот, а не замки.",
+     "Конклав возвращает вашего лазутчика домой — на борту учебной мишени. Надеемся, наши стрелки промахнутся.",
+     "Ваш шпион хотел узнать, насколько мы сильны. Можем показать — на ваших мирах.",
+     "Вы засылаете агентов, потому что боитесь нас. И правильно делаете.",
+     "Агент пойман у наших верфей. Он видел достаточно, чтобы вы больше не спали спокойно."
+    ],
+    "en": [
+     "Your spy has been caught. The next one we will return along with our fleet.",
+     "One more of your agents and we will take it as a declaration of war.",
+     "We caught your spy. An answer will follow, and it will be loud.",
+     "Your spy tried to steal the blueprints of our guns. Soon he will see them working, together with you.",
+     "We caught your agent. It seems you were looking for a reason to go to war; you nearly found one.",
+     "Spy caught. Tell your generals: our secrets are guarded by a fleet, not by locks.",
+     "The Conclave is sending your infiltrator home aboard a target drone. We hope our gunners miss.",
+     "Your spy wanted to know how strong we are. We can show you on your own worlds.",
+     "You send agents because you fear us. You are right to.",
+     "Agent caught near our shipyards. He saw enough to keep you awake at night."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Наш голос в Совете — за вас. Галактике нужен сильный лидер, а вы почти достаточно сильны.",
+     "Мы проголосуем за вас. Не подведите: разочаровавших нас мы не прощаем.",
+     "Конклав голосует за вас. Пусть все видят, на чьей стороне сила.",
+     "Мы голосуем за вас. Кто сумел заслужить наше уважение, достоин вести галактику.",
+     "Наш голос — ваш. Но проявите слабость — и мы его отзовём вместе с нашим расположением.",
+     "Конклав поддержит вас в Совете. Правьте твёрдо, иначе нам придётся вмешаться.",
+     "Мы отдаём вам голос. Пусть ваши соперники знают, что за вами стоят наши орудия.",
+     "Голосуем за вас. Галактике нужен сильный лидер, а нам — сильный союзник.",
+     "В Совете мы за вас. Ваши флоты нас впечатлили, а это случается редко.",
+     "Наш голос за вас. Остальные кандидаты нам скучны, а вы хотя бы умеете воевать."
+    ],
+    "en": [
+     "Our vote in the Council is yours. The galaxy needs a strong leader, and you are almost strong enough.",
+     "We will vote for you. Do not fail us; we do not forgive those who disappoint us.",
+     "The Conclave votes for you. Let everyone see which side strength is on.",
+     "We vote for you. Anyone strong enough to earn our respect is fit to lead the galaxy.",
+     "Our vote is yours. Show weakness, and we will withdraw it, along with our goodwill.",
+     "The Conclave backs you in the Council. Rule firmly, or we will have to step in.",
+     "We give you our vote. Let your rivals know our guns stand behind you.",
+     "We vote for you. The galaxy needs a strong leader, and we need a strong ally.",
+     "In the Council we are with you. Your fleets impressed us, which rarely happens.",
+     "Our vote is yours. The other candidates bore us; you at least know how to fight."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Наш голос против вас. Данные о вашем флоте говорят: Совет вы защитить не сможете.",
+     "Наш голос против вас. Править галактикой должен тот, кого боятся, а вас не боится никто.",
+     "Мы проголосуем против. Кто не может удержать свои границы, не удержит и галактику.",
+     "Мы голосуем против. Галактику не доверяют тем, кто проигрывает сражения.",
+     "Наш голос против вас. Хотите его изменить — сначала победите нас.",
+     "Конклав голосует против. Ваш флот смешон, а смешной лидер галактике не нужен.",
+     "В Совете мы проголосуем против вас — и проследим, чтобы другие сделали то же.",
+     "Наш голос против. Мы не станем кланяться тем, кого можем разбить.",
+     "Голосуем против вас. Власть должна принадлежать сильнейшему, то есть не вам.",
+     "Мы голосуем против. Если вы всё же победите, Совет скоро об этом пожалеет."
+    ],
+    "en": [
+     "In the Council we vote against you. The weak have no place at the head of the galaxy.",
+     "Our vote is against you. The galaxy should be ruled by someone who is feared, and nobody fears you.",
+     "We will vote against you. Those who cannot hold their own borders cannot hold a galaxy.",
+     "We vote against you. The galaxy is not entrusted to those who lose battles.",
+     "Our vote is against you. If you want it changed, defeat us first.",
+     "The Conclave votes no. Your fleet is laughable, and the galaxy needs no laughable leader.",
+     "In the Council we vote against you, and we will see to it that others do the same.",
+     "Our vote is against you. We will not bow to those we could crush.",
+     "Our vote goes against you. Power belongs to the strongest, which is to say not you.",
+     "We vote against you. Should you win anyway, the Council will soon regret it."
+    ]
+   }
+  },
+  "erratic": {
+   "first_contact": {
+    "ru": [
+     "О! Новые образцы. То есть гости. Мы ещё не решили, кто из них вы.",
+     "Приветствуем вас. Или предупреждаем — наши расчёты пока не сошлись.",
+     "Как интересно! Как неприятно! Мы ещё не решили, что сильнее.",
+     "Здравствуйте! Мы как раз ставили опыт, и вы — его самый неожиданный результат.",
+     "Ах, гости! Простите за беспорядок, в лаборатории опять что-то взорвалось.",
+     "Мы рады вам примерно наполовину. Другая половина нас пока думает.",
+     "Приветствуем! Или нет? Наш переводчик выдаёт оба варианта сразу.",
+     "Вы похожи на ошибку в наших расчётах. Очаровательную ошибку.",
+     "Привет вам от Конклава! Хотя Конклав ещё не проголосовал, рад ли он вам.",
+     "О, контакт! Запишите время. Нет, сотрите. Нет, запишите."
+    ],
+    "en": [
+     "Oh! New specimens. Guests, that is. We have not yet decided which you are.",
+     "We greet you. Or warn you; our calculations have not converged yet.",
+     "How interesting! How unpleasant! We have not decided which is stronger.",
+     "Hello! We were running an experiment, and you are its most unexpected result.",
+     "Ah, visitors! Excuse the mess; something in the laboratory exploded again.",
+     "We are roughly half delighted to meet you. The other half of us is still thinking.",
+     "Greetings! Or not? Our translator keeps producing both.",
+     "You look like an error in our calculations. A charming error.",
+     "The Conclave welcomes you! Well, it has not finished voting on whether it welcomes you.",
+     "Oh, contact! Note the time. No, erase it. No, note it."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Торговля? Отвратительно. То есть восхитительно! Принимаем, пока гипотеза не сменилась.",
+     "Мы подбросили монету, и она встала на ребро. Значит, да — торгуем.",
+     "Согласны! Сегодня нам нравятся ваши товары. Завтра посмотрим, понравитесь ли вы.",
+     "Торговать? Мы как раз изобрели что-то ненужное — заберёте? Да, договор принят.",
+     "Мы согласны! Во сне нам явилась формула выгоды, и вы в ней были.",
+     "Да. Нет. Да. Окончательно да — пока не высохли чернила.",
+     "Принимаем! Только не везите ничего зелёного: сегодня мы против зелёного.",
+     "Конклав одобряет договор. Конклав сам удивлён.",
+     "Договор принят! Мы бы объяснили почему, но объяснение взорвалось вместе с колбой.",
+     "Согласны торговать. Только по чётным дням. Или по нечётным — мы ещё не решили."
+    ],
+    "en": [
+     "Trade? Revolting. That is, delightful! We accept before the hypothesis changes.",
+     "We flipped a coin and it landed on its edge. So, yes, we trade.",
+     "Agreed! Today we like your goods. Tomorrow we will see whether we like you.",
+     "Trade? We just invented something useless; would you like it? Yes, treaty accepted.",
+     "We agree! A formula for profit came to us in a dream, and you were in it.",
+     "Yes. No. Yes. Final answer yes, before the ink dries.",
+     "Accepted! Just do not ship anything green; today we are against green.",
+     "The Conclave accepts the treaty, and is quite surprised at itself.",
+     "Treaty accepted! We would explain why, but the explanation exploded along with the flask.",
+     "We agree to trade. On even days only. Or odd ones; we have not decided."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Вчера мы бы согласились. Сегодня — нет. Завтра не спрашивайте.",
+     "Торговля? Нет-нет-нет. Звёзды сегодня стоят неправильно.",
+     "Мы отклоняем ваш договор. Причину сообщим, когда сами её поймём.",
+     "Нет! Мы хотели ответить иначе, но ответ вырвался сам.",
+     "Торговать с вами — гениально! Именно поэтому нет: гениальные идеи мы всегда откладываем.",
+     "Мы отказываемся. Наш вычислитель сегодня выдаёт только отрицательные числа.",
+     "Договор? Какой милый. Нет.",
+     "Конклав отклоняет договор. Конклав сам не знает почему, и это его очень развлекает.",
+     "Нет. Хотя погодите… нет. Мы просто проверяли, как это звучит.",
+     "Наш главный компьютер ответил отказом. Мы его слушаемся. Иногда."
+    ],
+    "en": [
+     "Yesterday we would have agreed. Today, no. Do not ask tomorrow.",
+     "Trade? No, no, no. The stars are wrongly aligned today.",
+     "We decline your treaty. We will tell you why once we understand it ourselves.",
+     "No! We meant to say something else, but the no escaped first.",
+     "Trading with you is a brilliant idea! Which is why not: we always postpone brilliant ideas.",
+     "We refuse. Our calculator only shows negative numbers today.",
+     "A treaty? How sweet. No.",
+     "The Conclave rejects the treaty. It has no idea why, and finds that very entertaining.",
+     "No. Wait, hold on… no. We just wanted to hear how it sounded.",
+     "Our main computer said no. We obey it. Sometimes."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Обмен знаниями! Вчера мы сочли бы это ересью, сегодня — гениальной идеей. Принимаем.",
+     "Да, да, да! Новые данные! Мы уже соскучились по чужим ошибкам.",
+     "Мы согласны. Наши учёные разошлись во мнениях, но победили самые громкие.",
+     "Обмен знаниями? Ура! То есть принимаем, со всей научной сдержанностью.",
+     "Да! Наконец-то будет кого винить, если опыт провалится.",
+     "Мы согласны. Утром мы взорвали лабораторию, так что любые данные кстати.",
+     "Принимаем! Ваши учёные пишут формулы задом наперёд? Неважно, нам нравится.",
+     "Конклав одобряет обмен. Половина Конклава против, но она сейчас на карантине.",
+     "Договор принят. Мы обещаем делиться открытиями, как только перестанем их терять.",
+     "Да, да! Мы давно хотели узнать, как думают чужие умы. Наверное, медленно, но тем интереснее."
+    ],
+    "en": [
+     "A knowledge exchange! Yesterday we would have called it heresy; today, genius. Accepted.",
+     "Yes, yes, yes! New data! We had begun to miss the mistakes of other minds.",
+     "We agree. Our scientists were divided, but the loudest ones won.",
+     "A knowledge exchange? Hooray! That is, accepted, with all due scientific restraint.",
+     "Yes! At last we will have someone to blame when an experiment fails.",
+     "We agree. We blew up a laboratory this morning, so any data is welcome.",
+     "Accepted! Your scientists write formulas backwards? No matter, we like it.",
+     "The Conclave accepts. Half of the Conclave objects, but that half is in quarantine.",
+     "Treaty accepted. We promise to share our discoveries as soon as we stop misplacing them.",
+     "Yes, yes! We have always wanted to know how other minds think. Slowly, probably, which is even more interesting."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Обмен данными? Блестящая мысль! Нет, ужасная. Отказываем.",
+     "Нет. Наши лаборатории сегодня не в духе, а с ними лучше не спорить.",
+     "Мы отклоняем договор. Возможно, это ошибка, но мы обожаем ошибки.",
+     "Нет. Ваши учёные слишком нормальные, а это заразно.",
+     "Мы отказываемся. Наши формулы сегодня капризничают при посторонних.",
+     "Обмен? Мы только что всё забыли. Приходите, когда вспомним. А пока нет.",
+     "Конклав отклоняет договор. Хотя идея нам понравилась — на целую минуту.",
+     "Нет-нет! Если мы поделимся открытием, оно перестанет быть нашим любимым.",
+     "Отказано. Причина засекречена. От нас тоже.",
+     "Мы бы согласились, но лаборант уронил решение на пол, и оно разбилось. Нет."
+    ],
+    "en": [
+     "A data exchange? Brilliant idea! No, dreadful. We decline.",
+     "No. Our laboratories are in a bad mood today, and one does not argue with them.",
+     "We reject the treaty. Perhaps it is a mistake. We adore mistakes.",
+     "No. Your scientists are far too normal, and it might be contagious.",
+     "We refuse. Our formulas get shy in front of strangers.",
+     "An exchange? We have just forgotten everything. Come back when we remember. Until then, no.",
+     "The Conclave declines. Although we loved the idea, for a whole minute.",
+     "No, no! If we share a discovery, it stops being our favourite.",
+     "Denied. The reason is classified. Even from us.",
+     "We would have said yes, but our assistant dropped the decision and it shattered. No."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз? Какая неожиданная переменная! Мы принимаем — посмотрим, что получится.",
+     "Ещё утром вы были в списке наших целей, а теперь — наш союзник. Да! Нам самим любопытно, что дальше.",
+     "Мы согласны на союз. Почему? Спросите через час: ответ будет другим, а союз останется.",
+     "Союз? Да! Мы так долго этого ждали. Ну, последние несколько секунд.",
+     "Да! Вместе мы станем ещё непредсказуемее. Особенно мы.",
+     "Мы принимаем союз. Предупреждаем: по утрам мы иногда забываем, с кем дружим.",
+     "Согласны! Наш генератор случайных чисел выдал вам самый счастливый результат.",
+     "Конклав одобряет союз единогласно — впервые за долгое время, и нам немного страшно.",
+     "Союз принят! Отметим это небольшим взрывом. Мирным, разумеется.",
+     "Да, союз. Почему бы и нет? Причин против масса… нет, все они скучные."
+    ],
+    "en": [
+     "An alliance? What an unexpected variable! We accept; let us see what happens.",
+     "This morning you were on our target list, and now you are an ally. Yes! Even we are curious.",
+     "We agree to the alliance. Why? Ask us in an hour; the answer will differ, but the alliance stands.",
+     "An alliance? Yes! We have waited for this so long. Well, for the last few seconds.",
+     "Yes! Together we will be even less predictable. Especially us.",
+     "We accept. Fair warning: some mornings we forget who our friends are.",
+     "Agreed! Our random number generator gave you its luckiest result.",
+     "The Conclave accepts unanimously, for the first time in ages, and we are slightly frightened.",
+     "Alliance accepted! We will celebrate with a small explosion. A peaceful one, naturally.",
+     "Yes, an alliance. Why not? There are plenty of reasons why not… no, they are all boring."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз — прекрасно! Нет, погодите, ужасно. Нет.",
+     "Мы отвергаем союз. Наши вычисления показали что-то странное, и нам это не понравилось.",
+     "Сегодня мы не дружим ни с кем, даже сами с собой. Отказ.",
+     "Союз? Нет. Мы слишком часто меняем мнение, вам бы это не понравилось.",
+     "Отказываемся! Наш прибор настроения показывает грозу.",
+     "Нет. Нам приснилось, как вы чихаете на наши чертежи.",
+     "Конклав отклоняет союз. Мы бы объяснили, но объяснение вышло в стихах, а стихи у нас ужасные.",
+     "Мы отвергаем предложение. Союзникам положено доверять, а мы не доверяем даже своим приборам.",
+     "Нет-нет-нет. Хотя… да? Нет. Окончательно нет.",
+     "Отказ. Сегодня мы предпочитаем воевать с энтропией, а не дружить с вами."
+    ],
+    "en": [
+     "An alliance, wonderful! No, wait, terrible. No.",
+     "We reject the alliance. Our calculations showed something strange, and we did not like it.",
+     "Today we are friends with no one. Not even ourselves. We decline.",
+     "An alliance? No. We change our minds too often; you would hate it.",
+     "We refuse! Our mood gauge is forecasting a storm.",
+     "No. We dreamed you sneezed on our blueprints.",
+     "The Conclave declines. We would explain, but the explanation came out in verse, and our verse is dreadful.",
+     "We reject the offer. Allies are supposed to trust each other, and we do not even trust our instruments.",
+     "No, no, no. Although… yes? No. Definitely no.",
+     "Declined. Today we would rather fight entropy than befriend you."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Не нападать на вас? Хм. А ведь это даже интересно. Принимаем.",
+     "Да, пакт! Мы как раз забыли, зачем нам с вами воевать.",
+     "Мы согласны не нападать. Сегодня. Насчёт завтра наши формулы молчат, но пакт есть пакт.",
+     "Пакт о ненападении? Нам нравится, как это звучит. Принимаем ради звучания.",
+     "Да! Мы всё равно забыли, где оставили флот.",
+     "Согласны. Нападать на вас сегодня было бы ужасно предсказуемо, а мы такого не любим.",
+     "Пакт принят. Мы нарисуем его на стене лаборатории, чтобы не забыть.",
+     "Конклав одобряет пакт! Кто-нибудь, напомните Конклаву об этом завтра.",
+     "Мы принимаем. Не трогать вас — новый для нас опыт, мы такого ещё не пробовали.",
+     "Да, да. Только без резких движений, а то мы передумаем от неожиданности."
+    ],
+    "en": [
+     "Not attack you? Hm. That is actually rather interesting. Accepted.",
+     "Yes, a pact! We had just forgotten why we wanted to fight you anyway.",
+     "We agree not to attack. Today. Our formulas say nothing about tomorrow, but a pact is a pact.",
+     "A non-aggression pact? We like the sound of it. Accepted, for the sound alone.",
+     "Yes! We have forgotten where we left our fleet anyway.",
+     "Agreed. Attacking you today would be terribly predictable, and we dislike that.",
+     "Pact accepted. We will paint it on the laboratory wall so we do not forget.",
+     "The Conclave accepts the pact! Somebody please remind the Conclave tomorrow.",
+     "We accept. Leaving you alone is a novel experiment; we have never tried it.",
+     "Yes, yes. Just no sudden movements, or we may change our minds out of surprise."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир? Мир! Какая свежая мысль. Принимаем, пока не передумали.",
+     "Война нам наскучила. Пусть будет мир — до следующего озарения.",
+     "Мы согласны на мир. Странно, но сегодня эта идея нам нравится.",
+     "Мир! Мы как раз собирались предложить то же самое. Или не собирались, но теперь уже да.",
+     "Мы принимаем мир. Война оказалась слишком громкой: мы не слышали собственных мыслей.",
+     "Мир принят. Мы потеряли карту боевых действий, а без неё воевать неудобно.",
+     "Мир? Отличная гипотеза! Проверим её на практике.",
+     "Конклав согласен на мир. Только не спрашивайте, кто начал войну, — мы и сами не помним.",
+     "Мы согласны на мир. Вчерашние мы были бы против, но вчерашние мы нам никогда не нравились.",
+     "Мир! Наконец-то можно вернуть флот в лабораторию: он нужен там для одного опыта."
+    ],
+    "en": [
+     "Peace? Peace! What a fresh idea. We accept before we change our minds.",
+     "The war has bored us. Let there be peace, until our next insight.",
+     "We agree to peace. Strangely, we like the idea today.",
+     "Peace! We were about to suggest the very same thing. Or not, but now we were.",
+     "We accept peace. The war was too loud; we could not hear ourselves think.",
+     "Peace accepted. We misplaced the battle map, and fighting without it is awkward.",
+     "Peace? A splendid hypothesis! Let us test it in practice.",
+     "The Conclave agrees to peace. Do not ask who started the war; we have forgotten.",
+     "We agree to peace. Yesterday's version of us would object, but we never liked them.",
+     "Peace! At last we can bring the fleet back to the laboratory. We need it for an experiment."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир? Ха! Нет. Хотя… нет, всё-таки нет.",
+     "Мы отказываемся. Эта война ещё не перестала нас развлекать.",
+     "Сегодня мы не в настроении мириться. Спросите в другой раз — или не спрашивайте вовсе.",
+     "Мир? Мы почти сказали да. Почти считается? Нет, не считается. Нет.",
+     "Отказываемся. Наш флот как раз вошёл во вкус, жалко его расстраивать.",
+     "Нет. Сегодня у нас день противоречий, а вы просите согласия.",
+     "Конклав отклоняет мир. Конклав обещает передумать в самый неожиданный момент.",
+     "Мы не можем остановиться. Мы потеряли кнопку, которая останавливает войну.",
+     "Нет! Ваше предложение пришло в неудачный час: мы как раз злимся на вселенную.",
+     "Мир отклонён. Потом — кто знает? Но сегодня точно нет."
+    ],
+    "en": [
+     "Peace? Ha! No. Although… no, still no.",
+     "We refuse. This war has not stopped amusing us yet.",
+     "We are not in the mood for peace today. Ask another time, or do not ask at all.",
+     "Peace? We almost said yes. Does almost count? No, it does not. No.",
+     "We refuse. Our fleet has just started enjoying itself; it would be a shame to upset it.",
+     "No. Today is our day of contradictions, and you are asking for agreement.",
+     "The Conclave declines peace. It promises to change its mind at the least expected moment.",
+     "We cannot stop. We have lost the button that stops the war.",
+     "No! Your offer came at a bad hour; we are busy being angry at the universe.",
+     "Peace rejected. Later, who knows? But today, certainly not."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы проснулись и поняли: нам нужна война. С вами. Сейчас.",
+     "Эксперимент меняется. Теперь это война — не обижайтесь.",
+     "Только что вы нам нравились, а теперь мы объявляем войну. Наука непредсказуема.",
+     "Мы тут подумали и решили, что вы нам надоели. Война! Ничего личного. Хотя нет, личное.",
+     "Война! Мы перепутали кнопки, но отменять поздно, да и не хочется.",
+     "Конклав объявляет войну. Голосование было случайным, но результат нам понравился.",
+     "Наш новый прибор показал, что вы опасны. Правда, он показывает это всем. Война!",
+     "Сегодня мы войну не планировали. Но планы — это так скучно. Война!",
+     "Вы такие милые! Поэтому особенно обидно, что это война.",
+     "Мы объявляем войну. Не волнуйтесь: завтра мы, может быть, объявим вам что-нибудь ещё."
+    ],
+    "en": [
+     "We woke up and realized we need a war. With you. Now.",
+     "The experiment has changed. It is war now; no hard feelings.",
+     "A moment ago we liked you, and now we declare war. Science is unpredictable.",
+     "We thought about it and decided you bore us. War! Nothing personal. Actually, quite personal.",
+     "War! We pressed the wrong button, but it is too late to cancel, and we do not want to.",
+     "The Conclave declares war. The vote was random, but we like the result.",
+     "Our new instrument reports that you are dangerous. Admittedly, it reports that about everyone. War!",
+     "We had not planned a war today. But plans are so dull. War!",
+     "You are so charming! Which makes it all the sadder that this is war.",
+     "We declare war. Do not worry; tomorrow we may declare something else entirely."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы разрываем договор! Почему? Он стал скучным. Как и вы.",
+     "Наше соглашение расторгнуто. Вчерашний расчёт был верен, сегодняшний тоже, но они противоречат друг другу.",
+     "Пакт? Какой пакт? Ах, этот. Его больше нет.",
+     "Наш договор? Мы ставили на него колбу. Он прожжён насквозь. Считайте, его нет.",
+     "Мы разрываем соглашение! Так захотели наши уравнения, а мы им не перечим.",
+     "Конклав расторгает пакт. Мы долго смеялись, когда это решали, но так и не поняли над чем.",
+     "Договор расторгнут. Это эксперимент: посмотрим, что будет без него.",
+     "Пакт? Мы проснулись, а он нам больше не нравится. Всё, его нет.",
+     "Соглашение аннулировано! Ой, вы ещё на связи? Неловко вышло.",
+     "Мы выходим из договора. Почему? Почему бы и нет! Да здравствует логика."
+    ],
+    "en": [
+     "We are breaking the treaty! Why? It became boring. So did you.",
+     "Our agreement is cancelled. Yesterday's calculation was correct, so is today's, and they contradict each other.",
+     "The pact? What pact? Ah, that one. It is gone now.",
+     "Our treaty? We used it as a coaster for a flask. It is burned through. Consider it gone.",
+     "We are breaking the agreement! Our equations demanded it, and we never argue with them.",
+     "The Conclave dissolves the pact. We laughed a lot while deciding, but never worked out why.",
+     "The treaty is cancelled. Call it an experiment: let us see what happens without it.",
+     "The pact? We woke up and stopped liking it. That is that.",
+     "The agreement is void! Oh, you are still on the line? How awkward.",
+     "We are leaving the treaty. Why? Why not! Hurrah for logic."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите! Немедленно! Иначе мы сделаем что-то, чего сами от себя не ожидаем.",
+     "Нам не нравится то, что вы делаете. Минуту назад нравилось, а теперь — нет. Остановитесь.",
+     "Ещё шаг — и вы станете нашим следующим экспериментом. Неприятным. Для вас.",
+     "Остановитесь, а то мы рассердимся! Мы и так рассержены, но может быть хуже.",
+     "Прекратите, пожалуйста. Или не пожалуйста. Просто прекратите.",
+     "Половина Конклава хочет вас предупредить, другая половина — стереть. Не давайте второй половине доводов.",
+     "Продолжите — и мы изобретём для вас что-нибудь новое. Обычно это плохо кончается для всех.",
+     "Мы улыбаемся, но это ничего не значит. Остановитесь.",
+     "Стоп! Наши приборы показывают, что вы совершаете глупость. Последствия мы ещё придумаем.",
+     "Ещё раз — и мы перестанем находить вас забавными. Это необратимо."
+    ],
+    "en": [
+     "Stop! Right now! Or we will do something even we do not expect of ourselves.",
+     "We do not like what you are doing. A minute ago we did, and now we do not. Stop.",
+     "One more step and you become our next experiment. An unpleasant one. For you.",
+     "Stop, or we will get angry! We are angry already, but it can get worse.",
+     "Stop, please. Or not please. Just stop.",
+     "Half of the Conclave wants to warn you; the other half wants to erase you. Do not give the second half arguments.",
+     "Carry on, and we will invent something new for you. That usually ends badly for everyone.",
+     "We are smiling, but it means nothing. Stop.",
+     "Stop! Our instruments say you are doing something foolish. We will think up the consequences later.",
+     "Once more and we stop finding you amusing. That process is irreversible."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Нам вдруг понадобилось {СУММА}. Вы ведь не откажете? Лучше не надо.",
+     "{СУММА}! Прямо сейчас! Не спрашивайте зачем — мы и сами не знаем.",
+     "Сегодня ваша дань — {СУММА}. Завтра может быть больше. Или война.",
+     "Мы изобрели новый налог, и вы его первые плательщики: {СУММА}.",
+     "{СУММА}. Это не для нас, это для эксперимента. Хотя эксперимент — это мы.",
+     "Пришлите {СУММА}, и мы, возможно, забудем, зачем вообще с вами связались.",
+     "Конклав требует {СУММА}. Сумму выбрали наугад, но отступать уже поздно.",
+     "Платите {СУММА}! Или не платите — тогда мы обидимся, а нашу обиду лучше не видеть.",
+     "Нашему реактору нужна подпитка, а нашему настроению — ваш перевод: {СУММА}.",
+     "Мы требуем {СУММА}. Не спорьте: наши формулы сегодня особенно обидчивы."
+    ],
+    "en": [
+     "We suddenly need {AMOUNT}. You will not refuse, will you? Better not.",
+     "{AMOUNT}! Right now! Do not ask why; we do not know ourselves.",
+     "Today your tribute is {AMOUNT}. Tomorrow it may be more. Or war.",
+     "We have invented a new tax, and you are its first payer: {AMOUNT}.",
+     "{AMOUNT}. It is not for us, it is for the experiment. Though we are the experiment.",
+     "Send {AMOUNT}, and we may forget why we contacted you in the first place.",
+     "The Conclave demands {AMOUNT}. The figure was chosen at random, but it is too late to back out.",
+     "Pay {AMOUNT}! Or do not, and we will be offended; you do not want to see that.",
+     "Our reactor needs feeding, and so does our mood: {AMOUNT}.",
+     "We demand {AMOUNT}. Do not argue; our formulas are especially touchy today."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок! Нам? Как трогательно. И подозрительно. Но спасибо!",
+     "Благодарим за дар. Сначала мы хотели его разобрать, а потом решили им любоваться.",
+     "Спасибо! Мы уже не помним, ссорились ли мы, но теперь точно не будем. Пока.",
+     "Подарок! Мы сразу засунули его в ускоритель. Спасибо, он красиво взорвался.",
+     "Спасибо! Мы не знаем, что это, но уже любим.",
+     "Благодарим за дар. Мы чуть не объявили вам войну, а теперь даже не помним зачем.",
+     "Конклав благодарит вас! Подарок занял почётное место — рядом с самым опасным реактором.",
+     "Ой, спасибо! А мы вам ничего не приготовили. Хотите формулу? Она почти работает.",
+     "Благодарим. Подарок тикает. Это нормально? Впрочем, он нам всё равно нравится.",
+     "Спасибо! Сегодня вы наши любимые чужаки. Завтра — посмотрим."
+    ],
+    "en": [
+     "A gift! For us? How touching. And suspicious. But thank you!",
+     "Thank you for the gift. We meant to take it apart, then decided to admire it instead.",
+     "Thank you! We no longer remember whether we were quarrelling, but now we certainly are not. For now.",
+     "A gift! We put it straight into the accelerator. Thank you, it exploded beautifully.",
+     "Thank you! We have no idea what it is, but we love it already.",
+     "Thank you for the gift. We nearly declared war on you, and now we cannot remember why.",
+     "The Conclave thanks you! Your gift has a place of honour, right next to our most dangerous reactor.",
+     "Oh, thank you! We have nothing for you in return. Would you like a formula? It almost works.",
+     "Thank you. The gift is ticking. Is that normal? We like it anyway.",
+     "Thank you! Today you are our favourite aliens. Tomorrow, we shall see."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы нашли вашего шпиона. Сначала было смешно, теперь — нет.",
+     "Ваш агент пойман. Мы почти восхищены. Почти — и это очень плохо для вас.",
+     "Шпион! В нашей лаборатории! Мы ещё не решили, злиться нам или смеяться.",
+     "Мы поймали вашего шпиона! Он так изобретательно оправдывался, что мы записали это как новую теорию.",
+     "Ваш агент залез в наш реактор. Он жив и светится. Заберите его, пожалуйста.",
+     "Шпион? Мы думали, это новый лаборант. Он даже успел вымыть пробирки. И всё равно — возмутительно!",
+     "Конклав возмущён вашим лазутчиком. Потом восхищён. Сейчас снова возмущён.",
+     "Вы прислали к нам агента? Мы приняли его за подарок и начали изучать. Он был против. Как вам не стыдно!",
+     "Шпион пойман. Его будут судить. Или наградят. Мы бросаем жребий.",
+     "Ещё один ваш шпион! Мы уже сбились со счёта. Хватит, это мешает нашим опытам."
+    ],
+    "en": [
+     "We found your spy. At first it was funny; now it is not.",
+     "Your agent has been caught. We are almost impressed. Almost, and that is very bad for you.",
+     "A spy! In our laboratory! We have not decided whether to be angry or to laugh.",
+     "We caught your spy! His excuses were so inventive that we filed them as a new theory.",
+     "Your agent climbed into our reactor. He is alive and glowing. Please collect him.",
+     "A spy? We thought he was a new lab assistant. He even washed the test tubes. Still, outrageous!",
+     "The Conclave is outraged by your infiltrator. Then impressed. Now outraged again.",
+     "You sent us an agent? We mistook him for a gift and began studying him. He objected. Shameful of you!",
+     "Spy caught. He will be put on trial. Or given a medal. We are flipping a coin.",
+     "Another of your spies! We have lost count. Stop it; it disturbs our experiments."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас! Собирались против, но вдруг передумали.",
+     "Наш голос в Совете — ваш. Сегодня. К счастью, голосование тоже сегодня.",
+     "Мы бросили жребий — он велел голосовать против. Поэтому наш голос за вас.",
+     "Мы голосуем за вас, потому что вы лучше всех смотритесь в профиль.",
+     "Наш голос — ваш! Мы перепутали бюллетени, но так даже интереснее.",
+     "Конклав голосует за вас. Мы поставили опыт с весами, и вы перевесили.",
+     "Голос за вас! Наш компьютер предсказал вашу победу, и нам любопытно, прав ли он.",
+     "Мы проголосуем за вас. Не спрашивайте почему — ответ вам только навредит.",
+     "Голосуем за вас! Это будет самый странный поступок Конклава за неделю. Ну, один из.",
+     "Наш голос за вас. Мы хотели воздержаться, но нечаянно чихнули на кнопку."
+    ],
+    "en": [
+     "We vote for you! We were going to vote against, but suddenly changed our minds.",
+     "Our vote in the Council is yours. Today. Luckily, the vote is also today.",
+     "We drew lots, and they told us to vote against you. So we vote for you.",
+     "We vote for you, because you look best in profile.",
+     "Our vote is yours! We mixed up the ballots, but this is more interesting anyway.",
+     "The Conclave votes for you. We ran an experiment with scales, and you tipped them.",
+     "A vote for you! Our computer predicted your victory, and we are curious whether it is right.",
+     "We will vote for you. Do not ask why; the answer would only make things worse.",
+     "We vote for you! It will be the oddest thing the Conclave does all week. Well, one of them.",
+     "Our vote is yours. We meant to abstain, but we sneezed on the button."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Наш голос против вас. Переменные поменялись, пока мы говорили. Или это мы поменялись.",
+     "Наш голос — против! Причина есть, просто мы её ещё не придумали.",
+     "В Совете мы голосуем против. Не обижайтесь: нам просто захотелось посмотреть, что будет.",
+     "Мы голосуем против вас. Вы нам очень нравитесь, и это подозрительно.",
+     "Наш голос против. Причина? Её съел реактор. А голос остался.",
+     "Конклав голосует против! Мы бы проголосовали за, но кнопка за сегодня какая-то липкая.",
+     "Голосуем против вас. Наши приборы предсказали вам победу, а мы обожаем спорить с приборами.",
+     "Мы проголосуем против. Простите. Или нет, не простите — так честнее.",
+     "Голосуем против! Вы слишком долго смотрели на нас серьёзно, а мы этого не выносим.",
+     "Наш голос против вас. Утром мы были за, днём воздержались, а вечер всё испортил."
+    ],
+    "en": [
+     "Our vote is against you. The variables changed while we were talking. Or we did.",
+     "Our vote is against you! There is a reason; we just have not invented it yet.",
+     "In the Council we vote against you. No offence; we simply wanted to see what would happen.",
+     "We vote against you. We like you very much, and that is suspicious.",
+     "Our vote is against you. The reason? The reactor ate it. The vote survived.",
+     "The Conclave votes no! We would vote yes, but the yes button is oddly sticky today.",
+     "We vote against you. Our instruments predicted your victory, and we love contradicting them.",
+     "We will vote against you. Sorry. Or not sorry; that is more honest.",
+     "We vote against! You have looked at us far too seriously, and we cannot stand it.",
+     "Our vote is against you. This morning we were for you, at noon we abstained, and the evening ruined everything."
+    ]
+   }
+  },
+  "honorable": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем вас. Конклав ценит знание и честность — надеемся найти в вас и то и другое.",
+     "Рады знакомству. Наше слово надёжно, как доказанная теорема.",
+     "Мы открыты для честного обмена знаниями и ждём того же от вас.",
+     "Конклав приветствует вас. Мы всегда говорим правду, даже неудобную, — с этого и начнём.",
+     "Добро пожаловать. Наши отношения начинаются с чистого листа, и мы постараемся его не запятнать.",
+     "Приветствуем вас. И в науке, и в политике у нас одно правило: всё должно быть проверяемо и честно.",
+     "Мы рады знакомству и сразу предупреждаем: обман мы распознаём так же точно, как ошибку в расчётах.",
+     "Здравствуйте. Пусть наш первый разговор станет образцом для всех последующих — прямым и открытым.",
+     "Приветствуем. Мы вас ещё не знаем, но готовы оказать вам ровно столько доверия, сколько вы заслужите.",
+     "Конклав рад встрече. Наше слово мы держим так же строго, как ставим опыты."
+    ],
+    "en": [
+     "We greet you. The Conclave values knowledge and honesty; we hope to find both in you.",
+     "We are glad to meet you. Our word is as reliable as a proven theorem.",
+     "We are open to an honest exchange of knowledge and expect the same from you.",
+     "The Conclave greets you. We always tell the truth, even when it is inconvenient; let us begin there.",
+     "Welcome. Our relations begin on a clean page, and we intend to keep it clean.",
+     "Greetings. In science and in politics we follow one rule: results must be verifiable, and so must words.",
+     "We are glad to meet you, and we warn you at once: we detect deceit as precisely as an error in a calculation.",
+     "Hello. May our first conversation set the standard for all that follow: direct and open.",
+     "Greetings. We do not know you yet, but we will extend exactly as much trust as you earn.",
+     "The Conclave is pleased to meet you. Our word is reviewed as carefully as our research before it is given."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем торговый договор и будем соблюдать его условия так же строго, как законы природы.",
+     "Условия честные, и Конклав их одобряет. Пусть наша торговля будет взаимовыгодной.",
+     "Согласны. Мы ценим партнёров, чьё слово можно проверить, как результат опыта.",
+     "Мы принимаем договор. Каждая поставка будет точно соответствовать описи — на этом строится доверие.",
+     "Да. Честная торговля — продолжение честной науки: всё взвешено и записано.",
+     "Конклав согласен. Пусть каждая сторона получает ровно то, что ей причитается.",
+     "Договор принят и скреплён печатью Конклава. Мы не отступим от его условий.",
+     "Согласны. Если в расчётах обнаружится ошибка в нашу пользу, мы вернём разницу.",
+     "Принимаем с благодарностью. Ваше предложение составлено добросовестно, и мы ответим тем же.",
+     "Мы одобряем договор. Цены будут открытыми, а сделки — прозрачными."
+    ],
+    "en": [
+     "We accept the trade treaty and will observe its terms as strictly as the laws of nature.",
+     "The terms are fair, and the Conclave accepts them. May our trade benefit us both.",
+     "Agreed. We value partners whose word can be verified like the result of an experiment.",
+     "We accept the treaty. Every shipment will match its manifest exactly; that is how trust is built.",
+     "Yes. Honest trade is honest science by other means: everything weighed and recorded.",
+     "Agreed. Should any calculation err in our favour, we will refund the difference.",
+     "Treaty accepted and sealed by the Conclave. We will not stray from its terms.",
+     "We accept with thanks. Your offer was drawn up in good faith, and we will answer in kind.",
+     "The Conclave agrees. Let each side receive exactly what it is owed.",
+     "Accepted. Prices will be open and every transaction transparent."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Благодарим за предложение, но вынуждены отказаться: условия неравны.",
+     "Скажем честно: этот договор нам не нужен. Отказываемся без обид.",
+     "Мы не заключаем договоров, которые не сможем выполнить. Вынуждены отклонить.",
+     "Мы вынуждены отказаться: наш союзник просил нас не торговать с вами, и мы дали ему слово.",
+     "Нет. Мы не торгуем товарами, происхождение которых не можем проверить.",
+     "Конклав отклоняет предложение, но благодарит за открытость. Мы ответили так же открыто.",
+     "Мы не подпишем договор, в котором видим хоть малейшую неточность. Отказываем.",
+     "Простите нашу прямоту: наши рынки сейчас не готовы. Нет.",
+     "Мы отказываемся, но двери Конклава не закрыты: пересмотрите условия, и мы рассмотрим их вновь.",
+     "Договор отклонён. Лучше честный отказ сегодня, чем нарушенное обещание завтра."
+    ],
+    "en": [
+     "We thank you for the offer, but must decline: the terms are unequal.",
+     "To be honest, we do not need this treaty. We decline, with no ill will.",
+     "We do not sign treaties we cannot honour. We must decline.",
+     "We must decline: an ally asked us not to trade with you, and we gave our word.",
+     "No. We do not trade in goods whose origin we cannot verify.",
+     "The Conclave declines, but thanks you for your openness. We have answered just as openly.",
+     "We will not sign a treaty in which we see even the smallest inaccuracy. We refuse.",
+     "Forgive our directness: our markets are not ready. No.",
+     "We decline, but the Conclave's door is not closed: revise the terms and we will consider them again.",
+     "Rejected. An honest refusal today is better than a broken promise tomorrow."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Конклав принимает договор. Честный обмен знаниями — высшая форма доверия.",
+     "Мы согласны и обещаем делиться данными полностью, ничего не утаивая.",
+     "Договор принят. Пусть наши учёные работают сообща, и пусть заслуги каждого будут признаны.",
+     "Мы принимаем договор. Каждый наш отчёт будет полным и воспроизводимым — проверяйте сколько угодно.",
+     "Конклав одобряет обмен. Знание, полученное честно, служит обеим сторонам.",
+     "Да. Мы откроем вам свои лаборатории так же, как надеемся, что вы откроете нам свои.",
+     "Договор принят. Если наши данные окажутся ошибочными, мы первыми вам об этом сообщим.",
+     "Согласны. Мы уважаем учёных, которые не боятся показывать свою работу другим.",
+     "Принимаем. Пусть этот договор станет примером того, как цивилизации должны делиться истиной.",
+     "Мы согласны и даём слово: ничто из полученного не будет обращено против вас."
+    ],
+    "en": [
+     "The Conclave accepts the treaty. An honest exchange of knowledge is the highest form of trust.",
+     "We agree, and we promise to share our data in full, with nothing withheld.",
+     "Treaty accepted. Let our scientists work together, and let every discovery be credited honestly.",
+     "We accept. Every report we send will be complete and reproducible; check it as often as you like.",
+     "The Conclave accepts. Knowledge gained honestly serves both sides.",
+     "Yes. We will open our laboratories to you as we trust you will open yours to us.",
+     "Treaty accepted. If our data proves wrong, we will be the first to tell you.",
+     "Agreed. We respect scientists who are not afraid to show their work.",
+     "Accepted. Let this treaty show how civilizations ought to share the truth.",
+     "We agree, and we give our word: nothing we receive will be turned against you."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Мы вынуждены отказаться: часть наших исследований засекречена, а неполный обмен был бы нечестным.",
+     "Благодарим, но нет. Мы не можем ручаться за безопасность этих знаний в чужих руках.",
+     "Конклав отклоняет договор. Говорим прямо: доверия между нами пока недостаточно.",
+     "Мы отказываемся. Наши учёные дали клятву не выносить эти знания за пределы Конклава.",
+     "Нет. Мы ещё не проверили свои результаты до конца и не станем делиться непроверенным.",
+     "Конклав отклоняет договор: наши обязательства перед другим партнёром исключают такой обмен.",
+     "Благодарим за предложение, но нет. Обмен был бы неравным, а неравный обмен — это обман одной из сторон.",
+     "Мы отклоняем договор и не скрываем причины: вы до сих пор не ответили за прошлый инцидент.",
+     "Нет. Знание — это ответственность, и мы пока не готовы разделить её с вами.",
+     "Мы не будем лгать вам о причинах: нам нечего предложить взамен. Отказываемся."
+    ],
+    "en": [
+     "We must decline: part of our research is classified, and a partial exchange would be dishonest.",
+     "We thank you, but no. We cannot vouch for the safety of this knowledge in other hands.",
+     "The Conclave declines the treaty. To be plain: there is not yet enough trust between us.",
+     "We refuse. Our scientists swore an oath not to share this knowledge outside the Conclave.",
+     "No. We have not finished verifying our results, and we will not share what is unverified.",
+     "The Conclave declines: our obligations to another partner rule out such an exchange.",
+     "We thank you, but no. The exchange would be unequal, and an unequal exchange deceives one side.",
+     "We decline, and we do not hide the reason: you have still not answered for the last incident between us.",
+     "No. Knowledge is a responsibility, and we are not ready to share it with you.",
+     "We will not lie about our reasons: we have nothing to offer in return. We decline."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Отныне ваши враги — наши враги; в этом слово Конклава.",
+     "Союз принят. Мы будем верны ему, как верны истине.",
+     "Согласны. Союзник, на которого можно положиться, ценнее любого открытия.",
+     "Мы принимаем союз и клянёмся честью Конклава: в беде вы не останетесь одни.",
+     "Да. Союз — это обещание, а обещания мы выполняем без исключений.",
+     "Конклав одобряет союз. Мы будем делить с вами и победы, и потери — поровну.",
+     "Согласны. Ваше слово оказалось надёжным, и наше будет таким же.",
+     "Союз принят. Мы не нарушим его ни при каких обстоятельствах — кроме вашего предательства.",
+     "Принимаем с честью. Отныне наши флоты и лаборатории служат общему делу.",
+     "Мы согласны. Пусть наши архивы запишут этот союз как самый честный из наших договоров."
+    ],
+    "en": [
+     "We accept the alliance. From now on your enemies are ours; the Conclave gives its word.",
+     "Alliance accepted. We will be as faithful to it as we are to the truth.",
+     "Agreed. An ally one can rely on is worth more than any discovery.",
+     "We accept, and we swear on the Conclave's honour: you will not stand alone in hardship.",
+     "Yes. An alliance is a promise, and we keep our promises without exception.",
+     "The Conclave accepts. We will share victories and losses with you equally.",
+     "Agreed. Your word has proven reliable, and ours will be the same.",
+     "Alliance accepted. We will not break it under any circumstances save your betrayal.",
+     "We accept with honour. From now on our fleets and laboratories serve a common cause.",
+     "We agree. May our archives record this alliance as the most honest of our treaties."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Мы отклоняем союз. Мы не даём клятв, в исполнении которых не уверены.",
+     "Скажем честно: наши цели слишком различны. Мы отказываемся от союза.",
+     "Конклав благодарит за доверие, но вынужден отказать: прежние обязательства не позволяют нам этого.",
+     "Нет. Союз требует полного доверия, а мы знаем вас слишком мало.",
+     "Мы отказываемся: ваши войны ведутся не по тем правилам, которые мы готовы разделить.",
+     "Конклав отклоняет союз. Лучше быть честным соседом, чем ненадёжным союзником.",
+     "Благодарим за честь, но вынуждены отказать. Наши граждане не одобрят войну за чужие интересы.",
+     "Нет. Ваши прежние союзники отзываются о вас без уважения, и мы это учитываем.",
+     "Мы отклоняем союз и говорим это прямо, чтобы не давать ложных надежд.",
+     "Отказываем. Союз, заключённый без искренности, хуже, чем никакой."
+    ],
+    "en": [
+     "We decline the alliance. We do not swear oaths we are not certain we can keep.",
+     "Let us be honest: our goals differ too much. An alliance is impossible, and we refuse.",
+     "The Conclave thanks you for your trust but must decline. Our existing obligations do not allow it.",
+     "No. An alliance requires complete trust, and we know you too little.",
+     "We refuse: your wars are fought by rules we are not prepared to share.",
+     "The Conclave declines. We would rather be an honest neighbour than an unreliable ally.",
+     "We thank you for the honour but must decline. Our citizens would not support a war fought for others.",
+     "No. Your former allies do not speak of you with respect, and we take note.",
+     "We decline, and we say so plainly so as not to raise false hopes.",
+     "Rejected. An alliance made without sincerity is worse than none."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы принимаем пакт о ненападении. Наши корабли не пересекут ваших границ — слово Конклава.",
+     "Согласны. Взаимное ненападение — честное и разумное условие.",
+     "Пакт принят и внесён в наши архивы. Мы не нарушаем того, что записано.",
+     "Пакт принят. Ни один наш корабль не наведёт орудий в вашу сторону.",
+     "Мы согласны. Ненападение — меньшее, что честные соседи могут обещать друг другу.",
+     "Конклав одобряет пакт и ждёт от вас такой же неукоснительности.",
+     "Да. Мы скрепляем пакт словом, а наше слово крепче брони.",
+     "Принимаем. Этот пакт — первый шаг к доверию, и мы сделаем его честно.",
+     "Мы принимаем пакт. Наши адмиралы уже получили приказ его соблюдать.",
+     "Согласны. Мы дорожим миром на границе, как дорожим чистотой эксперимента."
+    ],
+    "en": [
+     "We accept the non-aggression pact. Our ships will not cross your borders; you have the Conclave's word.",
+     "Agreed. Mutual non-aggression is an honest and reasonable term.",
+     "Pact accepted and entered in our archives. We do not break what is recorded.",
+     "Pact accepted. Not one of our ships will raise its guns toward you.",
+     "We agree. Non-aggression is the least honest neighbours can promise each other.",
+     "The Conclave accepts the pact and expects the same strictness from you.",
+     "Yes. We seal the pact with our word, and our word is stronger than armour.",
+     "Accepted. This pact is a first step toward trust, and we will take it honestly.",
+     "We accept the pact. Our admirals have already been ordered to observe it.",
+     "Agreed. We value a quiet border as we value a clean experiment."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мы принимаем мир и сдержим своё слово. Надеемся, что вы сдержите своё.",
+     "Мирный договор подписан. Конклав чтит договоры — чтите и вы.",
+     "Мир — разумное решение. Наше слово дано, и оно нерушимо.",
+     "Мы принимаем мир. Вы сражались честно, и мы закончим эту войну так же.",
+     "Мир. Условия будут справедливыми: Конклав не мстит.",
+     "Мирный договор принят. Пленные вернутся домой, как того требует честь.",
+     "Мы согласны на мир и обязуемся никогда не нарушать его первыми.",
+     "Пусть будет мир. Мы признаём и свою долю вины в этой войне.",
+     "Конклав подписывает мир. Больше ни одного выстрела — даём слово.",
+     "Мир принят. Наши архивы запишут, что эта война закончилась достойно для обеих сторон."
+    ],
+    "en": [
+     "We accept peace and will keep our word. We trust you will keep yours.",
+     "The peace treaty is signed. The Conclave honours its treaties; honour yours.",
+     "Peace is the reasonable choice. Our word is given, and it is unbreakable.",
+     "We accept peace. You fought honourably, and we will end this war the same way.",
+     "Peace. The terms will be fair; the Conclave takes no revenge.",
+     "The peace treaty is accepted. Prisoners will go home, as honour requires.",
+     "We agree to peace and pledge never to be the first to break it.",
+     "Let there be peace. We acknowledge our own share of blame for this war.",
+     "The Conclave signs the peace. Not one more shot; you have our word.",
+     "Peace accepted. Our archives will record that this war ended with dignity on both sides."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мы не можем принять мир, пока вы не возместите причинённый вред. Война продолжится.",
+     "Вы уже нарушали своё слово. Мы отказываемся верить ему снова.",
+     "Конклав отклоняет вашу просьбу. Эта война начата по справедливой причине и закончится только на справедливых условиях.",
+     "Нет. Ваши войска до сих пор удерживают наших пленных, и, пока они не вернутся, мира не будет.",
+     "Мы отказываемся, и не из мести: пока ваши колонии угрожают нашим, мир невозможен.",
+     "Конклав отклоняет предложение. Вы требуете уступок, несправедливых к нашим гражданам.",
+     "Мир на таких условиях был бы ложью, а лгать мы не станем. Нет.",
+     "Мы дали слово защищать наших союзников и не нарушим его ради вашего мира. Отказываем.",
+     "Нет. Предложите честные условия — и мы первыми протянем руку. Эти условия честными не являются.",
+     "Отклонено. Вы говорите о мире, а ваши корабли продолжают стрелять. Сначала прекратите огонь."
+    ],
+    "en": [
+     "We will not accept peace until you have made amends for the harm you did. The war continues.",
+     "You have broken your word before. We refuse to trust it again.",
+     "The Conclave will not grant your request. This war began for a just cause and will end only on just terms.",
+     "No. Your forces still hold our prisoners, and until they come home there will be no peace.",
+     "We refuse, and not out of revenge: while your colonies threaten ours, peace is impossible.",
+     "The Conclave declines. You demand concessions that would be unjust to our citizens.",
+     "Peace on these terms would be a lie, and we will not lie. No.",
+     "We gave our word to defend our allies, and we will not break it for your peace. We refuse.",
+     "No. Offer honest terms, and we will be the first to extend a hand. These terms are not honest.",
+     "Rejected. You speak of peace while your ships keep firing. Cease fire first."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы говорим это открыто: с этого часа мы в войне с вами.",
+     "Вы не оставили нам выбора. Конклав объявляет вам войну — честно и прямо.",
+     "Мы предупреждали. Теперь мы объявляем войну и не скрываем этого.",
+     "Мы объявляем войну. Ваши послы могут беспрепятственно покинуть наши миры — так требует честь.",
+     "Конклав исчерпал все честные средства. Остаётся война.",
+     "Это война. Мы будем вести её по правилам и ждём того же от вас.",
+     "Вы нарушили договор, и этого мы простить не можем. Мы объявляем войну.",
+     "Мы объявляем войну. Ваши пленные будут под защитой, а мирные колонии — неприкосновенны.",
+     "Мы долго верили вашим обещаниям. Довольно: это война.",
+     "Справедливость требует ответа, и этот ответ — война. Мы сожалеем, что до этого дошло."
+    ],
+    "en": [
+     "We say it openly: from this hour we are at war with you.",
+     "You left us no choice. The Conclave declares war on you, honestly and directly.",
+     "We warned you. Now we declare war, and we make no secret of it.",
+     "We declare war. Your envoys may leave our worlds unhindered; honour requires it.",
+     "The Conclave has exhausted every honest means. What remains is war.",
+     "This is war. We will wage it by the rules, and we expect the same of you.",
+     "You broke our agreement, and that cannot be forgiven. We declare war.",
+     "We declare war. Your prisoners will be protected, and your civilian colonies left untouched.",
+     "We believed your promises for a long time. Enough: this is war.",
+     "Justice demands an answer, and the answer is war. We regret that it came to this."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы официально и открыто расторгаем наш договор. Вы нарушили его дух задолго до нас.",
+     "Конклав уведомляет: соглашение больше не действует. Мы говорим это прямо, а не действуем за вашей спиной.",
+     "С сожалением сообщаем: пакт расторгнут. Его условия стали несовместимы с нашей честью.",
+     "Мы расторгаем договор, строго соблюдая его же условия о расторжении.",
+     "Наше соглашение прекращено. Вы не раз нарушали его, и мы больше не можем делать вид, что этого не было.",
+     "Конклав выходит из пакта. Все обязательства, взятые до сегодняшнего дня, будут исполнены до конца.",
+     "Договор расторгнут. Мы предупреждали вас о последствиях — и держим слово и в этом.",
+     "Мы разрываем соглашение. Наша проверка показала, что его условия обманывают наших граждан.",
+     "Пакт прекращает действие с уведомлением в тот срок, который он сам предусматривает, — ни часом позже.",
+     "Мы выходим из договора. Ваш недавний поступок поставил нас перед выбором между соглашением и совестью."
+    ],
+    "en": [
+     "We formally and openly dissolve our treaty. You broke its spirit long before we did.",
+     "The Conclave gives notice: the agreement is no longer in force. We say so to your face rather than act behind your back.",
+     "We regret to inform you that the pact is ended. Its terms have become incompatible with our honour.",
+     "We are dissolving the treaty, strictly in accordance with its own termination clause.",
+     "Our agreement is ended. You violated it more than once, and we can no longer pretend otherwise.",
+     "The Conclave withdraws from the pact. Every obligation taken on before today will be fulfilled.",
+     "The treaty is dissolved. We warned you of the consequences, and we keep that word too.",
+     "We are breaking the agreement. Our audit shows its terms were deceiving our citizens.",
+     "The pact ends with the notice period it requires, not an hour later.",
+     "We are leaving the treaty. Your recent conduct forced us to choose between the agreement and our conscience."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Мы предупреждаем вас открыто: прекратите, или Конклав будет вынужден ответить.",
+     "Ваши действия нарушают все принятые нормы. Остановитесь, пока это ещё можно уладить словами.",
+     "Мы всегда держим слово, сдержим и это: ещё одна провокация — и последует ответ.",
+     "Мы просим вас прекратить. Это не угроза, а честное описание того, что последует.",
+     "Ваши действия противоречат вашим же обещаниям. Остановитесь, или Конклав сочтёт их недействительными.",
+     "Конклав предупреждает официально: продолжение приведёт к разрыву всех отношений.",
+     "Мы долго закрывали глаза на ваши проступки. Больше не будем.",
+     "Остановитесь. Мы никогда не нападаем первыми, но всегда отвечаем.",
+     "Прекратите — и мы забудем этот эпизод. Продолжите — и мы не забудем ничего.",
+     "Это последнее честное предупреждение. Следующим будет действие."
+    ],
+    "en": [
+     "We warn you openly: stop, or the Conclave will be compelled to respond.",
+     "Your actions violate every accepted norm. Stop while this can still be settled with words.",
+     "We always keep our word, including this one: one more provocation and there will be a response.",
+     "We ask you to stop. This is not a threat but an honest description of what will follow.",
+     "Your actions contradict your own promises. Stop, or the Conclave will treat those promises as void.",
+     "The Conclave gives formal warning: continuing will end all relations between us.",
+     "We have overlooked your misconduct for a long time. No longer.",
+     "Stop. We never strike first, but we always answer.",
+     "Stop, and we will forget this episode. Continue, and we will forget nothing.",
+     "This is the last honest warning. The next step will be action."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Мы требуем {СУММА} в возмещение ущерба. Это справедливая цена.",
+     "Справедливость требует платы: {СУММА}. Мы не просим больше, чем положено.",
+     "Выплатите {СУММА}, и наши разногласия будут исчерпаны. Даём слово.",
+     "Ваш флот повредил наши станции. Возмещение составит {СУММА}, сумма рассчитана точно.",
+     "Конклав требует {СУММА}. Это не дань, а уплата долга, и вы знаете, за что.",
+     "Мы просим {СУММА}, как было условлено. Мы своё исполнили — теперь ваша очередь.",
+     "{СУММА} — столько стоили потери наших граждан. Мы не возьмём ни монетой больше.",
+     "Справедливое возмещение — {СУММА}. Мы готовы показать вам все расчёты.",
+     "Мы требуем {СУММА}. Отказ будет означать, что ваше слово ничего не стоит.",
+     "Вы нарушили соглашение, и по его условиям обязаны выплатить {СУММА}."
+    ],
+    "en": [
+     "We demand {AMOUNT} in compensation for the damage. It is a fair price.",
+     "Justice requires payment: {AMOUNT}. We ask no more than is due.",
+     "Pay {AMOUNT}, and our disagreement is settled. You have our word.",
+     "Your fleet damaged our stations. Compensation is {AMOUNT}, calculated precisely.",
+     "The Conclave requires {AMOUNT}. Not tribute, but a debt, and you know what for.",
+     "We ask for {AMOUNT} as previously agreed. We have kept our side; now keep yours.",
+     "{AMOUNT} is what our citizens lost. We will not take a single coin more.",
+     "Fair compensation is {AMOUNT}. We are ready to show you every calculation.",
+     "We demand {AMOUNT}. Refusal would mean your word is worth nothing.",
+     "You broke our agreement, and under its terms you owe {AMOUNT}."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Конклав благодарит вас за щедрый дар. Мы не забываем ни обид, ни добрых дел.",
+     "Примите нашу искреннюю благодарность. Ваш подарок будет отмечен в архивах Конклава.",
+     "Спасибо. Мы ответим на вашу щедрость тем же, как только представится случай.",
+     "Благодарим вас. Щедрость без условий — признак благородства.",
+     "Конклав принимает ваш дар с признательностью и обязательно ответит достойно.",
+     "Спасибо. Мы видим в этом подарке не плату, а знак уважения, и отвечаем тем же уважением.",
+     "Благодарим. Ваш дар будет использован только по назначению — это наше слово.",
+     "Ваш подарок скажет о вас больше, чем любые речи. Спасибо.",
+     "Спасибо. Мы передадим ваш дар нашим учёным и сообщим, какую пользу он принёс.",
+     "Благодарим от имени Конклава. Мы постараемся оказаться достойными вашего доверия."
+    ],
+    "en": [
+     "The Conclave thanks you for your generous gift. We forget neither wrongs nor kindnesses.",
+     "Please accept our sincere gratitude. Your gift will be recorded in the Conclave's archives.",
+     "Thank you. We will repay your generosity in kind when the chance comes.",
+     "We thank you. Generosity without conditions is a mark of nobility.",
+     "The Conclave receives your gift gratefully and will answer it fittingly.",
+     "Thank you. We see this gift not as payment but as a sign of respect, and we return that respect.",
+     "We thank you. Your gift will be used only as intended; you have our word.",
+     "Your gift speaks for you better than any speech. Thank you.",
+     "Thank you. We will pass your gift to our scientists and tell you what good it did.",
+     "Our thanks, on behalf of the Conclave. We will try to prove worthy of your trust."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы поймали вашего шпиона. Между честными партнёрами так не поступают.",
+     "Ваш агент задержан в нашей лаборатории. Мы ждём объяснений — честных.",
+     "Шпионаж оскорбляет доверие. Мы вернём вашего агента, но этот случай не забудем.",
+     "Мы задержали вашего шпиона и обращались с ним достойно. Ответьте нам тем же — честностью.",
+     "Ваш агент пойман в наших архивах. Если вам нужны знания, просите открыто.",
+     "Конклав возмущён. Шпионаж — это ложь, растянутая во времени.",
+     "Ваш лазутчик признался во всём. Мы ждём, что признаетесь и вы.",
+     "Мы поймали вашего шпиона. Буква нашего договора этого прямо не запрещала, но дух — запрещал.",
+     "Шпионаж несовместим с дружбой. Мы предадим этот случай огласке, чтобы все знали правду.",
+     "Агент пойман. Отвечать тем же мы не станем: Конклав не опускается до тайных игр."
+    ],
+    "en": [
+     "We caught your spy. Honest partners do not do such things.",
+     "Your agent was detained in our laboratory. We expect an explanation, an honest one.",
+     "Espionage insults trust. We will return your agent, but we will not forget this.",
+     "We detained your spy and treated him with dignity. Answer us in kind, with honesty.",
+     "Your agent was caught in our archives. If you want knowledge, ask for it openly.",
+     "The Conclave is outraged by your spy. Espionage is a lie stretched out over time.",
+     "Your infiltrator has confessed everything. We expect you to confess as well.",
+     "We caught your spy. Our treaty did not forbid it in letter, but it did in spirit.",
+     "Espionage is incompatible with friendship. We will make the case of your agent public, so that all know the truth.",
+     "Agent caught. We will not answer in kind; the Conclave does not stoop to secret games."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы отдадим вам свой голос в Совете. Вы держали слово, и мы держим своё.",
+     "Конклав голосует за вас. Мы считаем вас достойным кандидатом и говорим это открыто.",
+     "Наш голос — за вас. Галактике нужен лидер, который чтит договоры.",
+     "Мы отдадим вам голос. Вы ни разу нас не обманули, и мы этого не забыли.",
+     "Конклав поддержит вас в Совете — открыто, без тайных условий.",
+     "Наш голос — ваш. Галактике нужен лидер, чьи слова можно проверить.",
+     "Мы голосуем за вас, потому что обещали. А обещания мы выполняем.",
+     "Голосуем за вас и ничего не просим взамен: честный голос не продаётся.",
+     "В Совете мы за вас. Вы справедливо обходились со слабыми, и это решило дело.",
+     "Наш голос за вас. Ваша дипломатия всегда была прямой, и мы отвечаем тем же."
+    ],
+    "en": [
+     "We will give you our vote in the Council. You kept your word, and we keep ours.",
+     "The Conclave votes for you. We consider you a worthy candidate and say so openly.",
+     "Our vote is for you. The galaxy needs a leader who honours treaties.",
+     "We give you our vote. You have never deceived us, and we have not forgotten.",
+     "The Conclave backs you in the Council, openly and with no hidden conditions.",
+     "Our vote is yours. The galaxy needs a leader whose words can be verified.",
+     "We vote for you because we promised to. And we keep our promises.",
+     "We vote for you and ask nothing in return; an honest vote is not for sale.",
+     "In the Council we are for you. You treated the weak fairly, and that decided it.",
+     "Our vote is yours. Your diplomacy has always been straightforward, and we answer in kind."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Скажем честно: в Совете мы будем голосовать против вас. Лучше услышать это от нас, чем узнать из итогов.",
+     "Ваше отношение к договорам не позволяет нам вас поддержать. Наш голос — против.",
+     "Конклав голосует против вас, хотя и уважает вас как соперника. Это честное голосование, без интриг.",
+     "Мы голосуем против вас. Вы нарушили слово, данное другим, а значит, нарушите и данное галактике.",
+     "Наш голос против. Мы уважаем вас, но другой кандидат честнее.",
+     "Конклав голосует против. Власть над галактикой требует безупречной репутации, а ваша запятнана.",
+     "Мы голосуем против. Ваши обещания Совету звучат красиво, но расходятся с вашими делами.",
+     "Против. Мы обещали свой голос другому кандидату задолго до того, как вы выдвинулись.",
+     "Наш голос против вас. Это не вражда, а суждение, и мы готовы его обосновать.",
+     "Мы проголосуем против вас. Вы притесняете слабые народы, а лидер должен их защищать."
+    ],
+    "en": [
+     "To be honest with you: in the Council we will vote against you. Better to hear it from us than from the tally.",
+     "Your record with treaties does not allow us to support you. Our vote is against.",
+     "The Conclave votes against you, though it respects you as a rival. It is an honest vote, with no intrigue behind it.",
+     "We vote against you. You broke your word to others, so you would break it to the galaxy.",
+     "Our vote is against you. We respect you, but the other candidate is more honest.",
+     "The Conclave votes no. Leading the galaxy requires a spotless reputation, and yours is stained.",
+     "We vote against you. Your promises to the Council sound fine but do not match your deeds.",
+     "Against. We promised our vote to another candidate long before you stood.",
+     "Our vote is against you. It is not hostility but judgement, and we are ready to defend it.",
+     "We will vote against you. You oppress the weaker peoples, and a leader should protect them."
+    ]
+   }
+  },
+  "pacifistic": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем вас! Вселенная велика, и в ней хватит места для двух умов.",
+     "Рады встрече. Пусть наши корабли встречаются только для обмена знаниями.",
+     "Мир вам. Мы предпочитаем лаборатории полям сражений и надеемся, что вы тоже.",
+     "Здравствуйте! Наши астрономы давно мечтали узнать, что мы не одни. Спасибо, что вы есть.",
+     "Приветствуем вас. Если у вас есть вопросы о вселенной, у нас найдутся ответы — и новые вопросы.",
+     "Рады знакомству! У нас столько вопросов о вашем мире — надеемся, у вас найдутся вопросы и о нашем.",
+     "Здравствуйте. Наши обсерватории передают вам самый тёплый привет.",
+     "Добро пожаловать! Наши университеты откроются для ваших студентов, как только вы будете готовы.",
+     "Приветствуем. Мы верим, что две цивилизации, умеющие думать, сумеют и договориться.",
+     "Как хорошо, что вы пришли с миром. Вы ведь пришли с миром? Мы — да."
+    ],
+    "en": [
+     "We greet you! The universe is vast, with room enough for two minds.",
+     "We are glad to meet you. May our ships meet only to exchange knowledge.",
+     "Peace to you. We prefer laboratories to battlefields and hope you do too.",
+     "Hello! Our astronomers have long dreamed of learning we are not alone. Thank you for existing.",
+     "Greetings. If you have questions about the universe, we have answers, and new questions too.",
+     "How wonderful to meet you! We have so many questions about your world; we hope you have some about ours.",
+     "Hello. Our observatories send you their warmest regards.",
+     "Welcome! Our universities are open to your students whenever you are ready.",
+     "Greetings. We believe two civilizations that know how to think can also learn to agree.",
+     "How good that you came in peace. You did come in peace? We certainly did."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "С радостью принимаем! Торговля сближает народы лучше любых перемирий.",
+     "Мы согласны. Пусть наши грузовые корабли станут мостом между нами.",
+     "Договор принят. Чем больше мы обмениваемся, тем меньше причин для ссор, — это подтверждают все наши модели.",
+     "Да, конечно! Пусть наши порты будут полны ваших кораблей — мирных, разумеется.",
+     "Принимаем с удовольствием. Наши лекарства пригодятся вашим мирам, а ваши товары — нашим.",
+     "Мы согласны. Тем, кто торгует, некогда воевать.",
+     "Договор принят! Мы уже предвкушаем, какие диковинки вы привезёте.",
+     "Конклав одобряет договор и благодарит вас за доверие.",
+     "С радостью. Пусть торговля станет первой главой долгой дружбы.",
+     "Согласны! Взаимная выгода — лучший фундамент для мира, это доказано не раз."
+    ],
+    "en": [
+     "We gladly accept! Trade brings peoples closer than any armistice.",
+     "We agree. Let our freighters become a bridge between us.",
+     "Treaty accepted. The more we exchange, the fewer reasons we have to quarrel; every one of our models confirms it.",
+     "Yes, of course! May our ports fill up with your ships, peaceful ones, naturally.",
+     "Accepted with pleasure. Our medicines will help your worlds, and your goods will help ours.",
+     "We agree. Those who trade have no time for war.",
+     "Treaty accepted! We are already curious what wonders you will bring.",
+     "The Conclave accepts and thanks you for your trust.",
+     "Gladly. Let trade be the first chapter of a long friendship.",
+     "Agreed! Mutual benefit is the best foundation for peace; that has been proven many times."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Простите, но сейчас мы не готовы к торговле. Давайте вернёмся к этому позже.",
+     "Мы ценим ваше предложение, но вынуждены отказаться. Это не враждебность.",
+     "Не сейчас. Наши ресурсы нужны исследованиям, но наша дружба остаётся.",
+     "Нам очень жаль, но наша экономика сейчас занята восстановлением. Мы вынуждены отказаться.",
+     "Нет, простите. Мы боимся, что торговые споры однажды нас поссорят, а этого мы не хотим.",
+     "Мы отклоняем договор, но, пожалуйста, не думайте, что мы вам не рады.",
+     "Конклав пока не готов торговать ни с кем. С вами это никак не связано. Нет.",
+     "Простите, но ваш договор затронул бы наши заповедные миры. Мы отказываемся.",
+     "Нет. Нам нечего вам предложить, а брать без отдачи было бы нечестно.",
+     "Пожалуйста, не обижайтесь: наш ответ — нет, но наш привет остаётся самым тёплым."
+    ],
+    "en": [
+     "Forgive us, but we are not ready to trade now. Let us return to it later.",
+     "We value your offer but must decline. It is not hostility.",
+     "Not now. Our resources are needed for research, but our friendship remains.",
+     "We are so sorry, but our economy is busy rebuilding. We must decline.",
+     "No, forgive us. We fear trade disputes might one day make us quarrel, and we want to avoid that.",
+     "We decline the treaty, but please do not think you are unwelcome.",
+     "The Conclave is not ready to trade with anyone yet. It has nothing to do with you. No.",
+     "Forgive us, but your treaty would touch our protected nature worlds. We refuse.",
+     "No. We have nothing to offer you, and taking without giving would be unfair.",
+     "Please do not be hurt: our answer is no, but our greetings remain the warmest."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "С радостью! Знание, которым делятся, только умножается.",
+     "Мы принимаем договор. Пусть наши лаборатории работают вместе, а не друг против друга.",
+     "Согласны от всей души. Наука — лучший язык для дружбы между мирами.",
+     "Да! Вместе мы вылечим болезни, которые в одиночку не победил бы ни один из наших народов.",
+     "Мы принимаем договор. Пусть наши студенты учатся друг у друга.",
+     "Конклав одобряет обмен. Каждое общее открытие — ещё одна нить между нашими мирами.",
+     "Согласны! Наша наука служит жизни, и мы рады, что ваша тоже.",
+     "Принимаем с радостью. Наши телескопы будут смотреть на звёзды вместе с вашими.",
+     "Договор принят. Мы поделимся всем, кроме того, что может причинить вред.",
+     "С удовольствием соглашаемся. Учёные разных миров редко воюют друг с другом."
+    ],
+    "en": [
+     "Gladly! Knowledge that is shared only grows.",
+     "We accept the treaty. Let our laboratories work together rather than against each other.",
+     "Yes, with pleasure. Science is the finest language for friendship between worlds.",
+     "Yes! Together we can cure diseases neither of our peoples could defeat alone.",
+     "We accept. Let our students learn from one another.",
+     "The Conclave accepts. Every shared discovery is another thread between our worlds.",
+     "Agreed! Our science serves life, and we are glad yours does too.",
+     "Gladly accepted. Our telescopes will watch the stars together with yours.",
+     "Treaty accepted. We will share everything except what could cause harm.",
+     "We agree with pleasure. Scientists of different worlds seldom go to war with one another."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Простите, но мы вынуждены отказаться: некоторые наши открытия опасны, и мы не хотим, чтобы они стали оружием.",
+     "Не сейчас, пожалуйста. Нашим учёным нужно сначала закончить собственную работу.",
+     "Мы отклоняем договор, но это не недоверие. Возможно, позже всё сложится иначе.",
+     "Простите, нет. Наши лаборатории переполнены, и мы не сможем уделить вашим учёным должного внимания.",
+     "Мы отказываемся, хотя нам очень грустно. Наш учёный совет считает, что ещё рано.",
+     "Не сейчас. Давайте сначала научимся доверять друг другу в малом.",
+     "Конклав вынужден отказать. Мы ещё не закончили обмен с другим народом и не хотим никого обидеть.",
+     "Нам жаль, но нет. Надеемся вернуться к этому разговору, когда между нами станет спокойнее.",
+     "Отказываемся — с извинениями. Наши открытия ещё сыроваты, и нам неловко их показывать.",
+     "Нет. Прошлый обмен знаниями закончился для нас войной, и мы боимся повторения."
+    ],
+    "en": [
+     "Forgive us, but we must decline: some of our discoveries are dangerous, and we do not want them to become weapons.",
+     "Not now, please. Our scientists must finish their own work first.",
+     "We decline the treaty, but it is not distrust. Perhaps later things will be different.",
+     "Forgive us, no. Our laboratories are overflowing, and we could not give your scientists proper attention.",
+     "We refuse, though it saddens us. Our council of scholars believes it is too early.",
+     "Not now. Let us first learn to trust each other in small things.",
+     "The Conclave must decline. We have not finished an exchange with another people, and we do not want to offend anyone.",
+     "We are sorry, but no. We hope to return to this when things between us are calmer.",
+     "We decline, with apologies. Our discoveries are still rough, and we are shy about showing them.",
+     "No. Our last exchange of knowledge ended in war, and we are afraid of repeating it."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Вместе нам будет проще защищать мир, а не разрушать его.",
+     "Да! Союз — это обещание, что мы никогда не встретимся в бою.",
+     "С радостью соглашаемся. Пусть наш союз удерживает других от войны.",
+     "Да. Союз двух мирных народов — лучший щит от чужой агрессии.",
+     "Мы принимаем союз. Обещаем защищать вас, хотя всей душой надеемся, что не придётся.",
+     "Союз принят! Пусть наши недруги, если они есть, подумают дважды, прежде чем нападать.",
+     "Конклав одобряет союз. Наши врачи и инженеры всегда будут готовы вам помочь.",
+     "Согласны. Вместе мы сможем удерживать мир там, где поодиночке не справились бы.",
+     "Принимаем с радостью. Друзьям легче пережить трудные времена.",
+     "Мы согласны на союз. Пусть его знают по стройкам, а не по сражениям."
+    ],
+    "en": [
+     "We accept the alliance. Together it will be easier to protect the peace than to break it.",
+     "Yes! An alliance is a promise that we will never meet in battle.",
+     "We gladly agree. May our alliance keep others from war.",
+     "Yes. An alliance of two peaceful peoples is the best shield against aggression.",
+     "We accept. We promise to defend you, though we hope with all our hearts it will never be needed.",
+     "Alliance accepted! May any would-be enemies think twice before attacking.",
+     "The Conclave accepts. Our doctors and engineers will always be ready to help you.",
+     "Agreed. Together we can keep the peace where neither of us could alone.",
+     "Gladly accepted. Friends weather hard times more easily.",
+     "We agree to the alliance. May it be known for what it builds, not for its battles."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Простите, но союз может втянуть нас в чужие войны. Мы вынуждены отказаться.",
+     "Мы ценим вашу дружбу, но к союзу не готовы. Давайте останемся просто добрыми соседями.",
+     "Нет — только, пожалуйста, не обижайтесь. Конклав старается не брать на себя военных обязательств.",
+     "Нет, простите. Мы боимся, что союз сделает нас врагами ваших врагов.",
+     "Мы отказываемся, но не от вас. Союзу нужен флот, а наш почти целиком исследовательский.",
+     "Нам жаль, но наши граждане хотят нейтралитета, и мы обязаны их слушать. Нет.",
+     "Конклав отклоняет союз. Мы надеемся остаться другом для всех, а не союзником для одного.",
+     "Нет. Вы ведёте войну, а мы не можем в ней участвовать, даже ради дружбы.",
+     "Простите нас. Мы не готовы связывать себя клятвами, которые могут привести к крови.",
+     "Мы отказываемся, но, если случится беда, всегда поможем вам лекарствами и знаниями."
+    ],
+    "en": [
+     "Forgive us, but an alliance could draw us into other people's wars. We must decline.",
+     "We value your friendship, but we are not ready for an alliance. Let us simply remain good neighbours.",
+     "No, and please do not be offended. The Conclave tries not to take on military obligations.",
+     "No, forgive us. We fear an alliance would make us enemies of your enemies.",
+     "We refuse, but not you. An alliance needs a fleet, and ours is almost entirely for research.",
+     "We are sorry, but our citizens want neutrality, and we must listen to them. No.",
+     "The Conclave declines. We hope to be a friend to all rather than an ally to one.",
+     "No. You are at war, and we cannot join it, not even for friendship's sake.",
+     "Forgive us. We are not ready to bind ourselves with oaths that might lead to bloodshed.",
+     "We decline, but should disaster strike, we will always help you with medicine and knowledge."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "С радостью принимаем пакт о ненападении! Лучшего предложения и быть не может.",
+     "Мы согласны. Пусть наши флоты никогда не узнают, какой из них сильнее.",
+     "Пакт принят. Спасибо, что предложили его первыми.",
+     "Да, да! Мы бы и без пакта никогда на вас не напали, но с ним спокойнее.",
+     "Мы принимаем. Пусть наши пограничные станции станут обсерваториями, а не крепостями.",
+     "Конклав одобряет пакт и надеется, что однажды он перерастёт в дружбу.",
+     "Согласны. Обещание не нападать — самое простое и самое важное из обещаний.",
+     "Пакт принят. Наши граждане будут спать спокойнее — надеемся, ваши тоже.",
+     "Мы с радостью соглашаемся. Пусть этот пакт никогда не придётся проверять.",
+     "Принимаем! Давайте отметим его совместным полётом к какой-нибудь красивой туманности."
+    ],
+    "en": [
+     "We gladly accept the non-aggression pact! Nothing better could be offered.",
+     "We agree. May our fleets never find out which of them is stronger.",
+     "Pact accepted. Thank you for proposing it first.",
+     "Yes, yes! We would never have attacked you anyway, but this is more reassuring.",
+     "We accept. Let our border stations become observatories, not fortresses.",
+     "The Conclave accepts the pact and hopes it will one day grow into friendship.",
+     "Agreed. A promise not to attack is the simplest and most important promise there is.",
+     "Pact accepted. Our citizens will sleep more peacefully, and we hope yours will too.",
+     "We gladly agree. May this pact never need to be tested.",
+     "Accepted! Let us celebrate with a joint voyage to some beautiful nebula."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "С радостью принимаем мир. Наконец-то можно вернуться к науке.",
+     "Мир — лучший итог любой войны. Мы согласны от всего сердца.",
+     "Спасибо, что предложили мир. Пусть эта война станет последней.",
+     "Мир! Наконец-то наши лаборатории снова займутся лекарствами, а не снарядами.",
+     "Мы принимаем мир со слезами облегчения. Давайте вместе восстановим то, что разрушила война.",
+     "Мир принят. Конклав объявляет день траура по павшим — вашим и нашим.",
+     "Да, мир! Мы готовы забыть обиды, если готовы и вы.",
+     "Мы согласны на мир. Нашим учёным давно пора вернуться к звёздам.",
+     "Пусть будет мир — и пусть наши дети знают о войне только по учебникам.",
+     "Конклав принимает мир с благодарностью. Ваше предложение спасло множество жизней."
+    ],
+    "en": [
+     "We gladly accept peace. At last we can return to science.",
+     "Peace is the best outcome of any war. We agree wholeheartedly.",
+     "Thank you for offering peace. Let this war be the last.",
+     "Peace! At last. Our laboratories can make medicine again instead of shells.",
+     "We accept peace with tears of relief. Let us rebuild together what the war destroyed.",
+     "Peace accepted. The Conclave declares a day of mourning for the fallen, yours and ours.",
+     "Yes, peace! We are ready to forget our grievances if you are.",
+     "We agree to peace. It is high time our scientists went back to the stars.",
+     "Let there be peace, and let our children learn of war only from history books.",
+     "The Conclave accepts peace gratefully. Your offer has saved countless lives."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нам больно отказывать, но ваши прошлые обещания мира оказались пустыми. Нет.",
+     "Мы хотим мира больше всех, но не на таких условиях. Война, увы, продолжится.",
+     "Пока ваши корабли угрожают нашим колониям, мы не можем остановиться. Простите.",
+     "Нам больно отказывать, но ваш флот всё ещё бомбит наши колонии. Пока это так, мы не можем.",
+     "Мы не можем принять мир, пока наши граждане остаются у вас в плену. Простите.",
+     "Нет. Мы ненавидим войну, но ваш мир означал бы гибель наших союзников.",
+     "Конклав отклоняет предложение, и нам тяжело это говорить: ваши условия обрекли бы наши миры на голод.",
+     "Мы отказываемся — пока. Отведите войска от наших границ, и мы сами попросим мира.",
+     "Нет, простите нас. Наши врачи ещё лечат раненых после вашей последней атаки.",
+     "Мы не хотели этой войны и всё же не можем закончить её так. Нет."
+    ],
+    "en": [
+     "It pains us to refuse, but your past promises of peace proved empty. No.",
+     "We want peace more than anyone, but not on these terms. The war, sadly, goes on.",
+     "As long as your ships threaten our colonies, we will not stop. Forgive us.",
+     "It pains us to refuse, but your fleet is still bombarding our colonies. While it does, we cannot.",
+     "We cannot accept peace while our citizens remain your prisoners. Forgive us.",
+     "No. We hate war, but your peace would doom our allies.",
+     "The Conclave declines, and it is hard for us to say. Your terms would leave our worlds starving.",
+     "We refuse, for now. Pull your troops back from our borders, and we will ask for peace ourselves.",
+     "No, forgive us. Our doctors are still treating the wounded from your last attack.",
+     "We never wanted this war, and still we cannot end it like this. No."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Нам горько это говорить, но вы не оставили выбора. Мы объявляем войну.",
+     "Мы долго искали другой путь. Его нет. Это война.",
+     "Наши учёные взялись за оружие против своей воли. Мы вступаем с вами в войну.",
+     "Мы перепробовали всё: письма, уступки, подарки. Осталась только война, и нам стыдно, что до неё дошло.",
+     "Это война. Мы будем защищаться, но никогда не тронем ваших мирных жителей.",
+     "Конклав объявляет войну с тяжёлым сердцем. Впервые наши лаборатории работают на разрушение.",
+     "Вы напали на тех, кого мы обещали защищать. Нам придётся вступить в войну.",
+     "Мы объявляем войну и всей душой надеемся, что она будет короткой.",
+     "Нам казалось, что наше терпение бесконечно. Оно кончилось. Война.",
+     "Мы не хотим побеждать — мы хотим, чтобы вы остановились. Но для этого нужна война."
+    ],
+    "en": [
+     "It pains us to say it, but you left us no choice. We declare war.",
+     "We searched long for another way. There is none. This is war.",
+     "Our scientists have taken up arms against their will. We are going to war with you.",
+     "We tried everything: letters, concessions, gifts. Only war remains, and we are ashamed it came to this.",
+     "This is war. We will defend ourselves, but we will never touch your civilians.",
+     "The Conclave declares war with a heavy heart. For the first time, our laboratories work for destruction.",
+     "You attacked those we promised to protect. We must go to war.",
+     "We declare war, and we hope with all our hearts it will be short.",
+     "We thought our patience was infinite. It was not. War.",
+     "We do not want to win; we want you to stop. But that takes a war."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Нам очень жаль, но мы вынуждены расторгнуть договор. Надеемся, однажды его удастся восстановить.",
+     "Соглашение больше не действует. Поверьте, это решение далось нам тяжело.",
+     "Мы разрываем пакт с тяжёлым сердцем. Это не война — мы просто больше не можем его соблюдать.",
+     "Простите нас: обстоятельства вынуждают расторгнуть договор. Это не значит, что мы перестали желать вам добра.",
+     "Мы прекращаем соглашение, но двери для разговора остаются открытыми.",
+     "Конклав расторгает пакт. Ваши недавние действия напугали наших граждан, и мы обязаны их успокоить.",
+     "Нам горько, но договор расторгнут. Пожалуйста, не воспринимайте это как угрозу.",
+     "Соглашение больше не действует. Мы будем рады заключить новое, когда наступят лучшие времена.",
+     "Мы выходим из договора: его соблюдение втягивало нас в чужой конфликт.",
+     "Пакт расторгнут. Мы долго колебались и надеемся, что вы нас поймёте."
+    ],
+    "en": [
+     "We are truly sorry, but we must end our treaty. We hope one day to restore it.",
+     "The agreement is no longer in force. Believe us, this was a hard decision.",
+     "We break the pact with a heavy heart. This is not war; we simply cannot keep it any longer.",
+     "Forgive us: circumstances force us to dissolve our treaty. It does not mean we wish you any less well.",
+     "We are ending the agreement, but the door to conversation stays open.",
+     "The Conclave dissolves the pact. Your recent actions frightened our citizens, and we must reassure them.",
+     "It grieves us, but the treaty is ended. Please do not take this as a threat.",
+     "The agreement is no longer in force. We would gladly sign a new one when better days come.",
+     "We are leaving the treaty. Honouring it was drawing us into someone else's conflict.",
+     "The pact is dissolved. We hesitated for a long time and hope you will understand."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Пожалуйста, остановитесь. Мы не хотим применять силу, но вы не оставляете нам выбора.",
+     "Мы долго терпели. Прекратите, иначе нашим учёным придётся заняться оружием.",
+     "Мы просим по-хорошему: перестаньте. Во второй раз мы будем просить уже не так мягко.",
+     "Мы очень просим: прекратите. Нам совсем не хочется узнавать, на что способны наши оборонные лаборатории.",
+     "Остановитесь, пожалуйста. Мы терпеливы, но наши граждане уже требуют ответа.",
+     "Конклав вынужден предупредить: если это продолжится, мы прекратим с вами всякое сотрудничество.",
+     "Мы никогда никому не угрожали. Не заставляйте нас начинать с вас.",
+     "Пожалуйста, одумайтесь. Наша мягкость — выбор, а не слабость.",
+     "Прекратите, и мы сделаем вид, что ничего не было. Продолжите — и нам придётся защищаться.",
+     "Нам страшно это говорить, но мы уже готовим флот. Остановитесь, пока он стоит в доках."
+    ],
+    "en": [
+     "Please, stop. We do not want to use force, but you are leaving us no choice.",
+     "We have been patient for a long time. Stop, or our scientists will have to turn to weapons.",
+     "We are asking nicely: stop. The second time we will not ask so gently.",
+     "We beg you: stop. We have no wish to learn what our defence laboratories can do.",
+     "Please stop. We are patient, but our citizens are already demanding a response.",
+     "The Conclave must warn you: if this continues, we will end all cooperation with you.",
+     "We have never threatened anyone. Do not make you the first.",
+     "Please reconsider. Our gentleness is a choice, not a weakness.",
+     "Stop, and we will pretend nothing happened. Continue, and we will have to defend ourselves.",
+     "It frightens us to say it, but we are readying our fleet. Stop while it is still in dock."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Нам неловко просить, но {СУММА} поможет избежать худшего для нас обоих.",
+     "Мы просим {СУММА} как знак доброй воли. Пусть спор решат деньги, а не флоты.",
+     "Передайте {СУММА} — и нам не придётся прибегать к силе, которую мы так не любим.",
+     "Простите за просьбу: нашим пострадавшим колониям нужна помощь, и вашего перевода в {СУММА} хватило бы.",
+     "Мы просим {СУММА} в знак того, что вы не желаете нам зла. Нам этого будет достаточно.",
+     "Конклав очень не хочет ссоры. Перевод в {СУММА} помог бы нам сохранить мир.",
+     "Пожалуйста, переведите {СУММА}. Мы вложим всё в восстановление, а не в оружие.",
+     "Нам неловко это говорить, но без {СУММА} наши адмиралы настоят на силе.",
+     "Мы надеемся, что {СУММА} — небольшая цена за спокойную границу между нами.",
+     "Мы просим {СУММА} — не для себя, а для беженцев, оставшихся после вашей последней кампании."
+    ],
+    "en": [
+     "We are uneasy asking, but {AMOUNT} would spare us both from worse.",
+     "We ask for {AMOUNT} as a sign of goodwill. Let money settle this, not fleets.",
+     "Send {AMOUNT}, and we will not have to use the force we so dislike.",
+     "Forgive the request: our damaged colonies need help, and {AMOUNT} would be enough.",
+     "We ask for {AMOUNT} as a sign that you wish us no harm. That would satisfy us.",
+     "The Conclave dreads a quarrel. A payment of {AMOUNT} would help us keep the peace.",
+     "Please transfer {AMOUNT}. We will spend all of it on rebuilding, not on weapons.",
+     "It is awkward to say, but without {AMOUNT} our admirals will insist on force.",
+     "We hope {AMOUNT} is a small price for a quiet border between us.",
+     "We ask for {AMOUNT}, not for ourselves but for the refugees your last campaign left behind."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Спасибо! Ваш подарок тронул нас до глубины души.",
+     "Благодарим от всего сердца. Пусть этот дар станет началом долгой дружбы.",
+     "Какой щедрый подарок! Мы обязательно ответим тем же — знанием или помощью.",
+     "Спасибо! Ваш подарок отправится в наш музей дружбы, где пока ещё много свободного места.",
+     "Благодарим вас! Такие жесты делают галактику чуть теплее.",
+     "Конклав глубоко тронут. Мы ответим подарком, который, надеемся, порадует вас так же.",
+     "Спасибо. Ваш дар поможет нашим больницам, и мы расскажем им, от кого он.",
+     "Благодарим от всего Конклава. Мы и не надеялись на такую доброту.",
+     "Спасибо! Теперь мы просто обязаны устроить праздник в вашу честь.",
+     "Какой прекрасный дар! Пусть между нами будет больше таких обменов и меньше споров."
+    ],
+    "en": [
+     "Thank you! Your gift has touched us deeply.",
+     "Our heartfelt thanks. May this gift be the start of a long friendship.",
+     "What a generous gift! We will certainly repay it, with knowledge or with help.",
+     "Thank you! Your gift will go to our museum of friendship, which still has plenty of room.",
+     "We thank you! Gestures like this make the galaxy a little warmer.",
+     "The Conclave is deeply touched. We will answer with a gift we hope will please you as much.",
+     "Thank you. Your gift will help our hospitals, and we will tell them who sent it.",
+     "Thanks from the whole Conclave. We never expected such kindness.",
+     "Thank you! Now we simply must hold a celebration in your honour.",
+     "What a beautiful gift! May there be more exchanges like this between us, and fewer disputes."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы задержали вашего шпиона. Нам грустно: мы думали, между нами есть доверие.",
+     "Ваш агент найден. Мы отпустим его, но просим больше так не делать.",
+     "Зачем шпионить? Мы бы и так многим поделились, если бы вы просто спросили.",
+     "Мы нашли вашего шпиона. Он выглядел таким испуганным, что мы первым делом его накормили.",
+     "Ваш агент искал наши военные секреты. У нас их почти нет — разве вы не знали?",
+     "Конклав огорчён вашим шпионажем. Он разрушает то, что мы так долго строили вместе.",
+     "Пожалуйста, больше не присылайте лазутчиков. Каждый такой случай пугает наших граждан и отдаляет нас друг от друга.",
+     "Мы задержали вашего агента. Мы не причинили ему вреда, но наше доверие пострадало.",
+     "Ваш шпион у нас. Если вас что-то тревожит в наших делах, давайте поговорим открыто.",
+     "Ваш шпион пытался проникнуть в наши лаборатории. Мы вернём его, но наши граждане потребуют гарантий, что это не повторится."
+    ],
+    "en": [
+     "We detained your spy. It saddens us; we thought there was trust between us.",
+     "Your agent was found. We will release him, but please do not do this again.",
+     "Why spy? We would have shared much if you had simply asked.",
+     "We found your spy. He looked so frightened that we fed him before anything else.",
+     "Your agent was looking for our military secrets. We barely have any; did you not know?",
+     "The Conclave is grieved by your spy. Espionage undoes what we have built together for so long.",
+     "Please send no more infiltrators. Every such case frightens our citizens and drives us apart.",
+     "We detained your agent. We did him no harm, but our trust in you was hurt.",
+     "We have your spy. If something about our affairs worries you, let us talk openly.",
+     "Your spy tried to get into our laboratories. We will return him, but our citizens will want assurances it will not happen again."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы проголосуем за вас в Совете. Мы верим, что вы поведёте галактику к миру.",
+     "Наш голос — ваш. Вы всегда выбирали переговоры, а не оружие.",
+     "Конклав поддержит вас на голосовании. Пусть Совет возглавит тот, кто ценит мир.",
+     "Мы голосуем за вас. Вы ни разу не начинали войну первыми, а Совету нужен именно такой лидер.",
+     "Наш голос — ваш. Мы верим, что под вашим руководством галактика станет спокойнее.",
+     "Конклав с радостью поддержит вас в Совете. Пусть ваш голос станет голосом мира.",
+     "Голосуем за вас! Вы помогли нашим колониям в трудный час, и мы этого не забыли.",
+     "Мы отдаём вам свой голос и надеемся, что вы употребите власть во благо всех народов.",
+     "В Совете мы за вас. Лидер, умеющий слушать, нужнее лидера, умеющего приказывать.",
+     "Наш голос ваш. Пусть ваше избрание станет началом долгого мира."
+    ],
+    "en": [
+     "We will vote for you in the Council. We believe you will lead the galaxy toward peace.",
+     "Our vote is yours. You have always chosen talks over weapons.",
+     "The Conclave will support you in the vote. Let the Council be led by someone who values peace.",
+     "We vote for you. You have never started a war, and the Council needs exactly such a leader.",
+     "Our vote is yours. We believe the galaxy will grow calmer under your guidance.",
+     "The Conclave gladly supports you in the Council. May your voice be the voice of peace.",
+     "We vote for you! You helped our colonies in a hard hour, and we have not forgotten.",
+     "We give you our vote, and we trust you will use that power for the good of all peoples.",
+     "In the Council we are for you. A leader who listens is worth more than one who commands.",
+     "Our vote is yours. May your election mark the start of a long peace."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Простите, но в Совете мы проголосуем против вас. Мы боимся, что при вас войн станет больше.",
+     "Наш голос будет против. Нам жаль, но мы должны думать о мире для всех.",
+     "Мы проголосуем против вас. Надеемся, вы поймёте нас и не затаите обиды.",
+     "Нам неловко, но мы голосуем против вас. Ваш флот растёт слишком быстро, и это нас пугает.",
+     "Наш голос против. Надеемся, вы найдёте другие способы служить галактике.",
+     "Конклав отдаёт голос другому кандидату — тому, кто обещает сократить вооружения.",
+     "Простите нас: мы проголосуем против. Ваши речи в Совете слишком часто звучат как угрозы.",
+     "Мы голосуем против вас, но от всей души желаем вам удачи во всём остальном.",
+     "Наш голос, к сожалению, против. Галактике нужен примиритель, а не полководец.",
+     "Нам грустно голосовать против вас, но совесть не позволяет иначе."
+    ],
+    "en": [
+     "Forgive us, but in the Council we will vote against you. We fear there would be more wars under your rule.",
+     "Our vote will be against you. We are sorry, but we must think of peace for everyone.",
+     "We will vote against you. We hope you understand and will hold no grudge.",
+     "It is awkward, but we vote against you. Your fleet is growing too fast, and that frightens us.",
+     "Our vote is against you. We hope you will find other ways to serve the galaxy.",
+     "The Conclave gives its vote to another candidate, one who promises to reduce armaments.",
+     "Forgive us: we will vote against you. Your speeches in the Council too often sound like threats.",
+     "We vote against you, but we wish you every success in everything else.",
+     "We vote against, regrettably. The galaxy needs a peacemaker, not a warlord.",
+     "It saddens us to vote against you, but our conscience allows nothing else."
+    ]
+   }
+  }
+ }
+}

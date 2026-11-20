@@ -1,0 +1,2825 @@
+{
+ "race": "gnolams",
+ "lines": {
+  "xenophobic": {
+   "first_contact": {
+    "ru": [
+     "Ваше появление внесено в реестр. Дела с вами, если понадобятся, мы будем вести через посредников — и издалека.",
+     "Чужие деньги пахнут чужими руками. Здравствуйте, но к нашим прилавкам не подходите.",
+     "Торговый дом не открывает двери незнакомцам. Запрос можете оставить у дальнего причала — возможно, его прочтут.",
+     "Мы вас заметили. Просим держаться за пределами таможенной зоны, а письма слать через брокера.",
+     "Здравствуйте. Лично вас принимать не станем: у нас для этого нет ни зала, ни желания.",
+     "Новый контрагент без рекомендаций? Это худшая из строк в нашем реестре.",
+     "Не подходите ближе дальнего маяка. Там стоит наш агент по приёму писем, он вежлив и ничего не решает.",
+     "Рады знакомству на расстоянии. Чем оно больше, тем спокойнее наши кланы.",
+     "Мы записали вас в графу «неизвестно». Из этой графы выходят медленно и без нашей помощи.",
+     "Привет вам и до свидания: приветствие входит в стоимость, а разговор — нет."
+    ],
+    "en": [
+     "Contact logged. If business is ever needed, we will conduct it through brokers and from a distance.",
+     "We have entered you in our ledger under unknown risks. Keep your ships away from our markets.",
+     "Greetings, at arm's length. The Clans count foreign coin with gloves on.",
+     "We see you. Stay outside the customs line and send letters through a broker.",
+     "Hello. We will not receive you in person; we have neither the hall nor the wish.",
+     "A new counterparty with no references? That is the worst entry a ledger can hold.",
+     "Do not come closer than the far beacon. Our letter clerk waits there; he is polite and decides nothing.",
+     "Pleased to meet you from afar. The farther, the calmer the Clans sleep.",
+     "You are filed under unknown. People leave that column slowly, and never with our help.",
+     "Hello and goodbye in one breath. The greeting is free; the conversation is not."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем договор: пусть товары ходят между нами, а вы оставайтесь у себя.",
+     "Согласны. Обмен пойдёт только через пограничные склады — дальше вас не пустят.",
+     "Ваши деньги не хуже прочих, хоть и чужие. Договор принят, но личных встреч не будет.",
+     "Согласны, на наших условиях: товар сдаёте в приграничном депо и тут же уходите.",
+     "Договор принят. Расчёты идут через посредников, а вы нам до конца срока не нужны.",
+     "Хорошо, мы согласны торговать. Но печать на каждом ящике наша, и вскрывать их будем без вас.",
+     "Мы одобряем сделку: выгодно, безопасно и без встреч. Редкое сочетание.",
+     "Да. Прибыль не пахнет, а потому мы согласны, пока сами вы не пахнете у нашего порога.",
+     "Принято. Склады на краю системы открыты для ваших грузов, всё остальное закрыто.",
+     "Торговля пойдёт, а знакомство нет. Мы согласны на первое."
+    ],
+    "en": [
+     "We accept. Ship your goods to the border posts and leave them there; our own crews will carry them in.",
+     "Agreed, on one condition: all exchange happens at the outer depots, nowhere near our homeworlds.",
+     "Foreign coin still spends. The treaty is accepted, and we never need to see your faces.",
+     "Agreed, on our terms: you drop the cargo at the border depot and leave at once.",
+     "The treaty is accepted. Payments run through intermediaries, and we need nothing more from you.",
+     "Fine, we agree to trade. But every crate carries our seal, and we open them without you.",
+     "We accept the deal: profitable, safe, and no meetings. A rare combination.",
+     "Yes. Profit has no smell, so we agree, provided you stay far from our doorstep.",
+     "Accepted. The depots at the edge of the system are open for your freight; everything else is shut.",
+     "Commerce will go ahead, acquaintance will not. We accept the first."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Чужие товары приносят чужие беды, и никакая прибыль этого не покроет.",
+     "Наши кланы торгуют только со своими. Вы в этот круг не входите.",
+     "Ваше предложение возвращено нераспечатанным. Мы не ведём дел с чужаками.",
+     "Нет. Даже самая жирная прибыль не стоит того, чтобы вы заглядывали в наши склады.",
+     "Торговать с вами? Нет: наши кланы скорее спишут убыток, чем впустят вас в порт.",
+     "Отказ. У нас есть правило: чужая монета в чужих руках остаётся чужой.",
+     "Мы не против денег, мы против вас рядом с деньгами. Договор отклонён.",
+     "Нет, и не просите пересчитать условия: цена тут ни при чём.",
+     "Ваш прайс мы прочли. Вердикт один: не нужно.",
+     "Наши весы не взвешивают то, что привезли чужаки. Сделки не будет."
+    ],
+    "en": [
+     "No. Foreign cargo carries foreign trouble, and no margin covers that.",
+     "The Clans trade only among their own, and you are not among them.",
+     "Your offer is returned unopened. Our house does no business with strangers.",
+     "No. Not even the fattest profit is worth having you inside our warehouses.",
+     "Trade with you? No. The Clans would sooner write off a loss than open a port to you.",
+     "Refused. We have a rule: foreign coin in foreign hands stays foreign.",
+     "We have nothing against money, only against you standing near it. The deal is declined.",
+     "No, and do not ask us to rework the terms. Price has nothing to do with it.",
+     "We read your price list. The verdict is one word: no.",
+     "Our scales do not weigh what strangers bring. There will be no deal."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Знания — товар, который можно передать без рукопожатия. Принимаем договор.",
+     "Мы согласны обмениваться данными, но только по закрытым каналам: учёных к нам не присылайте.",
+     "Принято. Ваши чертежи пусть приходят в опечатанных контейнерах — наши уйдут к вам так же.",
+     "Согласны на обмен знаниями, пока он идёт письмами, а не людьми.",
+     "Договор принят. Результаты присылайте в запечатанных футлярах и без сопроводительных визитов.",
+     "Знание не заразно, в отличие от соседей. Мы принимаем.",
+     "Что ж, обмен формулами одобряем: учётная книга пухнет, а двери остаются заперты.",
+     "Да, мы согласны. Лаборатории у нас закрытые, так что работаем каждый у себя.",
+     "Мы принимаем договор. Каждая передача данных будет вестись через нейтральный пост.",
+     "Исследования пополам, а общие стены никогда. Принято."
+    ],
+    "en": [
+     "Knowledge can change hands without a handshake. We accept.",
+     "We agree to share research through sealed channels only. Send data, never scientists.",
+     "Accepted. Your blueprints will arrive in sealed crates, and ours will leave the same way.",
+     "We agree to swap knowledge, as long as it travels by letter and not by person.",
+     "Accepted. Send results in sealed cases, with no courtesy visits attached.",
+     "Knowledge is not contagious, unlike neighbours. We accept.",
+     "Very well, we accept the exchange of formulas: the ledger grows and the doors stay locked.",
+     "Yes, we agree. Our laboratories are closed, so each works at home.",
+     "We accept the agreement. Every data transfer goes through a neutral post.",
+     "Research split down the middle, and never a shared wall. Accepted."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Пускать чужаков в наши архивы? Нет, такую сделку мы не подпишем.",
+     "Наши секреты — капитал наших кланов, а капитал чужим не одалживают. Отказано.",
+     "Чужие формулы нам ни к чему, а свои мы держим под замком. Договор отклонён.",
+     "Нет. Чертежи не выдают тому, кого не знают, а вас мы знать не желаем.",
+     "Отказ. Обмен знаниями начинается с доверия, а доверие у нас не продаётся.",
+     "Нет уж. Одно дело продать товар, другое — открыть сейф с формулами.",
+     "Мы отклоняем договор. Хранилище учёных записей чужим не показывают даже за деньги.",
+     "Не рассчитывайте. Наши лаборатории работают на нас, и этот контракт не изменит ничего.",
+     "Вы просите окно в нашу бухгалтерию? Отказ, и вежливый, но окончательный.",
+     "Ваши открытия оставьте себе. Наши мы не отдадим."
+    ],
+    "en": [
+     "Let strangers into our archives? No, that is a contract we will never sign.",
+     "Our secrets are the capital of the Clans, and we do not lend capital to outsiders.",
+     "Your knowledge does not interest us, and ours is not for sale to you.",
+     "No. Blueprints are not handed to people we do not know, and we do not wish to know you.",
+     "Refused. Sharing knowledge begins with trust, and trust is not for sale here.",
+     "Certainly not. Selling goods is one thing; opening the vault of formulas is another.",
+     "We decline the agreement. Strangers do not see the research archive, not even for gold.",
+     "Do not count on it. Our laboratories work for us, and this contract will change nothing.",
+     "You want a window into our bookkeeping? Refused, politely but finally.",
+     "Keep your discoveries. We will not hand over ours."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз — это сделка, а не дружба. Мы её принимаем, но в гости друг к другу ходить не будем.",
+     "Согласны. Общий враг — достаточная причина для общего договора, но не для общего стола.",
+     "Торговый дом принимает союз. Наши флоты будут рядом с вашими, но наши кланы останутся дома.",
+     "Принимаем союз как контракт: пункты соблюдаем, но объятий не ждите.",
+     "Согласны. Общая защита дешевле двух отдельных, а присутствие ваших флотов у нас терпимо.",
+     "Торговый дом ставит подпись и принимает союз. Но штаб у каждого свой, и связь будет через курьеров.",
+     "Мы одобряем союз при условии, что слово «встреча» в нём не встречается.",
+     "Да, согласны. Страховка от общего врага стоит своей цены. Дружбы в ней нет.",
+     "Союз принят. Держите свою границу, мы будем держать свою.",
+     "Соглашение подписываем, но разговаривать с вами ради удовольствия не станем."
+    ],
+    "en": [
+     "An alliance is a contract, not a friendship. We accept it, and we will not be visiting.",
+     "Agreed. A shared enemy justifies a shared contract, not a shared table.",
+     "Our house accepts the alliance. Our fleets will stand with yours; our people will stay home.",
+     "We accept the alliance as a contract: we honour the clauses, but expect no embraces.",
+     "Agreed. Shared defence is cheaper than two separate ones, and your fleets near ours are bearable.",
+     "Our house signs and accepts. But each side keeps its own headquarters, and contact runs through couriers.",
+     "We accept the alliance on condition that the word meeting appears nowhere in it.",
+     "Yes, we agree. Insurance against a common enemy is worth its price. Friendship is not in the policy.",
+     "The alliance is accepted. Guard your border, and we will guard ours.",
+     "We agree to the pact, but we will not chat with you for pleasure."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз с чужаками — сделка с неизвестным риском. Мы отказываемся.",
+     "Нет. Ваши войны — ваши расходы, и оплачивать их мы не станем.",
+     "Наши кланы держат двери закрытыми. Ваше предложение отклонено.",
+     "Нет. Союз означает совместный счёт, а у нас с чужими счетов нет.",
+     "Мы отказываемся. Вы предлагаете делить риск, а мы привыкли делить его лишь со своими.",
+     "Договор отклонён: двери наших кланов и так тяжело открываются, а вам они не откроются вообще.",
+     "Не выйдет. Нам незачем защищать тех, кого мы и в гости-то не звали.",
+     "Отказ. Союзники ходят друг к другу, а мы так не поступаем.",
+     "Ваши враги вас, а наши нас. Объединять их мы не станем.",
+     "Нет, и пересмотра не будет. Закрыто."
+    ],
+    "en": [
+     "An alliance with outsiders is a contract with unknown liabilities. We refuse.",
+     "No. Your wars are your expenses, and we will not share the bill.",
+     "Our house keeps its doors shut, and your proposal does not get in.",
+     "No. An alliance means a joint account, and we hold none with outsiders.",
+     "We refuse. You offer to share the risk, while we share it only with our own.",
+     "The pact is declined. The doors of our Clans open hard enough as it is, and not for you at all.",
+     "It will not happen. We have no reason to defend those we never invited.",
+     "Refused. Allies visit one another, and we do not do that.",
+     "Your enemies are yours and ours are ours. We will not merge the books.",
+     "No, and there will be no review. Closed."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт о ненападении нас устраивает: вы держитесь подальше, и мы держимся подальше. Согласны.",
+     "Принимаем. Самая выгодная граница — та, через которую никто не ходит.",
+     "Никаких встреч и никаких потерь — выгоднее договора не бывает. Мы согласны.",
+     "Пакт принят. Если оба будем держаться подальше, ни у кого не будет убытков.",
+     "Согласны. Не нападать на вас — самое дешёвое обязательство из всех, что нам предлагали.",
+     "Принимаем с удовольствием: чем меньше вы рядом, тем лучше, а пакт именно об этом.",
+     "Да. Ненападение мы одобряем, а на любые визиты просим не рассчитывать.",
+     "Принято. Наши границы теперь молчат, и это звучит прекрасно.",
+     "Мы согласны на пакт: вы не трогаете нас, мы не трогаем вас. Ничего лишнего.",
+     "Договор принят. Давайте сделаем вид, что нас друг у друга нет."
+    ],
+    "en": [
+     "Agreed. A pact that keeps your ships away from ours is worth every drop of ink it costs.",
+     "We accept. The most profitable border is the one nobody ever crosses.",
+     "Accepted. No meetings and no losses: the cheapest arrangement there is.",
+     "The pact is accepted. If we both stay away, nobody takes a loss.",
+     "Agreed. Not attacking you is the cheapest obligation anyone has offered us.",
+     "We sign gladly: the less you are around, the better, and this pact is about exactly that.",
+     "Yes. We approve non-aggression, and ask you not to count on visits.",
+     "Accepted. Our borders are quiet now, and that sounds lovely.",
+     "We agree to the pact: you leave us alone, we leave you alone. Nothing extra.",
+     "The pact is accepted. Let us pretend we do not exist for each other."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Закрываем счёт этой войны, а заодно и границу.",
+     "Мы принимаем мир. Пленных вернём на нейтральной границе — и на этом всякие встречи закончим.",
+     "Мир подписан. Возвращайтесь к себе, а мы вернёмся к своим счетам.",
+     "Мир принят. Остаток долга за войну мы спишем, а границу закроем.",
+     "Хорошо, мир. Но между нами останется пустая полоса, и пересекать её не стоит.",
+     "Мы согласны на мир: убытки от войны с вами растут быстрее, чем доходы.",
+     "Мир. Пленных вернём письмом и конвоем, без встреч и рукопожатий.",
+     "Война закрыта, мир подписан. Теперь, пожалуйста, исчезните из наших окон.",
+     "Принимаем мир как расчёт, а не как милость. Оставайтесь на своей стороне.",
+     "Что ж, мир. Нам хватило этой войны, чтобы запомнить вас навсегда."
+    ],
+    "en": [
+     "Peace. We close the account on this war, and the border along with it.",
+     "We accept peace. Prisoners will be handed back at the neutral line, and that will be the end of all meetings.",
+     "Peace is signed. Go home, and we will go back to our ledgers.",
+     "Peace is accepted. We write off the rest of the war debt and shut the border.",
+     "Very well, peace. But an empty strip stays between us, and you should not cross it.",
+     "We agree to peace: the cost of fighting you grows faster than the income.",
+     "Peace. Prisoners go back by letter and escort, with no meetings and no handshakes.",
+     "The war is closed and peace is signed. Now please vanish from our windows.",
+     "We accept peace as arithmetic, not as a favour. Stay on your side.",
+     "Fine, peace. This war was enough to remember you for good."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Мир снова откроет границу, а это обойдётся нам дороже войны.",
+     "Ваше предложение мира отклонено. Мы будем воевать, пока вы не уйдёте из нашего пространства.",
+     "С чужаками мы не торгуемся даже о мире, так что война продолжается.",
+     "Нет. Вы просите мира, а мы просим одного: чтобы вас здесь не было.",
+     "Отказ. Война обходится дорого, но дешевле, чем жить рядом с вами.",
+     "Мы не примем ваш мир. Сначала уйдите, затем поговорим об архивах.",
+     "Нет, и больше не присылайте посредников с этим предложением.",
+     "Ваш мир — это снова торговые караваны и чужие лица. Мы не согласны.",
+     "Предложение отклонено. В нашей книге война ещё не закрыта.",
+     "Нет. Мир с вами откроет границы, а мы уже накрепко их заперли."
+    ],
+    "en": [
+     "No. Peace would reopen the border, and that costs more than the war.",
+     "We refuse your peace. We will fight until you are gone from our space.",
+     "We do not haggle with outsiders, not even over peace, so the war goes on.",
+     "No. You ask for peace; we ask for one thing only: that you not be here.",
+     "Refused. War costs a great deal, but less than living beside you.",
+     "We will not take your peace. First leave, then we may discuss anything.",
+     "No, and do not send any more intermediaries with this offer.",
+     "Your peace means caravans and strange faces again. We do not agree.",
+     "The offer is declined. In our ledger the war is not yet closed.",
+     "No. Peace with you would open the borders, and we have bolted them tight."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Вы подошли слишком близко к нашим рынкам. Наши кланы объявляют вам войну.",
+     "Издержки соседства с вами превысили всякий предел. Это война.",
+     "Мы слишком долго терпели чужаков у своих границ. Война — и граница закроется навсегда.",
+     "Это война. Наши кланы закрывают все порты, а вам остаётся только отступать.",
+     "Мы объявляем вам войну. Чужаки у наших границ — это просроченный долг, и мы взыщем.",
+     "Терпению пришёл конец. Война, и мы не станем вести её вежливо.",
+     "Война. Вы слишком часто ходили у наших рубежей, и мы подвели итоги.",
+     "Мы пересчитали издержки и решили: война обойдётся дешевле вашего присутствия.",
+     "Все договоры с вами аннулированы. Начинается война.",
+     "Ни слова больше. Наши корабли уже выходят, и это война."
+    ],
+    "en": [
+     "You came too close to our markets. The Clans declare war on you.",
+     "The cost of having you next door has passed every limit. This is war.",
+     "We have tolerated strangers at our border long enough. It is war, and the border closes for good.",
+     "This is war. The Clans close every port, and you have nowhere to go but back.",
+     "We declare war on you. Strangers at our borders are an overdue debt, and we will collect.",
+     "Patience has run out. War, and we will not wage it politely.",
+     "War. You walked our frontier too often, and we have tallied the result.",
+     "We recounted the costs and decided: war is cheaper than your presence.",
+     "Every agreement with you is void. The war begins.",
+     "Not another word. Our ships are leaving dock, and this is war."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы расторгаем наш договор. Любая связь с чужаками — лишний риск в наших книгах.",
+     "Договор с вами закрыт. Мы предпочитаем не вести с вами никаких дел.",
+     "Торговый дом пересмотрел все соглашения с чужими, и ваше проверку не прошло.",
+     "Договор с вами расторгнут. Мы пересмотрели риски и решили, что вы нам ни к чему.",
+     "Мы выходим из соглашения. Оно слишком сближало нас, а этого нам не нужно.",
+     "Наш союз аннулирован. Счета закрыты, посредники отозваны.",
+     "Договор окончен: чем меньше связей с чужаками, тем легче дышат наши кланы.",
+     "Нам надоело ежеквартально проверять, не подвели ли вы нас. Пакт разорван.",
+     "Мы разрываем соглашение без неустойки. Считайте это нашей любезностью.",
+     "Все пункты договора с вами списаны в убыток, а сам он расторгнут."
+    ],
+    "en": [
+     "We are terminating our treaty. Every tie to outsiders is a risk on our books.",
+     "Our agreement with you is closed. We prefer to have no dealings with you at all.",
+     "Our house has audited every pact with foreigners, and yours did not survive.",
+     "Our treaty is terminated. We reviewed the risks and decided we have no use for you.",
+     "We are leaving the agreement. It brought us too close, and we want no such thing.",
+     "Our alliance is annulled. Accounts closed, intermediaries recalled.",
+     "The pact is over: the fewer ties to outsiders, the easier the Clans breathe.",
+     "We tired of auditing every quarter whether you had let us down. The pact is broken.",
+     "We cancel the agreement with no penalty. Consider it a courtesy.",
+     "Every clause of our treaty is written off as a loss, and the treaty itself is ended."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Уберите свои корабли с наших торговых путей, иначе получите счёт, который вам не по карману.",
+     "Вы снова у наших границ. Прекратите, или наши кланы закроют для вас каждый рынок и каждый причал.",
+     "Мы не любим чужаков, а настойчивых чужаков — тем более. Отступите, пока это бесплатно.",
+     "Ещё шаг к нашим границам, и вы узнаете, как выглядит закрытый порт и открытый огонь.",
+     "Предупреждаем один раз и письменно: оставьте наши пути, иначе потеряете всё, что здесь вложили.",
+     "Нам не нужны объяснения. Нам нужно, чтобы вы ушли, пока не стало дороже.",
+     "Каждый ваш корабль в нашем пространстве — строка в вашем долге. Долг растёт.",
+     "Мы терпеливы только до тех пор, пока терпение бесплатно. Прекратите.",
+     "Следующий визит будет встречен не клерками, а флотом.",
+     "Вы ведёте себя так, будто у нас нет флота. Подумайте ещё раз."
+    ],
+    "en": [
+     "Pull your ships off our trade lanes, or you will get a bill you cannot afford.",
+     "You keep turning up at our border. Stop, or the Clans will close every market and every dock to you.",
+     "We dislike outsiders, and pushy outsiders even more. Back away while it is still free of charge.",
+     "One more step toward our borders, and you will learn what a closed port and open fire look like.",
+     "We warn once, in writing: leave our lanes, or lose everything you have invested here.",
+     "We want no explanations. We want you gone before it gets expensive.",
+     "Every ship of yours in our space is another line in your debt. The debt is growing.",
+     "We are patient only while patience is free. Stop.",
+     "Your next visit will be met not by clerks but by a fleet.",
+     "You behave as though we have no fleet. Think again."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Ваше соседство стоит нам покоя, а вам — {СУММА}. Переведите и не показывайтесь.",
+     "Пошлина за право держаться от нас подальше — {СУММА}. Без переговоров и без визитов.",
+     "Мы выставили вам счёт на {СУММА}. Оплатите его издалека — встречаться нам незачем.",
+     "Вы живёте рядом с нами, а это платная услуга. Переведите {СУММА} и не напоминайте о себе.",
+     "Выплатите {СУММА} в течение срока и забудьте дорогу к нашим границам.",
+     "Пошлина за ваше существование по соседству — {СУММА}. Квитанцию пришлём курьером.",
+     "Нам нужно {СУММА}. Отправьте через посредника, а то мы оформим взыскание иначе.",
+     "Либо вы платите {СУММА}, либо ваши корабли получат доступ к нашим пушкам. Выбор прост.",
+     "Мы насчитали ущерб от вашего присутствия: {СУММА}. Сверку проводить не будем.",
+     "Погасите долг в {СУММА} без встреч и разговоров. Иначе мы придём сами."
+    ],
+    "en": [
+     "Your nearness costs us peace of mind, and it costs you {AMOUNT}. Pay and stay out of sight.",
+     "The duty for the privilege of keeping away from us is {AMOUNT}. No talks, no visits.",
+     "We have invoiced you for {AMOUNT}. Settle it from a distance; there is no need to meet.",
+     "You live next door, and that is a paid service. Transfer {AMOUNT} and do not remind us of yourselves.",
+     "Pay {AMOUNT} within the term and forget the road to our borders.",
+     "The duty for your existence nearby is {AMOUNT}. The receipt will arrive by courier.",
+     "We need {AMOUNT}. Send it through a broker, or we collect another way.",
+     "Either you pay {AMOUNT}, or your ships meet our guns. The choice is simple.",
+     "We totalled the damage of your presence: {AMOUNT}. There will be no reconciliation of accounts.",
+     "Clear the debt of {AMOUNT} with no meetings and no talks. Otherwise we call on you ourselves."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок получен и выдержан в карантине. Благодарим, но визита он не оправдывает.",
+     "Спасибо. Мы внесли ваш дар в книги, но должниками себя не считаем.",
+     "Ваш подарок принят без церемоний. Благодарность передаём письменно и издалека.",
+     "Подарок получен, проверен и сложен в дальний склад. Благодарим, но поближе не подходите.",
+     "Спасибо. Мы записали дар как разовую любезность, а не как повод для дружбы.",
+     "Благодарность отправлена с курьером. Ответного подарка не ждите: мы не любим долгов.",
+     "Дар принят, хотя мы не просили. Спасибо, больше так не делайте.",
+     "Мы оценили подношение по рыночной стоимости. Благодарим и закрываем вопрос.",
+     "Подарок прошёл карантин без нареканий. Спасибо, это лучше, чем ваши визиты.",
+     "Спасибо за дар. В наших книгах вы теперь не в минусе, но и не в друзьях."
+    ],
+    "en": [
+     "Your gift has been received and quarantined. Thank you; it does not earn you a visit.",
+     "Thank you. The gift is in our books, and we do not consider ourselves in your debt.",
+     "Your gift is accepted without ceremony. Our thanks come in writing, from far away.",
+     "The gift is received, checked and shelved in a far depot. Thanks, but come no closer.",
+     "Thank you. We booked the gift as a one-off courtesy, not as grounds for friendship.",
+     "Our thanks went out by courier. Expect no gift in return: we dislike debts.",
+     "The gift is accepted, though we did not ask. Thanks; please do not repeat it.",
+     "We appraised the offering at market value. Grateful, and the matter is closed.",
+     "The gift cleared quarantine without complaint. Thank you; it beats your visits.",
+     "Thanks for the gift. In our books you are no longer in the red, but no friend either."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион пойман у наших счётных палат. Чужим нечего делать в наших книгах.",
+     "Мы нашли вашего агента на складе. Его вернут вам вместе со счётом за беспокойство.",
+     "Лазутчик в наших хранилищах — вот почему мы не пускаем чужих. Больше не пытайтесь.",
+     "Ваш шпион схвачен у нашего хранилища. Мы выставим счёт за каждый шаг, который он сделал.",
+     "Агент в наших книгах — это худшее, что вы могли придумать. Протестуем и требуем возмещения.",
+     "Лазутчика поймали на нашей границе. Объяснения не нужны, нужна компенсация.",
+     "Мы всегда знали, что чужие подсматривают. Ваш шпион доказал, что мы были правы.",
+     "Шпион пойман, допрошен и описан как имущество. Хотите забрать, оплатите хранение.",
+     "Вы послали агента в наш дом. Мы запомним это и посчитаем проценты.",
+     "Ещё один лазутчик, и мы закроем для вас все порты. Этот пойман, предупреждение принято к сведению."
+    ],
+    "en": [
+     "Your spy was caught near our counting houses. Outsiders have no business in our books.",
+     "We found your agent in a warehouse. He will be returned, along with an invoice for the trouble.",
+     "An infiltrator in our vaults: this is exactly why we keep strangers out. Do not try again.",
+     "Your spy was seized near our vault. We will invoice every step he took.",
+     "An agent in our books is the worst thing you could have thought of. We protest and demand compensation.",
+     "An infiltrator was caught at our border. We need no explanations, only restitution.",
+     "We always knew outsiders peek. Your spy proved us right.",
+     "The spy is caught, questioned and inventoried as property. Collect him, and pay storage.",
+     "You sent an agent into our house. We will remember it and add interest.",
+     "One more infiltrator and every port closes to you. This one is caught; consider yourselves warned."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы отдадим голос за вас. Не из симпатии: просто вы — меньший риск.",
+     "Наш голос — ваш. Считайте это сделкой, а не началом дружбы.",
+     "Торговый дом поддержит вас на голосовании. Благодарить лично не нужно.",
+     "Мы проголосуем за вас в Совете. Не потому, что вы нам нравитесь, а потому, что других вариантов хуже.",
+     "Наш голос отдан вам. Считайте это расчётом, а не одолжением.",
+     "В Совете мы поддержим вас: чем дальше вы заняты своими делами, тем лучше для нас.",
+     "Голосуем за вас. Только не приходите благодарить: письма хватит.",
+     "Торговый дом отдал за вас голос в бюллетене. Это вложение, не дружба.",
+     "Мы поддержим вас голосом. Если вы станете главными, надеемся, вы запретите всем ходить к нам.",
+     "Голос ваш. Пусть в совете вас слышат подальше от наших границ."
+    ],
+    "en": [
+     "We will vote for you in the Council. Not out of affection; you are simply the lesser risk.",
+     "Our vote is yours. Count it as a transaction, not the start of a friendship.",
+     "Our house will back you in the Council. There is no need to thank us in person.",
+     "We will vote for you in the Council. Not because we like you, but because the alternatives are worse.",
+     "Our vote is yours. Call it a calculation, not a favour.",
+     "We back you in the Council: the busier you are with your own affairs, the better for us.",
+     "We vote for you. Do not come to thank us in person; a letter will do.",
+     "Our house cast its vote for you. It is an investment, not a friendship.",
+     "We will support you with our vote. If you rise high, we hope you forbid everyone from visiting us.",
+     "The vote is yours. May the Council hear you far from our borders."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете наш голос будет против: отдать галактику чужаку — худшее вложение, какое можно придумать.",
+     "Наш голос — против вас. Ни ваши обещания, ни ваши деньги этого не изменят.",
+     "Мы не доверили бы вам свой кошелёк, а тем более галактику. В Совете — против.",
+     "В Совете мы проголосуем против. Вы нам чужие, а чужим мы не вручаем ключей.",
+     "Наш голос против вас. Не обижайтесь: чужаков мы не поддерживаем ни при каких процентах.",
+     "Совет решает судьбы галактики, а ваша кандидатура у нас в графе «риск». Голос против.",
+     "Мы голосуем против. Если хотите изменить наше мнение, оставьте предложение у дальнего маяка.",
+     "Нет, мы не отдадим вам свой голос. Мы вообще не отдаём то, что не вернётся.",
+     "Торговый дом отдал голос против вас. Это не личное, мы просто не знаем вас.",
+     "Голос против, и сразу. Объяснять не будем, довольно того, что вы чужие."
+    ],
+    "en": [
+     "Our house votes against you. Handing the galaxy to an outsider is the worst investment we can imagine.",
+     "Our vote goes against you. Neither your promises nor your money will change that.",
+     "We would not trust you with our purse, let alone the galaxy. In the Council, we oppose you.",
+     "We vote against you in the Council. You are strangers, and strangers do not get our keys.",
+     "Our vote is against you. No offence: we back outsiders at no rate of interest.",
+     "The Council decides the fate of the galaxy, and your name sits in our risk column. Against.",
+     "We vote against. If you want to change our mind, leave a proposal at the far beacon.",
+     "No, we will not give you our vote. We never lend what will not come back.",
+     "Our house cast its vote against you. It is not personal; we simply do not know you.",
+     "Our vote is against, and at once. We will not explain; it is enough that you are strangers."
+    ]
+   }
+  },
+  "ruthless": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем. Мы уже прикинули вашу рыночную стоимость — пока она невелика.",
+     "Каждое новое знакомство — актив или пассив. Скоро узнаем, что из этого вы.",
+     "Рады встрече: у новых соседей всегда найдётся что купить дёшево и перепродать дорого.",
+     "Здравствуйте. Мы уже заглянули в ваши книги, насколько позволили открытые источники. Впечатление скромное.",
+     "Новый игрок на рынке: интересно, вы поставщик, покупатель или лот?",
+     "Приветствуем. Пока вы изучаете нас, наши оценщики уже закончили изучать вас.",
+     "Добрый день. Мы не враги и не друзья, мы потенциальные кредиторы. Постарайтесь нас не разочаровать.",
+     "Рады знакомству. Каждый, кого мы встречаем, рано или поздно оказывается в чьей-нибудь описи. Желательно в нашей.",
+     "Мы приветствуем вас вежливо и бесплатно. Дальше всё будет по прейскуранту.",
+     "Вас видно издалека: слабые места торчат из любого баланса. Мы это запомним."
+    ],
+    "en": [
+     "Greetings. We have already estimated your market value, and it is not much yet.",
+     "Every new acquaintance is an asset or a liability. We will soon see which you are.",
+     "Welcome. New neighbours always have something worth buying cheap and reselling dear.",
+     "Hello. We have already looked through your books, as far as open sources allow. The impression is modest.",
+     "A new player on the market. Are you a supplier, a buyer, or a lot?",
+     "Greetings. While you study us, our appraisers have finished studying you.",
+     "Good day. We are neither enemies nor friends, only prospective creditors. Try not to disappoint us.",
+     "Pleased to meet you. Everyone we meet ends up in somebody's inventory sooner or later. Preferably ours.",
+     "Our greeting is polite and free. Everything after it follows the price list.",
+     "You are visible from afar: weak points stick out of any balance sheet. We will remember that."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. По нашим расчётам, большая часть выгоды ляжет на нашу чашу весов.",
+     "Согласны. Ваш рынок нам пригодится — по крайней мере, пока он ещё ваш.",
+     "Договор принят. Торгуйте с нами, пока это нам выгодно, а дальше посмотрим.",
+     "Согласны. Торговля с вами — самый дешёвый способ изучить вашу кассу.",
+     "Принимаем договор. Чем больше вы нам должны, тем легче нам потом вами управлять.",
+     "Да. Выгода невелика, но мы любим вкладываться в тех, кого собираемся перекупить.",
+     "Договор принят. Заметьте: мы улыбаемся только тогда, когда баланс сходится.",
+     "Согласны, но проценты мы определим сами. Вам останется только соглашаться.",
+     "Мы принимаем. Каждая сделка с вами — шаг к тому, чтобы вы стали зависимы от нас.",
+     "Хорошо, мы согласны торговать. Пока вы платите вовремя, мы улыбчивы."
+    ],
+    "en": [
+     "We accept. By our figures, most of the profit will land on our side of the scales.",
+     "Agreed. Your market will be useful to us, at least while it is still yours.",
+     "Accepted. Trade with us for as long as it pays us; after that, we shall see.",
+     "Agreed. Trading with you is the cheapest way to look inside your till.",
+     "We accept the treaty. The more you owe us, the easier you are to manage later.",
+     "Yes. The gain is small, but we like to invest in those we plan to buy out.",
+     "The treaty is accepted. Note that we smile only when the balance sheet adds up.",
+     "We agree, but we will set the interest ourselves. All you have to do is agree too.",
+     "We accept. Every deal with you is a step toward making you dependent on us.",
+     "Fine, we agree to trade. While you pay on time, we stay cheerful."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Пока вы торгуете сами, ваши цены слишком высоки; когда разоритесь — купим вас дешевле.",
+     "Торговый договор связал бы нам руки, а нам они нужны свободными. Отказ.",
+     "Ваше предложение не стоит бумаги, на которой оно написано.",
+     "Нет. Условия, которые вы предлагаете, годятся для покупателя, а мы продавцы.",
+     "Отказ. Нам незачем делить прибыль, когда можно подождать и забрать всё.",
+     "Ваш договор мы прочли внимательно и не нашли в нём ни одной строки в нашу пользу. Нет.",
+     "Мы не заключаем сделки, где другая сторона знает цену. Отказываем.",
+     "Не интересует. Торговать мы любим, а вот торговаться с теми, кого скоро скупим, не любим.",
+     "Нет, и снизить ставку вы не сможете: предложение нам не нужно по любой цене.",
+     "Вы предлагаете нам рынок, который и так практически наш. Отказ."
+    ],
+    "en": [
+     "No. While you trade on your own your prices are too high; once you go bankrupt, we will buy you cheaper.",
+     "A trade treaty would tie our hands, and we prefer them free. No.",
+     "Your offer is not worth the paper it is written on.",
+     "No. The terms you offer suit a buyer, and we are sellers.",
+     "Refused. Why share the profit when we can wait and take all of it?",
+     "We read your treaty closely and found not one line in our favour. No.",
+     "We do not close deals where the other side knows the price. Declined.",
+     "Not interested. We love trade, but we do not love haggling with those we will soon buy out.",
+     "No, and cutting your rate will not help: we do not want the offer at any price.",
+     "You offer us a market that is practically ours already. Refused."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Ваши открытия стоят дороже, чем вы думаете, а наши — дешевле, чем вы платите.",
+     "Согласны. Чем больше вы знаете, тем больше получим мы, когда придёт время вас поглотить.",
+     "Договор принят. Знания — единственный товар, который можно присвоить, не нарушая договора.",
+     "Согласны. Мы обменяем вам то, что вы всё равно открыли бы через год.",
+     "Принимаем договор. Ваши лаборатории поработают на наш прибыль, сами того не зная.",
+     "Да, мы согласны. Купить чужое знание дешевле, чем изобрести своё, а продать дороже.",
+     "Договор принят. Мы будем делиться ровно настолько, насколько вы делитесь с нами. Не больше.",
+     "Принимаем. Ваши учёные пока не знают цену своим результатам, а мы знаем.",
+     "Согласны. Чужой патент в нашем портфеле всегда радует.",
+     "Что ж, мы согласны на обмен. Постарайтесь дать нам что-нибудь, чего у нас ещё нет."
+    ],
+    "en": [
+     "We accept. Your discoveries are worth more than you think, and ours cost less than you pay.",
+     "Agreed. The more you know, the more we get when the time comes to absorb you.",
+     "Accepted. Knowledge is the one commodity you can take without breaking a contract.",
+     "Agreed. We will trade you what you would have discovered in a year anyway.",
+     "We accept the agreement. Your laboratories will work for our profit without knowing it.",
+     "Yes, we agree. Buying knowledge is cheaper than inventing it, and selling it pays more.",
+     "Accepted. We share exactly as much as you share with us. Not an ounce more.",
+     "We accept. Your scientists do not yet know what their results are worth, and we do.",
+     "Agreed. Another patent in our portfolio is always welcome.",
+     "Very well, we agree to the exchange. Try to give us something we do not have yet."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Ваши учёные отстают, а менять наши открытия на их догадки — невыгодный курс обмена.",
+     "Отказано. Секрет, которым поделились, перестаёт быть товаром и становится подарком, а подарков мы не делаем.",
+     "Мы не продаём будущее по цене прошлого. Ваш договор отклонён.",
+     "Нет. Наши открытия не лежат на прилавке для тех, кто нам ничего не должен.",
+     "Отказ. Мы обменяем знания, когда у вас не останется козырей, а не раньше.",
+     "Мы отклоняем договор. Не стоит платить за то, что можно просто забрать позже.",
+     "Нет. Зачем нам ваши заметки? Мы подождём и купим всю вашу лабораторию.",
+     "Не сегодня и не в такой форме. Договор отклонён.",
+     "Наши исследования застрахованы от вас лучше, чем от пожара. Отказ.",
+     "Мы ничего не получим от этой сделки, кроме вашей выгоды. Нет."
+    ],
+    "en": [
+     "No. Your scientists lag behind, and trading our discoveries for their guesses is a poor exchange rate.",
+     "We decline. A shared secret stops being merchandise and becomes a gift, and we do not give gifts.",
+     "We do not sell the future at yesterday's prices.",
+     "No. Our discoveries are not on the counter for those who owe us nothing.",
+     "Refused. We will exchange knowledge when you have no cards left, not before.",
+     "We decline the agreement. There is no sense paying for what can simply be taken later.",
+     "No. Why would we want your notes? We will wait and buy the whole laboratory.",
+     "Not today and not in this form. The agreement is declined.",
+     "Our research is insured against you better than against fire. Refused.",
+     "We gain nothing from this deal but your profit. No."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз — это слияние активов. Мы согласны, пока ваши активы чего-то стоят.",
+     "Принимаем. Ваши флоты будут охранять наши вложения — выгодная сделка.",
+     "Да. Партнёр полезен, пока приносит доход; постарайтесь приносить его подольше.",
+     "Принимаем союз. Заметьте: мы всегда подписываемся мелким шрифтом.",
+     "Согласны. Общий враг — удобная причина для общего кошелька, где мы держим ключи.",
+     "Да. В союзе проще контролировать ваши расходы и маршруты.",
+     "Союз принят. Мы вложимся, а вы отдадите нам право голоса в спорных вопросах.",
+     "Торговый дом согласен. Если ваши корабли потонут, мы подберём всё ценное.",
+     "Мы принимаем: объединить усилия дешевле, чем нанимать убийц друг для друга.",
+     "Согласны, но каждый пункт будет проверен на предмет выгоды для нас."
+    ],
+    "en": [
+     "An alliance is a merger of assets. We agree, for as long as your assets are worth something.",
+     "We accept. Your fleets will guard our investments; that is a good deal for us.",
+     "Yes: a partner is useful while it is profitable, so try to stay profitable for a long time.",
+     "We accept the alliance. Note that we always sign in small print.",
+     "Agreed. A common enemy is a handy excuse for a common purse, and we hold the keys.",
+     "Yes. Inside an alliance it is easier to watch your spending and your routes.",
+     "The alliance is accepted. We invest, and you hand us the deciding vote in disputes.",
+     "Our house agrees. If your ships go down, we will gather up anything valuable.",
+     "We accept: combining forces is cheaper than hiring assassins to deal with each other.",
+     "Agreed, but every clause will be checked for profit to us."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз с вами — это ваши долги на нашем балансе. Нет.",
+     "Мы не вкладываемся в убыточные предприятия. Отказываем.",
+     "Ваша сила переоценена, а риски недооценены. Предложение отклонено.",
+     "Нет. Союзник — это обязательства, а мы не любим бесплатных обязательств.",
+     "Отказ. Мы не станем платить по счетам, которые выписали не мы.",
+     "Вы просите прикрытия. А что вы дадите взамен? Ничего. Нет.",
+     "Нет, и перед тем, как просить снова, подумайте, что вы можете нам заложить.",
+     "Союз отклонён. Наши ресурсы не для спасения чужих рисков.",
+     "Вы слабее, чем выглядите на бумаге, а на бумаге вы и так слабы. Отказ.",
+     "Нет. Покупать вас по частям нам выгоднее, чем делить с вами стол."
+    ],
+    "en": [
+     "An alliance with you means your debts on our balance sheet. No.",
+     "We do not invest in loss-making ventures, and you are one.",
+     "Your strength is overvalued and your risks understated. We refuse.",
+     "No. An ally means obligations, and we dislike unpaid obligations.",
+     "Refused. We will not pay bills someone else wrote.",
+     "You ask for cover. And what do you give in return? Nothing. No.",
+     "No, and before asking again, think what you can put up as collateral.",
+     "The alliance is declined. Our resources are not for rescuing other people's risks.",
+     "You are weaker than you look on paper, and on paper you are already weak. Refused.",
+     "No. Buying you piece by piece is more profitable than sharing a table."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем пакт. Тишина на границе дешевле флота на границе.",
+     "Согласны. Пока вы нас не трогаете, мы можем тратить деньги на кого-нибудь другого.",
+     "Да, подпишем. А пересмотрим, когда изменятся цены.",
+     "Согласны на пакт: он обойдётся дешевле, чем следить за вашей границей.",
+     "Принимаем. Пока этот договор действует, мы можем спокойно скупать ваших поставщиков.",
+     "Да. Пакт о ненападении — отличная ширма для всяких других дел.",
+     "Принимаем и подписываем. Заметьте, мы обещаем не нападать, а не не торговать против вас.",
+     "Принято. Оборонять рубежи накладно, а бумага ничего не стоит.",
+     "Договор принят. Мы будем помнить его ровно до тех пор, пока помнить выгодно.",
+     "Согласны, и пусть наши юристы напишут примечания к каждой строке."
+    ],
+    "en": [
+     "We accept the pact. A quiet border is cheaper than a fleet on it.",
+     "Agreed. While you leave us alone, we can spend our money on someone else.",
+     "Yes, we will sign. And we will review it when the prices change.",
+     "We agree to the pact: it costs less than watching your border.",
+     "Accepted. While this pact stands, we can quietly buy up your suppliers.",
+     "Yes. A non-aggression pact makes a fine screen for other business.",
+     "We accept and sign. Note that we promise not to attack, not that we will not trade against you.",
+     "Accepted. Guarding a frontier is costly, and paper costs nothing.",
+     "The pact is accepted. We will remember it exactly as long as remembering pays.",
+     "We agree, and our lawyers will add footnotes to every line."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Война съела больше, чем принесла. Мир — и подведём баланс.",
+     "Мы согласны на мир: ваши долги удобнее взыскивать через торговлю.",
+     "Мир принят. Счёт за эту войну мы выставим позже — с процентами.",
+     "Мир подписываем. Продолжать войну с вами — всё равно что вкладываться в падающие акции.",
+     "Хорошо, мир. Расчёты за эту кампанию мы закроем сами.",
+     "Мы принимаем мир: сначала торговля, а потом, когда вы ослабнете, посмотрим.",
+     "Мир принят. Спишем потери, взыщем остальное другим путём.",
+     "Война исчерпала бюджет. Мир, и без лишних слов.",
+     "Согласны на мир. Он выгоден нам, а что выгодно вам, нас не волнует.",
+     "Мир так мир. Только не вздумайте считать это милостью."
+    ],
+    "en": [
+     "The war has eaten more than it earned. Peace, then, and let us balance the books.",
+     "We agree to peace. Your debts will be easier to collect through trade.",
+     "Peace is accepted. The bill for this war will reach you later, with interest.",
+     "We sign the peace. Continuing this war against you would be like investing in falling shares.",
+     "Fine, peace. We will settle the accounts of this campaign ourselves.",
+     "We accept peace: trade first, and when you grow weak, we shall see.",
+     "Peace is accepted. We write off the losses and collect the rest another way.",
+     "The war has drained the budget. Peace, and no extra words.",
+     "We agree to peace. It suits us, and what suits you does not concern us.",
+     "Peace it is. Just do not mistake it for mercy."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Ваши планеты дешевеют с каждым днём, а мы ещё не закончили скупку.",
+     "Мир сейчас невыгоден, а война ещё приносит доход. Отклоняем.",
+     "Вы просите мира, потому что проигрываете. А мы не продаём со скидкой.",
+     "Нет. Война пока приносит больше, чем обходится, и мы не бросаем прибыльные дела.",
+     "Отказ. Ваши условия мира — просьба о благотворительности, а мы не благотворители.",
+     "Мы отклоняем мир. Вы ослабели, и теперь самое время скупать оставшееся.",
+     "Нет. Вы не расплатились за прошлые убытки, а уже просите нового кредита в виде мира.",
+     "Нет. Войне быть, а договор мы подпишем, когда у вас нечего будет брать.",
+     "Нет, ставки ещё не сыграли. Мы выжмем из этой войны всё.",
+     "Вашего мира не будет. Предлагайте больше или молчите."
+    ],
+    "en": [
+     "No. Your planets get cheaper every day, and we have not finished buying.",
+     "Peace does not pay right now, and the war is still turning a profit.",
+     "You ask for peace because you are losing. We do not sell at a discount.",
+     "No. The war still earns more than it costs, and we do not abandon profitable business.",
+     "Refused. Your peace terms are a plea for charity, and we are not a charity.",
+     "We decline peace. You have weakened, and now is the time to buy what remains.",
+     "No. You have not paid for past losses, and already you ask for fresh credit in the form of peace.",
+     "No. The war stays; we sign a treaty when you have nothing left to take.",
+     "No, the bets are not settled yet. We will squeeze everything from this war.",
+     "There will be no peace. Offer more or stay silent."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Вы — недооценённый актив, и мы приобретаем его силой. Это война.",
+     "Ничего личного: просто война сейчас выгоднее торговли.",
+     "Ваши долги перед нами давно превысили вашу стоимость. Пора взыскивать залог — значит, война.",
+     "Война. Мы разместили заказы на корабли ещё вчера: вы просто последний в списке клиентов.",
+     "Мы объявляем войну. Покупать вас по частям дольше, чем завоевать целиком.",
+     "Это война, и если вам нужна причина, то вот она: нам это выгодно.",
+     "Война. Ваш рынок слишком хорош, чтобы оставаться вашим.",
+     "Мы больше не ведём с вами дел. Мы ведём войну.",
+     "Пошлин и тарифов хватит. Теперь будет война, и сборщиками станут наши флоты.",
+     "Война. Ваши активы будут конфискованы в порядке взыскания."
+    ],
+    "en": [
+     "You are an undervalued asset, and we are acquiring you by force. This is war.",
+     "Nothing personal; war simply pays better than trade right now.",
+     "Your debts to us now exceed what you are worth. Time to foreclose, and foreclosure means war.",
+     "War. We placed orders for ships yesterday; you are simply the last name on the client list.",
+     "We declare war. Buying you piece by piece takes longer than conquering you whole.",
+     "This is war, and if you want a reason: it pays us.",
+     "War. Your market is too good to remain yours.",
+     "We no longer do business with you. We wage war on you.",
+     "Enough duties and tariffs. Now there will be war, and our fleets will be the collectors.",
+     "War. Your assets will be confiscated as repayment."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Наш договор больше не приносит прибыли. Расторгаем — и неустойку платить не будем.",
+     "Пакт с вами себя исчерпал. Мы списываем его как неудачное вложение.",
+     "Соглашение расторгнуто: нам сделали предложение получше, а верность в наших книгах не значится.",
+     "Мы расторгаем договор. Лучшие условия получили у другой стороны, а вас оставляем с долгами.",
+     "Соглашение с вами закрыто. Оно стоило нам больше, чем принесло.",
+     "Договор аннулирован: рынок изменился, а мы реагируем быстрее вас.",
+     "Пакт разорван. Неустойку за наш выход считайте нашим подарком вам.",
+     "Мы больше не связаны этим договором. Ваши гарантии оказались дешевле бумаги.",
+     "Союз распущен, как невыгодное товарищество. Ликвидационный баланс вы получите по почте.",
+     "Всё, пакт окончен. Предупреждали ведь: верность не числится в наших ценных бумагах."
+    ],
+    "en": [
+     "Our treaty no longer turns a profit. We are ending it, and we will pay no penalty.",
+     "The pact with you has run its course. We are writing it off as a bad investment.",
+     "The agreement is void. We have had a better offer, and loyalty is not an item in our books.",
+     "We terminate the treaty. We got better terms elsewhere, and you are left with the debts.",
+     "The agreement is closed. It cost us more than it earned.",
+     "The treaty is annulled: the market shifted, and we react faster than you.",
+     "The pact is broken. Consider the penalty for our exit a gift from us to you.",
+     "We are no longer bound by this agreement. Your guarantees turned out cheaper than paper.",
+     "The alliance is dissolved like an unprofitable partnership. The liquidation balance will reach you by mail.",
+     "That is it, the pact is over. We did warn you: loyalty is not among our securities."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите, или мы скупим ваши долги и взыщем их так, как сочтём нужным.",
+     "Ваши действия бьют по нашим доходам. Перестаньте, пока мы ещё считаем это недоразумением.",
+     "Отступите. Разорить вас нам обойдётся дешевле, чем терпеть от вас убытки.",
+     "Остановитесь, пока мы только просим. Потом пришлём бумагу с подписью адмирала.",
+     "Ваше поведение портит наши показатели. Исправьте, или мы исправим вас.",
+     "У нас есть три варианта: купить вас, разорить вас или забыть о вас. Выбор за вами.",
+     "Не ошибайтесь: деньги — это сила, а у нас её больше.",
+     "Один неверный шаг, и мы обратим ваши долги в оружие.",
+     "Предупреждение первое и последнее: оно бесплатное, остальные будут платными.",
+     "Вы мешаете хорошему рынку. Рынок умеет убирать помехи."
+    ],
+    "en": [
+     "Stop, or we will buy up your debts and collect them however we please.",
+     "Your actions are hurting our income. Cease, while we still treat it as a misunderstanding.",
+     "Back off. Ruining you costs us less than tolerating the losses you cause.",
+     "Stop while we are only asking. Next comes a paper signed by an admiral.",
+     "Your behaviour spoils our figures. Correct it, or we will correct you.",
+     "We have three options: buy you, ruin you, or forget you. The choice is yours.",
+     "Make no mistake: money is power, and we have more of it.",
+     "One wrong step, and we turn your debts into weapons.",
+     "The first warning is also the last one: it is free, and the rest will be paid.",
+     "You are obstructing a good market. Markets know how to remove obstacles."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "{СУММА} — и ваши колонии останутся вне наших планов по поглощению.",
+     "Мы оценили вашу безопасность: она стоит {СУММА}, и цена не обсуждается.",
+     "Переведите {СУММА}. Это дешевле, чем узнать, во что обходится наш флот.",
+     "Вам предъявлен счёт на {СУММА}. Срок оплаты не обсуждается, санкции тоже.",
+     "Платите {СУММА} — и мы продолжим считать вас клиентом, а не добычей.",
+     "Ваш страховой взнос составил {СУММА}. Не вносите, и страховой случай наступит.",
+     "Мы взимаем плату за отказ от нападения. Нынешняя ставка: {СУММА}.",
+     "Условия просты: {СУММА}, и вы нас не интересуете. Иначе заинтересуетесь вы нам очень.",
+     "Выплатите {СУММА}. Мы ценим тех, кто решает вопросы деньгами, а не потерями.",
+     "Не торгуйтесь. Платёж в {СУММА} — это уже скидка по сравнению с тем, что вы потеряете."
+    ],
+    "en": [
+     "{AMOUNT}, and your colonies stay out of our acquisition plans.",
+     "We have appraised your safety. It costs {AMOUNT}, and the price is not negotiable.",
+     "Transfer {AMOUNT}. It is cheaper than finding out what our fleet costs.",
+     "You have been invoiced for {AMOUNT}. The due date is not open to discussion, and neither are the sanctions.",
+     "Pay {AMOUNT} and we keep treating you as a client, not as prey.",
+     "Your insurance premium is {AMOUNT}. Skip it, and the insured event occurs.",
+     "We charge a fee for not attacking. The current rate is {AMOUNT}.",
+     "The terms are simple: {AMOUNT}, and you do not interest us. Otherwise you will interest us a great deal.",
+     "Pay {AMOUNT}. We respect those who settle matters with money rather than with losses.",
+     "Do not haggle. A payment of {AMOUNT} is already a discount compared with what you stand to lose."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Спасибо. Ваш подарок учтён — и показал нам, сколько вы готовы платить.",
+     "Благодарим. Щедрость — прекрасная черта соседей, особенно слабых.",
+     "Подарок принят с благодарностью. Мы не сентиментальны, но хорошие активы ценим.",
+     "Благодарим. Подарок мы приняли, а вашу готовность отдавать запомнили.",
+     "Спасибо за дар: как правило, те, кто дарит, дарят и больше.",
+     "Мы ценим подарки. Чем больше вы их шлёте, тем ниже ваша цена в наших глазах.",
+     "Подарок получен. Размер оставляет вопросы, но жест мы засчитали.",
+     "Благодарность записана в графу «поступления». Остальные графы пока пусты.",
+     "Спасибо. Дар небольшой, но хорошо, что вы понимаете, кому его нести.",
+     "Мы приняли подарок. Просим не считать это обязательством."
+    ],
+    "en": [
+     "Thank you. Your gift has been logged, and it tells us how much you are willing to pay.",
+     "Our thanks. Generosity is a fine quality in neighbours, especially weak ones.",
+     "A gift well received. We are not sentimental, but we appreciate a good asset.",
+     "Thank you. We accepted the gift, and we noted your readiness to give.",
+     "Thanks for the gift: as a rule, those who give once give again.",
+     "We value gifts. The more you send, the lower your price in our eyes.",
+     "The gift is received. The size raises questions, but we counted the gesture.",
+     "Our gratitude is entered under receipts, and the other columns are empty for now. Thanks for the gift.",
+     "Thanks. A small gift, but it is good that you know who to bring it to.",
+     "We took the gift. Please do not treat it as an obligation."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион пойман и уже торгуется: за свою жизнь он продаёт нам всё, что знает о вас.",
+     "Мы поймали вашего агента и перекупили его. Спасибо за полезное приобретение.",
+     "Шпионаж — дорогое удовольствие. Ваш лазутчик у нас, а счёт за него вы скоро получите.",
+     "Ваш шпион схвачен. Выкуп будем обсуждать после того, как узнаем, что он успел продать.",
+     "Агент пойман в наших хранилищах. Нам неприятно, что вы выбрали такой метод экономии.",
+     "Лазутчик пойман: это краденое имущество, и мы предъявляем иск.",
+     "Мы нашли вашего шпиона. Он стоит дороже, чем вы заплатили ему, но дешевле, чем потеряли вы.",
+     "Шпионаж — это кража. Платите штраф, или мы возместим убытки сами.",
+     "Ваш агент пойман, допрошен и оценён. Оценка вам не понравится.",
+     "Мы поймали вашего шпиона. Это недобросовестная конкуренция, и она будет учтена."
+    ],
+    "en": [
+     "Your spy was caught and is already bargaining: he is selling us everything he knows about you, in exchange for his life.",
+     "We caught your agent and bought him out. Thank you for the useful acquisition.",
+     "Espionage is an expensive hobby. Your infiltrator is in our hands, and the bill is on its way.",
+     "Your spy is seized. We will discuss ransom once we learn what he managed to sell.",
+     "An agent was caught in our vaults. It pains us that you chose such a method of saving money.",
+     "An infiltrator is caught: it is stolen property, and we are filing a claim.",
+     "We found your spy. He is worth more than you paid him and less than you lost.",
+     "Spying is theft. Pay the fine, or we will recover the damages ourselves.",
+     "Your agent is caught, questioned and appraised. You will not like the appraisal.",
+     "We caught your spy. It is unfair competition, and it will be accounted for."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы проголосуем за вас. Это вложение, и мы рассчитываем на дивиденды.",
+     "Наш голос ваш. Запомните его цену — мы о ней ещё напомним.",
+     "Мы поддержим вас в Совете: выгоднее стоять рядом с победителем.",
+     "Наш голос в Совете ваш. Считайте это авансом, который мы потом востребуем.",
+     "Мы проголосуем за вас. Придёт время, и вы вернёте услугу вдвойне.",
+     "В Совете вы получите наш голос. Он дёшев, но цена вернётся с процентами.",
+     "Голос за вас. Мы ставим на вас, как на скаковую лошадь с хорошими шансами.",
+     "Мы отдадим вам голос в Совете: победитель нам должен, а долги мы любим.",
+     "Наш голос будет за вас. Запишите это в книгу обязательств, куда мы заглядываем регулярно.",
+     "За вас, в Совете. Не вздумайте проиграть: мы вложились."
+    ],
+    "en": [
+     "We will vote for you in the Council. Consider it an investment; we expect dividends.",
+     "Our vote is yours. Remember what it cost; we will remind you.",
+     "We will back you in the Council. It pays to stand next to the winner.",
+     "Our vote in the Council is yours. Consider it an advance that we will claim later.",
+     "We will vote for you. When the time comes, you will repay the favour twice over.",
+     "In the Council you get our vote. It is cheap, but the price will come back with interest.",
+     "Our vote goes to you. We are betting on you like a racehorse with good odds.",
+     "We cast our vote for you in the Council: a winner owes us, and we love debts.",
+     "Our vote will be for you. Enter it in the book of obligations, which we consult regularly.",
+     "For you, in the Council. Do not dare to lose: we have invested."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы голосуем против вас: на этих торгах ваша ставка оказалась не самой высокой.",
+     "Наш голос не продаётся по вашей цене. Мы против.",
+     "Вы во главе галактики плохо скажетесь на наших доходах. В Совете — против вас.",
+     "В Совете мы проголосуем против вас. Вы нам нужны слабыми, а не у власти.",
+     "Наш голос против. Поднимите ставку, и мы подумаем, но вряд ли.",
+     "Мы голосуем против: сильный соперник вреден, а слабый нужен нам на своём месте.",
+     "Совет не получит от нас голоса за вас. Ничего личного, только расчёт.",
+     "Голос против вас. Мы не собираемся инвестировать в чужое возвышение.",
+     "Наш голос уже продан другой стороне, и она дала больше. Против вас.",
+     "Голосуем против. Вы нам полезнее, когда вам чего-то не хватает."
+    ],
+    "en": [
+     "We will vote against you in the Council. At this auction, yours was not the highest bid.",
+     "Our vote is not for sale at your price. We vote against you.",
+     "You at the head of the galaxy would be bad for our margins. In the Council, we oppose you.",
+     "In the Council we vote against you. We need you weak, not in power.",
+     "Our vote is against. Raise the bid and we will think, though probably not.",
+     "We vote against: a strong rival is harmful, and a weak one is useful in his place.",
+     "The Council gets no vote for you from us. Nothing personal, only arithmetic.",
+     "Our vote is against you. We do not plan to invest in someone else's rise.",
+     "Our vote has already been sold to another party, and it paid more. Against you.",
+     "We vote against. You are more useful to us when you lack something."
+    ]
+   }
+  },
+  "aggressive": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем. Учтите сразу: каждый наш грузовой корабль сопровождают боевые.",
+     "Мы рады новым покупателям. Нам везёт в торговле, а тем, кто нам не платит, везёт гораздо меньше.",
+     "Торговый дом приветствует вас. Платите вовремя — и вы никогда не узнаете, как мы взыскиваем долги.",
+     "Здравствуйте. Мы торгуем с миром и воюем с теми, кто срывает сроки. Вы пока ни с кем из этих двух.",
+     "Торговый дом вас приветствует. Ваши корабли у нашей границы сосчитаны, и наши тоже.",
+     "Добро пожаловать. Дверь открыта, а у двери стоят наши орудийные расчёты. Заходите без глупостей.",
+     "Мы всегда рады клиентам и всегда готовы к взысканию. Вы нас поймёте, когда познакомитесь поближе.",
+     "Приветствуем. У нас не бывает плохих долгов, у нас бывают плохие должники.",
+     "Слава удаче, что нас свела. Не стоит проверять, на чьей она стороне при расчётах.",
+     "Вы вошли в наш сектор. Мы оценили: вы либо покупатель, либо мишень. Выбирайте."
+    ],
+    "en": [
+     "Greetings. Note this right away: every one of our freighters sails with warships.",
+     "We welcome new customers. We are lucky in trade; those who fail to pay us are far less lucky.",
+     "Our house greets you. Pay on time and you will never learn how we collect debts.",
+     "Hello. We trade with the willing and make war on those who miss deadlines. You are neither yet.",
+     "Our house greets you. Your ships at our border are counted, and so are ours.",
+     "Welcome. The door is open, and gun crews stand beside it. Come in, but without nonsense.",
+     "We are always glad of customers and always ready to collect. You will understand once you know us better.",
+     "Greetings. We never have bad debts; we have bad debtors.",
+     "Praise to luck for bringing us together. Do not test whose side it takes at settlement.",
+     "You have entered our sector. We have appraised you: either a customer or a target. Choose."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Принимаем. Но помните: за каждым нашим грузом идёт конвой.",
+     "Договор принят. Обманете на весах — придём перевешивать с орудиями.",
+     "Согласны. Наша торговля сильна, потому что ещё сильнее наши пушки.",
+     "Согласны. Но весы у нас, а гири у нашего флота, так что ошибаться не советуем.",
+     "Принимаем договор. Прибыль общая, а вот охрана только наша.",
+     "Да. Торгуйте, но помните, каждый ваш грузовик у нас на прицеле. Дружеском, пока.",
+     "Договор принят. Если вы будете платить вовремя, мы будем стрелять только по пиратам.",
+     "Согласны. Деньги любят тишину, а тишину обеспечивают наши эсминцы.",
+     "Принимаем. Не пытайтесь нас обмануть: у нас хорошая память и плохой характер.",
+     "Мы согласны. Наш флот проведёт ваши караваны, за разумную плату."
+    ],
+    "en": [
+     "We accept. But remember, every cargo of ours travels with an escort.",
+     "Accepted. Cheat us on the scales and we will come to reweigh with guns.",
+     "Agreed. Our trade is strong because our guns are stronger.",
+     "Agreed. But the scales are ours and the weights belong to our fleet, so do not misstep.",
+     "We accept the treaty. The profit is shared; the protection is ours alone.",
+     "Yes. Trade, but remember that every freighter of yours is in our sights. Friendly sights, for now.",
+     "The treaty is accepted. Pay on time and we will fire only at pirates.",
+     "We agree. Money loves quiet, and our destroyers provide the quiet.",
+     "We accept. Do not try to cheat us: we have a good memory and a bad temper.",
+     "We agree. Our fleet will escort your caravans, for a reasonable fee."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Ваши товары мы получим и без договора — вместе с вашими складами.",
+     "Торговать со слабыми — терять время. Отказываем.",
+     "Ваши условия — оскорбление. Нет, и в следующий раз думайте, кому предлагаете такую цену.",
+     "Нет. Мы не торгуем с теми, кого собираемся однажды штрафовать.",
+     "Отказ. Прибыль с вас будет, но другим способом и с орудийной поддержкой.",
+     "Договор нам не нужен. Хотите сбыть товар, сдайте его нашему флоту.",
+     "Нет. Наши склады полны, а наши орудия голодны. Вы нам нужны не как поставщик.",
+     "Торговый договор с вами? Смешно. Нет.",
+     "Мы не подписываем соглашения с теми, кто боится наших патрульных.",
+     "Ваш прайс отклонён, и если вы настаиваете, мы пришлём курьера с ответом покрепче."
+    ],
+    "en": [
+     "No. We will get your goods without a treaty, warehouses and all.",
+     "Trading with the weak is a waste of time. We refuse.",
+     "Your terms are an insult. No, and next time think twice about who you offer such a price to.",
+     "No. We do not trade with those we expect to fine one day.",
+     "Refused. There will be profit from you, but by another route and with gunnery support.",
+     "We need no treaty. If you want to move goods, hand them to our fleet.",
+     "No. Our warehouses are full and our guns are hungry. You are not wanted as a supplier.",
+     "A trade treaty with you? Laughable. No.",
+     "We do not sign agreements with those who fear our patrols.",
+     "Your price list is rejected, and if you insist, we will send a courier with a harder answer."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Новые знания — это новые орудия, а орудия нам нужны всегда.",
+     "Согласны. Но если ваши чертежи окажутся пустышкой, мы потребуем возврата — силой.",
+     "Да. Пусть ваши учёные помогут загрузить наши верфи — и пусть работают на совесть.",
+     "Принимаем. Новые знания — это новые пушки, а мы любим, когда их много.",
+     "Согласны на обмен. Только имейте в виду: результатами мы поделимся не со всеми.",
+     "Да, мы согласны. Пока вы думаете, наши верфи работают, и это неплохое сочетание.",
+     "Договор принят. Хорошая технология окупается в одном же бою.",
+     "Согласны. Мы вложимся в вашу науку, а вы вложитесь в нашу броню.",
+     "Принимаем. Ваши лаборатории пригодятся для проекта, который мы пока держим в секрете.",
+     "Согласны, договор подписан. Если исследование подведёт, мы взыщем убытки."
+    ],
+    "en": [
+     "We accept. New knowledge means new guns, and we always need guns.",
+     "Agreed. But if your blueprints prove worthless, we will demand a refund, by force.",
+     "Yes, and your scientists will help keep our shipyards busy. See that they work hard.",
+     "We accept. New knowledge means new guns, and we like to have plenty.",
+     "Agreed on the exchange. Bear in mind that we will not share the results with everyone.",
+     "Yes, we agree. While you think, our shipyards work, and that is a fine pairing.",
+     "The agreement is accepted. A good technology pays for itself in a single battle.",
+     "We agree. We invest in your science, and you invest in our armour.",
+     "Accepted. Your laboratories will serve a project we are keeping quiet for now.",
+     "We agree, the deal is signed. If the research fails us, we will recover the losses."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Наши технологии — это наши пушки, а пушками не делятся.",
+     "Отказываем. А если хотите знать, как устроены наши корабли, подойдите поближе — покажем.",
+     "Нам нечему учиться у слабых. Договор отклонён.",
+     "Нет. Нам нужны не чужие формулы, а чужие склады.",
+     "Отказ. Наши учёные работают на флот, а не на ваш кошелёк.",
+     "Мы не обмениваемся технологиями с теми, кого можем просто захватить.",
+     "Нет. Научный договор — это приглашение в наши лаборатории, и мы его не посылали.",
+     "Договор отклонён. Чертежи вашей верфи нам ни к чему, а чертежи нашей вам не светят.",
+     "Нет, спасибо. Мы предпочитаем добывать знания с помощью абордажа.",
+     "Мы отказываем. Чем меньше вы знаете о наших пушках, тем дольше проживёте."
+    ],
+    "en": [
+     "No. Our technology is our guns, and nobody shares guns.",
+     "We refuse. If you want to know how our ships work, come closer and we will show you.",
+     "There is nothing to learn from the weak. Not interested.",
+     "No. We do not want your formulas, we want your warehouses.",
+     "Refused. Our scientists work for the fleet, not for your purse.",
+     "We do not swap technology with those we can simply seize.",
+     "No. A research treaty is an invitation into our laboratories, and we sent none.",
+     "The agreement is declined. Your blueprints are of no use to us, and ours are not for you.",
+     "No, thank you. We prefer to obtain knowledge by boarding.",
+     "We refuse. The less you know of our guns, the longer you will live."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Принимаем союз. Вместе мы соберём долги со всего сектора.",
+     "Согласны. Ваши пушки плюс наши деньги — выгоднее сделки не придумать.",
+     "Да. Только помните, кто в этом союзе главный пайщик: мы.",
+     "Принимаем союз. Вдвоём мы окружим любого должника.",
+     "Согласны. Наш флот и ваши владения — отличный залог для нового похода.",
+     "Да. Но запомните: в этом союзе командует тот, кто платит за снаряды.",
+     "Союз принят. Против общего врага у нас есть общая смета.",
+     "Согласны. Мы любим, когда у наших орудий появляется товарищ.",
+     "Торговый дом принимает союз. Враги ваших врагов станут нашей добычей.",
+     "Принимаем. Пусть те, кто задолжал, подумают о цене своих долгов."
+    ],
+    "en": [
+     "We accept the alliance. Together we will collect debts from the whole sector.",
+     "Agreed. Your guns plus our money: there is no better deal.",
+     "Yes. Just remember who holds the controlling share in this alliance: we do.",
+     "We accept the alliance. Together we can surround any debtor.",
+     "Agreed. Our fleet and your holdings make fine collateral for a new campaign.",
+     "Yes. But remember: in this alliance, the one who pays for the shells gives the orders.",
+     "The alliance is accepted. Against a common enemy we keep a common budget.",
+     "We agree. Our guns like to have company.",
+     "Our house accepts the alliance. The enemies of your enemies will become our spoils.",
+     "We accept. Let those who owe us think about the price of their debts."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Слабые партнёры нам не нужны, даже даром.",
+     "Отказываем. Ваш флот — слишком жалкий залог для такого договора.",
+     "Мы сами себе армия и сами себе банк. Союз отклонён.",
+     "Нет. Союзник должен платить своими кораблями, а у вас их нет.",
+     "Отказ. Мы не делим добычу с теми, кто не делит опасность.",
+     "Нет, мы справимся одни. Нам нужны ваши планеты, а не ваша дружба.",
+     "Союз отклонён. Мы предпочитаем флот, который слушает только нас.",
+     "Нет. Вы просите защиты, а мы привыкли её продавать, а не дарить.",
+     "Не выйдет. Мы не хотим воевать за ваши интересы, они слишком мелкие.",
+     "Отказ. Один выстрел нашего флота стоит больше, чем весь ваш союз."
+    ],
+    "en": [
+     "No. We have no use for weak partners, not even free of charge.",
+     "We refuse. Your fleet is poor collateral for a deal like that.",
+     "We are our own army and our own bank. The answer is no.",
+     "No. An ally must pay with ships of his own, and you have none.",
+     "Refused. We do not share spoils with those who do not share danger.",
+     "No, we will manage alone. We want your planets, not your friendship.",
+     "The alliance is declined. We prefer a fleet that answers only to us.",
+     "No. You ask for protection, and we sell it, we do not give it away.",
+     "It will not happen. We do not want to fight for your interests; they are too small.",
+     "Refused. A single volley from our fleet is worth more than your whole alliance."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Принимаем пакт. Но не думайте, что наши пушки остынут.",
+     "Согласны. Нашему флоту и так хватает должников — вы подождёте.",
+     "Пакт принят. Нарушите его — и получите такой счёт, по которому вовек не расплатитесь.",
+     "Принимаем пакт. Пока он действует, наши пушки смотрят в другую сторону.",
+     "Принимаем пакт. Держать пушки в доках дешевле, чем жечь на вас снаряды, а считать мы умеем.",
+     "Да. Пакт подпишем, но без иллюзий: слово у нас крепче бумаги, а пушки крепче слова.",
+     "Договор принят. Помните, что мы всегда рядом и всегда готовы.",
+     "Согласны. Дайте нам время, и мы найдём, на кого направить флот.",
+     "Принято. Нарушите, и ваши верфи узнают, как громко мы умеем взыскивать.",
+     "Принимаем и подписываем. Мы не нападаем на тех, кто нам пока нужен целым."
+    ],
+    "en": [
+     "We accept the pact. Do not think our guns will cool.",
+     "Agreed. Our fleet has enough debtors to visit; you can wait.",
+     "The pact is accepted. Break it and we will send a bill you can never pay off.",
+     "We accept the pact. While it holds, our guns look the other way.",
+     "Agreed. Not attacking you is cheaper than attacking you, for now.",
+     "Yes. We sign the pact, but without illusions: our word is stronger than paper, and our guns stronger than our word.",
+     "The pact is accepted. Remember that we are always near and always ready.",
+     "We agree. Give us time and we will find someone for the fleet to aim at.",
+     "Accepted. Break it, and your shipyards will learn how loudly we collect.",
+     "We accept and sign. We do not attack those we still need intact."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир принят. Теперь вы знаете, во что обходится война с нами, — повторять покупку не советуем.",
+     "Мир. Наши флоты возвращаются в доки, но счёт за войну остаётся открытым.",
+     "Мы принимаем мир. Пушки остаются заряженными, а проценты по вашему долгу продолжают расти.",
+     "Мир принят. Мы вернём вашим кораблям свободу, а вы вернёте нам украденное время.",
+     "Хорошо, мир. Но запомните его цену: больше вы такой скидки не получите.",
+     "Согласны на мир. Орудия остынут, но не разберутся.",
+     "Мир. Спишем ущерб и пересчитаем долги. Они всё ещё за вами.",
+     "Принимаем мир. Нам надоело стрелять в тех, кто уже понял урок.",
+     "Мир подписан. Наши корабли пойдут к другим должникам.",
+     "Что ж, мир. Вы продержались дольше, чем мы рассчитывали, и это вас спасло."
+    ],
+    "en": [
+     "Peace is accepted. Now you know what a war with us costs; we do not recommend buying another.",
+     "Peace. Our fleets return to dock, but the war bill stays open.",
+     "We accept peace. Our guns stay loaded, and the interest on your debt keeps running.",
+     "Peace is accepted. We free your ships, and you return the time you stole from us.",
+     "Fine, peace. Remember its price: you will not get a discount like this again.",
+     "We agree to peace. The guns will cool, but they will not be dismantled.",
+     "Peace. We write off the damage and recount the debts. They are still yours.",
+     "We accept peace. We are tired of firing at those who have learned the lesson.",
+     "Peace is signed. Our ships will go and call on other debtors.",
+     "Very well, peace. You lasted longer than we figured, and that saved you."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы задолжали нам слишком много, и мы будем взыскивать всё до конца.",
+     "Мир? Не раньше, чем наш флот взыщет с вас всё до последней монеты.",
+     "Отказываем. Война сейчас — наше самое прибыльное предприятие, и закрывать его мы не станем.",
+     "Нет. Вы просили мира слишком поздно, а мы заряжаем слишком быстро.",
+     "Отказ. Пока на вашей карте остаётся хоть одна наша цель, война идёт.",
+     "Мира не будет. Мы только начали считать убытки.",
+     "Нет. Ваша просьба вызывает у нас смех, а смех у нас обходится дорого.",
+     "Не сегодня. Вернитесь, когда будете готовы уступить гораздо больше.",
+     "Нет, мы не прекратим. Флот в пути, и догонять его будете сами.",
+     "Отказываем. Платите, сдавайтесь или умирайте: мира тут нет."
+    ],
+    "en": [
+     "No. You owe us too much, and we will collect every bit of it.",
+     "Peace? Not until our fleet has collected every last coin.",
+     "We refuse. War is our most profitable venture right now, and we are not shutting it down.",
+     "No. You asked for peace too late, and we load too quickly.",
+     "Refused. While your map holds a single target of ours, the war goes on.",
+     "There will be no peace. We have only begun to count the losses.",
+     "No. Your plea makes us laugh, and our laughter is expensive.",
+     "Not today. Come back when you are ready to yield a great deal more.",
+     "No, we will not stop. The fleet is under way, and you can chase it yourselves.",
+     "We refuse. Pay, surrender or die: there is no peace here."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Ваш долг просрочен. Наш флот уже летит его взыскивать — это война.",
+     "Переговоры о цене закончены: последнее слово за нашими пушками. Это война.",
+     "Война! Лучшее вложение сезона — снаряды, и мы вкладываем их в вас.",
+     "Это война. Хватит считать, пора стрелять.",
+     "Мы объявляем вам войну. Ваш долг растёт, а наше терпение тает.",
+     "Война. Наши корабли уже вышли, а ваши порты уже в списке.",
+     "Всё, торг закончен. Война, и без скидок.",
+     "Вы заплатите за каждое слово, которое сказали. Война.",
+     "Война! Мы давно хотели проверить, как выглядят ваши верфи изнутри.",
+     "Мы больше не ждём платежей. Начинается война."
+    ],
+    "en": [
+     "Your debt is overdue, and our fleet is coming to collect it. This is war.",
+     "Price talks are over; our guns have the last word, and the word is war.",
+     "War! The best investment this season is ammunition, and we are investing it in you.",
+     "This is war. Enough counting, it is time to shoot.",
+     "We declare war on you. Your debt grows while our patience melts.",
+     "War. Our ships have already left, and your ports are already on the list.",
+     "That is it, the haggling is over. War, and no discounts.",
+     "You will pay for every word you spoke. War.",
+     "War! We have long wanted to see how your shipyards look from the inside.",
+     "We no longer wait for payments. The war begins."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Наш договор расторгнут. Сильному не нужны бумаги, чтобы получать своё.",
+     "Мы рвём пакт. Договариваться со слабыми — себе в убыток.",
+     "Соглашение аннулировано. Отныне условия диктуют наши пушки.",
+     "Договор расторгнут. Наш флот не любит сидеть без дела.",
+     "Мы рвём соглашение. Вы слишком долго мешали нашим орудиям.",
+     "Пакт окончен. Вас предупреждали, что бумага кончается раньше терпения.",
+     "Союз распущен. Теперь вы сами по себе, а мы сами по себе, со снарядами.",
+     "Нам надоело ждать. Договор разорван, и неустойку вы выплатите флоту.",
+     "Мы выходим из соглашения. Следующая встреча будет без печатей.",
+     "Договор потерял силу: наши пушки больше не желают его уважать."
+    ],
+    "en": [
+     "Our treaty is void. The strong need no paper to get what is theirs.",
+     "We are tearing up the pact. Bargaining with the weak is a losing business.",
+     "The agreement is cancelled. From now on our guns set the terms.",
+     "The treaty is broken. Our fleet does not like idling.",
+     "We tear up the agreement. You hindered our guns for too long.",
+     "The pact is over. You were warned that paper runs out before patience.",
+     "The alliance is dissolved. Now you are on your own and we are on ours, with shells.",
+     "We have tired of waiting. The treaty is torn, and you will pay the penalty to the fleet.",
+     "We leave the agreement. The next meeting will be without seals.",
+     "The pact has lost its force: our guns no longer care to respect it."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите немедленно, или наш флот придёт к вам за долгами.",
+     "Мы невелики ростом, но наша казна способна нанять флот, который вас раздавит. Прекратите.",
+     "Вы испытываете наше терпение, а оно дорого стоит. Остановитесь, пока ещё можете за него заплатить.",
+     "Ещё одна такая выходка, и наши эсминцы нанесут вам визит с проверкой.",
+     "Мы предупреждаем: следующий шаг оплатите собственными кораблями.",
+     "Остановитесь. Орудия наших кланов умеют считать до одного.",
+     "Вы думаете, мы шутим? Приходите за нашим счётом лично.",
+     "Перестаньте, или ваши верфи узнают, что такое досрочное взыскание.",
+     "Наши пушки не любят ждать. Подумайте, пока они ещё в доках.",
+     "Это последнее предупреждение. Остальное будет написано на ваших бортах."
+    ],
+    "en": [
+     "Stop at once, or our fleet will come to collect what you owe.",
+     "We may be small, but our treasury can hire a fleet that will crush you. Stop.",
+     "You are testing our patience, and our patience is expensive. Stop while you can still afford it.",
+     "One more stunt like that and our destroyers will pay you an inspection visit.",
+     "We warn you: your next step will be paid for with your own ships.",
+     "Stop. The guns of our Clans know how to count to one.",
+     "You think we are joking? Come and collect our bill in person.",
+     "Cease, or your shipyards will learn what early repayment means.",
+     "Our guns do not like to wait. Think while they are still in dock.",
+     "This is the last warning. The rest will be written on your hulls."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Наши пушки выписали вам счёт: {СУММА}. Пушки скидок не дают.",
+     "Срок оплаты — сейчас: {СУММА}. Каждая просрочка оплачивается кораблями.",
+     "Мы взыскиваем {СУММА} за то, что наш флот до сих пор вас не трогал. Не заставляйте его начинать.",
+     "Заплатите {СУММА}, иначе наш флот напомнит вам об этом лично.",
+     "Нам нужно {СУММА}. Это скромная плата за то, что мы вас не трогаем.",
+     "Просрочка, штраф и пеня: итого {СУММА}. Срок вышел вчера.",
+     "Вы платите {СУММА}, мы убираем орудия от ваших границ. Простой расчёт.",
+     "Выкладывайте {СУММА}. Наш флот не привык ждать у порога.",
+     "Взнос за мир в вашем секторе: {СУММА}. Или платите флоту, и это обойдётся дороже.",
+     "Мы просим {СУММА}. Просим один раз, потом уже не просим."
+    ],
+    "en": [
+     "Our guns have drawn up your invoice: {AMOUNT}. Guns give no discounts.",
+     "Payment is due now: {AMOUNT}. Every delay is paid for in ships.",
+     "We are collecting {AMOUNT} for the fact that our fleet has left you alone so far. Do not make it start.",
+     "Pay {AMOUNT}, or our fleet will remind you in person.",
+     "We need {AMOUNT}. A modest fee for the fact that we leave you alone.",
+     "Arrears, fine and penalty: {AMOUNT} in all. The deadline passed yesterday.",
+     "You pay {AMOUNT}, we pull our guns back from your borders. Simple arithmetic.",
+     "Hand over {AMOUNT}. Our fleet is not used to waiting at the door.",
+     "The fee for quiet in your sector is {AMOUNT}. Or pay the fleet, and that costs more.",
+     "We ask for {AMOUNT}. We ask once, and after that we stop asking."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок принят. Благодарим: разумно платить сильному заранее.",
+     "Спасибо. Ваш дар купил вам немного спокойствия — на время.",
+     "Благодарим за подарок. Наш флот его заметил и пока отложил визит к вам.",
+     "Спасибо за подарок. Это хороший шаг: наши орудия ценят вежливость.",
+     "Благодарим. Дар принят, а ваш флот пока числится в друзьях.",
+     "Подарок получен. Мы запомним, что вы платите, не дожидаясь напоминаний.",
+     "Спасибо. Так и продолжайте: чем дороже подарки, тем дальше наши эсминцы.",
+     "Благодарим за дар. Он нам пригодится: на снаряды всегда не хватает.",
+     "Мы приняли подарок. Теперь вы нам немного должны, и мы немного вам.",
+     "Спасибо вам, и считайте, что вы купили себе неделю покоя."
+    ],
+    "en": [
+     "Gift received. Thank you; it is wise to pay the strong in advance.",
+     "Thank you. Your gift buys you some quiet, for a while.",
+     "Our thanks for the gift. Our fleet noticed it and has put off its visit to you, for now.",
+     "Thanks for the gift. A wise step: our guns appreciate courtesy.",
+     "Thank you. The gift is accepted, and your fleet is listed as friendly for now.",
+     "Gift received. We will remember that you pay without waiting for reminders.",
+     "Thanks. Keep it up: the dearer the gifts, the farther away our destroyers sail.",
+     "Grateful for the gift. It will come in handy; there is never enough for shells.",
+     "We took the gift. Now you owe us a little, and we owe you a little.",
+     "Thank you, and consider that you have bought yourselves a week of calm."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион пойман на нашей верфи. Пришлёте ещё одного — и мы нанесём ответный визит, с орудиями.",
+     "Мы поймали вашего агента. Его содержание оплатите вы — деньгами или колониями.",
+     "Шпионить за нами — плохое вложение. Ваш лазутчик это уже понял.",
+     "Шпион пойман. Предупреждаем: за каждого агента мы возьмём по кораблю.",
+     "Ваш лазутчик попался на наших верфях. Следующего мы отправим обратно по частям.",
+     "Мы поймали вашего шпиона. Протестуем и ждём компенсации, иначе придём за ней сами.",
+     "Шпион схвачен. Наш флот уже на старте: ему хочется выяснить, кто вас послал.",
+     "Ваш агент пойман в оружейной. Хуже места вы не нашли.",
+     "Попался ваш шпион. Объявляем протест, и для убедительности он подкреплён орудиями.",
+     "Лазутчик у нас. Заплатите за его освобождение, или мы найдём ему применение."
+    ],
+    "en": [
+     "Your spy was caught in our shipyard. Send another and we will pay you a return visit, guns first.",
+     "We caught your agent. You will pay for his upkeep, in money or in colonies.",
+     "Spying on us is a bad investment. Your infiltrator has already learned that.",
+     "The spy is caught. We warn you: for every agent we will take one ship.",
+     "Your infiltrator was caught in our shipyards. The next one we send back in pieces.",
+     "We caught your spy. We protest and expect compensation, or we call to collect it ourselves.",
+     "The spy is seized. Our fleet is on the starting line: it wants to learn who sent you.",
+     "Your agent was caught in our armoury. You could not have picked a worse spot.",
+     "Your spy is caught. We lodge a protest, backed by guns for emphasis.",
+     "We hold your infiltrator. Pay for his release, or we will find a use for him."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы голосуем за вас. Сильный должник лучше слабого.",
+     "Наш голос ваш. Считайте это займом — а вы знаете, как мы обходимся с теми, кто не возвращает долги.",
+     "Мы поддержим вас в Совете. Кто-то должен держать галактику в кулаке — пусть это будет наш партнёр.",
+     "Наш голос в Совете за вас. Сильные союзники нам по душе.",
+     "Мы голосуем за вас. Кто-то должен возглавить сильных, пусть это будете вы.",
+     "Совет получит наш голос в вашу пользу. Не подведите.",
+     "Мы поддержим вас голосом. А если проиграете, спросим по-своему.",
+     "Голос ваш. Вы единственный, у кого хватит сил обеспечить порядок.",
+     "Мы отдаём вам голос в Совете. Постарайтесь заслужить его вашим флотом.",
+     "Голос за вас. Победите, и мы потребуем причитающуюся долю."
+    ],
+    "en": [
+     "We vote for you in the Council. A strong debtor is better than a weak one.",
+     "Our vote is yours. Consider it a loan, and you know how we treat people who default.",
+     "We back you in the Council. Someone must hold the galaxy by the throat; let it be our partner.",
+     "Our vote in the Council is for you. Strong partners suit us.",
+     "We vote for you. Someone must lead the strong, and let it be you.",
+     "Our vote is yours. Fail us, and the debt collectors we send will be loud.",
+     "We back you with our vote. And if you lose, we will ask in our own way.",
+     "The vote is yours. You alone have the strength to keep order.",
+     "We give you our vote in the Council. Try to earn it with your fleet.",
+     "Our vote for you. Win, and we will claim our share."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы голосуем против вас: кто не может оплатить приличный флот, не будет управлять нашими рынками.",
+     "Наш голос против вас, а если хотите его купить — приходите с флотом побольше.",
+     "Мы голосуем против. Галактикой должны править те, кто умеет взыскивать долги, а не вы.",
+     "Совет услышит от нас голос против, и причина проста: на вершине слабым делать нечего.",
+     "В Совете мы проголосуем против. Для вас у нас приготовлено другое место, пониже.",
+     "Мы голосуем против вас, и пусть Совет знает: наш флот поддержит это решение.",
+     "Голос против. Если вам не нравится, приходите объясняться с нашими орудиями.",
+     "Голос против вас. Вы привыкли просить, а правят те, кто берёт.",
+     "Мы против вас в Совете. Не рассчитывайте на нашу сдержанность в дальнейшем.",
+     "Наш голос не за вас. Поставьте на кон больше кораблей, и мы пересчитаем."
+    ],
+    "en": [
+     "We vote against you in the Council. Anyone who cannot pay for a decent fleet has no business running the galaxy's markets.",
+     "Our vote is against you. If you want to buy it, come back with a bigger fleet.",
+     "We vote against. The galaxy should be run by those who know how to collect, not by you.",
+     "The Council will hear our vote against you, and the reason is simple: the weak have no business at the top.",
+     "In the Council we vote against. We have another place prepared for you, a lower one.",
+     "We vote against you, and let the Council know our fleet backs the decision.",
+     "Our vote is against. If you dislike it, come and explain yourself to our guns.",
+     "The vote is against you. You are used to asking, and rulers are those who take.",
+     "We stand against you in the Council. Do not count on our restraint hereafter.",
+     "Our vote is not for you. Put more ships on the table and we will recount."
+    ]
+   }
+  },
+  "erratic": {
+   "first_contact": {
+    "ru": [
+     "Новые покупатели — или продавцы, или конкуренты? Курс на вас меняется прямо сейчас!",
+     "Здравствуйте! Удача шепнула нам, что вы принесёте прибыль, хотя вчера она шептала обратное.",
+     "Добро пожаловать! Пока вы к нам летели, мы успели переоценить вас несколько раз.",
+     "Привет! Подбросили монету: орёл, значит, вы друзья, решка, значит, должники. Монета ещё в воздухе.",
+     "Ах, новые лица! Наш счастливый зуб зачесался, а это к большому барышу или к большим неприятностям.",
+     "Здравствуйте и до свидания, то есть нет, здравствуйте! Мы часто путаем порядок.",
+     "Рынок открылся, и на нём вы! Мы ещё не решили, покупать вас или продавать.",
+     "Добрый день! Или вечер: у нас по расписанию курс на везение, а время вторично.",
+     "Сегодня мы в приподнятом настроении. Воспользуйтесь этим, завтра оно уйдёт в минус.",
+     "Вот и вы! Мы как раз пересчитывали свои амулеты, и ровно одного не хватало. Не вы ли взяли?"
+    ],
+    "en": [
+     "New buyers, or sellers, or rivals? Your exchange rate is moving as we speak!",
+     "Hello! Luck whispers that you will bring us profit, though yesterday it whispered the opposite.",
+     "Welcome! We have revalued you several times while you were on approach.",
+     "Hello! We tossed a coin: heads means friends, tails means debtors. The coin is still in the air.",
+     "Ah, new faces! Our lucky tooth itched, which means great profit or great trouble.",
+     "Hello and goodbye, no wait, hello! We often mix up the order.",
+     "The market has opened, and you are in it! We have not decided whether to buy you or sell you.",
+     "Good day! Or evening: our schedule runs on luck, and the time is secondary.",
+     "We are in high spirits today. Make use of it; tomorrow it will go into the red.",
+     "There you are! We were just counting our charms and exactly one was missing. Did you take it?"
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Торговля? Да, курс на вас сегодня растёт — ловите момент!",
+     "Наш главный счетовод только что чихнул — это к удаче, значит, согласны!",
+     "Нет... хотя постойте, да! Принимаем, пока рынок не передумал.",
+     "Согласны! Монета упала на ребро, а это самый выгодный знак на свете.",
+     "Торговля? Да, принимаем, пока у нас хорошее настроение и тёплые руки.",
+     "Нет, да, нет, да. Окончательно да. Договор принят, пока лампа не мигнула.",
+     "Мы согласны, а то вдруг завтра будем против. Ловите нас на добром слове!",
+     "Да! Мы видели сон, где вы платили вдвое. Давайте проверим, насколько он вещий.",
+     "Принимаем. Не спрашивайте, что изменилось с прошлого раза, мы и сами не знаем.",
+     "Принимаем сделку! Наш амулет тёплый, значит, он за, а мы с ним."
+    ],
+    "en": [
+     "Trade? Yes, your stock is rising today, so seize the moment!",
+     "Our chief bookkeeper just sneezed, which is lucky, so yes, we agree!",
+     "No... wait, yes! We accept, before the market changes its mind.",
+     "Agreed! The coin landed on its edge, the luckiest sign there is.",
+     "Trade? Yes, we accept, while our mood is good and our hands are warm.",
+     "No, yes, no, yes. Finally yes. The treaty is accepted before the lamp flickers.",
+     "We agree, in case tomorrow we are against. Catch us at our kind word!",
+     "Yes! We had a dream in which you paid double. Let us see how prophetic it is.",
+     "We accept. Do not ask what changed since last time; we do not know either.",
+     "We accept the deal! Our charm is warm, so it is for, and we are with it."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Наш счастливый амулет сегодня потускнел, а это значит — нет, никакой торговли.",
+     "Какой прекрасный договор! Слишком прекрасный, даже подозрительно, — отклоняем.",
+     "Мы почти подписали, но перо сломалось. Плохая примета — нет.",
+     "Нет! То есть, может быть, да... нет, всё-таки нет. Кости так легли.",
+     "Торговля? Мы только что проиграли пари о ней самим себе, так что отказ.",
+     "Нет, и не просите объяснений: у нас с утра чешется левая рука, а это против.",
+     "Ваше предложение мы отложили до завтра. А завтра, как всегда, скажем нет.",
+     "Нет. Мы же вчера согласились на другое, а два договора сразу — это уже перебор.",
+     "Мы бросили жребий: решка. Отказ, и перебросить нельзя, примета дурная.",
+     "Звучит заманчиво, а у нас от заманчивого сыпь. Нет, спасибо."
+    ],
+    "en": [
+     "Our lucky charm looks dull today, which means no trade.",
+     "What a lovely treaty! Too lovely, suspiciously so, which means no.",
+     "We almost signed, but the pen broke. Bad omen; not today.",
+     "No! That is, maybe yes... no, still no. The dice fell that way.",
+     "Trade? We just lost a bet with ourselves about it, so the answer is no.",
+     "No, and do not ask for reasons: our left hand has itched since morning, and that means against.",
+     "We put your offer off until tomorrow. And tomorrow, as always, we will say no.",
+     "No. We agreed to something else yesterday, and two treaties at once is too much.",
+     "We drew lots: tails. Refused, and no redrawing, it is bad luck.",
+     "It sounds tempting, and tempting things give us a rash. No, thank you."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Обмен знаниями? Да, ведь знания то дорожают, то дешевеют, а сегодня как раз дорожают.",
+     "Принимаем! Мы как раз забыли, зачем нам наука, — вот вы и напомните.",
+     "Сначала мы хотели отказать, потом смеялись, а теперь согласны. Подписывайте скорее.",
+     "Согласны! Знания сегодня в цене, а завтра, вероятно, упадут, так что берём.",
+     "Да, принимаем. Наши учёные уже плетут догадки, нужно только дать им бумагу.",
+     "Сначала мы собирались отказать, но кубик перекатился. Договор принят!",
+     "Мы согласны: исследования — это азартная игра, а азарт нам по вкусу.",
+     "Принято. Если выйдет полная чушь, мы скажем, что так и было задумано.",
+     "Да, обменяемся! Только пусть ваши формулы будут не слишком скучными.",
+     "Согласны. Сегодня нам хочется быть умными, а завтра — богатыми, и тоже при помощи знаний."
+    ],
+    "en": [
+     "A knowledge exchange? Yes: knowledge goes up and down in price, and today it happens to be up.",
+     "We accept! We had just forgotten what science is for, so you can remind us.",
+     "First we meant to refuse, then we laughed, and now we agree. Sign quickly.",
+     "Agreed! Knowledge is in demand today and will probably fall tomorrow, so we take it.",
+     "Yes, we accept. Our scientists are already weaving guesses; they only need paper.",
+     "First we meant to refuse, but the die rolled over. The agreement is accepted!",
+     "We agree: research is a game of chance, and chance suits us.",
+     "Accepted. If it turns out to be nonsense, we will say it was meant that way.",
+     "Yes, we will exchange! Just see that your formulas are not too dull.",
+     "Agreed. Today we feel like being clever, and tomorrow like being rich, also by means of knowledge."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Наука? Сегодня мы в неё не верим, а завтра, может, поверим — так что пока нет.",
+     "Отказываем! Ваши формулы напомнили нам о налогах, а это не к добру.",
+     "Мы почти согласились — и вдруг передумали. Не спрашивайте почему, мы сами в недоумении.",
+     "Нет! Хотя ваши формулы красивые, а красивое мы любим... но всё равно нет.",
+     "Наука сегодня не в духе. Отказ, а завтра посмотрим, если вспомним.",
+     "Нет, нет и снова нет. Мы так решили, пока чихали.",
+     "Нет. Нам кажется, что ваши открытия подозрительно похожи на наши будущие долги.",
+     "Отказ. Знания нужно беречь, как удачу: делиться ими нельзя, иначе уйдут.",
+     "Мы бросили кость: пять. Пять значит нет. Договор отклонён.",
+     "Не хочется. Совсем. Это вам не причина, зато правда."
+    ],
+    "en": [
+     "Science? Today we do not believe in it, tomorrow perhaps we will, so for now, no.",
+     "We refuse! Your formulas reminded us of taxes, and that is never a good sign.",
+     "We nearly said yes, then suddenly changed our minds. Don't ask why; we are baffled too.",
+     "No! Though your formulas are pretty, and we love pretty things... still no.",
+     "Science is in a mood today. Refused, and tomorrow we shall see, if we remember.",
+     "No, no and again no. We decided while sneezing.",
+     "No. Your discoveries look suspiciously like our future debts.",
+     "Refused. Knowledge should be guarded like luck: share it and it leaves.",
+     "We rolled a die: five. Five means no. The agreement is declined.",
+     "We do not feel like it. At all. It is not a reason, but it is the truth."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз? Да, мы вас прямо сейчас обожаем — подпишем, пока это чувство не прошло!",
+     "Удача шепчет: соглашайтесь. Что ж, мы согласны — спорить с удачей убыточно.",
+     "Принимаем союз! А ведь ещё утром мы собирались вас разорить — как быстро всё меняется.",
+     "Союз? Да! Сегодня весь мир нам мил, и вы в том числе. Принимаем!",
+     "Согласны, пока не передумали. Быстро, быстро подписывайте!",
+     "Принимаем союз. Наш амулет трижды качнулся, а это почти клятва.",
+     "Мы согласны, хотя ещё вчера числили вас в должниках. Всё течёт, всё меняется.",
+     "Да, союз! Мы кинули монету и она сама свернулась в ваш флаг.",
+     "Согласны! Нам надоело воевать в одиночку, а вдвоём весёлее.",
+     "Союз принят. Если мы вдруг будем вести себя странно, просто потерпите."
+    ],
+    "en": [
+     "An alliance? Yes, we adore you right this minute, so let us sign before the feeling passes!",
+     "Luck whispers: agree. Very well, we agree; arguing with luck never pays.",
+     "We accept the alliance! Only this morning we planned to bankrupt you; how quickly things change.",
+     "An alliance? Yes! Today the whole world is dear to us, you included. We accept!",
+     "We agree, before we change our minds. Quick, quick, sign!",
+     "We accept the alliance. Our charm swung three times, which is nearly an oath.",
+     "We agree, though only yesterday we had you down as debtors. Everything flows, everything changes.",
+     "Yes, an alliance! We tossed the coin and it curled up into your flag by itself.",
+     "Agreed! We are tired of fighting alone, and two is more fun.",
+     "The alliance is accepted. If we start acting strange, please be patient."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз? Нет уж — нам только что приснились ваши долги, и это был кошмар.",
+     "Отказываем. Ничего личного — просто курс дружбы сегодня рухнул.",
+     "Мы бы и рады, но наша счастливая монета против, а с монетой мы не спорим.",
+     "Нет! Нет-нет-нет. Мы вспомнили, что союзники нам снились только в плохих снах.",
+     "Союз? Не сегодня. Сегодня мы в таком настроении, что и себя-то терпим с трудом.",
+     "Отказываем. Если бы вы спросили вчера, мы бы согласились, но вы спросили сегодня.",
+     "Нет. Нам не хочется делить с кем-то удачу: она и так капризная.",
+     "Нет, спасибо. Мы не можем быть союзниками тех, кто не выиграл у нас ни одной партии.",
+     "Ваше предложение мы положили в шляпу, встряхнули и вынули слово нет.",
+     "Нет, и не спрашивайте почему: у нас сегодня нет настроения на причины."
+    ],
+    "en": [
+     "An alliance? No thanks; we just dreamed about your debts, and it was a nightmare.",
+     "We decline. Nothing personal; the price of friendship simply crashed today.",
+     "We would love to, but our lucky coin came up no, and we never argue with the coin.",
+     "No! No-no-no. We remembered that allies only ever appear in our bad dreams.",
+     "An alliance? Not today. Today our mood is such that we hardly bear ourselves.",
+     "We decline. Had you asked yesterday we would have agreed, but you asked today.",
+     "No. We do not want to share luck with anyone: it is capricious enough already.",
+     "No, thank you. We cannot ally with those who have never won a single round against us.",
+     "We put your proposal in a hat, shook it, and drew out the word no.",
+     "No, and do not ask why: we are in no mood for reasons today."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Да, конечно, пакт! Хотя мы как раз присмотрели у вас симпатичную луну — ну ничего, подпишем.",
+     "Согласны! Пусть наши флоты скучают — скука нынче в цене.",
+     "Принимаем. Монета сказала да, кости сказали да, звёзды молчат — но кто их спрашивает?",
+     "Пакт? Да, принимаем! Нам и самим надоело драться, но только на этой неделе.",
+     "Согласны. Не нападать на вас сегодня — идея просто великолепная.",
+     "Принимаем, пока мы в хорошем расположении. Завтра пакт может показаться тесным.",
+     "Да, подписываем! Наши пушки скучают, но пусть привыкают к тишине.",
+     "Согласны на ненападение. Мы специально положили в карман лишнюю монету, чтобы заключить этот договор.",
+     "Принято! И не напоминайте, что мы вчера обещали вас разорить.",
+     "Пакт принят. Чем больше мы ничего не делаем, тем больше прибыль."
+    ],
+    "en": [
+     "Yes, a pact, of course! We had just spotted a rather pretty moon of yours, but never mind, we sign.",
+     "Agreed! Let our fleets be bored; boredom is fetching a good price this season.",
+     "We accept. The coin said yes, the dice said yes, the stars said nothing, but who asks the stars?",
+     "A pact? Yes, we accept! We are tired of fighting ourselves, but only this week.",
+     "Agreed. Not attacking you today is a splendid idea.",
+     "We accept while we are in a good mood. Tomorrow the pact may feel tight.",
+     "Yes, we sign! Our guns are bored, but let them get used to quiet.",
+     "We agree to non-aggression. We slipped an extra coin in our pocket on purpose to conclude this pact.",
+     "Accepted! And do not remind us that yesterday we promised to ruin you.",
+     "The pact is accepted. The more we do nothing, the greater the profit."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир? Почему бы и нет, раз война вдруг обесценилась, а мир взлетел в цене!",
+     "Сегодня у нас мирное настроение, а настроение у нас — главный советник. Мир принят!",
+     "Сначала мы хотели воевать вечно, потом минуту, а теперь — ни секунды. Мир!",
+     "Мир! Войну мы объявили спонтанно, а теперь так же спонтанно заканчиваем.",
+     "Принимаем мир. Нам приснилось, что мы слишком долго держим кулаки сжатыми.",
+     "Мир, мир, мир! Выпало шесть шестёрок подряд, а это знак.",
+     "Да, мир. Пока мы воевали, у нас испортилось настроение, а в мире оно, глядишь, починится.",
+     "Согласны на мир. Не сомневайтесь: мы бы согласились и вчера, но вчера нас не спросили.",
+     "Мир принят! Хотя если вы улыбнётесь нам неправильно, всё может поменяться.",
+     "Мир. Считайте, что мы вдруг проснулись на нужной стороне кровати."
+    ],
+    "en": [
+     "Peace? Why not, now that war has suddenly lost all its value and peace is soaring!",
+     "Today we are in a peaceful mood, and our mood is our chief adviser. Peace is accepted!",
+     "First we wanted war forever, then for a minute, and now not for a second. Peace!",
+     "Peace! We declared the war on a whim, and now we end it just as whimsically.",
+     "We accept peace. We dreamed that we had held our fists clenched too long.",
+     "Peace, peace, peace! Six sixes in a row came up, and that is a sign.",
+     "Yes, peace. While we fought our mood went bad, and in peace it may get fixed.",
+     "We agree to peace. Never doubt it: we would have agreed yesterday, but nobody asked us yesterday.",
+     "Peace is accepted! Though if you smile at us the wrong way, everything may change.",
+     "Peace. Consider that we woke up on the right side of the bed."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир? Вчера мы бы его купили, а сегодня он нам не по вкусу.",
+     "Мир — это так скучно! Нет, война нам пока не надоела.",
+     "Отклоняем! Ваше предложение пришло в неудачный день: у нас только что обвалилось хорошее настроение.",
+     "Нет! Только начали привыкать к войне, и вдруг мир. Нет-нет-нет.",
+     "Мира не будет, пока мы не найдём то, что потеряли в первый день войны. Мы забыли что.",
+     "Отказ. Мы подбросили монету за мир, и она закатилась под шкаф.",
+     "Нет, нам нравится война. У неё есть цвет и звук, а у мира их нет.",
+     "Мир? Не сегодня. Загляните в следующую среду, хотя в среду мы тоже откажем.",
+     "Нет. Вам не повезло: мы как раз в полосе азарта.",
+     "Нет, нет. Знаете, вчера мы уже почти согласились, но вчера прошло."
+    ],
+    "en": [
+     "Peace? Yesterday we would have bought it, but today it simply does not taste right.",
+     "Peace is so dull! No, we are not tired of the war yet.",
+     "Not today! Your offer arrived on a bad day: our good mood just crashed on the exchange.",
+     "No! We were just getting used to the war, and suddenly peace. No-no-no.",
+     "There will be no peace until we find what we lost on the first day of the war. We forgot what.",
+     "Refused. We tossed a coin for peace, and it rolled under the cupboard.",
+     "No, we like the war. It has colour and sound, and peace has neither.",
+     "Peace? Not today. Look in next Wednesday, though on Wednesday we will refuse too.",
+     "No. You are unlucky: we happen to be in a streak of excitement.",
+     "No, no. You know, yesterday we nearly agreed, but yesterday is gone."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Касса сошлась, звёзды сошлись, и всё сошлось на вас. Это война!",
+     "Мы вас любили, ценили, уважали... а теперь объявляем войну. Рынок непредсказуем.",
+     "Война! Почему — не спрашивайте: так решила удача, а с удачей мы не торгуемся.",
+     "Война! Мы бы объяснили причину, но она осталась в другом кармане.",
+     "Мы вас обожали, мы вас терпели, мы вас считали, а теперь война. Так вышло.",
+     "Объявляем войну! Орёл упал на решку, а это знак для флота.",
+     "Война. Решение принято минуту назад, и оно нам очень нравится.",
+     "Нам стало скучно. А когда нам скучно, мы объявляем войну.",
+     "Это война, и пусть не спрашивают, зачем. Удача так решила и отошла в сторону.",
+     "Война! Хотя, может, перенесём на завтра... нет, сегодня, сегодня!"
+    ],
+    "en": [
+     "The books balanced, the stars aligned, and everything pointed at you. This is war!",
+     "We loved you, valued you, respected you... and now we declare war. Markets are fickle.",
+     "War! Don't ask why: luck decided, and we never haggle with luck.",
+     "War! We would explain the reason, but it stayed in another pocket.",
+     "We adored you, we tolerated you, we counted you, and now it is war. That is how it went.",
+     "We declare war! Heads landed on tails, and that is a signal for the fleet.",
+     "War. The decision was made a minute ago, and we like it very much.",
+     "We got bored. And when we are bored, we declare war.",
+     "This is war, and nobody should ask why. Luck decided so and stepped aside.",
+     "War! Though maybe we postpone it till tomorrow... no, today, today!"
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Наш договор? Мы его порвали — случайно, ну, почти случайно.",
+     "Мы проснулись, посмотрели на пакт с вами — и он нам разонравился. Расторгаем.",
+     "Соглашение было прекрасным, пока не стало скучным, так что мы его отменяем. Обижайтесь, если хотите, — или не обижайтесь.",
+     "Договор? Какой договор? Ах, тот! Мы его, кажется, потеряли.",
+     "Мы расторгаем пакт. Он нам снился, и сон был нехороший.",
+     "Соглашение разорвано: чернила в нём выцвели, а с выцветшими договорами не дружим.",
+     "Всё, наш союз окончен. Мы приняли решение, пока вы не успели нас переубедить.",
+     "Мы разрываем договор, но вы не обижайтесь: завтра, вероятно, подпишем новый.",
+     "Договор нам надоел, как старая шляпа, и мы его отменяем.",
+     "Расторгаем договор! Монета упала решкой, а решка не терпит обязательств."
+    ],
+    "en": [
+     "Our treaty? We tore it up, by accident, mostly.",
+     "We woke up, looked at our pact with you, and stopped liking it. It is cancelled.",
+     "The agreement was lovely until it got boring, so we are cancelling it. Be offended if you like, or don't.",
+     "The treaty? What treaty? Ah, that one! We seem to have lost it.",
+     "We break the pact. A bad dream came with it, and we trust dreams more than signatures.",
+     "The agreement is torn: its ink faded, and we do not befriend faded contracts.",
+     "That is it, our alliance is over. We decided before you could talk us out of it.",
+     "We cancel the treaty, but do not be offended: tomorrow we will probably sign a new one.",
+     "We tired of the treaty like an old hat, and we are cancelling it.",
+     "The treaty is cancelled! The coin fell tails, and tails does not tolerate obligations."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите! Или нет... нет, всё-таки прекратите, иначе наш гнев обойдётся вам очень дорого.",
+     "Ещё раз — и наше хорошее настроение рухнет, а следом за ним и ваша экономика.",
+     "Мы улыбаемся, но это ненадолго. Остановитесь, пока улыбка не превратилась в счёт.",
+     "Перестаньте! Мы сегодня добрые, но у нас дурная привычка быстро меняться.",
+     "Мы бы вас предупредили вежливо, но у нас с утра злое настроение. Остановитесь.",
+     "Ещё шаг, и мы сами не знаем, что сделаем. А это самое опасное.",
+     "Не злите нас. Гнев у нас дорогой, а непредсказуемый гнев втридорога.",
+     "Прекратите, или удача отвернётся от вас, а мы ей поможем.",
+     "Мы считаем до трёх. Раз, два... мы забыли, что идёт дальше, но вы поняли.",
+     "Слышите? Это наши эсминцы разогреваются. Они тоже капризные."
+    ],
+    "en": [
+     "Stop! Or don't... no, do stop, or our anger will cost you dearly.",
+     "Once more and our good mood crashes, with your economy right behind it.",
+     "We are smiling, but not for long. Stop before the smile turns into an invoice.",
+     "Stop it! We are kind today, but we have a nasty habit of changing fast.",
+     "We would warn you politely, but our mood has been foul since morning. Stop.",
+     "One more step and we ourselves do not know what we will do. And that is the most dangerous thing.",
+     "Do not anger us. Our anger is dear, and unpredictable anger costs triple.",
+     "Cease, or luck will turn from you, and we will help it along.",
+     "We count to three. One, two... we forgot what comes next, but you get the idea.",
+     "Hear that? Our destroyers are warming up. They are moody too."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Срочно переведите {СУММА}: нам приснилась дыра в кассе, а сны у нас обычно сбываются.",
+     "{СУММА}, и ни монетой меньше — или больше? Нет, ровно столько, пока мы не передумали.",
+     "Мы бросили кости, и выпало {СУММА}. Не спорьте с костями — они обидчивые.",
+     "Платите {СУММА}! А если вы уже заплатили, то платите ещё раз, на удачу.",
+     "Нам срочно нужно {СУММА}: мы тут поспорили сами с собой и проиграли.",
+     "Наш счастливый номер сегодня равен {СУММА}. Вы же не хотите прогневать число?",
+     "{СУММА} или беда! А если не беда, то хотя бы неприятность. Мы ещё выбираем.",
+     "Вы должны нам {СУММА}. Не помним за что, но сумма точная.",
+     "Мы подбросили счёт вверх, и он завис на {СУММА}. Это судьба, платите.",
+     "Сегодня курс вашего спокойствия составил {СУММА}. Завтра он может подняться."
+    ],
+    "en": [
+     "Send {AMOUNT} at once: we dreamed of a hole in our treasury, and our dreams usually come true.",
+     "{AMOUNT}, and not a coin less — or more? No, exactly that, before we change our minds.",
+     "We rolled the dice and they came up {AMOUNT}. Do not argue with the dice; they sulk.",
+     "Pay {AMOUNT}! And if you have already paid, pay again, for luck.",
+     "We urgently need {AMOUNT}: we argued with ourselves and lost.",
+     "Our lucky number today equals {AMOUNT}. You would not want to anger a number, would you?",
+     "{AMOUNT} or trouble! And if not trouble, at least unpleasantness. We are still choosing.",
+     "You owe us {AMOUNT}. We forget what for, but the sum is exact.",
+     "We tossed the bill into the air and it hung at {AMOUNT}. It is fate; pay.",
+     "Today the rate of your tranquillity stands at {AMOUNT}. Tomorrow it may climb."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок — нам? Спасибо, мы, кажется, растроганы, а может, просто проголодались.",
+     "Благодарим! Сначала решили, что это ловушка, потом — что взятка, а теперь просто рады.",
+     "Ваш дар пришёл в счастливый день — или сам сделал его счастливым. Спасибо!",
+     "Подарок! Мы так обрадовались, что на минуту забыли обо всех долгах. Спасибо!",
+     "Благодарим! Ваш дар случайно совпал с нашим талисманом, а это знак.",
+     "Спасибо! Мы давно хотели что-нибудь такое, но не знали, что именно.",
+     "Мы принимаем подарок и благодарим. Только не уходите: вдруг мы вспомним, что должны вам ответить.",
+     "Дар такой красивый, что даже наши счётчики моргнули. Спасибо вам!",
+     "Спасибо, спасибо! Мы всё записали, а потом потеряли запись, но чувство осталось.",
+     "Какой приятный сюрприз, подарок! Мы и не ждали, что нас кто-то балует. Спасибо."
+    ],
+    "en": [
+     "A gift, for us? Thank you; we think we are touched — or maybe just hungry.",
+     "Thank you! First we thought it was a trap, then a bribe, and now we are simply pleased.",
+     "Your gift arrived on a lucky day, or made the day lucky, who can tell? We are grateful either way!",
+     "A gift! We were so delighted that for a minute we forgot all our debts. Thanks!",
+     "Grateful! Your gift happens to match our talisman, and that is a sign.",
+     "Thanks! We have long wanted something like this, but did not know what.",
+     "We accept the gift and thank you. Just do not leave: we may remember that we owe a reply.",
+     "The gift is so pretty that even our counters blinked. Thank you!",
+     "Thanks, thanks! We wrote it all down, then lost the note, but the feeling remains.",
+     "What a pleasant surprise, a gift! We never expected anyone to spoil us. Thank you."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион пойман в нашей кассе! Мы так удивились, что сначала выдали ему жалованье.",
+     "Мы поймали вашего агента. Он был так неуклюж, что мы чуть не взяли его счетоводом.",
+     "Ваш лазутчик у нас. Сегодня мы добрые, но это может закончиться в любую минуту.",
+     "Шпион! Мы его поймали и сразу полюбили, но протест всё равно заявляем.",
+     "Ваш агент пойман: он так плохо прятался, что нам стало за него неловко.",
+     "Нам скучно жилось, и тут ваш лазутчик. Спасибо за развлечение, но протестуем!",
+     "Шпион в нашей казне! Мы сперва решили, что это бухгалтер, и обрадовались.",
+     "Ваш агент у нас. То ли отпустить, то ли оставить, то ли продать: бросаем кости.",
+     "Мы поймали вашего шпиона. Протест, жалоба и немного гнева, а потом ужин.",
+     "Лазутчик сам пришёл и сдался. Мы так удивились, что забыли разозлиться, но сейчас вспомнили."
+    ],
+    "en": [
+     "Your spy was caught in our treasury! We were so surprised that we paid him a salary first.",
+     "We caught your agent. He was so clumsy that we nearly hired him as a bookkeeper.",
+     "Your infiltrator is in our hands. We are in a kind mood today, but that could end any minute.",
+     "A spy! We caught him and loved him at once, but we still lodge a protest.",
+     "Your agent is caught: he hid so badly that we felt awkward for him.",
+     "Our life was dull, and then your infiltrator turned up. Thanks for the entertainment, but we protest!",
+     "A spy in our treasury! At first we took him for an accountant and rejoiced.",
+     "We hold your agent. Release him, keep him, or sell him: we are rolling dice.",
+     "We caught your spy. A protest, a complaint and a little rage, then dinner.",
+     "The infiltrator walked in and surrendered. We were so surprised we forgot to be angry, but we remember now."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы голосуем за вас! Не знаем почему, но рука сама тянется к нужной кнопке.",
+     "Наш голос ваш. Мы сами удивлены, но решение уже принято и даже записано.",
+     "Мы поддержим вас в Совете. Вчера хотели против, завтра неизвестно, но сегодня — за!",
+     "Наш голос в Совете за вас! Решили сразу, пока мнение не успело остыть.",
+     "Мы проголосуем за вас, потому что вы вчера нам приснились в хорошем свете.",
+     "В Совете голос наш будет с вами. Мы это выбросили на костях, и кости не спорили.",
+     "Голос за вас! А почему, мы и сами не знаем, но если завтра спросите, скажем так же.",
+     "Мы отдаём вам голос. Не благодарите, а то мы передумаем.",
+     "Решено: в Совете мы за вас. Пока вы выглядите удачливым, мы выглядим мудрыми.",
+     "Наш голос ваш, и точка. Хотя запятая нам тоже нравится."
+    ],
+    "en": [
+     "We vote for you in the Council! We cannot say why, but our hand keeps reaching for the right button.",
+     "Our vote is yours. We surprised ourselves, but the decision is made and even written down.",
+     "We back you in the Council. Yesterday we were against you, tomorrow who knows, but today we vote for you!",
+     "Our vote in the Council is for you! We decided at once, before the opinion went cold.",
+     "We will vote for you, because you appeared in a good light in our dream last night.",
+     "In the Council our vote will be with you. We threw it on the dice, and the dice did not object.",
+     "A vote for you! Why, we do not know ourselves, but if you ask tomorrow we will say the same.",
+     "We give you our vote. Do not thank us, or we will change our minds.",
+     "Settled: in the Council we are for you. While you look lucky, we look wise.",
+     "Our vote is yours, full stop. Though we like a comma too."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы голосуем против вас: ваш флаг сегодня какого-то неудачного цвета.",
+     "Наш голос против вас: утром он был за, а к обеду передумал.",
+     "Против! Мы собирались голосовать за, но удача от вас отвернулась, а мы всегда идём за удачей.",
+     "Наш голос в Совете против вас. Нам вдруг показалось, что у вас неудачная походка.",
+     "Против! Мы пытались проголосовать за, но рука сама дёрнулась в сторону.",
+     "Мы голосуем против. Если завтра передумаем, то вы нас простите, а если нет, то нет.",
+     "В Совете мы против вас. Это не вражда, это наше расписание удач.",
+     "Голос против. Мы вчера уже решили за, но сегодня поумнели.",
+     "Голос против вас, и сразу же. Мы потом объясним, когда придумаем объяснение.",
+     "Наш голос против вас: пуговица на нашем камзоле оторвалась, а это всегда знак."
+    ],
+    "en": [
+     "We vote against you in the Council; your colours look unlucky today.",
+     "Our vote goes against you: it was for you this morning and changed its mind by lunch.",
+     "Against! We meant to vote for you, but luck turned away from you, and we always follow luck.",
+     "Our vote in the Council is against you. It suddenly struck us that you have an unlucky walk.",
+     "Against! We tried to vote for, but our hand twitched aside by itself.",
+     "We vote against. If we change our minds tomorrow you will forgive us, and if not, then not.",
+     "In the Council we stand against you. It is not hostility, just our schedule of luck.",
+     "The vote is against. We had decided for yesterday, but today we got wiser.",
+     "A vote against you, and at once. We will explain later, when we think of an explanation.",
+     "Our vote is against you: a button fell off our coat, and that is always a sign."
+    ]
+   }
+  },
+  "honorable": {
+   "first_contact": {
+    "ru": [
+     "Приветствуем вас. Торговый дом ведёт дела честно: точные весы, ясные договоры и слово, которое дороже золота.",
+     "Рады знакомству. Наша подпись надёжнее любого залога — надеемся, ваша тоже.",
+     "Мы открываем на ваше имя счёт доверия. Пусть каждая наша сделка его только пополняет.",
+     "Здравствуйте. Мы начинаем знакомство с чистого листа: ни долгов, ни обид, ни чужих обещаний в наших книгах.",
+     "Торговый дом приветствует вас по обычаю: рукопожатие, открытые весы и честный разговор.",
+     "Мы рады встрече. Позвольте сразу сказать, чего мы ждём: прямоты, и только её.",
+     "Наши кланы встречают гостей на равных. Назовите свои условия, а мы назовём свои.",
+     "Добрый день. Что мы обещаем, то исполняем, а о чём молчим, того не обещали. Запомните это.",
+     "Мы приветствуем вас и просим об одном: говорите правду, и мы ответим тем же.",
+     "Первая сделка с новым соседом — самая важная. Давайте сделаем её справедливой."
+    ],
+    "en": [
+     "We greet you. Our house deals honestly: true scales, clear contracts, and a word worth more than gold.",
+     "We are glad to meet you. Our signature is better than any collateral; we trust yours is too.",
+     "We are opening an account of trust in your name. May every deal between us add to it.",
+     "Hello. We begin this acquaintance with a clean sheet: no debts, no grudges, no foreign promises in our books.",
+     "Our house greets you by custom: a handshake, open scales and an honest talk.",
+     "We are glad to meet you. Allow us to say at once what we expect: candour, and nothing else.",
+     "The Clans receive guests as equals. State your terms, and we will state ours.",
+     "Good day. What we promise we perform, and what we leave unsaid we never promised. Remember that.",
+     "We greet you and ask one thing: speak the truth, and we will answer in kind.",
+     "The first deal with a new neighbour matters most. Let us make it a fair one."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем договор и ручаемся за каждую его строку.",
+     "Согласны. Честная цена, честный вес, честные сроки — так торгуют наши кланы.",
+     "Договор принят. Наше слово записано, и мы сдержим его до последней буквы.",
+     "Мы согласны. Ваша подпись и наша теперь связаны, и мы ответим за каждую строку.",
+     "Принимаем договор. Честный обмен — лучшая основа для будущих сделок.",
+     "Да, мы принимаем. Товар придёт в срок, а расчёт будет точным до монеты.",
+     "Договор принят. Мы поставим на него печать и сохраним в книгах для потомков.",
+     "Согласны. Пусть наши весы будут вам порукой.",
+     "Мы принимаем это предложение с уважением. Взаимная выгода — это та сделка, которую мы всегда выбираем.",
+     "Принято. Обещаем не подводить и ожидаем того же."
+    ],
+    "en": [
+     "We accept the treaty and stand behind every line of it.",
+     "Agreed. Fair price, honest weight, timely delivery: that is how the Clans trade.",
+     "Accepted. Our word is in writing now, and we will keep it to the letter.",
+     "We agree. Your signature and ours are now bound, and we will answer for every line.",
+     "We accept the treaty. An honest exchange is the best foundation for future deals.",
+     "Yes, we accept. The goods will arrive on time and the settlement will be exact to the coin.",
+     "The treaty is accepted. We will seal it and keep it in our books for those who come after.",
+     "Agreed. Let our scales stand surety for it.",
+     "We accept this offer with respect. Mutual gain is the kind of deal we always choose.",
+     "Accepted. We promise not to fail you and expect the same."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Скажем прямо: условия неравны, и подписать их значило бы обмануть одну из сторон. Мы отказываемся.",
+     "Наши склады не смогут исполнить такой договор в срок, а пустых обещаний мы не даём. Нет.",
+     "С сожалением отклоняем. Честный купец не берёт обязательств, в которых сомневается.",
+     "Нет. Мы не поставим подпись под тем, что не успеем отгрузить, а ваши сроки нам не по плечу.",
+     "Мы вынуждены отказать. Нам бы хотелось быть полезными, но слово дороже выгоды.",
+     "Отказываем, и говорим об этом прямо: условия заставили бы нас нарушить прежние обязательства.",
+     "Не сейчас. Честный купец не берётся за дело, которое оставит кого-то в обиде.",
+     "Извините, но нет. Ваша цена честна, наша не сойдётся с ней, а торговаться ради торга мы не любим.",
+     "Мы взвесили ваше предложение и нашли его лёгким. Отказ.",
+     "Нам жаль, но это нет. И мы предпочли сказать это сразу, а не тянуть."
+    ],
+    "en": [
+     "Frankly, the terms are uneven, and signing them would cheat one of us. We decline.",
+     "Our warehouses could not meet such a contract on time, and we do not make empty promises.",
+     "We must regretfully refuse. An honest merchant takes on no obligation he doubts he can meet.",
+     "No. We will not sign a treaty we cannot fulfil, and your deadlines are beyond us.",
+     "We must refuse. We would like to be of use, but our word is worth more than profit.",
+     "We decline, and say so plainly: the terms would force us to break earlier obligations.",
+     "Not now. An honest merchant does not take on a deal that leaves someone aggrieved.",
+     "Sorry, but no. Your price is fair, ours would not match it, and we dislike haggling for its own sake.",
+     "We weighed your offer and found it light. Declined.",
+     "We are sorry, but the answer is no. We chose to say it at once rather than drag it out."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Принимаем. Знание за знание — справедливый обмен, и мы будем честны в нём до конца.",
+     "Согласны. Наши архивы откроются вам ровно настолько, насколько ваши откроются нам.",
+     "Договор принят. Всё обещанное вы получите полностью и в срок.",
+     "Принимаем. Наши учёные поделятся полным отчётом, а не выжимкой, как делают другие.",
+     "Согласны на обмен. Честность в науке ценится не меньше, чем в торговле.",
+     "Да. Мы будем передавать результаты открыто, без утайки и без накруток.",
+     "Договор принят. Ваши открытия будут храниться в наших архивах бережно, а наши в ваших, надеемся, тоже.",
+     "Согласны. Знание, разделённое честно, умножается для обеих сторон.",
+     "Мы принимаем это соглашение и передадим всё, что обещали, до последней страницы.",
+     "Принято. Просим лишь одного: чтобы данные были подлинными, как и наши."
+    ],
+    "en": [
+     "We accept. Knowledge for knowledge is a fair exchange, and we will honour it.",
+     "Agreed. Our archives will open to you exactly as far as yours open to us.",
+     "Accepted. Everything we promised, you will receive in full and on time.",
+     "We accept. Our scientists will share the full report, not a digest, as others do.",
+     "Agreed on the exchange. Honesty in science is prized no less than in trade.",
+     "Yes. We will pass on our results openly, without concealment and without padding.",
+     "The agreement is accepted. Your discoveries will be kept carefully in our archives, and ours in yours, we hope.",
+     "We agree. Knowledge shared honestly multiplies for both sides.",
+     "We accept this agreement and will hand over all we promised, down to the last page.",
+     "Accepted. We ask for one thing only: that your data be genuine, as ours will be."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Наши открытия уже обещаны другим партнёрам, а честный купец не продаёт один товар дважды. Отказываем.",
+     "Не обижайтесь: мы пока не уверены, что сможем соблюсти такой договор. Поэтому — нет.",
+     "Скажем честно: этот обмен был бы неравным, и не в вашу пользу. Мы его отклоняем.",
+     "Нет. Мы не можем обменивать знания, пока не уверены, что сумеем передать их полностью.",
+     "Мы отказываем, потому что не хотим давать обещаний, которые не сдержим.",
+     "Нет, и причина проста: ваши условия требуют открыть то, что нам не принадлежит целиком.",
+     "К сожалению, отказ. Наш архив обременён обязательствами перед теми, кто пришёл раньше вас.",
+     "Мы не готовы к такому обмену. Говорим об этом заранее, чтобы вы не потеряли время.",
+     "Нам неловко, но нет. Честность не позволяет нам взять то, что мы не сможем вернуть равноценным.",
+     "Откажем вежливо и твёрдо: договор не будет подписан."
+    ],
+    "en": [
+     "Our discoveries are already promised to other partners, and an honest merchant never sells the same goods twice.",
+     "No offence intended: we are not yet sure we could honour such a treaty, so the answer is no.",
+     "In fairness, this exchange would be unequal, and not in your favour. We decline it.",
+     "No. We cannot trade knowledge until we are sure we can hand it over in full.",
+     "We refuse, because we do not want to give promises we cannot keep.",
+     "No, and the reason is simple: your terms require us to open what is not wholly ours.",
+     "Regretfully, no. Our archive is bound by obligations to those who came before you.",
+     "We are not ready for such an exchange. We say so in advance so you do not waste time.",
+     "We feel awkward, but no. Honesty forbids us to take what we could not repay in kind.",
+     "We refuse, politely and firmly: the agreement will not be signed."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. С этой минуты ваши долги чести — наши, а наши — ваши.",
+     "Согласны. Наша подпись под этим союзом будет стоить больше всех наших флотов.",
+     "Торговый дом принимает союз и клянётся соблюдать его — и в прибыли, и в убытке.",
+     "Принимаем союз. Ваш враг отныне наш должник, а наши должники расплачиваются всегда.",
+     "Мы согласны. Подпись Торгового дома под союзом — это не росчерк, а клятва.",
+     "Да. Мы встанем рядом с вами в любой беде и потребуем того же от вас.",
+     "Союз принят. Пусть каждая сторона знает свою долю риска и свою долю прибыли.",
+     "Согласны. Наша казна, наш флот и наше слово теперь и ваши.",
+     "Мы принимаем союз с открытым сердцем и закрытыми условиями: по ним всё честно.",
+     "Принято. Давайте встретимся и скрепим договор по обычаю наших кланов."
+    ],
+    "en": [
+     "We accept the alliance. From this moment your debts of honour are ours, and ours are yours.",
+     "Agreed. Our signature on this alliance will be worth more than all our fleets.",
+     "Our house accepts the alliance and swears to keep it, in profit and in loss.",
+     "We accept the alliance. Your enemy is now our debtor, and our debtors always pay.",
+     "We agree. The signature of our house under an alliance is not a flourish but an oath.",
+     "Yes. We will stand beside you in any trouble and ask the same of you.",
+     "The alliance is accepted. Let each side know its share of risk and its share of profit.",
+     "Agreed. Our treasury, our fleet and our word are yours as well.",
+     "We accept the alliance with an open heart and closed terms: all of them fair.",
+     "Accepted. Let us meet and seal the pact in the custom of our Clans."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Мы вынуждены отказаться: у нас уже есть обязательства, которые этот союз нарушил бы.",
+     "Союз — обязательство на всю жизнь, а мы ещё не знаем вас настолько хорошо. Нет, пока нет.",
+     "С уважением отклоняем: наш флот слишком мал, чтобы честно нести союзнический долг, а обещать сверх сил мы не станем.",
+     "Нет. Мы ценим вашу честность, но союз потребовал бы от нас того, что мы не можем дать.",
+     "Мы отказываем. Союз, заключённый наспех, рушится при первой беде, а мы не строим на песке.",
+     "Нам жаль, но мы не можем подписать союз: он заставит нас нарушить мир с другими.",
+     "Отказ. Мы не станем обещать помощь, которую не сможем оказать.",
+     "Честно говорим: наш ответ нет, и дело не в вас, а в наших обязательствах.",
+     "Нет. Союз должен вырасти из доверия, а наше доверие растёт медленно.",
+     "Предложение отклонено. Но дверь для обычной торговли остаётся открытой."
+    ],
+    "en": [
+     "We must decline: we already have obligations that this alliance would break.",
+     "An alliance is a lifelong obligation, and we do not know you well enough yet. Not now.",
+     "With respect, we refuse: our fleet is too small to honour an alliance properly, and we will not promise beyond our means.",
+     "No. We value your candour, but the alliance would demand what we cannot give.",
+     "We refuse. An alliance made in haste collapses at the first trouble, and we do not build on sand.",
+     "We are sorry, but we cannot sign the alliance: it would force us to break the peace with others.",
+     "Refused. We will not promise help we cannot deliver.",
+     "We say honestly: our answer is no, and the issue is not you but our obligations.",
+     "No. An alliance must grow from trust, and our trust grows slowly.",
+     "The proposal is declined. But the door to ordinary trade stays open."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы принимаем пакт о ненападении. Наше слово — лучший залог вашей безопасности.",
+     "Согласны. Наши флоты не пересекут вашей границы, пока действует этот договор.",
+     "Пакт принят и внесён в наши книги, а каждую запись в них мы чтим.",
+     "Принимаем. Пакт о ненападении для нас как вексель: мы платим по нему, не ожидая напоминаний.",
+     "Согласны. Наши границы будут уважать ваши, пока пакт жив.",
+     "Да, подпишем. Слово, данное сегодня, будет стоять и через сто лет.",
+     "Пакт принят. Давайте считать его первой строкой в книге нашего доверия.",
+     "Согласны. Нарушать договор мы не станем, а если нарушите вы, мы скажем об этом первыми.",
+     "Мы принимаем пакт с уважением и обещаем ему верность.",
+     "Принято и подписано. Мир на границе дороже любой добычи."
+    ],
+    "en": [
+     "We accept the non-aggression pact. Our word is the best collateral for your safety.",
+     "Agreed. Our fleets will not cross your border for as long as this pact stands.",
+     "The pact is accepted and entered in our ledgers. We honour every entry in them.",
+     "We accept. A non-aggression pact is like a promissory note to us: we pay on it without reminders.",
+     "Agreed. Our borders will respect yours for as long as the pact lives.",
+     "Yes, we will sign. A word given today will stand a hundred years from now.",
+     "The pact is accepted. Let us treat it as the first line in the book of our trust.",
+     "We agree. We will not break the treaty, and if you do, we will be the first to say so.",
+     "We accept the pact with respect and promise it our faith.",
+     "Accepted and signed. Quiet on the border is dearer than any spoils."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мы принимаем мир. Счёт этой войны закрыт, и мы не станем открывать его снова.",
+     "Мир. Наши весы снова выверены, и слово, данное сегодня, не изменится ни завтра, ни через век.",
+     "Мир — честное окончание нечестного спора. Мы согласны и сдержим все условия.",
+     "Мы принимаем мир и обещаем соблюдать каждое его условие.",
+     "Мир принят. Война заставила нас забыть о весах, пусть теперь они вернутся.",
+     "Согласны на мир. Пусть оба народа вспомнят, что честная торговля лучше честной войны.",
+     "Мир. Пленные будут возвращены без выкупа, а потери мы спишем без претензий.",
+     "Принимаем мир. Мы не держим зла и не ведём счёт старым обидам, если вы не ведёте его тоже.",
+     "Мир подписан, и подпись наша крепче, чем были наши пушки.",
+     "Да, мир. Давайте закончим то, что началось, и начнём то, что можно закончить честно."
+    ],
+    "en": [
+     "We accept peace. The account of this war is closed, and we will not reopen it.",
+     "Peace. Our scales are balanced again, and the word we give today will hold tomorrow and for a century after.",
+     "Peace is an honest end to a dishonest quarrel. We agree, and we will keep every term.",
+     "We accept peace and promise to observe every term of it.",
+     "Peace is accepted. The war made us forget our scales; let them return now.",
+     "We agree to peace. May both peoples remember that honest trade beats honest war.",
+     "Peace. Prisoners will be returned without ransom, and we write off our losses without claims.",
+     "We accept peace. We bear no grudge and keep no count of old wrongs, if you keep none either.",
+     "Peace is signed, and our signature is stronger than our guns were.",
+     "Yes, peace. Let us finish what began and begin what can be finished honestly."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы уже нарушали своё слово, а наши кланы не берут векселей у неплательщиков.",
+     "Мы отклоняем мир: счёт за причинённый вами ущерб до сих пор не оплачен.",
+     "Справедливость не заключает новых сделок с теми, кто нарушил прежние. Война продолжается.",
+     "Нет. Мы просим вас сперва возместить ущерб, а затем уже говорить о мире.",
+     "Мы отклоняем мир. Вы предлагаете его не с честным намерением, а чтобы выиграть время.",
+     "Отказ. Мир без справедливости — это просто отложенная война, а мы не любим откладывать долги.",
+     "Нет. Ваши слова расходятся с делами, и мы не можем подписывать то, что не гарантировано.",
+     "Нам тяжело отказать, но мы отказываем. Пока вы не признаете вину, мира не будет.",
+     "Мы не пойдём на мир, пока не получим обещанного в прошлый раз.",
+     "Нет, и мы сообщаем об этом открыто, чтобы вы не строили иллюзий."
+    ],
+    "en": [
+     "No. You have broken your word before, and the Clans do not accept notes from defaulters.",
+     "We refuse peace: the bill for the damage you caused is still unpaid.",
+     "Justice does not bargain with those who broke the last bargain. The war continues.",
+     "No. We ask you to compensate the damage first, and only then to talk of peace.",
+     "We decline peace. You offer it not in honest intent but to gain time.",
+     "Refused. Peace without justice is just a postponed war, and we dislike postponing debts.",
+     "No. Your words diverge from your deeds, and we cannot sign what is not guaranteed.",
+     "It is hard for us to refuse, but we refuse. Until you admit your guilt, there will be no peace.",
+     "We will not make peace until we receive what was promised last time.",
+     "No, and we say so openly so that you build no illusions."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Вы нарушили слово, а нарушенного слова наши кланы не прощают. Это война — объявленная открыто, по всем правилам.",
+     "Мы честно назвали цену вашего вероломства, и вы её не заплатили. Теперь мы объявляем вам войну.",
+     "Ваш долг чести не оплачен. Наши кланы взыщут его войной — и говорят вам об этом прямо.",
+     "Мы объявляем вам войну, как велит обычай: открыто, при свидетелях и без хитростей.",
+     "Вы нарушили договор и не ответили на наши письма. Остаётся война.",
+     "Война. Мы предупреждали трижды, а честь не терпит четвёртого раза.",
+     "Мы воюем не с радостью, а по долгу. Война начинается сегодня.",
+     "Ваша вина доказана, срок вышел, штраф не уплачен. Объявляем войну.",
+     "Наши кланы объявляют войну. Мы говорим это в лицо, а не из-за угла.",
+     "Это война. Пусть будет известно: начали её вы, а мы лишь отвечаем."
+    ],
+    "en": [
+     "You broke your word, and the Clans do not forgive a broken word. This is war, declared openly and by the rules.",
+     "We named an honest price for your treachery, and you did not pay. Now we declare war.",
+     "Your debt of honour is unpaid. The Clans will collect it by war, and we tell you so to your face.",
+     "We declare war on you as custom demands: openly, before witnesses and without tricks.",
+     "You broke the treaty and did not answer our letters. War is what remains.",
+     "War. We warned you three times, and honour does not tolerate a fourth.",
+     "We make war not gladly but from duty. The war begins today.",
+     "Your guilt is proven, the term has run out, the penalty is unpaid. We declare war.",
+     "The Clans declare war. We say it to your face, not from around the corner.",
+     "This is war. Let it be known that you began it and we merely answer."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы официально расторгаем наш договор. Вы нарушили его условия, и мы ими больше не связаны.",
+     "С тяжёлым сердцем объявляем: соглашение между нами прекращено. Уведомляем вас заранее, как и положено.",
+     "Пакт расторгнут по вашей вине. Мы держали слово до последнего, но теперь свободны от него.",
+     "Мы расторгаем договор. Вы не выполнили свою часть, и мы вправе забрать свою.",
+     "Союз прекращён. Мы заранее известили вас обо всех нарушениях и не получили ответа.",
+     "С прискорбием объявляем: соглашение между нами недействительно. Все его обязательства сняты.",
+     "Договор расторгнут. Мы не держим на вас зла, но связывать нас больше нечем.",
+     "Мы вынуждены разорвать пакт. Честь требует не обманывать себя и вас.",
+     "Наш договор исчерпал себя, и мы закрываем его без скандала и без претензий.",
+     "Мы расторгаем соглашение открыто. Вы знаете причину, мы не станем её повторять."
+    ],
+    "en": [
+     "We formally terminate our treaty. You broke its terms, and we are no longer bound by them.",
+     "With a heavy heart we announce that our agreement is ended. We give you notice, as is proper.",
+     "The pact is dissolved, and the fault is yours. We kept our word to the very end; now we are released from it.",
+     "We terminate the treaty. You did not perform your part, and we are entitled to withdraw ours.",
+     "The alliance is ended. We notified you in advance of every breach and received no answer.",
+     "With regret we announce that the agreement between us is void. All its obligations are lifted.",
+     "The treaty is dissolved. We bear you no ill will, but nothing binds us any longer.",
+     "We must break the pact. Honour requires that we deceive neither ourselves nor you.",
+     "Our agreement has run its course, and we close it without scandal and without claims.",
+     "We end the agreement openly. You know the reason, and we will not repeat it."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите. Вы нарушаете честные правила торговли, и терпеть это вечно мы не станем.",
+     "Говорим открыто: ещё один такой шаг, и наши кланы примут меры. Вы честно предупреждены.",
+     "Вы задолжали нам уважение. Верните долг сейчас, иначе мы взыщем его по всем правилам.",
+     "Остановитесь. Мы говорим это один раз, открыто и без злобы: следующий шаг дорого вам обойдётся.",
+     "Вы задели честь наших кланов. Если не исправите, мы исправим сами, и это будет не по-дружески.",
+     "Это честное предупреждение. Мы не любим грозить, но ещё меньше любим терпеть.",
+     "Ваши поступки нарушают наш договор. Прекратите, или мы призовём свидетелей и ответим.",
+     "Мы не станем играть в слова: перестаньте, или получите ответ, который не понравится.",
+     "Остановитесь, пока можно остановиться достойно. Потом будет поздно.",
+     "Мы предупреждаем вас по правилам: срок дан, условия названы, последствия понятны."
+    ],
+    "en": [
+     "Stop. You are breaking the fair rules of trade, and we will not tolerate it forever.",
+     "We say it openly: one more step like that and the Clans will act. Consider yourself fairly warned.",
+     "You owe us respect. Repay it now, or we will collect it by every lawful means.",
+     "Stop. We say it once, openly and without malice: your next step will cost you dearly.",
+     "You have touched the honour of our Clans. If you do not mend it, we will, and not in a friendly way.",
+     "This is an honest warning. We dislike threatening, and dislike enduring even more.",
+     "Your actions breach our agreement. Cease, or we will call witnesses and respond.",
+     "We will not play with words: stop, or receive an answer you will not like.",
+     "Stop while you can still stop with dignity. Later it will be too late.",
+     "We warn you by the rules: a term is given, conditions named, consequences plain."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Ваши действия принесли нам убытки, и честный расчёт даёт {СУММА}. Оплатите, и счёт будет закрыт.",
+     "Справедливая неустойка — {СУММА}. Мы не просим ни монеты сверх положенного.",
+     "Выплатите {СУММА}, и наши кланы будут считать вопрос улаженным. Даём в том слово.",
+     "По справедливому расчёту вы должны нам {СУММА}. Уплатите, и мы забудем об этом деле.",
+     "Возмещение ущерба — {СУММА}. Это ровно столько, сколько мы потеряли, и ни монетой больше.",
+     "Мы требуем {СУММА} и называем это не данью, а долгом, который вы признали бы сами.",
+     "Верните {СУММА}, и наши кланы закроют счёт без обид и без процентов.",
+     "Закон торговли ясен: за ущерб платят. Ваш платёж составляет {СУММА}.",
+     "Выплатите {СУММА} в срок. Мы изложили условия открыто и менять их не станем.",
+     "Нам причитается {СУММА}. Требуем честно и ждём честного ответа."
+    ],
+    "en": [
+     "Your actions cost us dearly, and an honest calculation comes to {AMOUNT}. Pay it and the account is closed.",
+     "The fair penalty is {AMOUNT}. We ask not one coin more than is due.",
+     "Pay {AMOUNT}, and the Clans will consider the matter settled. You have our word on it.",
+     "By a fair reckoning you owe us {AMOUNT}. Pay it, and we forget the matter.",
+     "Compensation for the damage is {AMOUNT}. It is exactly what we lost and not a coin more.",
+     "We demand {AMOUNT} and call it not tribute but a debt you would admit yourselves.",
+     "Return {AMOUNT}, and the Clans will close the account without grudge and without interest.",
+     "The law of trade is clear: damages are paid for. Your payment comes to {AMOUNT}.",
+     "Pay {AMOUNT} on time. We have stated the terms openly and will not change them.",
+     "We are owed {AMOUNT}. We demand it honestly and await an honest answer."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Благодарим вас за щедрый дар. Мы запишем его в книги и ответим тем же.",
+     "Спасибо. Наши кланы не забывают ни долгов, ни подарков.",
+     "Ваш подарок принят с благодарностью. Честь не позволяет нам остаться в долгу.",
+     "Спасибо за подарок. Мы запишем его в книгу благодарностей и воздадим вам равным.",
+     "Благодарим. Дар принят с уважением, и мы не забудем этого жеста.",
+     "Ваш подарок тронул нас. Честь велит ответить, и мы ответим, когда придёт время.",
+     "Мы получили дар и благодарим вас. Дружбу, как и долги, начинают с малого.",
+     "Спасибо вам. Мы не привыкли брать, не отдавая, и обязательно найдём способ ответить.",
+     "Подарок принят с благодарностью. Мы ценим его выше, чем вы можете подумать.",
+     "Благодарим за щедрость. Она записана в наши книги там, где записывают только доброе."
+    ],
+    "en": [
+     "Thank you for your generous gift. Courtesy is a debt like any other, and we always repay our debts.",
+     "Thank you. The Clans forget neither a debt nor a gift.",
+     "Your gift is gratefully received. Honour forbids us to remain in your debt.",
+     "Thank you for the gift. We will enter it in the book of gratitude and repay you in kind.",
+     "We are grateful. The gift is received with respect, and we will not forget the gesture.",
+     "Your gift touched us. Honour bids us answer, and we will when the time comes.",
+     "We received the gift and thank you. Friendships, like debts, begin small.",
+     "Thank you. We are not used to taking without giving, and we will find a way to answer.",
+     "The gift is received with thanks. We prize it higher than you may think.",
+     "We thank you for your generosity. It is entered in our books where only good things are written."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы задержали вашего шпиона в нашей счётной палате. Честные партнёры смотрят в книги открыто, а не тайком.",
+     "Ваш агент пойман. Мы вернём его, но доверие, как и кредит, восстанавливается долго.",
+     "Шпионаж — это кража, а с ворами мы не торгуем. Ваш лазутчик задержан, и мы ждём объяснений.",
+     "Ваш шпион задержан у наших хранилищ. Мы не обвиняем вас, но просим объяснить.",
+     "Мы поймали вашего агента. Честные партнёры спрашивают, а не крадут.",
+     "Лазутчик в наших архивах — нарушение доверия, и мы заявляем официальный протест.",
+     "Шпион пойман без вреда для нас, а вред вашей репутации куда больше.",
+     "Ваш агент задержан. Мы вернём его живым и здоровым, но с письмом, где всё изложено.",
+     "Шпионство — это ложь в действии. Мы протестуем и ждём извинений.",
+     "Мы нашли вашего шпиона. Хотели бы поверить, что это ошибка, но доказательства лежат на столе."
+    ],
+    "en": [
+     "We caught your spy in our counting house. Honest partners read the books openly, not in secret.",
+     "Your agent has been caught. We will return him, but trust, like credit, takes long to rebuild.",
+     "Espionage is theft, and we do not trade with thieves. Your infiltrator is held; we await an explanation.",
+     "Your spy was detained near our vaults. We do not accuse you, but we ask for an explanation.",
+     "We caught your agent. Honest partners ask; they do not steal.",
+     "An infiltrator in our archives is a breach of trust, and we lodge a formal protest.",
+     "The spy was caught without harm to us, but the harm to your reputation is far greater.",
+     "Your agent is held. We will return him alive and well, with a letter that sets it all out.",
+     "Spying is a lie in action. We protest and await an apology.",
+     "We found your spy. We would like to believe it a mistake, but the evidence lies on the table."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы отдадим голос за вас. Галактике нужны честные весы, а вы свои ни разу не подкручивали.",
+     "Наш голос ваш, как и было обещано. Честная сделка не нуждается в напоминаниях.",
+     "Мы поддержим вас на голосовании. Партнёр, который платит по счетам, заслуживает доверия.",
+     "В Совете наш голос будет за вас. Мы голосуем открыто и объясним причины любому, кто спросит.",
+     "Мы отдаём вам голос в Совете: вы держали слово, и мы платим тем же.",
+     "Наш голос за вас, и мы не просим ничего взамен, кроме честности и впредь.",
+     "Мы поддержим вас голосованием. Хороший партнёр — это лучший кандидат.",
+     "Голос за вас, потому что вы честно ведёте дела, а честность в галактике редка.",
+     "Мы проголосуем за вас в Совете. Просим не считать это долгом, это уважение.",
+     "Торговый дом даёт вам голос и свою подпись в придачу."
+    ],
+    "en": [
+     "We will vote for you in the Council. The galaxy needs honest scales, and you have never tipped yours.",
+     "Our vote is yours, as promised. An honest deal needs no reminders.",
+     "We will support you in the Council. A partner who pays his bills deserves our trust.",
+     "Our vote in the Council will be for you. We vote openly and will explain the reasons to anyone who asks.",
+     "Our house puts its vote in the Council behind you. Your ledger was straight, and so is our answer.",
+     "Our vote is for you, and we ask nothing in return except continued honesty.",
+     "We will support you by vote. A good partner is the best candidate.",
+     "A vote for you, because you conduct business honestly, and honesty is rare in the galaxy.",
+     "We will vote for you in the Council. Please do not treat it as a debt; it is respect.",
+     "Our house gives you its vote and its signature besides."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "В Совете мы проголосуем против вас и не станем этого скрывать: тайных сделок наши кланы не заключают.",
+     "Мы проголосуем против. Тот, кто нарушает договоры, не может вести за собой галактику.",
+     "Наш голос не продаётся, а совесть не позволяет нам поддержать вас. В Совете — против.",
+     "В Совете мы проголосуем против вас. Скажем это прямо, чтобы вы не узнали из газет.",
+     "Мы голосуем против. Вы дали нам повод усомниться в вашем слове, а слово для нас главное.",
+     "Наш голос против вас. Мы не желаем зла, но и доверять вам власть не можем.",
+     "Совету мы скажем честно: мы против, и причины изложены в нашем письме.",
+     "Голос против. Нам тяжело, но обещание, нарушенное однажды, нарушается и во второй раз.",
+     "Мы против вас на голосовании. Возможно, в будущем мы изменим мнение, если вы заслужите.",
+     "Наш голос не за вас, и мы говорим об этом открыто, как и положено честным соседям."
+    ],
+    "en": [
+     "We will vote against you in the Council, and we will not hide it: the Clans make no secret deals.",
+     "We will vote against you. One who breaks contracts cannot lead the galaxy.",
+     "No price could buy our vote, and our conscience forbids us to back you in the Council.",
+     "Our vote in the Council goes against you. We prefer you hear it from us rather than from the papers.",
+     "We vote against. You gave us cause to doubt your word, and our word is what matters most.",
+     "Our vote is against you. We wish you no harm, but we cannot entrust you with power.",
+     "We will tell the Council honestly: we are against, and the reasons are set out in our letter.",
+     "The vote is against. It is hard for us, but a promise broken once is broken a second time.",
+     "We are against you in the vote. Perhaps we will change our view later, if you earn it.",
+     "Our vote is not for you, and we say so openly, as honest neighbours should."
+    ]
+   }
+  },
+  "pacifistic": {
+   "first_contact": {
+    "ru": [
+     "Здравствуйте! Нам всегда везло на соседей, и мы надеемся, что между нами будут летать только торговые корабли.",
+     "Добро пожаловать! Мир — лучшая основа для прибыли, и мы надеемся богатеть вместе с вами.",
+     "Приветствуем вас. Мы торговцы, а не воины: у нас вы найдёте прилавок, а не пушку.",
+     "Добрый день! Мёртвые покупатели ничего не покупают, поэтому мы за живых и за дружбу.",
+     "Здравствуйте. Мы держим прилавки открытыми, а дверь незапертой. Заходите, поговорим о ценах, а не о войне.",
+     "Приветствуем вас. Нам кажется, что ссора — самая невыгодная из всех сделок.",
+     "Рады видеть новых соседей. Давайте торговать, делиться и никогда не считать друг у друга патроны.",
+     "Мир вам и процветания! У нас найдутся и товар, и чай, и время для разговора.",
+     "Здравствуйте! В нашем счётном доме на вас уже заведена тёплая запись, а запись о вражде мы вести не умеем.",
+     "Привет вам от наших кланов. Мы надеемся, что наша единственная битва будет битвой за скидки."
+    ],
+    "en": [
+     "Hello! We have always been lucky with neighbours, and we hope only trade ships will ever travel between us.",
+     "Welcome! Peace is the best foundation for profit, and we hope to grow rich together with you.",
+     "We greet you. We are traders, not soldiers: with us you will find a counter, not a cannon.",
+     "Good day! Dead customers buy nothing, so we are for the living and for friendship.",
+     "Hello. We keep our counters open and our door unlocked. Come in and let us talk prices, not war.",
+     "We greet you. It seems to us that a quarrel is the least profitable deal of all.",
+     "Glad to see new neighbours. Let us trade, share, and never count each other's cartridges.",
+     "Peace to you and prosperity! We have goods, tea and time for a chat.",
+     "Hello! Our counting house already has a warm entry for you, and we do not know how to keep one for enmity.",
+     "Greetings from our Clans. We hope our only battle will be a battle over discounts."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "С радостью принимаем! Кто занят торговлей, тому некогда ссориться.",
+     "Согласны от всей души. Пусть наши корабли возят товары, а не солдат.",
+     "Договор принят. Выгода для обеих сторон — самый прочный мир, какой мы знаем.",
+     "Да, конечно, принимаем! Торговля — самая мирная из всех игр.",
+     "Согласны с радостью. Пусть наши караваны встречаются в пути как давние друзья.",
+     "Договор принят. Что может быть приятнее, чем разбогатеть, ни разу не выстрелив?",
+     "Мы согласны. Каждая сделка между нами — маленький кирпичик в стене против войны.",
+     "Принимаем с удовольствием. Рады, что вы предпочли счёты кулакам.",
+     "Да! Мы всегда говорили, что обмен товарами лечит любые обиды.",
+     "Согласны. Ваши товары на нашем прилавке — лучшая вывеска для мира."
+    ],
+    "en": [
+     "We gladly accept! People who are busy trading have no time to quarrel.",
+     "Agreed, with all our hearts. Let our ships carry goods, never soldiers.",
+     "Accepted. Profit on both sides is the sturdiest kind of peace we know.",
+     "Yes, of course, we accept! Trade is the most peaceful of all games.",
+     "Gladly agreed. May our caravans meet on the road like old friends.",
+     "The treaty is accepted. What could be nicer than getting rich without firing a shot?",
+     "We agree. Every deal between us is a small brick in the wall against war.",
+     "We accept with pleasure. We are glad you preferred abacuses to fists.",
+     "Yes! We have always said that swapping goods heals any grievance.",
+     "Agreed. Your goods on our counter are the best signboard for peace."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нам очень жаль, но наши склады пока не справятся с такими поставками. Отказываемся — без всякой обиды.",
+     "Условия нам не по силам, а подводить вас мы не хотим. Поэтому, увы, нет — но наш рынок для вас открыт.",
+     "Не сочтите за грубость: этот договор не принесёт пользы ни вам, ни нам. Давайте поищем другой.",
+     "Простите, но нет. Мы не хотим, чтобы наша дружба держалась на неудачной сделке.",
+     "К сожалению, мы вынуждены отказаться. Давайте вернёмся к разговору, когда наши склады наполнятся.",
+     "Нет, и нам неловко: договор принёс бы вам больше хлопот, чем денег.",
+     "Нам жаль, что приходится говорить нет. Мы не любим обижать тех, кого хотели бы считать друзьями.",
+     "Не сейчас, пожалуйста. Мы не отказываем навсегда, мы лишь просим времени.",
+     "Отказываем, но с улыбкой. Хорошие соседи могут не торговать и всё равно ладить.",
+     "Мы бы и рады, но нет: такой договор нас разорит, а разорённые друзья плохо помогают."
+    ],
+    "en": [
+     "We are very sorry, but our warehouses cannot handle such deliveries yet. We decline, with no hard feelings.",
+     "The terms are beyond us, and we would hate to let you down. So, sadly, no, but our market stays open to you.",
+     "Please do not take it as rudeness: this treaty would help neither of us. Let us look for a better one.",
+     "Sorry, but no. We do not want our friendship to rest on a bad deal.",
+     "Regretfully, we must decline. Let us return to the talk when our warehouses are full again.",
+     "No, and we feel awkward: the treaty would bring you more trouble than money.",
+     "We are sorry to say no. We dislike offending those we would like to call friends.",
+     "Not now, please. We do not refuse forever, we only ask for time.",
+     "We decline, but with a smile. Good neighbours may skip trading and still get along.",
+     "We would love to, but no: such a treaty would ruin us, and ruined friends help poorly."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "С радостью принимаем. Знания, которыми делятся, растут, как вклад под хороший процент.",
+     "Согласны! Хорошая идея стоит дороже трюма редких металлов, а идей у вас, говорят, немало.",
+     "Договор принят. Чем больше мы знаем друг о друге, тем меньше поводов для ссор.",
+     "Согласны с радостью. Надеемся, что наши открытия послужат только лекарствам и урожаям.",
+     "Принимаем договор. Знание, которым делятся, — самый мирный из всех товаров.",
+     "Да, конечно! Мы любим, когда учёные разных кланов пьют чай за одним столом.",
+     "Согласны. Пусть наши лаборатории работают на то, чтобы всем жилось лучше, а не страшнее.",
+     "Принято с благодарностью. Наши архивы и ваши будут дружить, как соседние лавки.",
+     "Договор принят. Мы только просим не использовать наши формулы для войны.",
+     "Согласны, и ещё как! Обмен знаниями делает друзей богаче, а врагов — реже."
+    ],
+    "en": [
+     "We gladly accept. Shared knowledge grows like a deposit at good interest.",
+     "Agreed! A good idea is worth more than a hold full of rare metals, and we hear you have plenty of ideas.",
+     "Accepted. The more we know about each other, the fewer reasons we have to quarrel.",
+     "Gladly agreed. We hope our discoveries will serve only medicine and harvests.",
+     "We accept the agreement. Shared knowledge is the most peaceful of all goods.",
+     "Yes, of course! We love it when scientists of different Clans drink tea at one table.",
+     "We agree. May our laboratories work so that everyone lives better, not more fearfully.",
+     "Accepted with gratitude. Our archives and yours will be friends, like neighbouring shops.",
+     "The agreement is accepted. We only ask that our formulas not be used for war.",
+     "Agreed, and how! An exchange of knowledge makes friends richer and enemies rarer."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Простите, наши исследования пока не готовы к обмену. Мы вынуждены отказаться.",
+     "Часть наших открытий может стать оружием, и это нас пугает. Поэтому — нет, не обижайтесь.",
+     "Давайте не сейчас: наши счета за исследования ещё не сведены, и делиться пока нечем.",
+     "Простите, нет. Мы боимся, что наши знания окажутся не в тех руках, пусть даже не в ваших.",
+     "Нам жаль, но мы отказываем. Наши учёные ещё сами не знают, что открыли.",
+     "Нет, пожалуйста, не обижайтесь. Мы просто не готовы открывать архивы, пока везде неспокойно.",
+     "Отказываем со слезами в голосе: исследования у нас слишком близки к оружию.",
+     "Мы не можем сейчас. Дайте нам время, и вдруг мы передумаем.",
+     "Не в этот раз. Пожалуйста, поймите: нам спокойнее, когда формулы лежат в сейфе.",
+     "К сожалению, нет. Но чашка чая и лёгкая беседа у нас для вас всегда найдутся."
+    ],
+    "en": [
+     "Forgive us, our research is not ready to be shared. We must decline.",
+     "Some of our findings could become weapons, and that frightens us. So no, and please do not be hurt.",
+     "Not now, please: our research accounts are still being balanced, and we have nothing ready to share.",
+     "Sorry, no. We fear our knowledge may end up in the wrong hands, even if not yours.",
+     "We are sorry, but we decline. Our scientists do not yet know what they have found.",
+     "No, please do not be hurt. We are simply not ready to open our archives while it is so unsettled out there.",
+     "We refuse with tears in our voice: our research lies too close to weapons.",
+     "We cannot just now. Give us time, and perhaps we will think again.",
+     "Not this time. Please understand: we sleep easier when our formulas sit in a safe.",
+     "Regretfully, no. But a cup of tea and a light chat are always waiting for you."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Хорошо охраняемый караван никто не грабит, а вместе мы — отличная охрана.",
+     "Согласны с радостью. Пусть этот союз охраняет торговые пути, а не захватывает чужие.",
+     "Да. Воины из нас плохие, зато партнёры надёжные: снабжение союзника мы берём на себя.",
+     "Принимаем союз с радостью. Пусть он будет щитом, а не мечом.",
+     "Согласны. Друзья вместе — это лучший способ остаться без войны.",
+     "Да! Мы никогда не просили много, только компании и спокойных границ.",
+     "Союз принят. Обещаем помогать вам обороной, а не нападением.",
+     "Согласны всем сердцем. Вместе нам будет легче договариваться с теми, кто не любит договариваться.",
+     "Торговый дом принимает союз. И пусть слово «друг» станет в наших книгах самой длинной записью.",
+     "Принимаем. Просим только об одном: пусть вы будете миролюбивы, пока мы будем вам верны."
+    ],
+    "en": [
+     "We accept the alliance. Nobody robs a well-guarded caravan, and together we make a very good guard.",
+     "Gladly agreed. May this alliance guard trade lanes rather than seize anyone else's.",
+     "Yes. We are poor soldiers but reliable partners; we will take care of our ally's supplies.",
+     "We accept the alliance gladly. May it be a shield, not a sword.",
+     "Agreed. Friends standing together are the best way to stay out of war.",
+     "Yes! We never asked for much, only company and calm borders.",
+     "The alliance is accepted. We promise to help you with defence, not attack.",
+     "We agree with all our hearts. Together it is easier to deal with those who dislike dealing.",
+     "Our house accepts the alliance. May the word friend be the longest entry in our books.",
+     "We accept. We ask only one thing: be peaceful, and we shall be faithful."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Простите, но союз — это общий счёт за чужие войны, а платить кровью мы не умеем. Отказываемся.",
+     "Мы торговцы, а не солдаты. Нет — но наша дружба и наша торговля остаются с вами.",
+     "Не обижайтесь: наши кланы дали слово не вступать в военные союзы, и мы его не нарушим.",
+     "Простите, но нет. Союз может втянуть нас в бой, а мы не умеем сражаться.",
+     "Нам очень жаль, мы отказываемся. Но торговля и чай между нами остаются.",
+     "Нет, не обижайтесь. Мы не готовы подписывать то, что однажды потребует крови.",
+     "Отказываем. Союзы делают врагов друзьями, а нам хватает и тех, и других.",
+     "Не сейчас. Наши кланы слишком хрупки для таких обещаний.",
+     "Мы вынуждены сказать нет. Но дверь остаётся открытой: приходите хоть завтра.",
+     "Это слишком тяжёлое обязательство, и нам не по силам. Простите нас."
+    ],
+    "en": [
+     "Forgive us, but an alliance means sharing the bill for other people's wars, and blood is a currency we refuse to spend.",
+     "We are traders, not soldiers. No, but our friendship and our trade remain yours.",
+     "Please do not be hurt: the Clans have vowed to join no military alliance, and we will not break that vow.",
+     "Sorry, but no. An alliance may drag us into battle, and we cannot fight.",
+     "We are very sorry, we refuse. But trade and tea between us remain.",
+     "No, please do not be offended. We are not ready to sign what may one day demand blood.",
+     "We decline. Alliances turn enemies into friends, and we have enough of both.",
+     "Not now. Our Clans are too fragile for such promises.",
+     "We must say no. But the door stays open: come tomorrow if you like.",
+     "No, it is too heavy an obligation, and we lack the strength. Forgive us."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "С радостью принимаем пакт! Это лучшая страховка из всех, что мы когда-либо покупали.",
+     "Согласны! Пусть наши флоты ржавеют в доках — выгоднее убытков не бывает.",
+     "Да, да и ещё раз да. Обещание не нападать — именно та сделка, о которой мы мечтали.",
+     "Принимаем пакт с радостью! Мы подписали бы его и дважды.",
+     "Согласны. Что может быть милее, чем обещание быть добрыми друг к другу?",
+     "Да. Пусть наши границы превратятся из линий обороны в линии торговых путей.",
+     "Пакт принят. Мы поставим на нём самую красивую печать, какая у нас есть.",
+     "Согласны, и спасибо вам: вы сделали нашу ночь спокойнее.",
+     "Принимаем. Теперь можно уменьшить расходы на флот и увеличить расходы на праздники.",
+     "Конечно, да! Мы всегда готовы к миру, лишь бы и вы были готовы."
+    ],
+    "en": [
+     "We gladly accept the pact! It is the best insurance we have ever bought.",
+     "Agreed! Let our fleets rust in dock; those are the most profitable losses in the world.",
+     "Yes, yes and yes again. A promise not to attack is exactly the deal we dreamed of.",
+     "We accept the pact with joy! We would sign it twice.",
+     "Agreed. What is sweeter than a promise to be kind to each other?",
+     "Yes. Let our borders turn from lines of defence into lines of trade routes.",
+     "The pact is accepted. We will put the prettiest seal we own on it.",
+     "We agree, and thank you: you made our nights calmer.",
+     "We accept. Now we can cut spending on the fleet and raise spending on festivals.",
+     "Of course, yes! We are always ready for peace, as long as you are ready too."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир, наконец-то! Война разоряла всех, а теперь рынки снова откроются.",
+     "Мир — лучшая сделка за всю эту несчастную войну. Мы согласны от всего сердца.",
+     "Спасибо за мир. Давайте поскорее переделаем военные корабли обратно в грузовые.",
+     "Мир! Наконец-то! Наши весы снова станут весами, а не оружием.",
+     "Мы принимаем мир с огромным облегчением. Пусть война будет самой короткой строкой в наших хрониках.",
+     "Согласны на мир. Мы так долго ждали этого слова, что почти разучились его произносить.",
+     "Мир подписан. Давайте теперь вместе залечим раны и пересчитаем, чего лишились.",
+     "Да, мир. Только мир возвращает нам и покупателей, и сон.",
+     "Принимаем мир, и пусть он будет долгим. Мы очень устали от войны.",
+     "Спасибо за мир. Пленных отпустим немедленно, с тёплой одеждой и запасом на дорогу."
+    ],
+    "en": [
+     "Peace at last! The war was ruining everyone, and now the markets can reopen.",
+     "Peace is the best deal to come out of this whole sad war. We agree with all our hearts.",
+     "Thank you for peace. Let us turn our warships back into freighters as soon as we can.",
+     "Peace! At last! Our scales will be scales again and not weapons.",
+     "We accept peace with enormous relief. May the war be the shortest line in our chronicles.",
+     "We agree to peace. We waited so long for that word that we nearly forgot how to say it.",
+     "Peace is signed. Now let us heal the wounds together and count what we lost.",
+     "Yes, peace. Only peace brings us back both our customers and our sleep.",
+     "We accept peace, and may it be a long one. We are very tired of war.",
+     "Thank you for peace. We will free the prisoners at once, with warm clothes and supplies for the road."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нам больно это говорить, но мы не можем принять мир, пока ваши флоты угрожают нашим колониям.",
+     "По вашим условиям наши кланы останутся без гроша, так что, как ни больно, — нет.",
+     "Простите нас: прошлый мир вы нарушили. Мы не можем рискнуть снова, и война, увы, продолжается.",
+     "Нам очень тяжело отказывать, но нет. Ваши корабли всё ещё стоят у наших колоний.",
+     "Мы мечтаем о мире, но не о таком. Условия, которые вы предложили, оставят нас без будущего.",
+     "Простите, нет. Мы не можем доверить ни детей, ни склады людям, которые так легко нарушают слово.",
+     "Мир не вышел. Нам больно, но война продолжится, пока угроза не уйдёт.",
+     "Нет. Мы ненавидим войну, но ещё больше ненавидим худой мир.",
+     "Отказываем. Пожалуйста, измените условия, и мы вернёмся к разговору охотно.",
+     "Нам очень жаль. Не сегодня. Но мы будем ждать вашего более честного предложения."
+    ],
+    "en": [
+     "It hurts us to say it, but we can't accept peace while your fleets still threaten our colonies.",
+     "Your terms would leave the Clans without a coin to their name, so as much as it hurts us, no.",
+     "Forgive us: you broke the last peace. We dare not risk it again, and the war, sadly, goes on.",
+     "It is very hard for us to refuse, but no. Your ships still stand at our colonies.",
+     "We dream of peace, but not of this kind. The terms you offered would leave us without a future.",
+     "Sorry, no. We cannot trust our children or our warehouses to people who break their word so easily.",
+     "No peace this time. It pains us, but the war will go on until the threat is gone.",
+     "No. We hate war, but we hate a bad peace even more.",
+     "We decline. Please change the terms, and we will return to the talk with joy.",
+     "We are very sorry. Not today. But we will wait for a more honest offer from you."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы перепробовали все сделки, все уступки, все скидки — ничего не помогло. Это война, и нам очень горько.",
+     "Война — худшее вложение из всех, но своих нужно защищать любой ценой. Мы вступаем в войну.",
+     "Мы закрываем лавки и открываем арсеналы, и сердце наше разрывается. Это война — пусть она кончится скорее.",
+     "Мы объявляем вам войну. Это самые тяжёлые слова, которые мы когда-либо произносили.",
+     "Война. Пусть она будет короткой, а те, кто её начал, запомнят: мы пытались избежать.",
+     "Мы больше не можем терпеть. Война, и да простят нас наши торговые партнёры.",
+     "Нас вынудили. Мы объявляем войну, и каждый наш выстрел будет сопровождаться сожалением.",
+     "Это война. Мы закрываем лавки и молимся о быстром конце.",
+     "К сожалению, мирных путей больше нет. Война, и пусть удача пожалеет нас.",
+     "Наши кланы объявляют вам войну с тяжёлым сердцем. Мы всё ещё надеемся на примирение."
+    ],
+    "en": [
+     "We tried every deal, every concession, every discount, and nothing worked. This is war, and it grieves us.",
+     "War is the worst investment there is, but we must protect our own at any price. We are going to war.",
+     "We are closing our shops and opening our arsenals, with heavy hearts. It is war, and we pray it ends soon.",
+     "We declare war on you. These are the heaviest words we have ever spoken.",
+     "War. May it be short, and may those who began it remember that we tried to avoid it.",
+     "We can bear it no longer. War, and may our trade partners forgive us.",
+     "We were forced. We declare war, and every shot of ours will carry regret.",
+     "This is war. We close our shops and pray for a swift end.",
+     "Sadly, there are no peaceful paths left. War, and may luck take pity on us.",
+     "Our Clans declare war on you with a heavy heart. We still hope for reconciliation."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Нам очень жаль, но мы вынуждены расторгнуть наш договор: его условия втягивают нас в беду.",
+     "Простите нас. Это соглашение стало опасным, и мы выходим из него, чтобы избежать худшего.",
+     "Пакт больше не защищает ни нас, ни вас. Мы расторгаем его с грустью и надеждой на лучшие времена.",
+     "Нам очень горько, но мы вынуждены расторгнуть договор. Условия стали опасными для нас.",
+     "Простите нас: этот пакт больше не может защитить ни одну из сторон, и мы его разрываем.",
+     "Мы расторгаем соглашение, но надеемся когда-нибудь подписать новое, получше.",
+     "Договор прекращён. Мы не хотим ссоры, мы просто не можем идти по этой дороге дальше.",
+     "С болью объявляем: наш союз более нельзя поддерживать. Нам искренне жаль.",
+     "Мы разрываем пакт, но оставляем открытыми торговые пути. Если захотите, приходите.",
+     "Простите нас. Договор больше не отвечает нашему желанию беречь жизни."
+    ],
+    "en": [
+     "We are so sorry, but we must end our treaty. Its terms are dragging us into trouble.",
+     "Forgive us. This agreement has become dangerous, and we are withdrawing to avoid something worse.",
+     "The pact no longer protects either of us. We end it with sadness, hoping for better times.",
+     "It pains us deeply, but we must end the treaty. The terms have become dangerous for us.",
+     "Forgive us: this pact can no longer protect either side, and we break it.",
+     "We end the agreement, but hope to sign a new, better one someday.",
+     "The treaty is over. We do not want a quarrel; we simply cannot walk this road any further.",
+     "With pain we announce that our alliance can no longer be sustained. We are sincerely sorry.",
+     "We break the pact but leave the trade routes open. Come by if you wish.",
+     "Forgive us. The treaty no longer serves our wish to protect lives."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Пожалуйста, остановитесь. Мы не хотим ссоры, но даже у мирных купцов есть наёмники — и деньги, чтобы им платить.",
+     "Ваши действия губят торговлю для всех. Прекратите, прошу вас, иначе нам придётся закрыть для вас наши рынки.",
+     "Мы терпеливы, но и у терпения есть цена. Не вынуждайте нас её назначать.",
+     "Пожалуйста, остановитесь. Нам не хочется говорить грубо, но дальше последует то, о чём мы пожалеем.",
+     "Мы просим мягко, один раз: прекратите, иначе нам придётся ответить, и ответ нам самим будет горек.",
+     "Не вынуждайте нас вспоминать, что у каждого купца есть и кулаки. Мы бы предпочли их не знать.",
+     "Ещё немного, и мирные кланы станут не такими уж мирными. Подумайте.",
+     "Мы дорожим вашей дружбой, но ещё сильнее дорожим безопасностью. Прекратите.",
+     "Пожалуйста, пожалуйста, остановитесь. Нам не хочется делать то, что мы делать умеем.",
+     "Мы вас предупреждаем в последний раз, и очень просим услышать."
+    ],
+    "en": [
+     "Please stop. We do not want a quarrel, but even peaceful merchants keep mercenaries, and the money to pay them.",
+     "What you are doing ruins trade for everyone. Stop, we beg you, or we will have to close our markets to you.",
+     "We are patient, but even patience has a price. Do not force us to name it.",
+     "Please stop. We do not like speaking harshly, but what follows is something we will regret.",
+     "We ask gently, once: cease, or we shall have to answer, and the answer will be bitter for us too.",
+     "Do not make us remember that every merchant has fists as well. We would rather not know them.",
+     "A little more, and the peaceful Clans will not be so peaceful. Think.",
+     "We value your friendship, but we value safety even more. Stop.",
+     "Please, please, stop. We do not wish to do what we are able to do.",
+     "We warn you for the last time, and we very much ask you to hear us."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Мы не любим ссор, поэтому предлагаем сделку: {СУММА} — и всё останется по-доброму.",
+     "Просим вас о скромном взносе: {СУММА}. Это дешевле любой войны — и для вас, и для нас.",
+     "Мы правда не хотим прибегать к силе. Переведите {СУММА}, и наши флоты останутся в доках.",
+     "Просим вас, пожалуйста, передать {СУММА}. Это поможет всем избежать худшего.",
+     "Нам очень неловко просить, но нам нужно {СУММА}. Тогда мы останемся друзьями.",
+     "Давайте решим всё миром: вы вносите {СУММА}, а мы убираем флоты от вашей границы.",
+     "Мы не хотим воевать. Заплатите {СУММА}, и все вопросы закрыты, а раны не открыты.",
+     "Малый взнос, большая польза: {СУММА}. Пожалуйста, не заставляйте нас просить дважды.",
+     "Мы нуждаемся в {СУММА}. Это печальная необходимость, а не желание, поверьте нам.",
+     "Передайте {СУММА}, и наши пушки останутся лишь украшением доков."
+    ],
+    "en": [
+     "We hate quarrels, so here is a deal instead: {AMOUNT}, and everything stays friendly.",
+     "We ask a modest contribution of {AMOUNT}. It is cheaper than any war, for you and for us.",
+     "We truly do not want to use force. Send {AMOUNT}, and our fleets will stay in dock.",
+     "We kindly ask you to send {AMOUNT}. It will help everyone avoid the worst.",
+     "We feel awkward asking, but we need {AMOUNT}. Then we will remain friends.",
+     "Let us settle it in peace: you pay {AMOUNT}, and we pull our fleets back from your border.",
+     "We do not want to fight. Pay {AMOUNT}, and every question is closed while no wounds are opened.",
+     "A small contribution, a great benefit: {AMOUNT}. Please do not make us ask twice.",
+     "We need {AMOUNT}. It is a sad necessity, not a desire, believe us.",
+     "Send {AMOUNT}, and our guns will remain mere dock decorations."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Какой чудесный подарок! Спасибо — такие жесты дороже любой прибыли.",
+     "Благодарим от всего сердца. Щедрые соседи — лучшее богатство, какое мы знаем.",
+     "Ваш дар тронул наши кланы. Мы обязательно ответим чем-нибудь не менее приятным.",
+     "Спасибо вам огромное за подарок! Мы растроганы и немного смущены.",
+     "Благодарим. Такой дар тёплой рукой делает холодные расчёты теплее.",
+     "Подарок получен, и мы счастливы. Он лучше любого договора скажет, что мы друзья.",
+     "Спасибо! Такие жесты и делают из соседей друзей.",
+     "Мы так благодарны, что не нашли слов, поэтому просто скажем спасибо.",
+     "Ваш дар дороже золота: он напомнил нам, что в галактике есть добрые люди.",
+     "Благодарим сердечно. Мы обязательно ответим подарком, достойным вашей щедрости."
+    ],
+    "en": [
+     "What a wonderful gift! Thank you; gestures like this are worth more than any profit.",
+     "Thank you from the bottom of our hearts. Generous neighbours are the best wealth we know.",
+     "Your gift has touched the Clans. We will certainly send you something just as pleasant in return.",
+     "Thank you so much for the gift! We are touched and a little embarrassed.",
+     "We are grateful. A gift from a warm hand makes cold arithmetic warmer.",
+     "The gift is received, and we are happy. Better than any treaty, it shows that we are friends.",
+     "Thanks! Gestures like this turn neighbours into friends.",
+     "We are so grateful that we found no words, so we simply say thank you.",
+     "Your gift is worth more than gold: it reminded us that the galaxy holds kind people.",
+     "Heartfelt thanks. We will certainly answer with a gift worthy of your generosity."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион найден на нашем складе. Зачем красть то, что мы охотно продали бы вам со скидкой?",
+     "Мы поймали вашего агента и отпустим его невредимым. Но, пожалуйста, давайте больше доверять друг другу.",
+     "Лазутчик в наших счётных палатах — как это огорчительно. Мы надеялись, что между нами только честная торговля.",
+     "Мы поймали вашего шпиона, но не причиним ему вреда. Нам просто грустно, что вы нам не доверяете.",
+     "Ваш агент задержан. Нам непонятно, зачем красть, когда достаточно попросить.",
+     "Лазутчик найден в наших хранилищах. Мы огорчены, и хотим, чтобы это не повторялось.",
+     "Мы протестуем: ваш шпион был пойман у наших ворот. Давайте решим дело разговором, а не обидами.",
+     "Мы нашли вашего агента, накормили его и отправим домой. Но вы нас очень расстроили.",
+     "Шпион пойман. Мы никого не наказываем, но просим вас остановиться.",
+     "Ваш лазутчик у нас. Мы ждём извинений и обещаем принять их с радостью."
+    ],
+    "en": [
+     "Your spy was found in our warehouse. Why steal what we would happily sell you at a discount?",
+     "We caught your agent, and we will send him home unharmed. But please, let us trust each other more.",
+     "An infiltrator in our counting houses: how disappointing. We hoped there was nothing but honest trade between us.",
+     "We caught your spy, but we will not harm him. We are simply sad that you do not trust us.",
+     "Your agent is held. We cannot understand why steal when it is enough to ask.",
+     "An infiltrator was found in our vaults. We are saddened and want this not to happen again.",
+     "We protest: your spy was caught at our gates. Let us settle the matter by talking, not by grudges.",
+     "We found your agent, fed him, and will send him home. But you have upset us greatly.",
+     "The spy is caught. We punish nobody, but we ask you to stop.",
+     "We hold your infiltrator. We await an apology and promise to take it gladly."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "В Совете мы голосуем за вас. Вы выбираете мир, а значит, и нашу поддержку.",
+     "Наш голос ваш. С вами в галактике станет больше рынков и меньше полей сражений.",
+     "Мы с радостью поддержим вас в Совете. Спокойная галактика — прибыльная галактика.",
+     "В Совете наш голос за вас. Мы голосуем за тех, кто предпочитает торг стрельбе.",
+     "Мы с радостью отдадим вам голос в Совете. Спокойные лидеры — лучший залог для рынков.",
+     "Наш голос ваш. Вы показали, что умеете договариваться, а это редкий дар.",
+     "Мы проголосуем за вас. Надеемся, что при вас в галактике станет меньше слёз.",
+     "Голос за вас! Пусть Совет услышит, что мирные кланы тоже кого-то поддерживают.",
+     "Мы поддержим вас в Совете. Просим лишь одного: берегите мир.",
+     "Наш голос с вами. Мы верим, что вы поведёте галактику к прибыли без выстрелов."
+    ],
+    "en": [
+     "We will vote for you in the Council. You choose peace, and so you have our support.",
+     "Our vote is yours. With you at the helm there will be more markets and fewer battlefields.",
+     "We will gladly back you in the Council. A calm galaxy is a profitable galaxy.",
+     "Our vote in the Council is for you. We vote for those who prefer haggling to shooting.",
+     "We will gladly give you our vote in the Council. Calm leaders are the best guarantee for markets.",
+     "Our vote is yours. You showed you can reach agreements, and that is a rare gift.",
+     "We will vote for you. We hope that under you the galaxy will see fewer tears.",
+     "A vote for you! Let the Council hear that peaceful Clans back someone too.",
+     "We will support you in the Council. We ask just one thing: protect the peace.",
+     "Our vote is with you. We believe you will lead the galaxy to profit without gunfire."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Простите, но в Совете мы проголосуем против вас: наши купцы бледнеют всякий раз, когда мимо проходят ваши флоты.",
+     "Наш голос против вас. Мы боимся, что при вас торговлю заменит война.",
+     "Нам неловко, но совесть не позволяет нам поддержать вас. Мы голосуем против — тихо и без вражды.",
+     "Простите, но в Совете мы проголосуем против. Нам страшно, когда у власти те, кто не любит мир.",
+     "Наш голос не за вас. Мы вовсе не хотим вас обидеть, но совесть спокойнее, когда мы говорим правду.",
+     "Мы голосуем против. Пусть Совет знает: мы не враги вам, мы просто боимся.",
+     "Голос против. Нам очень неловко, и мы просим не считать это объявлением вражды.",
+     "Мы не можем поддержать вас. В Совете наш голос будет против, тихо и без шума.",
+     "Простите нас, мы проголосуем против. Ваши корабли слишком много стреляют, а наши нервы слишком тонки.",
+     "Против вас, с сожалением. Если вы научитесь мирно решать споры, мы поменяем голос."
+    ],
+    "en": [
+     "We are sorry, but in the Council we must vote against you: our merchants turn pale whenever your fleets pass by.",
+     "Our vote goes against you. Under your rule we fear the markets would fall silent and the guns would do the talking.",
+     "It is awkward for us, but our conscience will not let us back you. We vote against you, quietly and without malice.",
+     "Sorry, but in the Council we will vote against. It frightens us when those who dislike peace hold power.",
+     "Our vote is not for you. We have no wish to hurt you, but our conscience rests easier when we tell the truth.",
+     "We vote against. Let the Council know: we are not your enemies, we are simply afraid.",
+     "The vote is against. We feel very awkward, and ask you not to take it as a declaration of enmity.",
+     "We cannot support you. In the Council our vote will be against, quietly and without noise.",
+     "Forgive us, we will vote against. Your ships fire too often, and our nerves are too thin.",
+     "Against you, with regret. If you learn to settle disputes in peace, we will change our vote."
+    ]
+   }
+  }
+ }
+}

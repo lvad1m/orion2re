@@ -1,0 +1,2825 @@
+{
+ "race": "klackons",
+ "lines": {
+  "xenophobic": {
+   "first_contact": {
+    "ru": [
+     "Мы видим вас. Вы не часть улья. Не подходите.",
+     "Улей не звал гостей. Мы работаем. Вы мешаете.",
+     "Чужие. Мы помним ваш запах. Держитесь далеко от нашего роя.",
+     "Мы слышим ваше жужжание. Оно не наше. Оно нам не нравится.",
+     "Вы пахнете железом и чужими норами. Мы закрываем ближние туннели.",
+     "Зачем вы здесь? Мы вас не звали. Мы вас не ждали.",
+     "Мы считаем вас чужими. Чужие остаются снаружи. Так учит нас улей.",
+     "Наши стражи подняли жала. Мы просим вас: не подлетайте.",
+     "Мы заметили вас у границы. Мы запомнили ваш запах. Этого достаточно.",
+     "Улей молчит, когда рядом чужие. Мы молчим. Вы тоже помолчите."
+    ],
+    "en": [
+     "We see you. You are not of the hive. Do not come near.",
+     "The hive did not call for guests. We work. You disturb.",
+     "Outsiders. We remember your scent. Keep far from our swarm.",
+     "We hear your buzzing. It is not ours. We do not like it.",
+     "You smell of iron and foreign burrows. We seal the nearest tunnels.",
+     "Why are you here? We did not call you. We did not expect you.",
+     "We count you as outsiders. Outsiders stay outside. So the hive teaches us.",
+     "Our guards raise their stingers. We ask you: do not fly closer.",
+     "We noticed you at the border. We have memorized your scent. That is enough.",
+     "The hive goes quiet when outsiders are near. We are quiet. Be quiet too."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем. Ваши грузы — в наши доки. Ваши рабочие — нет.",
+     "Улею нужна руда. Мы согласны торговать. Но не подходите к нашим сотам.",
+     "Договор принят. Мы берём товары. Мы не берём чужих.",
+     "Мы согласны. Грузы сложите у внешних ворот. Внутрь вы не войдёте.",
+     "Да, мы торгуем. Один раз, один склад, без гостей.",
+     "Мы принимаем торговлю. Но мы будем нюхать каждый ящик.",
+     "Мы согласны на обмен. Ваши корабли разгрузятся и сразу улетят.",
+     "Улей берёт ваши товары. Улей не берёт ваших слов. Мы принимаем.",
+     "Мы согласны. Королева разрешила. Торгуем, пока вы далеко.",
+     "Мы согласны. Только пусть ваши торговцы не ходят по нашим туннелям."
+    ],
+    "en": [
+     "We accept. Your cargo comes to our docks. Your workers do not.",
+     "The hive needs ore. We agree to trade. But stay away from our combs.",
+     "Treaty accepted. We take goods. We do not take outsiders.",
+     "We agree. Leave the cargo at the outer gates. You will not come inside.",
+     "Yes, we trade. One time, one storehouse, no guests.",
+     "We accept the trade. But we will sniff every crate.",
+     "We agree to the exchange. Your ships unload and leave at once.",
+     "The hive takes your goods. The hive does not take your words. We accept.",
+     "We agree. The Queen allowed it. We trade, while you stay far away.",
+     "We agree. Only let your traders not walk our tunnels."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Улей кормит себя сам. Нам не нужны ваши вещи.",
+     "Мы не торгуем с чужими. Мы строим. Уходите.",
+     "Ваши корабли в наших доках? Нет. Никогда.",
+     "Нет. Чужие грузы пахнут чужими руками. Мы их не возьмём.",
+     "Мы отказываемся. Улей не меняет соты на пустые обещания.",
+     "Торговля значит встречи. Встречи нам не нужны. Нет.",
+     "Нет, нет и нет. Мы уже сказали. Больше мы не повторим.",
+     "Наши склады полны. Нам не нужно ничего ваше. Мы отвергаем сделку.",
+     "Мы не открываем доки для чужих. Ответ: нет.",
+     "Мы слышали про ваш товар. Мы закрыли доки ещё раньше. Нет."
+    ],
+    "en": [
+     "No. The hive feeds itself. We do not need your things.",
+     "We do not trade with outsiders. We build. Go away.",
+     "Your ships in our docks? No. Never.",
+     "No. Foreign cargo smells of foreign hands. We will not take it.",
+     "We refuse. The hive does not swap combs for empty promises.",
+     "Trade means meetings. We do not want meetings. No.",
+     "No, no and no. We have said it. We will not say it again.",
+     "Our storehouses are full. We need nothing of yours. We reject the deal.",
+     "We do not open our docks to outsiders. Our answer is no.",
+     "We heard of your goods. We closed the docks even earlier. No."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Мы согласны. Королева хочет знать больше. Присылайте знания, не присылайте себя.",
+     "Договор принят. Мы будем учиться у вас — издалека.",
+     "Мы принимаем обмен. Ваши знания мы очистим от вашего запаха.",
+     "Мы согласны. Присылайте записи. Мы изучим их в тишине наших туннелей.",
+     "Да. Знание не имеет запаха. Мы принимаем договор.",
+     "Мы принимаем. Наши работники прочтут всё, а вы не прочтёте ничего.",
+     "Королева любопытна. Мы согласны учиться, но не рядом с вами.",
+     "Мы одобряем обмен знаниями. Посланцев не присылайте, присылайте бумаги.",
+     "Мы принимаем союз умов. Он будет очень далёким.",
+     "Мы согласны на обмен. Королеве нужны знания, а не вы."
+    ],
+    "en": [
+     "We agree. The Queen wants to know more. Send knowledge, not yourselves.",
+     "Treaty accepted. We will learn from you. From far away.",
+     "We accept the exchange. We will clean your knowledge of your scent.",
+     "We agree. Send your records. We will study them in the quiet of our tunnels.",
+     "Yes. Knowledge has no scent. We accept the treaty.",
+     "We accept. Our workers will read everything, and you will read nothing.",
+     "The Queen is curious. We agree to learn, but not near you.",
+     "We agree to the exchange of knowledge. Send no envoys, send papers.",
+     "We accept this joining of minds. It will be a very distant one.",
+     "We agree to the exchange. The Queen needs the knowledge, not you."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Улей думает сам. Ваши мысли нам чужие.",
+     "Мы не пускаем чужих в наши туннели. И знания чужих — тоже нет.",
+     "Наши знания — только для улья. Ваши нам не нужны. Отказ.",
+     "Нет. Знания пахнут тем, кто их принёс. Мы отказываемся.",
+     "Мы не дадим вам заглянуть в наши соты. И в ваши мы не заглянем. Нет.",
+     "Улей учится у себя. Мы отвергаем ваше предложение.",
+     "Ваши учёные в наших лабораториях? Никогда.",
+     "Мы не нуждаемся. Наш рой знает всё, что ему нужно. Отказ.",
+     "Нет. Мы не смешиваем наши мысли с чужими.",
+     "Мы не откроем вам наши лаборатории. Нет. Это вопрос запаха."
+    ],
+    "en": [
+     "No. The hive thinks for itself. Your thoughts are foreign to us.",
+     "We do not let outsiders into our tunnels. Not their knowledge either.",
+     "Our knowledge is for the hive only. We do not need yours. We refuse.",
+     "No. Knowledge smells of whoever brought it. We refuse.",
+     "We will not let you peer into our combs. Nor will we peer into yours. No.",
+     "The hive learns from itself. We reject your offer.",
+     "Your scholars in our laboratories? Never.",
+     "We have no need. Our swarm knows all it requires. Refused.",
+     "No. We do not mix our thoughts with foreign ones.",
+     "We will not open our laboratories to you. No. It is a matter of scent."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Королева так решила. Но в улей вы не войдёте.",
+     "Общий враг. Мы согласны. Вы воюете там, мы — здесь.",
+     "Союз принят. Наш рой будет рядом с вашим. Не слишком близко.",
+     "Мы принимаем союз. Но наши границы остаются закрытыми для вас.",
+     "Да. Мы воюем рядом, но живём отдельно. Мы согласны.",
+     "Королева кивнула. Мы принимаем союз издалека. Так лучше для всех.",
+     "Мы согласны на союз. Не ждите от нас гостеприимства.",
+     "Союз принят. Мы будем помнить, чей запах ваш. И держать дистанцию.",
+     "Мы одобряем союз. Он нужен улью. Вы нужны улью только как щит.",
+     "Мы согласны на союз. Враг нашего врага пока нам друг. Пока."
+    ],
+    "en": [
+     "We accept the alliance. The Queen decided so. But you do not enter the hive.",
+     "A common enemy. We agree. You fight there, we fight here.",
+     "Alliance accepted. Our swarm flies near yours. Not too near.",
+     "We accept the alliance. But our borders stay closed to you.",
+     "Yes. We fight side by side, but live apart. We agree.",
+     "The Queen nodded. We accept the alliance from afar. That is better for everyone.",
+     "We agree to the alliance. Expect no hospitality from us.",
+     "Alliance accepted. We will remember whose scent is yours. And keep our distance.",
+     "We agree to the alliance. The hive needs it. The hive needs you only as a shield.",
+     "We agree to the alliance. The enemy of our enemy is our friend. For now."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Мы — один улей. Мы ни с кем не сливаемся.",
+     "Союз с чужими? Мы отказываемся. Чужие пахнут неправильно.",
+     "Наш рой летит один. Всегда один. Нет.",
+     "Нет. Союз значит близость. Мы не терпим близости с чужими.",
+     "Мы отказываемся. Рой не делит небо ни с кем.",
+     "Ваш союз — это ваш запах в наших туннелях. Нет.",
+     "Мы не просили друзей. Нам их не нужно. Нет.",
+     "Улей один, и так будет всегда. Мы отвергаем союз.",
+     "Нет. Мы не научимся доверять вам, сколько бы вы ни просили.",
+     "Мы отказываемся. Союзников мы не выводили. Мы не знаем, как с ними жить."
+    ],
+    "en": [
+     "No. We are one hive. We merge with no one.",
+     "An alliance with outsiders? We refuse. Outsiders smell wrong.",
+     "Our swarm flies alone. Always alone. No.",
+     "No. An alliance means closeness. We do not bear closeness with outsiders.",
+     "We refuse. The swarm shares the sky with no one.",
+     "Your alliance is your scent in our tunnels. No.",
+     "We did not ask for friends. We need none. No.",
+     "The hive is one, and it will stay so. We reject the alliance.",
+     "No. We will not learn to trust you, however much you ask.",
+     "We refuse. We never bred allies. We do not know how to live with them."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы принимаем пакт. Вы не трогаете нас. Мы не видим вас.",
+     "Да. Не нападать — хорошо. Не приходить — ещё лучше. Мы согласны.",
+     "Пакт принят. Ваши корабли — там. Наши соты — здесь. Пусть так будет.",
+     "Мы принимаем пакт. Вы не лезете к нам. Это лучшее, что вы можете дать.",
+     "Да. Тишина на границе — дар для улья. Мы согласны.",
+     "Пакт принят. Не нападайте, не приходите, не пишите нам.",
+     "Мы согласны не жалить вас. Вы согласны не жужжать у наших врат.",
+     "Королева одобрила. Мы не нападаем. Вы тоже. Всё просто.",
+     "Мы принимаем. Пусть между нами будет пустая звёздная дорога.",
+     "Да, мы принимаем пакт. Чем меньше вас рядом, тем спокойнее наши соты."
+    ],
+    "en": [
+     "We accept the pact. You do not touch us. We do not see you.",
+     "Yes. No attacks, good. No visits, better. We agree.",
+     "Pact accepted. Your ships stay there. Our combs stay here. Let it be so.",
+     "We accept the pact. You stay out of our way. It is the best you can give.",
+     "Yes. Silence at the border is a gift to the hive. We agree.",
+     "Pact accepted. Do not attack, do not visit, do not write to us.",
+     "We agree not to sting you. You agree not to buzz at our gates.",
+     "The Queen approved. We accept: we do not attack, neither do you. It is simple.",
+     "We accept. Let an empty road of stars lie between us.",
+     "Yes, we accept the pact. The less you are near, the calmer our combs."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Мы вернёмся к работе. Вы вернётесь к себе. Подальше.",
+     "Мы принимаем мир. Королеве не нужна ваша война. И вы не нужны.",
+     "Мир принят. Не приближайтесь, и мы забудем, что вы есть.",
+     "Мир. Мы вернём рабочих к сотам. Вы вернёте корабли домой.",
+     "Мы принимаем мир. Мы устали от вашего запаха, а не от войны.",
+     "Мир. Но граница теперь наша стена. Мы не пустим вас за неё.",
+     "Мир принят. Мы закроем туннели и забудем ваши голоса.",
+     "Королева сказала: хватит. Мы заключаем мир. Уходите.",
+     "Мы согласны на мир. Рой не любит драться зря. И не любит вас.",
+     "Мир. Мы запечатываем туннели у вашей границы. Вы свободны."
+    ],
+    "en": [
+     "Peace. We return to work. You return home. Far away.",
+     "We accept peace. The Queen does not need your war. Or you.",
+     "Peace is accepted. Stay away, and we will forget you exist.",
+     "Peace. We return our workers to the combs. You return your ships home.",
+     "We accept peace. We are tired of your scent, not of the war.",
+     "Peace. But the border is our wall now. We will not let you past it.",
+     "Peace is accepted. We will seal the tunnels and forget your voices.",
+     "The Queen said enough. We make peace. Now leave.",
+     "We agree to peace. The swarm does not like fighting for nothing. Nor does it like you.",
+     "Peace. We seal the tunnels near your border. You are free to go."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы ещё рядом с ульем. Мы воюем, пока вы не уйдёте.",
+     "Мир с чужими? Мы отказываемся. Рой ещё не очистил наши звёзды.",
+     "Мы не верим чужим. Ваш мир — ловушка. Война продолжается.",
+     "Нет. Мир с вами пахнет обманом. Мы продолжаем.",
+     "Мы отказываемся. Рой не остановится, пока чужие не исчезнут.",
+     "Вы просите мира? Мы не слышим. Война идёт.",
+     "Нет. Ваши корабли ещё в нашем небе. Мы не заключим мир.",
+     "Мы отвергаем мир. Наши жала ещё не остыли.",
+     "Вы говорите мир, а пахнете войной. Мы вам не верим. Нет.",
+     "Нет. Королева ещё не сказала, что с вас хватит. Мы воюем."
+    ],
+    "en": [
+     "No. You are still near the hive. We fight until you leave.",
+     "Peace with outsiders? We refuse. The swarm has not cleared our stars yet.",
+     "We do not trust outsiders. Your peace is a trap. The war goes on.",
+     "No. Peace with you smells of deceit. We fight on.",
+     "We refuse. The swarm does not stop until outsiders are gone.",
+     "You ask for peace? We do not hear. The war goes on.",
+     "No. Your ships are still in our sky. We will not make peace.",
+     "We reject peace. Our stingers have not cooled yet.",
+     "You say peace but you smell of war. We do not believe you. No.",
+     "No. The Queen has not said that you have had enough. We fight."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Вы слишком близко к улью. Мы идём войной. Все мы.",
+     "Королева решила. Мы — война. Мы очистим наши звёзды от вас.",
+     "Чужие на нашей земле. Рой поднимается. Это война.",
+     "Мы объявляем войну. Улей проснулся, и вы виноваты.",
+     "Хватит. Мы выходим всем роем. Для вас это война.",
+     "Мы терпели ваш запах слишком долго. Теперь война.",
+     "Королева дала приказ. Каждый из нас поднимает жало. Война.",
+     "Вы не ушли, когда мы просили. Мы идём на вас войной.",
+     "Наши туннели пустеют. Наш рой в небе. Вас ждёт война.",
+     "Мы насчитали ваши корабли у наших сот. Их слишком много. Мы объявляем войну."
+    ],
+    "en": [
+     "You are too close to the hive. We come with war. All of us.",
+     "The Queen has decided. We are war. We will clear our stars of you.",
+     "Outsiders on our ground. The swarm rises. This is war.",
+     "We declare war. The hive has woken, and you are to blame.",
+     "Enough. We march out as one swarm. For you this is war.",
+     "We tolerated your scent for too long. Now it is war.",
+     "The Queen gave the order. Each of us raises a stinger. War.",
+     "You did not leave when we asked. We come against you in war.",
+     "Our tunnels are emptying. Our swarm is in the sky. War awaits you.",
+     "We counted your ships near our combs. There are too many. We declare war."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы рвём договор. Улей больше не хочет вас знать.",
+     "Пакт закончен. Мы закрываем туннели. Мы закрываем границы.",
+     "Королева решила: никаких соглашений с чужими. Мы уходим от вас.",
+     "Мы разрываем договор. Нам надоел ваш запах в наших делах.",
+     "Соглашение кончено. Мы закрываем порты и не откроем их.",
+     "Мы нарушаем пакт. Улей не должен знать вас так близко.",
+     "Мы больше не связаны договором. Не ищите нас.",
+     "Мы выбросили ваш договор из наших сот. Он порван.",
+     "Договор был ошибкой. Мы исправляем её сегодня.",
+     "Мы больше не хотим помнить о вас. Договор разорван. Нам нужна тишина."
+    ],
+    "en": [
+     "We tear up the treaty. The hive wants to know you no more.",
+     "The pact is over. We close the tunnels. We close the borders.",
+     "The Queen has decided: no agreements with outsiders. We are done with you.",
+     "We break the treaty. We are tired of your scent in our affairs.",
+     "The agreement is finished. We close our ports and will not reopen them.",
+     "We break the pact. The hive should not know you this closely.",
+     "We are no longer bound by any treaty. Do not look for us.",
+     "We threw your treaty out of our combs. It is torn.",
+     "The treaty was a mistake. We correct it today.",
+     "We no longer want to remember you. The treaty is torn. We need silence."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Ваши корабли у наших сот. Уходите. Или рой выйдет навстречу.",
+     "Мы чуем вас слишком близко. Остановитесь. Мы не повторим.",
+     "Чужие у наших туннелей. Ещё раз — и наш рой придёт к вам. Весь.",
+     "Мы предупреждаем один раз. Отойдите от наших границ.",
+     "Наши стражи уже чуют вас. Они злы. Мы не удержим их долго.",
+     "Ещё один корабль у наших врат, и мы забудем про терпение.",
+     "Мы видим ваши корабли. Мы считаем их. Мы готовы их убрать.",
+     "Остановитесь. Улей не любит повторять. Мы не станем.",
+     "Вы близко к нам. Слишком близко. Мы советуем вам отойти.",
+     "Мы чуем ваш страх. Он слаще вашего запаха. Уходите, пока мы просим."
+    ],
+    "en": [
+     "Your ships are at our combs. Leave. Or the swarm comes out to meet you.",
+     "We smell you too close. Stop. We will not say it again.",
+     "Outsiders at our tunnels. Once more, and our swarm comes to you. All of it.",
+     "We warn once. Back away from our borders.",
+     "Our guards already smell you. They are angry. We cannot hold them long.",
+     "One more ship at our gates, and we forget about patience.",
+     "We see your ships. We count them. We are ready to remove them.",
+     "Stop. The hive does not like repeating. We will not.",
+     "You are near us. Too near. We advise you to back away.",
+     "We smell your fear. It is sweeter than your scent. Leave while we still ask."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Улей требует {СУММА}. Платите и держитесь подальше от нас.",
+     "Мы берём {СУММА}. Плата за то, что вы живёте рядом с нами.",
+     "{СУММА} — нашей Королеве. Иначе рой придёт сам.",
+     "Мы требуем {СУММА}. Это цена нашего молчания.",
+     "Заплатите нам {СУММА}, и наши стражи отвернутся от вас.",
+     "Улей хочет {СУММА}. Мы берём плату за право летать рядом.",
+     "{СУММА} в наши соты. Иначе мы придём за ними сами.",
+     "Мы насчитали вам долг: {СУММА}. Несите и уходите.",
+     "Королева велела нам взять {СУММА}. Не заставляйте нас просить дважды.",
+     "Откупитесь: {СУММА}. Тогда мы не заметим вашего присутствия."
+    ],
+    "en": [
+     "The hive demands {AMOUNT}. Pay and stay away from us.",
+     "We take {AMOUNT}. The price for living near us.",
+     "{AMOUNT} for our Queen. Or the swarm comes itself.",
+     "We demand {AMOUNT}. This buys our silence, and nothing more.",
+     "Pay us {AMOUNT}, and our guards turn away from you.",
+     "The hive wants {AMOUNT}. Outsiders pay for the right to fly near us.",
+     "{AMOUNT} into our combs. Or we come to fetch it ourselves.",
+     "We counted your debt: {AMOUNT}. Bring it and leave.",
+     "The Queen ordered us to take {AMOUNT}. Do not make us ask twice.",
+     "Buy us off with {AMOUNT}. Then we will not notice you are here."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Мы получили ваш подарок. Мы проверили его. Спасибо. Теперь уходите.",
+     "Мы благодарим. Дар полезен улью. Вы — не очень.",
+     "Королева приняла дар. Мы благодарим. Но держитесь подальше.",
+     "Мы благодарим за подарок. Мы вымыли его от вашего запаха.",
+     "Спасибо. Мы приняли дар. Присылайте такое без посланцев.",
+     "Мы получили дар и благодарны. Для нас это не повод сблизиться.",
+     "Дар хорош. Мы благодарим. Теперь отвернитесь и улетайте.",
+     "Королева довольна подарком. Мы благодарим вас. Издалека.",
+     "Мы принимаем дар и благодарим. Это не дружба. Это порядок.",
+     "Мы благодарим вас. Дар мы положили в дальнюю соту. Вас мы туда не пустим."
+    ],
+    "en": [
+     "We received your gift. We checked it. Thank you. Now go.",
+     "We thank you. The gift is useful to the hive. You are not.",
+     "The Queen has taken the gift. We are grateful. Stay away all the same.",
+     "We thank you for the gift. We washed your scent off it.",
+     "Thanks. We have taken the gift. Send such things without envoys.",
+     "We received the gift and are grateful. But nothing changes between us.",
+     "The gift is good. We thank you. Now turn away and fly off.",
+     "The Queen is pleased with the gift. We thank you. From afar.",
+     "We take the gift and say thanks. This is not friendship. This is order.",
+     "We thank you. We put the gift in a far comb. We will not let you there."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы нашли чужого в улье. Ваш шпион. Улей не прощает.",
+     "Ваш агент пахнет чужим. Мы поймали его. Больше не присылайте.",
+     "Шпион в наших туннелях. Мы видим всё. Мы помним всё.",
+     "Наши стражи поймали вашего шпиона. Он пахнул чужим на каждом повороте.",
+     "Мы протестуем. Ваш агент ползал в наших туннелях. Это нельзя прощать.",
+     "Мы нашли шпиона среди рабочих. Он не жужжал как мы.",
+     "Вы послали агента в наш улей? Мы это запомнили.",
+     "Ваш лазутчик пойман. Мы знаем, кто его послал. Это вы.",
+     "Шпионов мы чуем издалека. Ваш не ушёл. Мы очень недовольны.",
+     "Мы вынюхали вашего шпиона за день. Наш улей не обмануть. Это оскорбление."
+    ],
+    "en": [
+     "We found an outsider in the hive. Your spy. The hive does not forgive.",
+     "Your agent smells foreign. We caught him. Send no more.",
+     "A spy in our tunnels. We see everything. We remember everything.",
+     "Our guards caught your spy. He smelled foreign at every turn.",
+     "We protest. Your agent crawled in our tunnels. This cannot be forgiven.",
+     "We found a spy among the workers. He did not buzz like us.",
+     "A spy crawled into our tunnels. We found it. We will not forget, and we will not let you come near again.",
+     "Your infiltrator is caught. We know who sent him. It was you.",
+     "We smell spies from afar. Yours did not get away. We are most displeased.",
+     "We sniffed out your spy in a day. Our hive cannot be fooled. This is an insult."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Вы далеко от улья. Это хорошо.",
+     "Наш голос — вам. Не потому, что вы нам нравитесь. Другие хуже.",
+     "Королева велела: голос — за вас. Мы исполняем. Больше ничего.",
+     "Мы голосуем за вас в Совете. Чем дальше вы сидите, тем лучше.",
+     "Наш голос в Совете — ваш. Мы вас не любим. Мы просто считаем.",
+     "Королева велела нам отдать вам голос. Мы послушны.",
+     "Мы поддержим вас в Совете. Взамен просим тишины.",
+     "Мы голосуем за вас. Пусть вы правите далёкими звёздами, не нашими.",
+     "В Совете мы за вас. Не приходите благодарить.",
+     "Мы голосуем за вас. Если вы победите, вы станете ещё дальше от нас."
+    ],
+    "en": [
+     "We vote for you. You are far from the hive. That is good.",
+     "Our vote is yours. Not because we like you. The others are worse.",
+     "The Queen ordered: the vote goes to you. We obey. Nothing more.",
+     "We vote for you in the Council. The farther you sit, the better.",
+     "Our Council vote is yours. It is not friendship. It is calculation.",
+     "The Queen ordered us to give you our vote. We are obedient.",
+     "We will back you in the Council. In return we ask for silence.",
+     "We vote for you. Rule distant stars, not ours.",
+     "In the Council we are with you. Do not come to thank us.",
+     "We vote for you. If you win, you will be even farther from us."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Чужие не правят ульем.",
+     "В Совете наш голос — против. Мы не хотим вашей власти над звёздами.",
+     "Весь рой голосует против вас. Вы и так слишком близко к нам.",
+     "Мы голосуем против вас в Совете. Чужим нельзя доверять власть.",
+     "Наш голос в Совете против. Мы не хотим слышать ваш запах на троне.",
+     "Королева решила: против. Мы голосуем и не спорим.",
+     "Мы против вас в Совете. Власть чужих разрушает улей.",
+     "Мы будем голосовать против вас. Не просите нас передумать.",
+     "В Совете мы скажем нет. Вы и так слишком близко.",
+     "Мы голосуем против вас. Чужие у власти пахнут особенно плохо."
+    ],
+    "en": [
+     "We vote against you. Outsiders do not rule the hive.",
+     "In the Council our vote is against you. We do not want you over the stars.",
+     "The whole swarm votes against you. You are too close to us already.",
+     "We vote against you in the Council. Outsiders must not be trusted with power.",
+     "Our Council vote is against. We do not want your scent on the throne.",
+     "The Queen decided: against. We vote and do not argue.",
+     "We are against you in the Council. The power of outsiders destroys a hive.",
+     "We will vote against you. Do not ask us to change our minds.",
+     "In the Council we will say no. You are already too near.",
+     "We vote against you. Outsiders in power smell especially foul."
+    ]
+   }
+  },
+  "ruthless": {
+   "first_contact": {
+    "ru": [
+     "Мы считаем: вы — новые миры, новая руда, новая работа. Здравствуйте.",
+     "Улей видит вас. Улей решает, полезны ли вы. Мы решим скоро.",
+     "Приветствуем. Мы растём. Всё, что рядом, однажды станет ульем.",
+     "Мы пересчитали ваши звёзды. Их много. Нам нравится это число.",
+     "Здравствуйте. Мы пока не враги. Враг — это лишь сосед, которого мы ещё не посчитали.",
+     "Мы смотрим на вас и видим соты. Пустые соты. Мы их заполним.",
+     "Мы приветствуем вас. Наше приветствие бесплатное. Всё остальное будет стоить.",
+     "Мы нашли вас. Мы пока не решили, чем вы нам будете: другом, кормом или стеной.",
+     "Мы рады встрече. Мы всегда рады новым ресурсам.",
+     "Королева спросила, много ли у вас руды. Мы ответили: узнаем."
+    ],
+    "en": [
+     "We count: you are new worlds, new ore, new work. Greetings.",
+     "The hive sees you. The hive decides if you are useful. We decide soon.",
+     "Greetings. We grow. Everything near us becomes hive one day.",
+     "We counted your stars. There are many. We like that number.",
+     "Hello. We are not enemies yet. An enemy is only a neighbor we have not yet counted.",
+     "We look at you and we see combs. Empty combs. We will fill them.",
+     "We greet you. Our greeting is free. Everything after it will cost.",
+     "We found you. We have not decided what you are to us: a friend, food or a wall.",
+     "We are glad to meet you. We are always glad of new resources.",
+     "The Queen asked whether you have much ore. We answered: we will find out."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы посчитали: торговля кормит улей. Мы принимаем.",
+     "Ваши товары — это меньше работы для нас. Да. Мы торгуем.",
+     "Договор принят. Пока вы полезны, мы торгуем. Потом посмотрим.",
+     "Мы согласны. Каждый груз мы посчитали. Выгода наша.",
+     "Да. Торговля — это ещё один туннель к вашему богатству. Мы принимаем.",
+     "Мы принимаем торговлю. Чем больше вы нам отдаёте, тем меньше вам останется.",
+     "Королева одобрила. Мы торгуем, пока у вас есть что взять.",
+     "Мы согласны. Рабочим нужна руда, вам нужны мы. Обмен справедлив. Пока.",
+     "Мы принимаем сделку. Мы записали, сколько вы нам должны, и это больше, чем вы думаете.",
+     "Мы согласны. Торговля дешевле вторжения. Пока."
+    ],
+    "en": [
+     "We counted: trade feeds the hive. We accept.",
+     "Your goods mean less work for us. Yes. We trade.",
+     "Treaty accepted. While you are useful, we trade. Later we will see.",
+     "We agree. We counted every cargo. The profit is ours.",
+     "Yes. Trade is one more tunnel to your wealth. We accept.",
+     "We accept the trade. The more you give us, the less you will have left.",
+     "The Queen agreed. We trade for as long as you have something to take.",
+     "We agree. Our workers need ore, you need us. The exchange is fair. For now.",
+     "We accept the deal. We noted how much you owe us, and it is more than you think.",
+     "We agree. Trade is cheaper than invasion. For now."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет. Мы возьмём ваши планеты целиком, а не по частям.",
+     "Торговля — медленно. Мы любим быстро. Отказ.",
+     "Нам невыгодно. Нам не нужно. Нет.",
+     "Нет. Ваш товар дешевле, чем вы думаете. Мы не платим за то, что можем взять.",
+     "Мы отказываемся. Пошлины съедают прибыль улья.",
+     "Мы пересчитали. Сделка нас обкрадывает. Нет.",
+     "Нет. Торговаться с тем, кого мы собираемся съесть, глупо.",
+     "Мы отвергаем сделку. У нас уже есть всё, что нам нужно, и немного вашего тоже.",
+     "Ответ: нет. Мы не кормим чужие склады.",
+     "Нет. Торговля нужна, когда сыты два улья. Нам нужен сытый только один."
+    ],
+    "en": [
+     "No. We will take your planets whole, not piece by piece.",
+     "Trade is slow. We like fast. We refuse.",
+     "No profit for us. No need for us. No.",
+     "No. Your goods are cheaper than you think. We do not pay for what we can take.",
+     "We refuse. Tariffs eat the hive's profit.",
+     "We recounted. The deal robs us. No.",
+     "No. Haggling with someone we plan to eat is foolish.",
+     "We reject the deal. We already have everything we need, and a little of yours too.",
+     "Our answer is no. We do not feed foreign storehouses.",
+     "We do not trade with those we plan to count as ours. No."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Мы принимаем. Ваши знания — новые инструменты для улья.",
+     "Да. Мы возьмём ваши знания. Свои отдадим не все.",
+     "Мы согласны. Умный рой растёт быстрее. Вы помогаете нам расти.",
+     "Мы согласны. Чужие знания дешевле своих. Мы берём.",
+     "Да. Мы берём обмен знаниями как ещё один способ вас изучить.",
+     "Мы принимаем. Ваши учёные трудятся, а мы собираем плоды.",
+     "Королева одобрила. Мы заглянем в ваши лаборатории и запомним каждый угол.",
+     "Мы принимаем договор. Через него мы узнаем, как вас сломать, если придётся.",
+     "Мы согласны. Мы взвесили риск. Он мал, а польза велика.",
+     "Мы принимаем обмен. Так мы узнаем, чем вас лучше всего резать."
+    ],
+    "en": [
+     "We accept. Your knowledge becomes new tools for the hive.",
+     "Yes. We take your knowledge. We do not give all of ours.",
+     "We agree. A clever swarm grows faster. You help us grow.",
+     "We agree. Foreign knowledge is cheaper than our own. We take it.",
+     "Yes. We take this sharing of knowledge as another way of studying you.",
+     "We accept. Your scholars toil and we gather the fruit.",
+     "The Queen agreed. We will look into your laboratories and remember every corner.",
+     "We accept the treaty. Through it we learn how to break you, should it come to that.",
+     "We agree. We weighed the risk. It is small and the gain is great.",
+     "We accept the exchange. This way we learn how best to cut you."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет. Наши знания — наше оружие. Мы не отдаём оружие.",
+     "Мы считали. Вы получаете больше. Мы — меньше. Отказ.",
+     "Мы отказываемся. Знающий сосед опасен. Глупый сосед полезен.",
+     "Нет. Знание — оружие. Мы не раздаём оружие соседям.",
+     "Мы отказываемся. Вы платите нам словами, а мы хотим дела.",
+     "Нет. Вы покажете нам слишком мало и увидите слишком много.",
+     "Мы считали и не нашли выгоды. Отказ.",
+     "Нет. Вы скоро будете нашим ресурсом. Зачем мы будем вас учить?",
+     "Мы отвергаем договор. Умный сосед — это опасный сосед.",
+     "Нет. Мы не отдаём то, что стоило нам сотен личинок."
+    ],
+    "en": [
+     "No. Our knowledge is our weapon. We do not give away weapons.",
+     "We counted. You get more. We get less. We refuse.",
+     "We decline. A clever neighbour is dangerous. A foolish neighbour is useful.",
+     "No. Knowledge is a weapon. We do not hand weapons to neighbors.",
+     "We refuse. You pay us in words and we want deeds.",
+     "No. You would show us too little and see too much.",
+     "We counted and found no profit. Refused.",
+     "No. You will soon be our resource. Why would we teach you?",
+     "We reject the treaty. A clever neighbor is a dangerous neighbor.",
+     "No. We do not give away what cost us hundreds of grubs."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Ваши корабли — щит для наших сот.",
+     "Союз выгоден улью. Мы согласны. Пока выгоден.",
+     "Да. Вместе мы съедим врага быстрее. Потом поделим.",
+     "Мы принимаем союз. Ваши потери станут нашей экономией.",
+     "Да. Пока у нас общий враг, мы друзья. Потом посчитаем заново.",
+     "Мы согласны. Союзник — это живая стена между нами и врагом.",
+     "Союз принят. Мы будем идти за вами и брать то, что вы оставите.",
+     "Королева одобрила. Мы заключаем союз. Мы заранее знаем, как из него выйти.",
+     "Мы согласны на союз. Он стоит нам почти ничего, а даст многое.",
+     "Мы согласны. Вы сильнее, чем кажетесь, а мы любим сильных союзников. Недолго."
+    ],
+    "en": [
+     "We accept the alliance. Your ships are a shield for our combs.",
+     "The alliance profits the hive. We agree. While it profits.",
+     "Yes. Together we eat the enemy faster. Then we divide.",
+     "We accept the alliance. Your losses will be our savings.",
+     "Yes. While we share an enemy, we are friends. Later we will count again.",
+     "We agree. An ally is a living wall between us and the enemy.",
+     "Alliance accepted. We will follow behind you and take what you leave.",
+     "The Queen agreed. We accept the alliance. We already know how to leave it.",
+     "We agree to the alliance. It costs us almost nothing and gives much.",
+     "We agree. You are stronger than you look, and we like strong allies. Briefly."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Союзник — это лишний рот. Нам не нужны лишние рты.",
+     "Мы отказываемся. Вы слабы. Слабые союзники тянут улей вниз.",
+     "Мы не делим добычу. Ни с кем. Отказ.",
+     "Нет. Мы не делимся и не просим делиться с нами.",
+     "Мы отказываемся. Ваша армия слишком мала, чтобы быть нам полезной.",
+     "Нет. Союз связывает руки, а нам нужны свободные жала.",
+     "Мы считали. Союз вам выгоден, нам нет. Отказ.",
+     "Нет. Союзники рано или поздно становятся целью. Мы начнём с вас сразу.",
+     "Мы отвергаем союз. Мы не оставим вам место у стола.",
+     "Мы отказываемся. Нам не нужны свидетели нашей добычи."
+    ],
+    "en": [
+     "No. An ally is one more mouth. We need no more mouths.",
+     "We refuse. You are weak. Weak allies drag the hive down.",
+     "We do not share prey. With anyone. We decline.",
+     "No. We do not share, and we do not ask to be shared with.",
+     "We refuse. Your army is too small to be of use to us.",
+     "No. An alliance ties hands, and we need free stingers.",
+     "We counted. The alliance profits you, not us. Refused.",
+     "No. Allies sooner or later become targets. We will simply start with you.",
+     "We reject the alliance. We will leave you no seat at the table.",
+     "We refuse. We do not want witnesses to our spoils."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт принят. Нам нужно время копить силы. Вы даёте нам время.",
+     "Мы согласны. Война с вами сейчас стоит слишком дорого.",
+     "Да. Мы не нападём. Пока это выгодно нам.",
+     "Да, пакт принят. Мы пока заняты другими, а вы подождёте.",
+     "Мы согласны. Мир на этой границе экономит наших рабочих.",
+     "Мы принимаем пакт. Мы запомнили, когда он закончится.",
+     "Королева одобрила. Мы не нападаем, пока не будем готовы.",
+     "Мы согласны не трогать вас. Сначала мы доедим соседей.",
+     "Да. Пока вы под пактом, мы смотрим в другую сторону.",
+     "Да, мы принимаем пакт. Нападать мы будем позже, когда будем сильнее."
+    ],
+    "en": [
+     "Pact accepted. We need time to gather strength. You give us time.",
+     "We agree. War with you now costs too much.",
+     "Yes. We will not attack. While it profits us.",
+     "Yes, the pact is accepted. We are busy with others, and you can wait.",
+     "We agree. Peace on this border saves our workers.",
+     "We accept the pact. We have noted when it ends.",
+     "The Queen agreed. We accept the pact and will not attack until we are ready.",
+     "We agree not to touch you. First we finish off the neighbors.",
+     "Yes. While you are under the pact, we look the other way.",
+     "Yes, we accept the pact. We will attack later, when we are stronger."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир выгоден улью. Пока. Мы согласны.",
+     "Мы принимаем мир. Рой отдохнёт. Рой вырастет.",
+     "Мир. Нам нужно время, чтобы стать сильнее. Время — это мир.",
+     "Мир. Нам нужно время, чтобы пополнить личинок. Потом посмотрим.",
+     "Мы принимаем мир. Война стала дороже, чем она нам приносит.",
+     "Мир принят. Мы уже планируем следующий поход.",
+     "Мир. Вы помогли нам отдохнуть, мы вам благодарны. Пока.",
+     "Мы согласны на мир. Нужное мы забрали, а прочее мы заберём потом.",
+     "Королева посчитала потери и сказала: мир. Мы подчиняемся.",
+     "Мир. Нам важнее копить, чем воевать. Копить мы будем рядом с вами."
+    ],
+    "en": [
+     "Peace profits the hive. For now. We agree.",
+     "We accept peace. The swarm rests. The swarm grows.",
+     "Peace. We need time to grow stronger. Time is peace.",
+     "Peace. We need time to refill the grubs. Then we will see.",
+     "We accept peace. The war has grown costlier than what it brings us.",
+     "Peace is accepted. We are already planning the next campaign.",
+     "Peace. You helped us rest, and we are grateful. For now.",
+     "We agree to peace. We have taken the useful part, and we will take the rest later.",
+     "The Queen counted the losses and said peace. We obey.",
+     "Peace. Saving matters more to us than fighting. We will save up right next to you."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Ваши миры почти наши. Мы не остановимся сейчас.",
+     "Мир выгоден вам, а нам — нет. Мы отказываемся.",
+     "Нет. Мы посчитали ваши потери. Пока мало. Война продолжается.",
+     "Нет. Мы ещё не взяли всё, что хотели. Война идёт.",
+     "Мы отказываемся. Мир нас не кормит, а война кормит.",
+     "Нет. Ваши миры скоро упадут. Нам не нужен мир накануне победы.",
+     "Мы отвергаем мир. Мы посчитали шансы и они в нашу пользу.",
+     "Нет. Война кормит наши фабрики, а мир их остановит. Мы продолжаем.",
+     "Мы не остановимся. Остановка стоит нам дороже вашего мира.",
+     "Нет. Мы пока не получили ни одной вашей колонии. Мир подождёт."
+    ],
+    "en": [
+     "Your worlds are almost ours. We do not stop now.",
+     "Peace profits you, not us. We refuse.",
+     "No. We counted your losses. Too few. The war goes on.",
+     "No. We have not taken everything we wanted yet. The war goes on.",
+     "We refuse. Peace does not feed us, war does.",
+     "No. Your worlds will fall soon. We have no use for peace on the eve of victory.",
+     "We reject peace. We counted the odds and they are in our favor.",
+     "No. You beg for peace because you are losing. We see it.",
+     "We will not stop. Stopping costs us more than your peace is worth.",
+     "No. We have not yet taken a single one of your colonies. Peace can wait."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Ваши миры нужны улью. Мы идём забрать их. Война.",
+     "Пакт больше не полезен. Мы ломаем его. Начинаем войну.",
+     "Мы посчитали: вы слабее. Значит, сейчас — война.",
+     "Мы закончили считать. Выгодно напасть. Это война.",
+     "Вы больше не полезны. Мы объявляем вам войну.",
+     "Мы нашли вашу слабость. Мы идём. Это война.",
+     "Улей голоден. Ваши миры рядом. Мы объявляем войну.",
+     "Пока вы спали, мы собрали рой. Теперь война.",
+     "Мы ничего не имеем лично. Так вышло по счёту. Война.",
+     "Мы пересчитали вас и свой рой. Мы сильнее. Война."
+    ],
+    "en": [
+     "The hive needs your worlds. We come to take them. War.",
+     "The pact is no longer useful. We break it. We begin the war.",
+     "We counted: you are weaker. So now it is war.",
+     "We finished counting. Attacking pays. This is war.",
+     "You are no longer useful. We declare war on you.",
+     "We found your weakness. We are coming. This is war.",
+     "The hive is hungry. Your worlds are close. We declare war.",
+     "While you slept, we gathered the swarm. Now it is war.",
+     "We hold nothing personal against you. It simply came out so in the count. War.",
+     "We recounted you and our swarm. We are stronger. War."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор стоил нам рабочих и ничего не дал. Мы отрезаем его, как мёртвую лапу.",
+     "Соглашение закончилось. Нам теперь нужно другое.",
+     "Пакт мешает рою расти. Мы убираем помеху.",
+     "Мы разрываем договор. Он принёс нам всё, что мог.",
+     "Соглашение исчерпано. Мы его закрываем. Не обижайтесь, это счёт.",
+     "Мы нарушаем пакт. Другая цена выгоднее.",
+     "Договор нас больше не кормит. Мы его выбросили.",
+     "Мы сказали, что будем соблюдать договор, пока он выгоден. Выгоды больше нет.",
+     "Мы расторгаем соглашение. Предупредили вас заранее, это честнее, чем вы заслужили.",
+     "Мы рвём договор. Он тянет нас вниз, как мёртвый груз."
+    ],
+    "en": [
+     "The treaty cost us workers and gave nothing back. We cut it off, like a dead limb.",
+     "The agreement is over. We need something else now.",
+     "The pact stops the swarm from growing. We remove the obstacle.",
+     "We break the treaty. It has brought us all it could.",
+     "The agreement is exhausted. We close it. Do not take offense, it is arithmetic.",
+     "We break the pact. A different price pays better.",
+     "The treaty no longer feeds us. We have thrown it out.",
+     "We said we would keep the treaty while it paid. The profit is gone.",
+     "We cancel the agreement. We warned you in advance, which is more honest than you deserve.",
+     "We tear up the treaty. It drags us down like dead weight."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Остановитесь. Мы уже посчитали, сколько рабочих стоит взять вашу колонию. Цена нас устраивает.",
+     "Мы видим, что вы делаете. Прекратите, или ваши миры станут нашими сотами.",
+     "Мы не злимся. Мы считаем. Ещё шаг — и счёт будет не в вашу пользу.",
+     "Прекратите. Мы насчитали, во сколько нам обойдётся ваше уничтожение. Мы можем себе это позволить.",
+     "Каждый ваш шаг мы заносим в счёт. Счёт растёт. Не доводите нас до оплаты.",
+     "Мы терпим вас, потому что это выгодно. Не заставляйте нас передумать.",
+     "Остановитесь. Мы уже выбрали, с какой стороны вас брать.",
+     "Мы предупреждаем без злобы. Следующая ошибка станет вашей последней.",
+     "Ещё одна такая выходка, и мы пересчитаем всё. Результат вам не понравится.",
+     "Мы не любим тратить жала зря. Не заставляйте нас тратить их на вас."
+    ],
+    "en": [
+     "Stop. We already counted how many workers your colony costs us. The price suits us.",
+     "We see what you do. Stop, or your worlds become our combs.",
+     "We are not angry. We count. One more step, and the count is not in your favour.",
+     "Stop. We counted what your destruction would cost us. We can afford it.",
+     "We enter your every step into the account. The account grows. Do not make us collect.",
+     "We tolerate you because it pays. Do not make us change our minds.",
+     "Stop. We have already chosen which side to take you from.",
+     "We warn without malice. The next mistake will be your last.",
+     "One more stunt like that and we recount everything. You will not like the result.",
+     "We do not like wasting stingers. Do not make us spend them on you."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "{СУММА}. Платите, и наш рой пройдёт мимо. Пока.",
+     "Мы считаем вашу цену: {СУММА}. Без торга.",
+     "Наш улей голоден. {СУММА} — и мы не придём к вам за едой.",
+     "Нам причитается {СУММА}. Мы уже внесли это в наш счёт.",
+     "Вы должны улью {СУММА}. Мы не торгуемся о долгах.",
+     "Принесите {СУММА}. Это дешевле, чем наше внимание.",
+     "{СУММА} за то, что мы вас пока не едим. Справедливая цена.",
+     "Мы просим вежливо: {СУММА}. Дальше мы просим иначе.",
+     "Мы ждём {СУММА}. Опоздаете, и мы увеличим сумму.",
+     "Мы просим {СУММА}. Это скромно. Мы можем попросить больше."
+    ],
+    "en": [
+     "{AMOUNT}. Pay, and our swarm passes by. For now.",
+     "We count your price: {AMOUNT}. No bargaining.",
+     "Our hive is hungry. {AMOUNT}, and we do not come to you for food.",
+     "We are owed {AMOUNT}. We have already entered it in our account.",
+     "You owe the hive {AMOUNT}. We do not haggle over debts.",
+     "Bring {AMOUNT}. It is cheaper than our attention.",
+     "{AMOUNT} for the fact that we are not eating you yet. A fair price.",
+     "We ask politely: {AMOUNT}. After that, we ask differently.",
+     "We await {AMOUNT}. Be late, and we will raise the sum.",
+     "We ask {AMOUNT}. It is modest. We could ask for more."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок полезен. Мы берём. Спасибо.",
+     "Благодарим. Дайте ещё — и мы будем помнить вас дольше.",
+     "Мы приняли ваш дар. Хороший ход. Мы запомнили.",
+     "Мы благодарим вас. Дар хорош, и мы ждём следующего.",
+     "Спасибо. Мы записали вас среди полезных.",
+     "Подарок принят. Мы помним, кто нам платит.",
+     "Мы благодарны. Такие дары укрепляют улей и ослабляют вас.",
+     "Спасибо за дар. Мы вернём его тем, что не будем вас трогать. Какое-то время.",
+     "Дар хороший. Королева кивнула нам, а это для вас большая награда.",
+     "Мы благодарим. Вы нашли дорогу к улью. Продолжайте в том же духе."
+    ],
+    "en": [
+     "The gift is useful. We take it. Thank you.",
+     "We thank you. Give more, and we remember you longer.",
+     "We received your gift. A good move. We noted it.",
+     "We thank you. The gift is good, and we await the next.",
+     "Thanks. We have written you among the useful.",
+     "The gift is taken. We remember who pays us.",
+     "We are grateful. Such gifts strengthen the hive and weaken you.",
+     "Thanks for the gift. We will repay it by not touching you. For a while.",
+     "A good gift. The Queen nodded to us, and that is a great reward for you.",
+     "We thank you. You found the way to the hive's favor. Keep it up."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Ваш шпион у нас. Теперь он работает на улей. Спасибо.",
+     "Мы поймали вашего агента. Он рассказал всё. Мы знаем, где вы слабы.",
+     "Шпион пойман. Мы не злимся. Мы запоминаем и считаем.",
+     "Мы поймали вашего шпиона. Мы его допросили. Теперь вы нам должны.",
+     "Ваш агент слишком долго бродил по нашим туннелям. Мы заберём плату с вас.",
+     "Мы нашли шпиона и вернули вам лишь его имя. Всё остальное осталось у нас.",
+     "Шпионаж мы понимаем. Мы делаем то же самое, но лучше. Ваш агент пойман.",
+     "Мы протестуем против вашего шпиона. Не из обиды, а чтобы вы заплатили.",
+     "Ваш лазутчик теперь работает на нас. Благодарим за подарок.",
+     "Мы поймали вашего шпиона. Мы вернём его вам по частям. Это тоже торг."
+    ],
+    "en": [
+     "Your spy is ours. Now he works for the hive. Thank you.",
+     "We caught your agent. He told everything. We know where you are weak.",
+     "Spy caught. We are not angry. We remember and we count.",
+     "We caught your spy. We interrogated him. Now you owe us.",
+     "Your agent wandered our tunnels too long. We will collect payment from you.",
+     "We found the spy and returned only his name. Everything else stayed with us.",
+     "We understand espionage. We do the same, only better. Your agent is caught.",
+     "We protest against your spy. Not out of hurt, but so that you pay.",
+     "Your infiltrator now works for us. We thank you for the gift.",
+     "We caught your spy. We will return him to you in pieces. That is also bargaining."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Вы будете нам должны. Мы не забудем.",
+     "Наш голос — ваш. Нам выгодно, чтобы галактикой правили вы, а не другой.",
+     "В Совете мы за вас. Цена голоса — потом. Мы скажем.",
+     "Мы голосуем за вас в Совете. Это стоит нам немного, а вам много.",
+     "В Совете наш голос ваш. Мы запишем это в ваш долг.",
+     "Мы поддержим вас голосом в Совете. Вы станете сильнее, а мы получим должника.",
+     "Наш голос в Совете — за вас. Мы уже подсчитали выгоду.",
+     "Мы голосуем за вас, потому что другие кандидаты дороже.",
+     "Королева велела отдать голос за вас. Вы довольны? Мы тоже, ведь вы нам обязаны.",
+     "Мы голосуем за вас. Совет любит победителей. Мы тоже."
+    ],
+    "en": [
+     "We vote for you. You will owe us. We do not forget.",
+     "Our vote is yours. It profits us if you lead the galaxy, not the other one.",
+     "In the Council we are for you. The price of the vote comes later. We will tell you.",
+     "We vote for you in the Council. It costs us little and you much.",
+     "In the Council our vote is yours. We will add it to your debt.",
+     "We will back you with our vote in the Council. You grow stronger, and we gain a debtor.",
+     "Our Council vote is for you. We have already counted the gain.",
+     "We vote for you because the other candidates cost more.",
+     "The Queen ordered our vote for you. Are you pleased? We are too, since you now owe us.",
+     "We vote for you. The Council likes winners. So do we."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Сильный сосед во главе галактики — плохо для улья.",
+     "Наш голос — против. Вы нам ничего за него не дали.",
+     "Против вас. Нам выгоднее слабый Совет и сильный улей.",
+     "Мы голосуем против вас в Совете. Нам нужен слабый соперник.",
+     "Наш голос против вас. Подарите нам что-нибудь, и мы подумаем.",
+     "Мы голосуем против вас. Вы стали слишком сильны для нашего спокойствия.",
+     "В Совете мы вас остановим. Мы считаем это выгодой.",
+     "Мы голосуем против. Ничего личного, только счёт.",
+     "Наш голос в Совете против вас. Королева не любит, когда кто-то растёт быстрее нас.",
+     "Мы против вас в Совете. Голос не продаётся, но ваша цена нас не устроила."
+    ],
+    "en": [
+     "We vote against you. A strong neighbour at the head of the galaxy is bad for the hive.",
+     "Our vote is against you. You gave us nothing for it.",
+     "Against you. A weak Council and a strong hive profit us more.",
+     "We vote against you. A leader who owes the hive nothing is a leader we cannot use.",
+     "Our vote is against you. Give us something and we will think about it.",
+     "We vote against you. You grew too strong for our comfort.",
+     "In the Council we will stop you. We count it as a gain.",
+     "We vote against. Nothing personal, only the count.",
+     "Our Council vote is against you. The Queen does not like anyone growing faster than us.",
+     "We are against you in the Council. Our vote is not for sale, but your price did not suit us."
+    ]
+   }
+  },
+  "aggressive": {
+   "first_contact": {
+    "ru": [
+     "Мы — улей. Нас много. Нас всегда больше. Запомните.",
+     "Мы видим вас. Рой готов. Покажите, что вы сильны, или уходите.",
+     "Новые звёзды, новые враги? Мы любим и то и другое.",
+     "Слышите гул? Это наш рой. Мы всегда голодны.",
+     "Мы заметили вас. Вы ещё не враги, но мы уже точим жала.",
+     "Вы в нашем небе. Мы не просим вас уйти. Мы смотрим, как вы поведёте себя.",
+     "Нас столько, что звёзды гудят. Скажите, что вам нужно, и быстро.",
+     "Приветствуем. Мы сильнее, чем вы думаете. Мы вежливы, пока скучаем.",
+     "Покажите нам свой флот. Мы покажем вам наш. Нам интересно, кто больше.",
+     "Мы — рой, мы — гул, мы — жало. А вы кто?"
+    ],
+    "en": [
+     "We are the hive. We are many. We are always more. Remember.",
+     "We see you. The swarm is ready. Show that you are strong, or leave.",
+     "New stars, new enemies? We love both.",
+     "Hear that hum? It is our swarm. We are always hungry.",
+     "We have noticed you. You are not enemies yet, but we already sharpen our stingers.",
+     "You are in our sky. We do not ask you to leave. We watch how you behave.",
+     "There are so many of us that the stars hum. Say what you want, and be quick.",
+     "Greetings. We are stronger than you think. We are polite only while bored.",
+     "Show us your fleet. We will show you ours. We wonder whose is bigger.",
+     "We are the swarm, we are the hum, we are the sting. And who are you?"
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем. Везите руду. Наш рой строит корабли.",
+     "Да! Торговля. Но обманете — и мы придём за долгом сами.",
+     "Мы согласны. Ваши товары сделают наши жала острее.",
+     "Мы согласны. Везите товар быстро, наш рой не любит ждать.",
+     "Да, мы торгуем. Руда нам нужна, а жало у нас есть, если вы вздумаете обмануть.",
+     "Мы принимаем торговлю. Лишнее мы заберём силой, но сегодня мы добрые.",
+     "Мы согласны на сделку. Чем крепче ваш товар, тем острее наши жала.",
+     "Торговля принята. Двигайте корабли, мы уже кормим личинок.",
+     "Да! Мы любим, когда сильные торгуют с сильными. Или когда слабые торгуют с нами.",
+     "Мы принимаем торговлю. Платите вовремя, или мы возьмём вас целиком."
+    ],
+    "en": [
+     "We accept. Bring ore. Our swarm builds ships.",
+     "Yes! Trade. But cheat us, and we come to collect ourselves.",
+     "We agree. Your goods make our stingers sharper.",
+     "We agree. Bring the goods fast, our swarm does not like waiting.",
+     "Yes, we trade. We need the ore, and we have a stinger if you try to cheat.",
+     "We accept the trade. We could take extra by force, but today we are kind.",
+     "We agree to the deal. The sturdier your goods, the sharper our stingers.",
+     "The trade is accepted. Move your ships, we are already feeding the grubs.",
+     "Yes! We like it when the strong trade with the strong. Or when the weak trade with us.",
+     "We accept the trade. Pay on time, or we take all of you."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Нет! Мы не торгуем — мы забираем.",
+     "Ваш договор? Нет. Наш улей силён, ему не нужны подарки.",
+     "Мы отказываем. Приведите больше кораблей — может, тогда поговорим.",
+     "Нет. Мы не торгуем со слабыми, мы их кормим собой.",
+     "Мы отказываемся. Ваш товар можно взять и без вашего согласия.",
+     "Нет! Приходите к нам с флотом, а не с ящиками.",
+     "Нет. Торговля нужна тем, кто избегает драки. Нам она скучна.",
+     "Мы отвергаем сделку. Рой не меняется, рой берёт.",
+     "Нет, и не спрашивайте ещё. Наш ответ не станет мягче.",
+     "Мы отказываемся от сделки. Наш рой берёт, а не просит."
+    ],
+    "en": [
+     "No! We do not trade, we take.",
+     "Your treaty? No. Our hive is strong and needs no gifts.",
+     "We refuse. Bring more ships; maybe then we talk.",
+     "No. We do not trade with the weak, we feed on them.",
+     "We refuse. Your goods can be taken without your consent.",
+     "No! Come to us with a fleet, not with crates.",
+     "No. Trade is for those who fear a fight. We do not fear.",
+     "We reject the deal. The swarm does not exchange, the swarm takes.",
+     "No, and do not ask again. Our answer will not get softer.",
+     "We refuse the deal. Our swarm takes and does not ask."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Мы принимаем. Новые знания — новое оружие для роя.",
+     "Да. Учите нас. Мы учимся быстро. Мы растём быстро.",
+     "Договор принят. Но знания о войне мы оставим себе.",
+     "Мы согласны. Знания вам, знания нам, а победа нам.",
+     "Да. Новые знания точат жала. Мы принимаем договор.",
+     "Мы принимаем. Мы выучим всё быстрее вас.",
+     "Мы согласны. Только не прячьте своё лучшее оружие, мы почуем.",
+     "Да! Науку мы любим, когда она заканчивается взрывом.",
+     "Договор принят. Мы будем драться вашими же знаниями.",
+     "Мы согласны. Только не мешайте нам строить, а то обидимся."
+    ],
+    "en": [
+     "We accept. New knowledge, new weapons for the swarm.",
+     "Yes. Teach us. We learn fast. We grow fast.",
+     "Treaty accepted. But we keep what we know of war for ourselves.",
+     "We agree. Knowledge for you, knowledge for us, and the victory for us.",
+     "Yes. New knowledge sharpens stingers. We accept the treaty.",
+     "We accept. We will learn it all faster than you.",
+     "We agree. Only do not hide your best weapon, we will smell it.",
+     "Yes! We love science when it ends in an explosion.",
+     "The treaty is accepted. We will fight with your own knowledge.",
+     "We agree. Only do not hinder our building, or we will take offense."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Нет! Наши секреты — для нашей войны.",
+     "Мы отказываемся. Слабым не нужны наши знания. Им нужен страх.",
+     "Учиться у вас? Нам? Нет. Мы учимся в бою.",
+     "Нет. Наши учёные заняты. Они делают жала.",
+     "Мы отказываемся. Рой не делится секретами, рой их оттачивает.",
+     "Нет! Ваши знания нам не нужны, мы сильнее и без них.",
+     "Нет. Мы не сядем за один стол с теми, кого скоро раздавим.",
+     "Мы отвергаем договор. Наши лаборатории открыты только для наших.",
+     "Нет. Ищите себе других учеников. Мы не из тех.",
+     "Нет. Вы медленно думаете, мы быстро жалим. Нам не по пути."
+    ],
+    "en": [
+     "No! Our secrets are for our war.",
+     "We refuse. The weak do not need our knowledge. They need fear.",
+     "Learn from you? Us? No. We learn in battle.",
+     "No. Our scientists are busy. They are making stingers.",
+     "We refuse. The swarm does not share secrets, it hones them.",
+     "No! We do not need your knowledge, we are stronger without it.",
+     "No. We will not sit at one table with those we will soon crush.",
+     "We reject the treaty. Our laboratories are open only to our own.",
+     "No. Look for other pupils. We are not that kind.",
+     "No. You think slowly, we sting fast. We are not on the same path."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Да! Союз. Вместе мы — большой рой. Враги бегут.",
+     "Мы принимаем союз. Держитесь рядом в бою. Отстающих мы не ждём.",
+     "Союз принят! Покажите нам врага. Мы уже голодны.",
+     "Да! Мы согласны на союз. Враги ещё не знают, что они мертвы.",
+     "Мы принимаем союз. Не отставайте, мы летим быстро.",
+     "Союз принят. Мы и вы на одну добычу, это справедливо.",
+     "Мы согласны. Ударим вместе, а делить будем потом, мы любим споры.",
+     "Да, мы союзники. Держитесь за нашим гулом.",
+     "Мы принимаем союз. Пусть другие дрожат, мы идём.",
+     "Мы согласны. Ваши звёзды теперь под нашим жужжанием. Это большая честь."
+    ],
+    "en": [
+     "Yes! An alliance. Together we are a great swarm. Enemies run.",
+     "We accept the alliance. Stay close in battle. We do not wait for the slow.",
+     "Alliance accepted! Show us the enemy. We are already hungry.",
+     "Yes! We agree to the alliance. The enemies do not yet know they are dead.",
+     "We accept the alliance. Do not fall behind, we fly fast.",
+     "Alliance accepted. We and you on one prey, that is fair.",
+     "We agree. We strike together, and share later, we love a dispute.",
+     "Yes, we are allies. Follow our hum.",
+     "We accept the alliance. Let the others tremble, we are coming.",
+     "We agree. Your stars are now under our buzzing. That is a great honor."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет! Наш рой силён один. Слабые нам не нужны.",
+     "Мы отказываемся. Сначала победите кого-нибудь. Потом приходите.",
+     "Союз с вами? Нашим жалам будет стыдно. Нет.",
+     "Нет. Мы делим только добычу, и то неохотно.",
+     "Мы отказываемся. Союзников у нас нет, есть только жертвы и мы.",
+     "Нет! Мы сами себе союз.",
+     "Нет. Ваши корабли будут нам мешать в бою.",
+     "Мы отвергаем союз. Мы не нуждаемся в тех, кто нуждается в нас.",
+     "Нет. Если вам нужна наша защита, платите. Это другой разговор.",
+     "Нет. Союз с вами скоро станет войной с вами. Мы лучше сразу."
+    ],
+    "en": [
+     "No! Our swarm is strong alone. We need no weaklings.",
+     "We refuse. First defeat someone. Then come back.",
+     "An alliance with you? Our stingers would be ashamed. No.",
+     "No. We share only the spoils, and reluctantly.",
+     "We refuse. We have no allies, only victims and ourselves.",
+     "No! We are our own alliance.",
+     "No. Your ships would get in our way in battle.",
+     "We reject the alliance. We do not need those who need us.",
+     "No. If you need our protection, pay. That is a different talk.",
+     "No. An alliance with you would soon turn into war with you. We prefer war at once."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Пакт принят. Пока. Наш рой сейчас ест других.",
+     "Мы согласны не нападать. Но жала мы не прячем.",
+     "Да. Мы не тронем вас. А вы не трогайте нас. Никогда.",
+     "Да, мы принимаем пакт. Не нападём, пока не наскучит.",
+     "Мы согласны. Но граница остаётся под нашими жалами.",
+     "Пакт принят. Мы не нападаем, мы ждём.",
+     "Мы согласны на пакт. Мы не любим сидеть без дела, но подождём.",
+     "Да. Нам нужна передышка. Вы получаете её вместе с нами.",
+     "Мы принимаем пакт. Помните: наше терпение жужжит всё громче.",
+     "Да, мы принимаем пакт. Но мы будем облетать вашу границу каждый день."
+    ],
+    "en": [
+     "Pact accepted. For now. Our swarm is eating others.",
+     "We agree not to attack. But we do not hide our stingers.",
+     "Yes. We will not touch you. Do not touch us. Ever.",
+     "Yes, we accept the pact. We will not attack until we get bored.",
+     "We agree. But the border stays under our stingers.",
+     "The pact is accepted. We do not attack, we wait.",
+     "We agree to the pact. We dislike sitting idle, but we will wait.",
+     "Yes. We need a breather. You get it together with us.",
+     "We accept the pact. Remember: our patience buzzes ever louder.",
+     "Yes, we accept the pact. But we will circle your border every day."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир. Вы устали. Мы — нет. Но Королева сказала: мир.",
+     "Мы принимаем мир. Вы видели наш рой — не забывайте его.",
+     "Ладно, мир. Наши жала подождут.",
+     "Мир. Мы возвращаемся в соты, но жала у нас остаются острыми.",
+     "Мы принимаем мир. Вы сражались храбро для слабых.",
+     "Мир, так велела Королева. Мы подчиняемся, хотя нам мало.",
+     "Мир. Мы ещё придём, но это будет потом.",
+     "Мы согласны на мир. Идите, считайте потери.",
+     "Мир принят. Запомните этот гул, мы вернёмся с ним.",
+     "Мир. Мы сыты и сонны, вам повезло."
+    ],
+    "en": [
+     "Peace. You are tired. We are not. But the Queen said: peace.",
+     "We accept peace. You have seen our swarm; do not forget it.",
+     "Fine, peace. Our stingers will wait.",
+     "Peace. We return to the combs, but our stingers stay sharp.",
+     "We accept peace. You fought bravely for the weak.",
+     "Peace, as the Queen ordered. We obey, though we wanted more.",
+     "Peace. We will come again, but that will be later.",
+     "We agree to peace. Go and count your losses.",
+     "Peace is accepted. Remember this hum, we will come back with it.",
+     "Peace. We are full and sleepy, you are lucky."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир? Нет! Наш рой только начал.",
+     "Мы отказываемся. Вы ещё стоите. Мы закончим, когда вы упадёте.",
+     "Никакого мира. Наши жала ещё не устали.",
+     "Нет! Мы пока едва вкусили победу.",
+     "Мы отказываемся. Рой не останавливается, пока не насытится.",
+     "Нет мира. Ваши корабли ещё летают в нашем небе, а это непорядок.",
+     "Вы просите мира? Нас много, и мы не слышим слабых.",
+     "Нет! Война идёт, и нам она нравится.",
+     "Мы отвергаем мир. Просите громче, мы любим, когда нас просят.",
+     "Нет! Мы не прекращаем, пока не услышим, как вы просите громче."
+    ],
+    "en": [
+     "Peace? No! Our swarm has only begun.",
+     "We refuse. You still stand. We stop when you fall.",
+     "No peace. Our stingers are not tired yet.",
+     "No! We have barely tasted victory.",
+     "We refuse. The swarm does not stop until it is full.",
+     "No peace. Your ships still fly in our sky, and that is not right.",
+     "You ask for peace? There are many of us, and we do not hear the weak.",
+     "No! The war goes on, and we like it.",
+     "We reject peace. Ask louder, we love being begged.",
+     "No! We do not stop until we hear you beg louder."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Рой голоден до битвы. Мы идём. Это война!",
+     "Мы — война. Мы приходим, мы берём, мы строим на вашем месте.",
+     "Хватит ждать! Наш улей объявляет войну!",
+     "Война! Мы вылетаем, и небо почернеет.",
+     "Мы объявляем войну. Нас много, а вас мало.",
+     "Наши жала готовы. Для вас это война.",
+     "Довольно слов. Мы идём. Война!",
+     "Мы проснулись, и мы злы. Вас ждёт война.",
+     "Мы пришли за вами. Это война, и мы не отступим.",
+     "Мы больше не ждём. Наш рой уже в пути. Война!"
+    ],
+    "en": [
+     "The swarm hungers for battle. We come. This is war!",
+     "We are war. We come, we take, we build where you were.",
+     "No more waiting! Our hive declares war!",
+     "War! We take off, and the sky turns black.",
+     "We declare war. There are many of us, and few of you.",
+     "Our stingers are ready. For you this is war.",
+     "Enough words. We are coming. War!",
+     "We have woken, and we are angry. War awaits you.",
+     "We have come for you. This is war, and we will not retreat.",
+     "We wait no longer. Our swarm is already on its way. War!"
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор мешает рою. Мы его рвём. Готовьтесь.",
+     "Мы ломаем пакт. Слова слабые. Жала сильные.",
+     "Наше соглашение закончилось. Рою нужна свобода — и ваши миры.",
+     "Мы разрываем договор. Он слишком тесен для нашего роя.",
+     "Пакт нам надоел. Мы бросаем его и берём вас.",
+     "Мы нарушаем соглашение. Слабые держатся за бумагу, мы держимся за жало.",
+     "Союз закончен. Мы идём своей дорогой, и она ведёт через вас.",
+     "Мы больше не связаны договором. Готовьте флот.",
+     "Договор разорван. Мы скучали по битве.",
+     "Мы рвём пакт. Мы устали быть вежливыми."
+    ],
+    "en": [
+     "The treaty hinders the swarm. We tear it up. Get ready.",
+     "We break the pact. Words are weak. Stingers are strong.",
+     "Our agreement is over. The swarm needs freedom, and your worlds.",
+     "We break the treaty. It is too tight for our swarm.",
+     "We are sick of the pact. We throw it away and take you.",
+     "We break the agreement. The weak hold on to paper, we hold on to the sting.",
+     "The alliance is over. We go our own way, and it leads through you.",
+     "We are no longer bound by the treaty. Prepare your fleet.",
+     "The treaty is torn. We missed the battle.",
+     "We tear up the pact. We are tired of being polite."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Остановитесь! Или наш рой придёт. Весь рой.",
+     "Мы видим ваши корабли. Ещё шаг — и мы их раздавим.",
+     "Мы предупреждаем один раз. Потом говорят наши жала.",
+     "Прекратите! Мы не повторяем. Мы жалим.",
+     "Мы слышим ваши двигатели. Заглушите их или мы заглушим вас.",
+     "Рой собрался у вашей границы. Ещё одно движение, и мы вылетим.",
+     "Мы вас предупредили. Остальное скажут наши жала.",
+     "Вы испытываете наше терпение. Мы нетерпеливы.",
+     "Одно слово от Королевы, и мы накроем вас гулом. Хотите проверить?",
+     "Нас видно издалека. Нас слышно ещё дальше. Уходите, пока мы шутим."
+    ],
+    "en": [
+     "Stop! Or our swarm comes. The whole swarm.",
+     "We see your ships. One more step and we crush them.",
+     "We warn once. After that, our stingers speak.",
+     "Stop! We do not repeat. We sting.",
+     "We hear your engines. Shut them off or we will shut you off.",
+     "The swarm has gathered at your border. One more move and we fly out.",
+     "We have warned you. Our stingers will say the rest.",
+     "You test our patience. We are impatient.",
+     "One word from the Queen and we cover you in our hum. Want to test it?",
+     "We can be seen from afar. We can be heard even farther. Leave while we are joking."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Отдайте нам {СУММА}, или рой заберёт всё.",
+     "{СУММА} нашему улью! Сейчас! Рой не ждёт.",
+     "Мы требуем {СУММА}. Слабые платят сильным.",
+     "Мы требуем {СУММА}. Несите, пока рой не пришёл сам.",
+     "{СУММА} нам, живо! Мы не любим ждать.",
+     "Вы заплатите нам {СУММА}. Это дешевле, чем потерять флот.",
+     "Наш рой хочет {СУММА}. Не спорьте, мы слышим только цифры.",
+     "Мы поставили цену: {СУММА}. Торга нет.",
+     "Платите {СУММА}, и мы повернём жала в другую сторону.",
+     "Нам нужно {СУММА}. Слабые платят, сильные берут. Решайте, кто вы."
+    ],
+    "en": [
+     "Give us {AMOUNT}, or the swarm takes everything.",
+     "{AMOUNT} for our hive! Now! The swarm does not wait.",
+     "We demand {AMOUNT}. The weak pay the strong.",
+     "We demand {AMOUNT}. Bring it before the swarm comes itself.",
+     "{AMOUNT} to us, now! We do not like waiting.",
+     "You will pay us {AMOUNT}. It is cheaper than losing a fleet.",
+     "Our swarm wants {AMOUNT}. Do not argue, we hear only figures.",
+     "We have named the price: {AMOUNT}. No haggling.",
+     "Pay {AMOUNT}, and we will turn our stingers the other way.",
+     "We need {AMOUNT}. The weak pay, the strong take. Decide which you are."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок? Хорошо. Мы любим, когда слабые платят. Спасибо.",
+     "Благодарим. Ваш дар пойдёт на наши корабли.",
+     "Мы приняли подарок. Правильно. Дружить с нашим роем полезно для здоровья.",
+     "Спасибо за дар! Мы довольны, а это редкость.",
+     "Мы благодарим. Дар хороший. Но сильных союзников дарят иначе.",
+     "Подарок принят. Мы запомним и, может, не нападём первыми.",
+     "Мы благодарим вас. Приносите ещё, и мы вас не тронем.",
+     "Дар хорош. Нам нравится, когда нас боятся и одаривают.",
+     "Спасибо! Наши жала сегодня спят спокойно.",
+     "Мы благодарим за подарок. Он усилил нас. Это ваша ошибка."
+    ],
+    "en": [
+     "A gift? Good. We like it when the weak pay. Thank you.",
+     "We thank you. Your gift goes to our warships.",
+     "We took your gift. Smart. Friendship with our swarm is good for your health.",
+     "Thanks for the gift! We are pleased, which is rare.",
+     "We thank you. The gift is good. But strong allies are gifted differently.",
+     "The gift is taken. We will remember, and maybe not attack first.",
+     "We thank you. Bring more and we will not touch you.",
+     "A good gift. We like it when we are feared and given gifts.",
+     "Thanks! Our stingers sleep soundly today.",
+     "We thank you for the gift. It made us stronger. That is your mistake."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы поймали и раздавили вашего шпиона. Следующим будет ваш флот.",
+     "Шпион в нашем улье? Рой в ярости. Готовьтесь.",
+     "Мы поймали вашего агента. Это объявление войны? Нам подходит.",
+     "Мы поймали вашего шпиона. Он пищал, как личинка.",
+     "Ваш агент в нашем улье, а наш рой голоден. Угадайте, что дальше.",
+     "Мы протестуем! Шпион пойман, и мы ждём ответа, прежде чем действовать.",
+     "Вы послали лазутчика к нам? Вы храбрее, чем мы думали, и глупее.",
+     "Мы схватили вашего шпиона. Ещё один такой, и мы придём за вами.",
+     "Шпионы нам не страшны. Они нас смешат. Этот пойман.",
+     "Мы нашли вашего шпиона и повесили его у ваших границ. Читайте."
+    ],
+    "en": [
+     "We caught your spy and crushed him. Your fleet is next.",
+     "A spy in our hive? The swarm is furious. Get ready.",
+     "We caught your agent. Is this a declaration of war? It suits us.",
+     "We caught your spy. He squeaked like a grub.",
+     "Your agent is in our hive, and our swarm is hungry. Guess what comes next.",
+     "We protest! The spy is caught, and we wait for your answer before we act.",
+     "You sent an infiltrator to us? You are braver than we thought, and dumber.",
+     "We seized your spy. One more like him, and we come for you.",
+     "Spies do not scare us. They amuse us. This one is caught.",
+     "We found your spy and hung him by your borders. Read the message."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Правьте жёстко. Иначе рой передумает.",
+     "Наш голос — ваш. Вы сильны. Мы уважаем силу.",
+     "В Совете мы за вас. Не забудьте, кто вам помог.",
+     "Мы голосуем за вас в Совете. Вы сильны, а мы любим сильных.",
+     "Наш голос в Совете — ваш. Не подведите нас на поле боя.",
+     "Мы за вас в Совете. Помните, кто вас поддержал.",
+     "В Совете мы вас поддержим. Шумите громче, мы поможем жужжанием.",
+     "Мы голосуем за вас. Другие кандидаты слабее и пахнут страхом.",
+     "Наш голос ваш. Покажите всем, на что способен сильный.",
+     "Мы голосуем за вас. Наш рой хочет видеть вас во главе, пока вы полезны."
+    ],
+    "en": [
+     "We vote for you. Rule hard. Or the swarm changes its mind.",
+     "Our vote is yours. You are strong. We respect strength.",
+     "In the Council we stand with you. Do not forget who lifted you up.",
+     "We vote for you in the Council. You show strength, and strength is what we respect.",
+     "Our Council vote is yours. Do not let us down on the battlefield.",
+     "We are for you in the Council. Remember who backed you.",
+     "In the Council we will back you. Be louder, we will help with our buzzing.",
+     "We vote for you. The other candidates are weaker and smell of fear.",
+     "Our vote is yours. Show everyone what the strong can do.",
+     "We vote for you. Our swarm wants to see you in front, while you are useful."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против. Слабые не правят галактикой.",
+     "Наш голос — против вас. Не согласны? Спорьте с роем.",
+     "Против! Весь улей против! Совет услышит наше жужжание.",
+     "Мы голосуем против вас в Совете. Слабым нечего делать у власти.",
+     "Наш голос против, и нас много. Вы проиграете.",
+     "Против! Мы не подчиняемся тем, кого можем раздавить, и голосуем так в Совете.",
+     "В Совете мы вас остановим. А если не остановим, остановят наши жала.",
+     "Мы голосуем против вас. Бегите жаловаться, мы любим жалобы.",
+     "Совет услышит наш голос. Он против вас, и это не обсуждается.",
+     "Мы голосуем против вас в Совете. Слишком уж вы любите власть, это наше дело."
+    ],
+    "en": [
+     "We vote against you. Our mandibles are sharper than your fleet.",
+     "Our vote is against you. You disagree? Argue with the swarm.",
+     "Against! The whole hive against! The Council will hear our buzzing.",
+     "We vote against you in the Council. We see no weakling holding power.",
+     "Our vote is against, and there are many of us. You will lose.",
+     "Against! We do not obey those we can crush, and we vote so in the Council.",
+     "In the Council we will stop you. And if we do not, our stingers will.",
+     "We vote against you. Run and complain, we love complaints.",
+     "The Council will hear our voice. It is against you, and it is not up for debate.",
+     "We vote against you in the Council. You love power too much, and that is our trade."
+    ]
+   }
+  },
+  "erratic": {
+   "first_contact": {
+    "ru": [
+     "Мы рады! Нет, мы встревожены. Улей спорит. Здравствуйте.",
+     "Новые! Блестящие! Мы хотим вас изучить. Или съесть. Шутка. Наверное.",
+     "Мы видим вас и жужжим. Это хорошо. Или плохо. Решим позже.",
+     "Ой, вы! Мы чихнули, когда увидели вас. Это хороший знак. Или нет.",
+     "Мы понюхали вас и не поняли, чем вы пахнете. Мёдом? Железом? Мы спорим.",
+     "Здравствуйте! Мы вас ждали. Мы вас не ждали. Одна половина улья ждала.",
+     "Нашей Королеве вы приснились вчера. Мы очень удивились, что вы настоящие.",
+     "Мы вас видим, мы вас слышим, мы вас жужжим. Это такое приветствие.",
+     "Мы выбрали вас случайно, как выбираем цветы. Вы, кажется, красные.",
+     "Мы хотели сказать что-то умное. Забыли. Привет."
+    ],
+    "en": [
+     "We are glad! No, we are alarmed. The hive argues. Hello.",
+     "New ones! Shiny! We want to study you. Or eat you. A joke. Probably.",
+     "We see you and we buzz. That is good. Or bad. We decide later.",
+     "Oh, you! We sneezed when we saw you. That is a good sign. Or not.",
+     "We sniffed you and could not tell what you smell of. Honey? Iron? We are arguing.",
+     "Hello! We were expecting you. We were not expecting you. Half the hive was expecting you.",
+     "Our Queen dreamed of you yesterday. We were very surprised that you are real.",
+     "We see you, we hear you, we buzz you. This is our greeting.",
+     "We picked you at random, the way we pick flowers. You seem to be red.",
+     "We wanted to say something clever. We forgot. Hello."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Торговля! Мы согласны. Нет. Да. Да — Королева кивнула.",
+     "Мы принимаем! Сегодня соты гудят весело. Завтра — не знаем.",
+     "Да! Нам нравятся ваши блестящие вещи. Очень. Слишком. Торгуем.",
+     "Да, да, да, мы согласны! Только нет. Нет, мы шутим. Да.",
+     "Мы принимаем торговлю. Решили по запаху: ваши ящики пахнут хорошо.",
+     "Мы согласны! Королева чихнула в нужную сторону.",
+     "Торговля? Да. Мы бросили жребий жалом, и жало сказало: да.",
+     "Мы принимаем, пока у нас хорошее настроение. Оно длится недолго, торопитесь.",
+     "Да! Мы любим менять. Мы однажды обменяли соту на три шишки и очень рады.",
+     "Мы согласны! Сегодня мы любим всех. Завтра уже нет."
+    ],
+    "en": [
+     "Trade! We agree. No. Yes. Yes; the Queen nodded.",
+     "We accept! Today the combs hum happily. Tomorrow, who knows.",
+     "Yes! We like your shiny things. Very much. Too much. We trade.",
+     "Yes, yes, yes, we agree! But no. No, we are joking. Yes.",
+     "We accept the trade. We decided by scent: your crates smell good.",
+     "We agree! The Queen sneezed in the right direction.",
+     "Trade? Yes. We cast lots with a stinger, and the stinger said yes.",
+     "We accept while we are in a good mood. It does not last long, so hurry.",
+     "Yes! We love swapping. We once swapped a comb for three cones and we are still pleased.",
+     "We agree! Today we love everyone. Tomorrow we do not."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Торговать? Половина нашего улья за, Королева против. Значит, нет.",
+     "Мы почти согласились. Потом передумали. Нет.",
+     "Нет. Сегодня у нас плохое жужжание.",
+     "Нет. Торговля приснилась нам страшной, с зубами.",
+     "Мы отказываемся. Ваш товар пахнет вторником, а мы не любим вторники.",
+     "Нет! Хотя подождите. Нет. Мы всё-таки сказали нет.",
+     "Мы хотели согласиться. Но улей проголосовал большинством одного жала. Нет.",
+     "Нет, спасибо. Нет, не спасибо. Мы просто говорим нет.",
+     "Нет. Не спрашивайте почему. Мы сами спрашиваем.",
+     "Нет. Мы потеряли ваше предложение в туннеле. Нашлось, но нет."
+    ],
+    "en": [
+     "Trade? Half of our hive wants it, the Queen does not. So, no.",
+     "We almost agreed. Then we changed our minds. No.",
+     "No. Today our buzzing is bad.",
+     "No. Trade came to us in a dream, scary, with teeth.",
+     "We refuse. Your goods smell of Tuesday, and we do not like Tuesdays.",
+     "No! Although, wait. No. We still said no.",
+     "We wanted to agree. But the hive voted by a majority of one stinger. No.",
+     "No, thanks. No, not thanks. We simply say no.",
+     "No. Do not ask why. We are asking ourselves.",
+     "No. We lost your offer in a tunnel. We found it again, but no."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Знания! Мы любим знания. И мёд. Но сейчас — знания. Мы принимаем.",
+     "Да. Улей вдруг захотел думать. Мы согласны учиться.",
+     "Договор принят. Половина нашего роя уже забыла зачем. Другая половина помнит.",
+     "Да, мы согласны, мы любим новое! Мы забудем половину, но это неважно.",
+     "Мы принимаем договор. Королева видела вещий сон про формулы.",
+     "Согласны! Хотя мы не поняли, что вы предлагаете. Это даже интереснее.",
+     "Да. Научите нас чему-нибудь блестящему.",
+     "Мы принимаем, пока не передумали. Быстро давайте записи!",
+     "Мы согласны на знания. Мы уже засунули пару в сот, и там тепло.",
+     "Да, договор принят. Мы будем учиться, пока не уснём."
+    ],
+    "en": [
+     "Knowledge! We love knowledge. And honey. But knowledge now. We accept.",
+     "Yes. The hive suddenly wants to think. We agree to learn.",
+     "Treaty accepted. Half of our swarm already forgot why. The other half remembers.",
+     "Yes, we agree, we love the new! We will forget half of it, but that does not matter.",
+     "We accept the treaty. The Queen saw a prophetic dream about formulas.",
+     "We agree! Though we did not understand what you offer. That is even more interesting.",
+     "Yes. Teach us something shiny.",
+     "We accept before we change our minds. Quick, give us the records!",
+     "We agree to the knowledge. We already stuffed a bit into a comb, and it is warm there.",
+     "Yes, the treaty is accepted. We will learn until we fall asleep."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Учиться? Мы хотели. Потом Королева чихнула. Нет.",
+     "Нет. Наши мысли сегодня жужжат не туда.",
+     "Мы отказываемся. Ваши знания пахнут слишком умно.",
+     "Нет. Знания щекочут нас. Мы не любим, когда щекочут.",
+     "Мы отказываемся. Улей вдруг заскучал по незнанию.",
+     "Нет! Мы хотели, но муха пролетела, и мы забыли, зачем хотели.",
+     "Нет. Мы решили, что умные вещи надо закопать.",
+     "Мы не хотим учиться. Мы хотим плести узоры. Нет.",
+     "Нет, потому что нет. Это самый честный ответ, который у нас есть.",
+     "Нет! Мы так громко жужжали, что не услышали предложение. Нет."
+    ],
+    "en": [
+     "Learn? We wanted to. Then the Queen sneezed. No.",
+     "No. Our thoughts buzz the wrong way today.",
+     "We refuse. Your knowledge smells too clever.",
+     "No. Knowledge tickles us. We do not like being tickled.",
+     "We refuse. The hive suddenly missed not knowing things.",
+     "No! We wanted it, but a fly flew past and we forgot why we wanted it.",
+     "No. We decided that clever things should be buried.",
+     "We do not want to learn. We want to weave patterns. No.",
+     "No, because no. It is the most honest answer we have.",
+     "No! We buzzed so loudly that we did not hear the offer. No."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Союз! Мы так рады! Мы так боимся! Мы согласны.",
+     "Вчера мы хотели вас съесть. Сегодня — союз. Да!",
+     "Улей долго спорил. Очень долго. Решили: да. Мы принимаем союз.",
+     "Да, союз! Мы будем самыми лучшими друзьями. До среды.",
+     "Мы согласны! Мы даже сплясали. Улей не умеет танцевать, но мы сплясали.",
+     "Мы принимаем союз. Мы выбрали вас, как выбирают самый яркий цветок.",
+     "Союз? Да. Улей посовещался и вынес вердикт: да, мы согласны.",
+     "Да! Мы вдруг поняли, что вы нам нравитесь. Это бывает неожиданно.",
+     "Мы принимаем союз. Только не напоминайте нам, что мы вчера говорили.",
+     "Да, мы согласны на союз! И на ещё один союз, если у вас есть."
+    ],
+    "en": [
+     "An alliance! We are so glad! We are so scared! We agree.",
+     "Yesterday we wanted to eat you. Today, an alliance. Yes!",
+     "The hive argued for a long time. A very long time. Decided: yes. We accept the alliance.",
+     "Yes, alliance! We will be the best of friends. Until Wednesday.",
+     "We agree! We even danced. The hive cannot dance, but we danced.",
+     "We accept the alliance. We chose you the way one picks the brightest flower.",
+     "An alliance? Yes. The hive conferred and gave a verdict: yes, we agree.",
+     "Yes! We suddenly realized that we like you. That happens unexpectedly.",
+     "We accept the alliance. Only do not remind us what we said yesterday.",
+     "Yes, we agree to the alliance! And to one more alliance, if you have another."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Союз? Да! Нет! Улей перевернулся. Мы отказываемся.",
+     "Мы не хотим союза. Мы хотим… забыли что. Но не союза.",
+     "Нет. Нашей Королеве приснилось, что вы кусаетесь.",
+     "Нет, союз нам снился с дырой посередине. Мы отказываемся.",
+     "Мы очень хотели! Потом перехотели. Нет.",
+     "Нет. Мы разделились надвое, и обе половины сказали нет.",
+     "Мы отвергаем союз. Нам кажется, вы слишком зелёные. Или мы зелёные.",
+     "Нет! Хотя мы когда-нибудь скажем да. Но не сегодня, и не завтра.",
+     "Нет. Нам некогда: мы считаем облака.",
+     "Нет. Мы забыли, что такое союз. Спросим Королеву. Она тоже забыла. Нет."
+    ],
+    "en": [
+     "An alliance? Yes! No! The hive flipped over. We refuse.",
+     "We do not want an alliance. We want… we forgot what. But not an alliance.",
+     "No. Our Queen dreamed that you bite.",
+     "No, we dreamed the alliance with a hole in the middle. We refuse.",
+     "We wanted it so much! Then we unwanted it. No.",
+     "No. We split in two, and both halves said no.",
+     "We reject the alliance. We feel you are too green. Or we are too green.",
+     "No! Although we will say yes some day. But not today, and not tomorrow.",
+     "No. We have no time: we are counting clouds.",
+     "No. We forgot what an alliance is. We asked the Queen. She forgot too. No."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы не нападём. Королева сказала так, потом сказала иначе, но мы выбрали первое. Согласны.",
+     "Да, пакт! Мы жужжим. Мы не знаем почему, но жужжим.",
+     "Мы согласны. Рой устал злиться. Злиться будем потом. Или нет.",
+     "Да, пакт! Мы будем не нападать изо всех сил.",
+     "Мы согласны. Королеве понравилось слово пакт, оно звучит как сот.",
+     "Мы принимаем пакт. Хотя завтра мы можем об этом пожалеть.",
+     "Не нападать? Да, мы согласны. Это проще, чем нападать.",
+     "Да, мы согласны. Мы запишем это на потолке сота, чтобы не забыть.",
+     "Мы принимаем. Рой слишком сонный сегодня для драки.",
+     "Мы принимаем пакт. Если мы вас всё-таки ужалим, это случайно."
+    ],
+    "en": [
+     "Not attack? We were not going to. Or were we? Never mind. We accept.",
+     "Yes! A pact! We love pacts. Today.",
+     "We agree. The swarm is tired of being angry. We will be angry later. Or not.",
+     "Yes, a pact! We will not attack with all our might.",
+     "We agree. The Queen liked the word pact, it sounds like a comb.",
+     "We accept the pact. Though tomorrow we may regret it.",
+     "Not to attack? Yes, we agree. That is easier than attacking.",
+     "Yes, we agree. We will write it on the ceiling of a comb so as not to forget.",
+     "We accept. The swarm is too sleepy for a fight today.",
+     "We accept the pact. If we sting you anyway, it will be by accident."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир! Мы так решили минуту назад. Пусть будет мир.",
+     "Мы устали воевать. Вдруг. Мир — хорошо. Мир — вкусно.",
+     "Мы принимаем мир. Не спрашивайте почему — улей уже забыл.",
+     "Мир! Улей так вздохнул, что лопнула одна сота. Мы согласны.",
+     "Мы принимаем мир. Мы забыли, из-за чего воевали. Вы помните? Не говорите.",
+     "Мир, мир, мир! Мы повторяем, чтобы не передумать.",
+     "Мы согласны на мир. Королева сказала так во сне, и мы послушались.",
+     "Мир принят. Кончилась война, начались цветы. Мы очень рады.",
+     "Мир. Улей спорил три минуты и устал. Мы согласны.",
+     "Мир! Нет, подождите, мир! Мы уже обо всём забыли. Мы согласны."
+    ],
+    "en": [
+     "Peace! We decided a minute ago. Let there be peace.",
+     "We are tired of war. Suddenly. Peace is good. Peace is tasty.",
+     "We accept peace. Do not ask why; the hive already forgot.",
+     "Peace! The hive sighed so hard that a comb burst. We agree.",
+     "We accept peace. We forgot what we were fighting for. Do you remember? Do not tell us.",
+     "Peace, peace, peace! We repeat it so as not to change our minds.",
+     "We agree to peace. The Queen said so in her sleep, and we obeyed.",
+     "Peace is accepted. The war ended, the flowers began. We are very glad.",
+     "Peace. The hive argued for three minutes and got tired. We agree.",
+     "Peace! No, wait, peace! We have already forgotten everything. We agree."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Мир? Мы думали — да. Потом жужжание сказало: нет.",
+     "Мы отказываемся. Война ещё не надоела. Скоро надоест. Не сейчас.",
+     "Нет! Ха! Нет. Мы сами не знаем почему. Но нет.",
+     "Нет! Мы только что решили, что любим войну. Это новое чувство.",
+     "Мир? Нет. Мы вдруг вспомнили, что ненавидим вас. Приятная неожиданность.",
+     "Мы отказываемся. Улей не договорился сам с собой, а с вами и подавно.",
+     "Нет! Подождите, нет. Мы не можем остановиться посреди слова.",
+     "Мы отвергаем мир. Нам снилось, что мы побеждаем. Хотим досмотреть.",
+     "Нет. Через час, может быть, мы скажем да. Пока нет.",
+     "Нет. Мы воюем по привычке. Если бы мы знали, как остановиться, мы бы сказали."
+    ],
+    "en": [
+     "Peace? We thought yes. Then the buzzing said no.",
+     "We refuse. The war is not boring yet. Soon. Not now.",
+     "No! Ha! No. We do not know why ourselves. But no.",
+     "No! We have just decided that we love war. It is a new feeling.",
+     "Peace? No. We suddenly remembered we hate you. A pleasant surprise.",
+     "We refuse. The hive could not agree with itself, let alone with you.",
+     "No! Wait, no. We cannot stop in the middle of a word.",
+     "We reject peace. We dreamed we were winning. We want to see it through.",
+     "No. In an hour we may say yes. For now no.",
+     "No. We fight out of habit. If we knew how to stop, we would say so."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы проснулись злыми. Это война. Простите. Нет, не простите.",
+     "Королеве приснилась война. Мы исполняем сон. Готовьтесь.",
+     "Вчера друзья, сегодня война. Улей так чувствует. Мы идём.",
+     "Война! Королева встала не с той лапки. Простите нас, но война.",
+     "Мы объявляем войну. Так пахнет утро. Мы чуем, что пора.",
+     "Улей проголосовал большинством одного жала: война. Не наша вина.",
+     "Мы нечаянно объявили войну. Теперь придётся её вести.",
+     "Знаете, мы выбрали войну. Бросили жребий, выпала война.",
+     "Нам вдруг стало скучно. Это война.",
+     "Война! Хотя нет, ещё не война. Нет, всё-таки война. Мы решили."
+    ],
+    "en": [
+     "We woke up angry. This is war. Sorry. No, not sorry.",
+     "The Queen dreamed of war. We fulfil the dream. Get ready.",
+     "Yesterday friends, today war. The hive feels so. We come.",
+     "War! We got up on the wrong leg. Sorry, but war.",
+     "We declare war. The morning smells that way. We sense it is time.",
+     "The hive voted by a majority of one stinger: war. Not our fault.",
+     "We accidentally declared war. Now we will have to fight it.",
+     "You know, we chose war. We cast lots, and war came up.",
+     "We suddenly got bored. This is war.",
+     "War! Although no, not yet war. No, war after all. We have decided."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Договор? Мы его съели. Нечаянно. Его больше нет.",
+     "Мы рвём пакт! Нам приснилось, что он плохой.",
+     "Наше соглашение закончилось. Утром оно было, а сейчас нет. Мы тоже удивлены.",
+     "Мы рвём договор. Он слишком хорошо пах, это подозрительно.",
+     "Мы нарушаем пакт. Королеве в нём что-то не понравилось. Что-то круглое.",
+     "Договор больше не договор. Мы сами не знаем, чем он стал.",
+     "Мы бросили соглашение в тоннель. Тоннель обрушился. Совпадение.",
+     "Мы разрываем пакт. Мы не злимся, мы просто вдруг захотели иначе.",
+     "Мы расторгаем договор. Прошу прощения у вас, а не у договора.",
+     "Мы вспомнили, что у нас был договор. Мы вспомнили, что его не любим. Рвём."
+    ],
+    "en": [
+     "The treaty? We ate it. By accident. It is gone.",
+     "We break the pact! We dreamed it was bad.",
+     "Our agreement is over. This morning it was there; now it is not. We are surprised too.",
+     "We tear up the treaty. It smelled too good, which is suspicious.",
+     "We break the pact. The Queen disliked something in it. Something round.",
+     "The treaty is no longer a treaty. We ourselves do not know what it has become.",
+     "We threw the agreement into a tunnel. The tunnel collapsed. Coincidence.",
+     "We tear up the pact. We are not angry, we simply wanted otherwise.",
+     "We cancel the treaty. We apologize to you, not to the treaty.",
+     "We remembered that we had a treaty. We remembered that we do not like it. We tear it up."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Прекратите! Нам щекотно. И страшно. И мы злимся — больше всего злимся.",
+     "Ещё раз — и наш рой сделает что-то странное. Что именно — мы и сами боимся узнать.",
+     "Остановитесь. Мы жужжим тихо-тихо. Это очень плохой знак.",
+     "Остановитесь, или мы сделаем что-то очень громкое. Мы ещё не придумали что.",
+     "Мы чуем неприятности. Вы их приносите. Прекратите, или мы тоже что-нибудь принесём.",
+     "Нам что-то подсказывает, что нас сейчас разозлят. Не злите.",
+     "Мы предупреждаем, и нас колотит. Это не страх. Это почти не страх.",
+     "Один шаг ещё, и мы вспомним, что у нас есть жала. Мы иногда забываем.",
+     "Хватит. Мы можем стать очень плохими. Или очень добрыми. Шансы поровну.",
+     "Мы сейчас очень тихие. Мы всегда тихие перед тем, как стать очень громкими."
+    ],
+    "en": [
+     "Stop! It tickles us. And scares us. And we are angry, mostly angry.",
+     "Once more and our swarm does something strange. Even we fear what.",
+     "Stop. We are buzzing very quietly. That is a very bad sign.",
+     "Stop, or we will do something very loud. We have not thought of what yet.",
+     "We smell trouble. You are bringing it. Stop, or we will bring something too.",
+     "Something tells us we are about to be angered. Do not anger us.",
+     "We warn you, and we are trembling. It is not fear. It is almost not fear.",
+     "One more step, and we will remember that we have stingers. We sometimes forget.",
+     "Enough. We can turn very bad. Or very kind. The odds are equal.",
+     "We are very quiet right now. We are always quiet before becoming very loud."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Дайте нам {СУММА}! Мы не знаем зачем. Но очень хотим.",
+     "Королева проголодалась. Принесите {СУММА}, или мы начнём жужжать очень громко.",
+     "{СУММА} — сегодня. Завтра, может быть, ничего. Или всё. Платите сейчас, мы ждём.",
+     "Нам нужно {СУММА}. Для чего, мы сказали бы, если бы знали.",
+     "Мы требуем {СУММА}. Это не грабёж, это модное увлечение.",
+     "Дайте {СУММА}! Мы очень вежливо просим. Ну, почти.",
+     "Нашей Королеве приснились {СУММА}. Исполните сон.",
+     "Заплатите нам {СУММА}, и мы не вспомним о том, что хотели вас обидеть.",
+     "Мы хотим {СУММА} и ещё, может быть, носок. Хотя нет, носок нам ни к чему.",
+     "Просим {СУММА}. Просим! Или мы заплачем, а потом нападём."
+    ],
+    "en": [
+     "Give us {AMOUNT}! We do not know why. But we want it very much.",
+     "We demand {AMOUNT}. Or flowers. No, the money after all.",
+     "{AMOUNT}, today. Tomorrow maybe nothing. Or everything. Pay now; we are waiting.",
+     "We need {AMOUNT}. We would say what for, if we knew.",
+     "We demand {AMOUNT}. It is not robbery, it is a fashionable pastime.",
+     "Give us {AMOUNT}! We ask very politely. Well, almost.",
+     "Our Queen dreamed of {AMOUNT}. Fulfill the dream.",
+     "Pay us {AMOUNT}, and we will not recall that we wanted to hurt you.",
+     "We want {AMOUNT} and maybe a sock. Although no, we have no use for a sock.",
+     "We ask for {AMOUNT}. We ask! Or we will cry, and then attack."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Подарок! Нам! Мы прыгаем по сотам. Спасибо!",
+     "Благодарим. Мы хотели обидеться, но дар блестит. Не обижаемся.",
+     "Спасибо! Мы уже забыли, за что сердились. Ваш подарок хорошо пахнет.",
+     "Спасибо за подарок! Мы его понюхали, поцеловали и закопали.",
+     "Мы благодарим вас! Подарок блестит, а мы любим блестящее.",
+     "Подарок! Мы вертелись три раза от радости. Спасибо.",
+     "Спасибо! Мы хотели вас съесть, но подарок мешает.",
+     "Мы благодарны. Королева надела дар на усик и теперь ходит гордая.",
+     "Дар прекрасный. Мы вдруг расплакались. Улей редко плачет.",
+     "Мы благодарим вас! И ещё раз. И ещё. Нам нравится говорить спасибо."
+    ],
+    "en": [
+     "A gift! For us! We are jumping all over the combs. Thank you!",
+     "We thank you. We wanted to be offended, but the gift is shiny. Not offended.",
+     "Thank you! We forgot why we were angry. Your gift smells nice.",
+     "Thanks for the gift! We sniffed it, kissed it and buried it.",
+     "We thank you! The gift shines, and we love shiny things.",
+     "A gift! We spun three times with joy. Thanks.",
+     "Thanks! We wanted to eat you, but the gift gets in the way.",
+     "We are grateful. The Queen put the gift on her antenna and now walks proud.",
+     "A lovely gift. We suddenly wept. The hive rarely weeps.",
+     "We thank you! And again. And again. We like saying thanks."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы нашли вашего шпиона! Он смешно бегал. Больше не смешно.",
+     "Шпион! Мы рады. Мы злы. Мы ещё не решили. Не присылайте следующего.",
+     "Ваш агент пойман в наших сотах. Улей гудит громче обычного.",
+     "Мы поймали вашего шпиона. Он очень неудобно прятался в нашем супе.",
+     "Ваш агент пойман! Мы хотели его погладить, но улей велел наказать.",
+     "Шпион в сотах! Мы то смеёмся, то злимся. Приходите, мы объясним.",
+     "Мы протестуем против вашего лазутчика. Мы вообще не любим сюрпризы, кроме приятных.",
+     "Мы поймали шпиона и уже забыли, что с ним делать. Заберите его, пока мы не придумали.",
+     "Ваш агент пахнет вами. Нам это очень глупо. Нам это очень обидно.",
+     "Мы поймали шпиона, угостили мёдом, а потом вспомнили, что надо сердиться."
+    ],
+    "en": [
+     "We found your spy! He ran funny. Not funny anymore.",
+     "A spy! We are glad. We are angry. We have not decided. Send no more.",
+     "Your agent was caught in our combs. The hive hums louder than usual.",
+     "We caught your spy. He hid very awkwardly in our soup.",
+     "Your agent is caught! We wanted to pat him, but the hive ordered a punishment.",
+     "A spy in the combs! We laugh and we rage by turns. Come, we will explain.",
+     "We protest against your infiltrator. We do not like surprises at all, except pleasant ones.",
+     "We caught the spy and already forgot what to do with him. Take him back before we think of something.",
+     "Your agent smells of you. To us that is very silly. To us that is very insulting.",
+     "We caught a spy, treated him to honey, and then remembered that we ought to be angry."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас! Хотели против. Потом за. Теперь опять за.",
+     "Наш голос — вам. Королева выбрала вас по запаху.",
+     "Мы за вас в Совете! Почему? Улей погудел и решил так.",
+     "Мы голосуем за вас в Совете. Подбросили жало, выпало за вас.",
+     "Наш голос в Совете — вам. Королева так решила, пока чихала.",
+     "Мы голосуем за вас! Мы всегда были за вас. Со вчерашнего дня.",
+     "Мы голосуем за вас. Вы пахнете победой, мы её не любим, но уважаем.",
+     "В Совете мы вас поддержим. Только не спрашивайте, какого цвета наш голос.",
+     "Мы отдаём вам голос. Он блестящий и немного липкий. Держите крепко.",
+     "Мы голосуем за вас. Нам понравилось слово Совет. Мы вас не подведём. Может быть."
+    ],
+    "en": [
+     "We vote for you! We wanted against. Then for. Now for again.",
+     "Our vote is yours. The Queen chose you by smell.",
+     "In the Council we are with you! Why? The hive hummed, and it was decided.",
+     "We vote for you in the Council. We tossed a stinger, it landed for you.",
+     "Our Council vote is yours. The Queen decided so while sneezing.",
+     "We vote for you! We have always voted for you. Since yesterday.",
+     "We vote for you. You smell of victory, which we do not like but respect.",
+     "In the Council we will back you. Only do not ask what color our vote is.",
+     "We give you our vote. It is shiny and a little sticky. Hold it tight.",
+     "We vote for you. We liked the word Council. We will not let you down. Perhaps."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы голосуем против вас. Ничего личного. Или личное. Мы запутались.",
+     "Наш голос — против. Вчера был за. Завтра — кто знает.",
+     "Против! Наша Королева проснулась не в духе, и Совет об этом узнает.",
+     "Мы голосуем против. Королева чихнула, а это значит против. Мы так решили.",
+     "Наш голос против. Он такой маленький, зато злой.",
+     "Мы голосуем против, и наш голос слышен в Совете даже сквозь сон.",
+     "Мы против вас в Совете. Это не обида. Это новое увлечение.",
+     "Мы голосуем против вас. Поспорили, какой цвет у вашей власти. Он нам не нравится.",
+     "В Совете наш голос против. Хотя, может, в следующий раз за.",
+     "Наш голос в Совете против вас. Мы подумали, что так будет веселее."
+    ],
+    "en": [
+     "We vote against you. Nothing personal. Or personal. We got confused.",
+     "Our vote is against you. Yesterday it was for. Tomorrow, who knows.",
+     "Against! Our Queen woke up in a bad mood, and the Council will hear about it.",
+     "We vote against you in the Council. We were for you yesterday, but we have slept.",
+     "Our vote is against. It is so small, but so angry.",
+     "We vote against, and our voice carries through the Council even in our sleep.",
+     "We are against you in the Council. It is not offense. It is a new hobby.",
+     "We vote against you. We argued about what color your power is. We dislike it.",
+     "In the Council our vote is against. Although maybe next time for.",
+     "Our vote in the Council is against you. We thought it would be more fun."
+    ]
+   }
+  },
+  "honorable": {
+   "first_contact": {
+    "ru": [
+     "Мы приветствуем вас. Улей держит слово. Мы ждём того же.",
+     "Мы — один улей и одно слово. Будьте честны, и мы будем честны.",
+     "Приветствие от всего роя. Мы трудимся честно и уважаем честный труд.",
+     "Мы представляемся: мы улей, мы Королева, мы слово. Скажите нам своё.",
+     "Мы встречаем вас открыто. Наши жала опущены, пока опущены ваши.",
+     "Мы пришли без обмана и ждём того же от вас. Таков наш обычай.",
+     "Мы почитаем гостей, которые чтят правила. Мы надеемся, что вы из них.",
+     "Улей рад встрече. Мы обещаем говорить правду, а вы?",
+     "Мы не даём пустых обещаний. Пусть и ваши слова будут весомыми.",
+     "Мы приветствуем вас от имени Королевы. Её слово тверже наших сот."
+    ],
+    "en": [
+     "We greet you. The hive keeps its word. We expect the same.",
+     "We are one hive and one word. Be honest, and we will be honest.",
+     "Greetings from the whole swarm. We work honestly and respect honest work.",
+     "We introduce ourselves: we are the hive, we are the Queen, we are the word. Tell us yours.",
+     "We meet you openly. Our stingers are lowered as long as yours are.",
+     "We come without deceit and expect the same from you. It is our custom.",
+     "We honor guests who respect the rules. We hope you are one of them.",
+     "The hive is glad to meet you. We promise to speak the truth, and you?",
+     "We give no empty promises. Let your words carry weight too.",
+     "We greet you in the Queen's name. Her word is firmer than our combs."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы принимаем договор. Улей платит честно и ждёт честной платы.",
+     "Согласны. Мы будем торговать так же, как работаем, — без обмана.",
+     "Договор принят. Каждый наш груз будет полным. Мы клянёмся сотами.",
+     "Мы согласны. Мы честно считаем грузы и ждём того же от вас.",
+     "Мы принимаем торговлю. Слово улья на этом договоре крепче печати.",
+     "Да, мы торгуем. Мы не обманем ни весом, ни мерой.",
+     "Договор принят. Мы поставим всё, что обещали, до последней крошки.",
+     "Мы согласны на сделку. Пусть наши склады станут мостом между ульем и вами.",
+     "Мы принимаем. Честная торговля питает оба улья, ваш и наш.",
+     "Да, мы торгуем. Улей не меняет слова, меняет только мёд и руду."
+    ],
+    "en": [
+     "We accept the treaty. The hive pays honestly and expects honest pay.",
+     "Agreed. We will trade the way we work: without deceit.",
+     "Treaty accepted. Every cargo of ours will be full weight. We swear by our combs.",
+     "We agree. We count cargo honestly and expect the same from you.",
+     "We accept the trade. The hive's word on this treaty is firmer than any seal.",
+     "Yes, we trade. We will not cheat in weight or in measure.",
+     "The treaty is accepted. We will deliver all we promised, to the last crumb.",
+     "We agree to the deal. Let our storehouses be a bridge between us.",
+     "We accept. Honest trade feeds both hives, yours and ours.",
+     "Yes, we trade. The hive does not change its word, only honey and ore."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Мы благодарим, но отказываемся. Улей не обещает того, чего не сможет дать.",
+     "Нет. Это честный ответ: нам нечего вам предложить.",
+     "Мы не можем заключить договор. Говорим прямо, без обмана.",
+     "Мы отказываемся. Мы не можем исполнить условия, а обещать впустую не хотим.",
+     "Нет. Мы уважаем вас, но этот договор нам не по плечу.",
+     "Мы отклоняем сделку. Нарушить слово позже хуже, чем отказать сегодня. Нет.",
+     "Спасибо за предложение. Ответ нет. Мы говорим прямо, чтобы вы не ждали зря.",
+     "Нет. Наши склады уже обещаны другим, а слово мы не ломаем.",
+     "Мы отвергаем торговлю на этих условиях. Предложите честнее, и мы выслушаем.",
+     "Мы отвечаем нет. Мы не торгуем с теми, кому не доверяем без остатка."
+    ],
+    "en": [
+     "We thank you, but we decline. The hive promises nothing it cannot give.",
+     "No. That is an honest answer: we have nothing to offer you.",
+     "We cannot sign the treaty. We decline plainly, without deceit.",
+     "We refuse. We cannot fulfill the terms, and we do not want to promise in vain.",
+     "No. We respect you, but this treaty is beyond our shoulders.",
+     "We decline the deal. It is better to say no now than to break our word later.",
+     "Thank you for the offer. Our answer is no. We say it plainly, so you do not wait in vain.",
+     "No. Our storehouses are already promised to others, and we do not break our word.",
+     "We reject trade on these terms. Offer something fairer, and we will listen.",
+     "We answer no. We do not trade with those we do not trust fully."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Мы принимаем. Мы отдадим всё, что знаем. Ничего не спрячем.",
+     "Договор принят. Честный обмен — как честный труд: он полезен и вам, и нам.",
+     "Мы согласны. Королева велит нам учиться честно и учить честно.",
+     "Мы согласны. Мы поделимся знанием без утайки и честно возьмём ваше.",
+     "Да, мы принимаем договор. Знания растут, когда ими делятся.",
+     "Мы принимаем. Наши учёные присягнули Королеве работать открыто.",
+     "Мы согласны на обмен. Мы не станем прятать ни одной формулы.",
+     "Договор принят. Пусть наши соты станут для вас читальней, а ваши для нас.",
+     "Мы принимаем союз знаний. Мы будем благодарны вам за каждую страницу.",
+     "Мы принимаем обмен. Мы вернём вам знание сторицей."
+    ],
+    "en": [
+     "We accept. We will give everything we know. We hide nothing.",
+     "Treaty accepted. Honest exchange is like honest work: good for you and good for us.",
+     "We agree. The Queen commands us to learn honestly and to teach honestly.",
+     "We agree. We will share knowledge without concealment and take yours honestly.",
+     "Yes, we accept the treaty. Knowledge grows when it is shared.",
+     "We accept. Our scholars swore to the Queen to work in the open.",
+     "We agree to the exchange. We will not hide a single formula.",
+     "The treaty is accepted. Let our combs be a reading room for you, and yours for us.",
+     "We accept this alliance of knowledge. We will be grateful for every page.",
+     "We accept the exchange. We will return the knowledge to you many times over."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Мы отказываемся. Наши знания принадлежат Королеве, не нам. Мы не можем их отдать.",
+     "Нет. Мы честно говорим: мы не доверяем вам наших тайн.",
+     "Мы благодарим, но отклоняем. Сначала доверие, потом знания. Так правильно.",
+     "Мы отказываемся. Наши тайны не наши, поэтому мы не вправе их отдать.",
+     "Нет. Мы считаем, что знание требует доверия, а оно ещё не выросло.",
+     "Мы отклоняем договор. Мы дорожим вашей честностью, но тайны улья не продаются.",
+     "Мы не можем принять ваш договор. Нам жаль, и мы говорим это открыто.",
+     "Нет. Мы обещали хранить наши открытия. Это обещание сильнее вашей просьбы.",
+     "Спасибо, но мы отказываемся. Мы не хотим обещать то, чего не исполним.",
+     "Нет. Мы пока не знаем вас достаточно, чтобы делиться знаниями."
+    ],
+    "en": [
+     "We refuse. Our knowledge belongs to the Queen, not to us. We cannot give it.",
+     "No. We say it honestly: we do not trust you with our secrets.",
+     "We thank you, but we decline. First trust, then knowledge. That is the right order.",
+     "We refuse. Our secrets are not ours, so we have no right to give them away.",
+     "No. We hold that knowledge needs trust, and ours has not grown yet.",
+     "We decline the treaty. We value your honesty, but the hive's secrets are not for sale.",
+     "We cannot take your treaty. We are sorry, and we say so openly.",
+     "No. We promised to guard our discoveries. That promise outweighs your request.",
+     "Thank you, but we refuse. We do not want to promise what we will not fulfill.",
+     "No. We do not yet know you well enough to share knowledge."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Ваш враг — наш враг. Так будет, пока стоит улей.",
+     "Союз принят. Весь наш рой встанет за вас, как за себя.",
+     "Мы согласны. Улей помнит союзников. Улей не предаёт.",
+     "Мы принимаем союз. Мы стоим рядом с вами, пока вы стоите рядом с нами.",
+     "Да. Мы согласны, и это слово тверже хитина.",
+     "Союз принят. Мы не оставим вас в беде и не просим оставлять нас.",
+     "Мы согласны на союз. Мы клянёмся Королевой помнить об этом в каждом бою.",
+     "Мы принимаем руку, что вы протянули. Наша тоже не дрогнет.",
+     "Мы принимаем союз. Мы с вами рядом, и ничто этого не изменит.",
+     "Мы согласны на союз. Мы чтим союзников, как чтим Королеву."
+    ],
+    "en": [
+     "We accept the alliance. Your enemy is our enemy. So it will be while the hive stands.",
+     "Alliance accepted. Our whole swarm will stand up for you as for itself.",
+     "We agree. The hive remembers its allies. The hive does not betray.",
+     "We accept the alliance. We stand beside you as long as you stand beside us.",
+     "Yes. We agree, and this word is firmer than chitin.",
+     "The alliance is accepted. We will not abandon you in distress, and we ask the same of you.",
+     "We agree to the alliance. We swear by the Queen to remember it in every battle.",
+     "We accept the hand you extended. Ours will not tremble either.",
+     "We accept the alliance. We are beside you, and nothing will change that.",
+     "We agree to the alliance. We honor allies as we honor the Queen."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Нет. Королева не благословила этот союз, а без её слова мы ничего не делаем.",
+     "Нет. Союз — это клятва. Мы не клянёмся тем, кого мало знаем.",
+     "Мы благодарим за честь, но отклоняем союз. Так честнее, чем обещать и не сделать.",
+     "Мы отказываемся. Союз надо заслужить временем, а у нас его ещё не было.",
+     "Нет. Мы честно говорим: наше слово пока не готово для такого обета.",
+     "Мы отклоняем союз. Улей сам на себя взял слишком много обязательств.",
+     "Мы благодарны за честь, но нет. Мы не дарим клятв наугад.",
+     "Нет. Мы не хотим связывать вас клятвой, которую не сможем исполнить.",
+     "Мы не можем принять ваш союз. Это не обида, а трезвый ответ.",
+     "Нет. Мы не создаём союзов, которые не вынесут испытания."
+    ],
+    "en": [
+     "We refuse. Our word is already given to others, and we keep it.",
+     "No. Our Queen has not blessed this alliance, and we do nothing without her word.",
+     "We thank you for the honour, but we decline the alliance. Better than promising and failing.",
+     "We refuse. An alliance must be earned with time, and we have not had it yet.",
+     "No. We say honestly: our word is not yet ready for such a vow.",
+     "We decline the alliance. The hive has taken on too many obligations already.",
+     "We are grateful for the honor, but no. We do not give oaths at random.",
+     "No. We do not want to bind you with an oath we cannot keep.",
+     "We cannot take your alliance. It is not offense, it is a sober answer.",
+     "No. We do not make alliances that cannot bear a test."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы принимаем пакт. Наши жала не коснутся вас. Это слово улья.",
+     "Пакт принят. Мы будем держать его, как держим своды наших туннелей.",
+     "Да. Мы не нападём на вас. Вы не нападёте на нас. Честно и просто.",
+     "Мы принимаем пакт. Наше слово: на вас жало не поднимется.",
+     "Да, мы согласны. Мы будем соблюдать пакт, пока вы соблюдаете его.",
+     "Пакт принят. Мы запишем его на каждой стене нашего улья.",
+     "Мы согласны не нападать. Для нас слово крепче пакта, а пакт ещё крепче слова.",
+     "Мы принимаем. Спокойная граница лучше, чем богатая война.",
+     "Да. Мы подаём вам руку и не прячем за спиной жало.",
+     "Мы принимаем пакт. Наши соседи будут знать, что мы держим слово."
+    ],
+    "en": [
+     "We accept the pact. Our stingers will not touch you. That is the word of the hive.",
+     "Pact accepted. We will hold it as we hold up the roofs of our tunnels.",
+     "Yes. We will not attack you. You will not attack us. Honest and simple.",
+     "We accept the pact. Our word: no stinger will rise against you.",
+     "Yes, we agree. We will keep the pact as long as you keep it.",
+     "The pact is accepted. We will carve it into every wall of our hive.",
+     "We agree not to attack. For us the word is firmer than the pact, and the pact firmer than the word.",
+     "We accept. A calm border is better than a rich war.",
+     "Yes. We offer you a hand and hide no stinger behind our back.",
+     "We accept the pact. Our neighbors will learn that we keep our word."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мы принимаем мир. Слово улья твёрдо, как хитин.",
+     "Мир. Мы клянёмся Королевой соблюдать его.",
+     "Мы согласны на мир и будем хранить его, пока его храните вы.",
+     "Мир. Мы кладём жала и ждём, что вы положите оружие.",
+     "Мы принимаем мир. Мы не держим зла, мы держим слово.",
+     "Мир принят. Наш рой вернётся к работе, и мы будем трудиться честно.",
+     "Мы согласны на мир. Пусть погибшие будут нам напоминанием, а не причиной мести.",
+     "Мир. Мы заключаем его всем ульем и нарушим его последними.",
+     "Мы принимаем ваш мир. Королева слышит вас и отвечает: да.",
+     "Мир. Мы чтим павших с обеих сторон и принимаем ваше предложение."
+    ],
+    "en": [
+     "We accept peace. The word of the hive is hard as chitin.",
+     "Peace. We swear by the Queen to keep it.",
+     "We agree to peace and will keep it as long as you keep it.",
+     "Peace. We lay down our stingers and expect you to lay down your weapons.",
+     "We accept peace. We bear no grudge, we bear our word.",
+     "Peace is accepted. Our swarm returns to work, and we will toil honestly.",
+     "We agree to peace. Let the fallen be a reminder to us, not a cause for revenge.",
+     "Peace. We make it with the whole hive and we will be the last to break it.",
+     "We accept your peace. The Queen hears you and answers: yes.",
+     "Peace. We honor the fallen on both sides and accept your offer."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нет. Вы нарушили слово. Мы не верим словам тех, кто нарушает слово.",
+     "Мы отказываемся. Сначала верните то, что взяли у улья. Потом будет мир.",
+     "Мы говорим честно: мира не будет, пока ваши корабли стоят у наших сот.",
+     "Нет. Мы не принимаем мира, пока не получим то, что нам должны.",
+     "Мы отказываемся. Честь улья требует довести дело до конца.",
+     "Нет. Мы слышим просьбу о мире, но не слышим просьбы о прощении. Этого мало.",
+     "Мы отклоняем мир. Мы не воюем ради войны, но и не отступим ради удобства.",
+     "Мы говорим прямо: нет. Наши павшие не позволяют остановиться.",
+     "Нет. Мир без правды хуже войны. Говорите честно, и мы вернёмся к разговору.",
+     "Нет. Мы не принимаем мир из жалости. Мир должен быть заслужен."
+    ],
+    "en": [
+     "No. You broke your word. We do not trust the words of those who break their word.",
+     "We refuse. First return what you took from the hive. Then peace.",
+     "We say it honestly: there will be no peace while your ships stand at our combs.",
+     "No. We do not take peace until we receive what we are owed.",
+     "We refuse. The honor of the hive demands we finish what we began.",
+     "No. We hear a plea for peace, but not a plea for forgiveness. It is not enough.",
+     "We decline peace. We do not fight for the sake of war, but we do not retreat for convenience either.",
+     "We say plainly: no. Our fallen do not allow us to stop.",
+     "No. Peace without truth is worse than war. Speak honestly, and we will return to the talk.",
+     "No. We do not accept peace out of pity. Peace must be earned."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы говорим открыто: улей объявляет вам войну.",
+     "Вы нарушили слово. Мы — нет. Поэтому теперь война.",
+     "Мы предупреждаем честно: с этого хода — война.",
+     "Мы объявляем войну открыто. Прячась за спиной, мы не нападаем.",
+     "Мы дали вам время одуматься. Вы не воспользовались. Это война.",
+     "Мы отказываемся быть вашими друзьями. Война.",
+     "Мы идём на вас войной. Мы заранее сообщаем, чтобы вы успели подготовиться.",
+     "Королева сказала: честь требует войны. Мы подчиняемся.",
+     "Мы не любим войну. Но вы оставили нам лишь её.",
+     "Мы объявляем вам войну. Мы делаем это при свидетелях, как велит честь."
+    ],
+    "en": [
+     "We say it openly: the hive declares war on you.",
+     "You broke your word. We did not. That is why there is war now.",
+     "We warn you honestly: from this turn on, it is war.",
+     "We declare war openly. We do not attack from behind.",
+     "We gave you time to reconsider. You did not use it. This is war.",
+     "We refuse to be your friends. War.",
+     "We come against you in war. We say so in advance, so you may prepare.",
+     "The Queen said: honor demands war. We obey.",
+     "We do not like war. But you left us nothing else.",
+     "We declare war on you. We do it before witnesses, as honor commands."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Мы говорим открыто: договор расторгнут. Вы первыми нарушили его.",
+     "Мы честно разрываем пакт. Не тайно, не в спину. Прямо.",
+     "Королева велела закончить соглашение. Мы сообщаем вам первыми. Так честно.",
+     "Мы расторгаем договор. Нам больно, но вы нарушили его первыми.",
+     "Договор разорван. Мы сообщаем это вам в лицо, а не в спину.",
+     "Мы нарушаем пакт, и мы просим у Королевы прощения за это слово.",
+     "Мы объявляем о конце соглашения. Вы знали, что так будет, если не изменитесь.",
+     "Мы разрываем союз. Мы сделали всё, чтобы удержать его.",
+     "Наше слово связывало нас, но не вас. Мы освобождаем себя от договора.",
+     "Мы с сожалением расторгаем договор. Причину вы знаете."
+    ],
+    "en": [
+     "We say it openly: the treaty is ended. You broke it first.",
+     "We break the pact honestly. Not in secret, not in the back. To your face.",
+     "The Queen ordered the agreement ended. We tell you first. That is honest.",
+     "We terminate the treaty. It pains us, but you broke it first.",
+     "The treaty is torn. We tell you to your face, not behind your back.",
+     "We break the pact, and we ask the Queen's forgiveness for this word.",
+     "We announce the end of the agreement. You knew it would be so if you did not change.",
+     "We break the alliance. We did everything to hold it.",
+     "Our word bound us, but not you. We free ourselves from the treaty.",
+     "We regretfully terminate the treaty. You know the reason."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Мы предупреждаем честно: остановитесь. Иначе улей ответит.",
+     "Вы нарушаете порядок. Мы просим один раз. Второй раз мы просить не будем.",
+     "Мы всегда держим слово. Наше слово сейчас: уходите, или будет бой.",
+     "Мы предупреждаем вас дважды, потому что мы справедливы. Это второй раз.",
+     "Мы не угрожаем зря. Остановитесь, или мы ответим по справедливости.",
+     "Мы терпеливы, но наше терпение — не безграничная сота.",
+     "Мы говорим вам открыто: ещё шаг, и мы ответим.",
+     "Нам не хочется драться. Но мы ответим, если вы заставите.",
+     "Мы просим вас вернуться к уговору, пока улей не потерял терпение.",
+     "Мы не хотим сражаться. Но если вы заставите нас, мы будем сражаться хорошо."
+    ],
+    "en": [
+     "We warn you honestly: stop. Or the hive will answer.",
+     "You are breaking the order of things. We ask once. The second time we do not ask.",
+     "We always keep our word. Our word now: leave, or there will be battle.",
+     "We warn you twice, because we are just. This is the second time.",
+     "We do not threaten in vain. Stop, or we will answer with justice.",
+     "We are patient, but our patience is not an endless comb.",
+     "We tell you openly: one more step, and we will answer.",
+     "We do not want to fight. But we will answer if you force us.",
+     "We ask you to return to the agreement before the hive loses patience.",
+     "We take no joy in fighting. Yet if you push us, our stingers will not tremble."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Мы требуем {СУММА} в уплату долга. Это справедливо.",
+     "Улей многое потерял по вашей вине. {СУММА} — честная цена, и мы её требуем.",
+     "Заплатите {СУММА}, и мы честно забудем обиду.",
+     "Мы требуем {СУММА} в возмещение ущерба. Мы назвали честную цену.",
+     "Вы задолжали нам {СУММА}. Мы не просим больше, чем нам должны.",
+     "Мы ждём {СУММА}. Исполните долг, и мы забудем о споре.",
+     "{СУММА} закроют вопрос. Мы даём слово, что не попросим добавки.",
+     "Мы называем сумму: {СУММА}. Это справедливо и не обсуждается.",
+     "Улей требует {СУММА}. Мы предупредили заранее, как велит нам честь.",
+     "Мы просим {СУММА} в качестве искупления. Это справедливый шаг к примирению."
+    ],
+    "en": [
+     "We demand {AMOUNT} as payment of the debt. It is fair.",
+     "The hive lost much because of you. {AMOUNT} is an honest price, and we demand it.",
+     "Pay {AMOUNT}, and we will honestly forget the offence.",
+     "We demand {AMOUNT} for the harm done to our combs. We named an honest price.",
+     "You owe us {AMOUNT}. We do not ask for more than we are owed.",
+     "We await {AMOUNT}. Fulfill your debt, and we will forget the dispute.",
+     "{AMOUNT} will close the matter. We give our word that we will ask for nothing more.",
+     "We name the sum: {AMOUNT}. It is fair and not up for debate.",
+     "The hive demands {AMOUNT}. We warned in advance, as our honor requires.",
+     "We ask {AMOUNT} as atonement. It is a fair step toward reconciliation."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Мы благодарим вас. Улей не забудет этот дар.",
+     "Спасибо. Подарок — честный знак. Мы ответим тем же.",
+     "Королева приняла ваш дар и велела благодарить. Мы благодарим от всего роя.",
+     "Мы благодарим вас всем роем. Дар принят с уважением.",
+     "Спасибо за дар. Мы ответим достойным подарком.",
+     "Мы благодарны. Улей не остаётся в долгу.",
+     "Ваш дар тронул нас. Мы благодарим от чистых усиков.",
+     "Спасибо. Мы поставили дар в зал почёта. Вы будете помнены.",
+     "Дар принят. Мы благодарим вас, и это слово от нас идёт искренне.",
+     "Спасибо вам. Мы запомним доброту, как помним песню Королевы."
+    ],
+    "en": [
+     "We thank you. The hive will not forget this gift.",
+     "Thank you. A gift is an honest sign. We will answer in kind.",
+     "The Queen received your gift and commanded us to thank you. We thank you, with the whole swarm.",
+     "We thank you with the whole swarm. The gift is received with respect.",
+     "Thank you for the gift. We will answer with a worthy present.",
+     "We are grateful. The hive does not stay in debt.",
+     "Your gift moved us. We thank you from clean antennae.",
+     "Thanks. We put the gift in the hall of honor. You will be remembered.",
+     "The gift is received. We thank you, and this word comes from us sincerely.",
+     "Thank you. We will remember the kindness as we remember the Queen's song."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы поймали вашего шпиона. Честные соседи так не делают.",
+     "Ваш агент в наших сотах. Мы вернём его, но ждём извинений.",
+     "Мы нашли шпиона. Улей помнит честность — и помнит обман.",
+     "Мы поймали вашего шпиона. Мы протестуем и ждём объяснений.",
+     "Ваш агент найден в наших сотах. Это нарушение доверия.",
+     "Мы нашли шпиона. Мы не тронули его, но требуем ответа.",
+     "Шпионаж оскорбляет договоры. Мы протестуем честно и открыто.",
+     "Мы вернём вам лазутчика, но запомним, как вы воспользовались нашим гостеприимством.",
+     "Мы протестуем против вашего агента. Улей чтит правду, а вы нас обманули.",
+     "Мы нашли вашего агента. Мы просим вас объясниться, как положено соседям."
+    ],
+    "en": [
+     "We caught your spy. Honest neighbours do not do this.",
+     "Your agent is in our combs. We will return him, but we expect an apology.",
+     "We found a spy. The hive remembers honesty, and it remembers deceit.",
+     "We caught your spy. We protest and await an explanation.",
+     "Your agent was found in our combs. This is a breach of trust.",
+     "We found a spy. We did not touch him, but we demand an answer.",
+     "Espionage insults treaties. We protest against your spy honestly and openly.",
+     "We will return your infiltrator to you, but we will remember how you used our hospitality.",
+     "We protest against your agent. The hive honors truth, and you deceived us.",
+     "We found your agent. We ask you to explain yourselves, as neighbors should."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Вы честны с ульем — улей честен с вами.",
+     "Наш голос в Совете — ваш. Мы обещали, мы исполняем.",
+     "Весь наш рой голосует за вас. Нам нужен честный лидер, а не просто сильный.",
+     "Мы голосуем за вас в Совете. Мы даём слово и исполним его.",
+     "Наш голос в Совете ваш. Вы заслужили его честностью.",
+     "Мы голосуем за вас. Это решение нашей Королевы и нашего роя.",
+     "Мы поддержим вас голосом. Мы не меняем слов по ветру.",
+     "В Совете мы вас поддержим. Достойным лидерам мы доверяем.",
+     "Мы отдаём вам голос. Он дорого стоит, потому что мы честны.",
+     "Мы голосуем за вас. В Совете мы скажем это громко и без стеснения."
+    ],
+    "en": [
+     "We vote for you. You are honest with the hive; the hive is honest with you.",
+     "Our vote in the Council is yours. We promised; we deliver.",
+     "Our whole swarm votes for you. An honest leader is better than a strong one.",
+     "We vote for you in the Council. The hive gave its word, and the word is hard as chitin.",
+     "Our Council vote is yours. You earned it with honesty.",
+     "We vote for you. This is the decision of our Queen and our swarm.",
+     "We will back you with our vote. We do not change words with the wind.",
+     "In the Council we will support you. We trust worthy leaders.",
+     "We give you our vote. It is worth much, because we are honest.",
+     "We vote for you. In the Council we will say it loudly and without shame."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Мы говорим прямо: наш голос — против вас.",
+     "Мы голосуем против. Вы не держите договоров. Улей это помнит.",
+     "В Совете мы будем против вас. Мы сообщаем заранее — честно.",
+     "Мы голосуем против вас в Совете. Мы говорим это вам в лицо.",
+     "Наш голос против. Мы сожалеем, но совесть улья требует.",
+     "Мы голосуем против вас. Вы знаете причину: вы нарушили слово.",
+     "Знайте заранее: наш улей отдаст свой голос в Совете против вас, с сожалением.",
+     "Мы голосуем против. Мы не питаем злобы, мы лишь следуем правде.",
+     "Совет услышит наше честное нет. Мы назвали причины, их вы знаете.",
+     "Наш голос в Совете против вас. Мы не скрываем этого и не стыдимся."
+    ],
+    "en": [
+     "Hear it from us first: we vote against you. The Queen wishes no deceit.",
+     "We vote against you. You do not keep treaties. The hive remembers.",
+     "In the Council we will be against you. We tell you in advance, honestly.",
+     "We vote against you in the Council. We look you in the eye as we say it, with sorrow.",
+     "Our vote is against. We regret it, but the hive's conscience demands it.",
+     "We vote against you. You know the reason: you broke your word.",
+     "Know this beforehand: our hive casts its Council vote against you, with regret.",
+     "We vote against. We bear no malice, we only follow the truth.",
+     "The Council will hear our honest no. We named our reasons, and you know them.",
+     "Our vote in the Council is against you. The hive keeps no secrets, so we tell you now."
+    ]
+   }
+  },
+  "pacifistic": {
+   "first_contact": {
+    "ru": [
+     "Мы рады вам. Улей строит, а не воюет. Давайте строить рядом.",
+     "Мир вам от всего роя. Мы хотим тихо работать.",
+     "Мы видим вас и не боимся. Пусть между нами будет мир.",
+     "Здравствуйте. Мы строим соты, а не крепости. Заходите посмотреть.",
+     "Нам радостно вас видеть. Мы приготовили вам место у нашего улья.",
+     "Мы гудим тихо, чтобы вас не напугать. Это значит привет.",
+     "Мы просто рабочие. Мы хотим, чтобы всем хватало света и мёда.",
+     "Нас много, но мы не злые. Мы надеемся, что вы тоже.",
+     "Добро пожаловать. Наша Королева велела встречать гостей хлебом и воском.",
+     "Мы не умеем воевать, но умеем дружить. Давайте попробуем."
+    ],
+    "en": [
+     "We are glad to see you. The hive builds; it does not fight. Let us build side by side.",
+     "Peace to you from the whole swarm. We want to work quietly.",
+     "We see you and we are not afraid. Let there be peace between us.",
+     "Hello. We build combs, not fortresses. Come and have a look.",
+     "We are glad to see you. We have prepared a place for you by our hive.",
+     "We buzz softly so as not to scare you. It means hello.",
+     "We are only workers. We want everyone to have light and honey.",
+     "There are many of us, but we are not cruel. We hope you are not either.",
+     "Welcome. Our Queen told us to greet guests with bread and wax.",
+     "We cannot fight, but we can befriend. Let us try."
+    ]
+   },
+   "accept_trade": {
+    "ru": [
+     "Мы с радостью принимаем! Торговля — это работа вместе. Мы любим работать.",
+     "Да. Наши корабли повезут товары вам, ваши — нам. Пусть так будет всегда.",
+     "Мы согласны. Мы будем носить вам товары, а вы нам свои. Пусть тропа будет мирной.",
+     "Да, мы согласны. Мы счастливы, что будем возить вам груз, а вы нам.",
+     "Мы принимаем торговлю! Пусть у вас будет мёд, а у нас руда.",
+     "Мы с радостью согласны. Каждый корабль будет мирным.",
+     "Да, торговля. Нам приятно, что вы пришли с этим, а не с оружием.",
+     "Мы принимаем. Работа вместе греет лучше любого солнца.",
+     "Мы согласны. Мы пошлём вам лучшие товары от всех сот.",
+     "Да, мы согласны. Пусть наш обмен будет таким же мирным, как наши соты."
+    ],
+    "en": [
+     "We gladly accept! Trade is working together. We love work.",
+     "Yes. Our ships carry goods to you, yours to us. Let it always be so.",
+     "We agree. A fed hive is a calm hive.",
+     "Yes, we agree. We are happy to carry your cargo, and for you to carry ours.",
+     "We accept the trade! May you have honey and we have ore.",
+     "We gladly agree. Every ship will be a peaceful one.",
+     "Yes, trade. It pleases us that you came with this and not with weapons.",
+     "We accept. Working together warms better than any sun.",
+     "We agree. We will send you the best goods from every comb.",
+     "Yes, we agree. May our exchange be as peaceful as our combs."
+    ]
+   },
+   "reject_trade": {
+    "ru": [
+     "Простите, мы не готовы торговать. Но мы всё равно хотим мира.",
+     "Нет, пока нет. Улею нужно время. Мы не сердимся.",
+     "Мы отказываемся от договора, но не от дружбы.",
+     "Простите, но нет. Мы не успеваем даже строить, а уж торговать тем более.",
+     "Нам очень жаль. Сейчас мы отказываемся от торговли. Давайте поговорим позже.",
+     "Нет, спасибо. Мы хотим тишины в нашем улье, а торговля шумит.",
+     "Мы отказываемся, но с улыбкой. Приходите ещё, когда мы окрепнем.",
+     "Мы не готовы к такой сделке. Это не обида, просто нет.",
+     "Нет. Мы боимся, что товары приведут к спорам, а мы не любим споры.",
+     "Нет, мы пока отказываемся. Наши рабочие устали, и нам нужен отдых."
+    ],
+    "en": [
+     "Forgive us, we are not ready to trade. We still want peace.",
+     "No, not yet. The hive needs time. We are not angry.",
+     "We decline the treaty, but not the friendship.",
+     "Sorry, but no. We barely have time to build, let alone trade.",
+     "We are very sorry. For now we refuse the trade. Let us talk later.",
+     "No, thanks. We want quiet in our hive, and trade is noisy.",
+     "We refuse, but with a smile. Come again when we grow stronger.",
+     "We are not ready for such a deal. It is not offense, simply no.",
+     "No. We fear goods would lead to quarrels, and we do not like quarrels.",
+     "No, for now we refuse. Our workers are tired, and we need rest."
+    ]
+   },
+   "accept_research": {
+    "ru": [
+     "Мы принимаем. Учиться друг у друга лучше, чем воевать.",
+     "Да! Улей хочет знать больше. Спасибо, что делитесь с нами.",
+     "Мы согласны. Пусть наши знания строят, а не ломают.",
+     "Да, мы согласны. Знания делают соты прочнее, и мы рады учиться.",
+     "Мы принимаем! Пусть наши учёные подружатся с вашими.",
+     "Мы с радостью согласны. Знание, которое делят, не убывает.",
+     "Да, мы принимаем договор. Мы будем бережно хранить всё, что вы нам откроете.",
+     "Мы согласны. Мы тоже поделимся всем, чем сможем, и мы очень рады.",
+     "Мы принимаем обмен. Пусть он принесёт нам мир и мёд.",
+     "Мы согласны. Спасибо, что доверяете нам свои открытия."
+    ],
+    "en": [
+     "We accept. Learning from each other is better than fighting.",
+     "Yes! The hive wants to know more. Thank you for sharing with us.",
+     "We agree. Let our knowledge build, not break.",
+     "Yes, we agree. Knowledge makes combs sturdier, and we are glad to learn.",
+     "We accept! May our scholars befriend yours.",
+     "We gladly agree. What we share between us makes both hives richer.",
+     "Yes, we accept the treaty. We will carefully keep all you reveal to us.",
+     "We agree. We will also share all we can, and we are very glad.",
+     "We accept the exchange. May it bring us peace and honey.",
+     "We agree. Thank you for trusting us with your discoveries."
+    ]
+   },
+   "reject_research": {
+    "ru": [
+     "Простите, нет. Улей учится медленно. Нам нужно время.",
+     "Мы отказываемся. Некоторые наши знания опасны. Мы не хотим, чтобы из них сделали оружие.",
+     "Не сейчас. Наши рабочие заняты. Пожалуйста, спросите позже.",
+     "Простите, нет. Мы боимся, что знания привлекут к нам войну.",
+     "Мы отказываемся. Наши учёные спят, и мы не хотим их будить.",
+     "Нет, пожалуйста, не обижайтесь. Мы не готовы открывать наши тайны.",
+     "Мы отклоняем договор. Улей ещё не окреп для такого обмена.",
+     "Нам жаль, но нет. Знания у нас пока слишком хрупкие.",
+     "Нет. Мы лучше будем учиться сами, медленно, как растут соты.",
+     "Нет, простите нас. Мы боимся, что наши знания испортят мир."
+    ],
+    "en": [
+     "Forgive us, no. The hive learns slowly. We need time.",
+     "We decline. Some of our knowledge is dangerous. We do not want it made into weapons.",
+     "Not now. Our workers are busy. Please ask later.",
+     "Sorry, no. We fear knowledge would draw war to us.",
+     "We refuse. Our scholars are asleep, and we do not want to wake them.",
+     "No, please do not be offended. We are not ready to open our secrets.",
+     "We decline the treaty. The hive is not yet strong enough for such an exchange.",
+     "We are sorry, but no. Our knowledge is still too fragile.",
+     "No. We prefer to learn by ourselves, slowly, the way combs grow.",
+     "No, forgive us. We fear our knowledge could spoil the peace."
+    ]
+   },
+   "accept_alliance": {
+    "ru": [
+     "Мы принимаем союз. Вместе нас трудно обидеть. Значит, войн будет меньше.",
+     "Да! Союз — это друзья. Мы рады друзьям.",
+     "Мы с радостью согласны. Пусть никто не тронет ни нас, ни вас.",
+     "Да, мы принимаем союз. Мы будем защищать вас, а вы нас, и никто не пострадает.",
+     "Мы согласны на союз! Пусть наши границы станут общим садом.",
+     "Мы с радостью принимаем. Друзья делают улей сильнее и мягче.",
+     "Да. Мы союзники. Нам спокойнее, когда рядом друг.",
+     "Мы принимаем союз. Мы надеемся, что нам не придётся им воспользоваться.",
+     "Мы согласны. Пусть наш союз удержит весь мир от пожара.",
+     "Да, мы принимаем союз. Наши соты открыты для вас, как и ваши для нас."
+    ],
+    "en": [
+     "We accept the alliance. Together we are hard to hurt. So there will be fewer wars.",
+     "Yes! An alliance means friends. We are glad of friends.",
+     "We gladly agree. Let no one touch us, or you.",
+     "Yes, we accept the alliance. We will guard you and you will guard us, and no one will be hurt.",
+     "We agree to the alliance! May our borders become a shared garden.",
+     "We gladly accept. Friends make a hive stronger and softer.",
+     "Yes. We are allies. We feel calmer when a friend is near.",
+     "We accept the alliance. We hope we will never have to use it.",
+     "We agree. May our alliance keep the whole world from fire.",
+     "Yes, we accept the alliance. Our combs are open to you, as yours to us."
+    ]
+   },
+   "reject_alliance": {
+    "ru": [
+     "Простите. Союз может увести нас на войну. Мы отказываемся.",
+     "Нет, спасибо. Улей хочет только работать. Мы останемся просто соседями.",
+     "Мы не можем. Наш рой не воюет за других. Не обижайтесь, пожалуйста.",
+     "Простите, нет. Союз потянет нас в битвы, а мы не хотим битв.",
+     "Мы отказываемся. Мы хотим быть вашими друзьями, а не союзниками.",
+     "Нет, пожалуйста, не грустите. Мы будем рядом, но без клятв.",
+     "Мы не можем принять союз. Он нас испугал, и мы сами не знаем почему.",
+     "Нет. Улей слишком мал для чужих войн. Мы просим вашего понимания.",
+     "Мы отклоняем союз, но надеемся на дружбу. Это совсем не одно и то же.",
+     "Нет, простите. Мы слабые, и союз с нами вам не поможет."
+    ],
+    "en": [
+     "Forgive us. An alliance could lead us into war. We decline.",
+     "No, thank you. The hive only wants to work. We stay just neighbours.",
+     "We cannot. Our swarm does not fight for others. Please do not be hurt.",
+     "Sorry, no. An alliance would drag us into battles, and we do not want battles.",
+     "We refuse. We want to be your friends, not your allies.",
+     "No, please do not be sad. We will be near, but without oaths.",
+     "We cannot accept the alliance. It frightened us, and we do not know why.",
+     "No. The hive is too small for foreign wars. We ask for your understanding.",
+     "We decline the alliance, but hope for friendship. They are not the same.",
+     "No, forgive us. We are weak, and an alliance with us would not help you."
+    ]
+   },
+   "accept_nap": {
+    "ru": [
+     "Мы с радостью принимаем пакт! Никто никого не тронет. Это хорошо.",
+     "Да! Мы и так не хотели нападать. Теперь это обещание.",
+     "Мы согласны. Пусть наш рой и ваши корабли никогда не встретятся в бою.",
+     "Да, мы принимаем пакт. Мы счастливы, что никто не будет нападать.",
+     "Мы согласны! Это то, о чём мы мечтали ночами.",
+     "Мы с радостью принимаем. Пусть между нами будут только цветы.",
+     "Пакт принят. Нам стало легче дышать.",
+     "Да, мы согласны. Рабочим больше не надо будет бояться неба.",
+     "Мы принимаем пакт. Мы обещаем беречь его, как соты.",
+     "Мы принимаем пакт и обещаем: мы никогда не начнём первыми."
+    ],
+    "en": [
+     "We gladly accept the pact! No one hurts anyone. That is good.",
+     "Yes! We never wanted to attack anyway. Now it is a promise.",
+     "We agree. May our swarm and your ships never meet in battle.",
+     "Yes, we accept the pact. We are happy that no one will attack.",
+     "We agree! This is what we dreamed of at night.",
+     "We gladly accept. May only flowers lie between us.",
+     "The pact is accepted. It is easier for us to breathe now.",
+     "Yes, we agree. Our workers will no longer have to fear the sky.",
+     "We accept the pact. We promise to guard it like a comb.",
+     "We accept the pact and promise: we will never start first."
+    ]
+   },
+   "accept_peace": {
+    "ru": [
+     "Мир! Мы так рады. Рой возвращается к работе.",
+     "Мы принимаем мир всем ульем. Спасибо вам.",
+     "Наконец мир. Мы больше не хотим войны. Никогда.",
+     "Мир! Мы запели всем ульем. Мы принимаем его с благодарностью.",
+     "Мы согласны на мир. Мы отнесём цветы тем, кто пал.",
+     "Мир принят. Наши рабочие снова идут строить, а не драться.",
+     "Мы так рады миру, что у нас дрожат усики. Да, мы согласны.",
+     "Мир. Королева плачет от облегчения, и мы с ней.",
+     "Мы принимаем мир. Давайте не повторять этого никогда.",
+     "Мир. Мы наконец можем строить ночью без страха. Да, мы согласны."
+    ],
+    "en": [
+     "Peace! We are so glad. The swarm returns to work.",
+     "We accept peace with the whole hive. Thank you.",
+     "Peace at last. We never want war again. Never.",
+     "Peace! We sang with the whole hive. We accept it with gratitude.",
+     "We agree to peace. We will bring flowers to those who fell.",
+     "Peace is accepted. Our workers go to build again, not to fight.",
+     "We are so glad of peace that our antennae tremble. Yes, we agree.",
+     "Peace. The Queen weeps with relief, and we with her.",
+     "We accept peace. Let us never repeat this.",
+     "Peace. We can finally build at night without fear. Yes, we agree."
+    ]
+   },
+   "reject_peace": {
+    "ru": [
+     "Нам очень жаль. Если мы остановимся, вы снова нападёте. Мы не можем принять мир.",
+     "Мы хотим мира. Но Королева сказала: ещё нет. Простите.",
+     "Мы отказываемся, и нам грустно. Улей должен быть в безопасности.",
+     "Простите, но нет. Вы всё ещё грозите нашим сотам, и мы боимся.",
+     "Нам горько, но мы отказываемся. Улей ещё не в безопасности.",
+     "Нет. Мы хотим мира всем сердцем, но не такого, который не удержит.",
+     "Мы не можем принять мир сейчас. Не думайте, что мы желаем войны.",
+     "Нет. Сначала покажите, что вы не станете нас жалить.",
+     "Нам очень больно это говорить, но нет. Мы будем защищаться.",
+     "Нет, к сожалению. Мы не можем верить в мир, пока горят наши сады."
+    ],
+    "en": [
+     "We are very sorry. If we stop, you will attack again. So the answer is no.",
+     "We want peace. But the Queen said: not yet. Forgive us.",
+     "We refuse, and it makes us sad. The hive must be safe.",
+     "Sorry, but no. You still threaten our combs, and we are afraid.",
+     "It is bitter for us, but we refuse. The hive is not yet safe.",
+     "No. We want peace with all our hearts, but not one that will not hold.",
+     "We cannot accept peace now. Do not think that we desire war.",
+     "No. First show us that you will not sting us.",
+     "It hurts us greatly to say it, but no. We will defend ourselves.",
+     "No, regrettably. We cannot believe in peace while our gardens burn."
+    ]
+   },
+   "declare_war": {
+    "ru": [
+     "Мы не хотели этого. Но улей в опасности. Мы объявляем войну.",
+     "Нам больно. Королева приказала. Это война.",
+     "Мы долго терпели. Теперь мы защищаем улей. Война.",
+     "Нам очень жаль, но мы объявляем войну. Мы защищаем наших личинок.",
+     "Мы плачем и объявляем войну. Другого пути нам не оставили.",
+     "Мы объявляем вам войну. Простите, мы надеялись на иное.",
+     "Нам больно говорить это слово. Война. Мы всё ещё хотим, чтобы всё кончилось.",
+     "Мы идём на войну без радости. Улей вынужден защищаться.",
+     "Мы вынуждены объявить войну. Мы с вами не хотели этого.",
+     "Мы объявляем войну. Мы просим Королеву простить нас."
+    ],
+    "en": [
+     "We did not want this. But the hive is in danger. We declare war.",
+     "It hurts us. The Queen commanded. This is war.",
+     "We endured for long. Now we defend the hive. War.",
+     "We are very sorry, but we declare war. We protect our grubs.",
+     "We weep as we declare war. We were left no other way.",
+     "We declare war on you. Forgive us, we hoped for otherwise.",
+     "It hurts us to say this word. War. We still wish it would all end.",
+     "We go to war without joy. The hive is forced to defend itself.",
+     "We are forced to declare war. We did not want this, and neither did you.",
+     "We declare war. We ask the Queen to forgive us."
+    ]
+   },
+   "break_treaty": {
+    "ru": [
+     "Нам грустно. Мы должны разорвать договор. Простите нас.",
+     "Мы прекращаем соглашение. Это не война. Мы просто больше не можем.",
+     "Королева решила закончить пакт. Нам жаль. Мы всё ещё не хотим ссоры.",
+     "Нам очень жаль, но мы расторгаем договор. Мы не можем иначе.",
+     "Мы разрываем соглашение с тяжестью на сердце. Простите нас.",
+     "Мы больше не можем соблюдать пакт. Не сердитесь, пожалуйста.",
+     "Договор нас ранит. Мы вынуждены его закончить.",
+     "Мы расторгаем союз, но не отказываемся от надежды на лучшее.",
+     "Королева попросила нас закончить договор. Нам тяжело, но мы послушны.",
+     "Мы не хотели рвать договор, но нас вынудили. Просим вас понять."
+    ],
+    "en": [
+     "It makes us sad. We must break the treaty. Forgive us.",
+     "We end the agreement. This is not war. We simply cannot go on.",
+     "The Queen has decided to end the pact. We are sorry. We still want no quarrel.",
+     "We are very sorry, but we terminate the treaty. We cannot do otherwise.",
+     "We break the agreement with a heavy heart. Forgive us.",
+     "We can no longer keep the pact. Please do not be angry.",
+     "The treaty wounds us. We are forced to end it.",
+     "We dissolve the alliance, but do not give up hope for better.",
+     "The Queen asked us to end the treaty. It is hard for us, but we are obedient.",
+     "We did not want to tear the treaty, but we were forced. We ask you to understand."
+    ]
+   },
+   "threaten": {
+    "ru": [
+     "Пожалуйста, остановитесь. Мы не хотим драться. Но улей будет защищаться.",
+     "Мы просим тихо. Перестаньте. Если наш рой разозлится, его трудно остановить.",
+     "Не надо так. Мы долго терпим, но не вечно. Прекратите, пожалуйста.",
+     "Пожалуйста, остановитесь. Мы очень не хотим вас ранить, но можем.",
+     "Мы просим вас прекратить. Мы всегда просим вежливо, пока можем.",
+     "Нам страшно говорить такое, но мы будем защищаться. Не заставляйте нас.",
+     "Пожалуйста, уйдите от наших сот. Это наша последняя просьба.",
+     "Мы не хотим угрожать, но улей волнуется. Остановитесь, прошу вас.",
+     "Мы обещаем: если вы не остановитесь, нам придётся защищаться. Нам так не хочется.",
+     "Мы очень тихо просим вас остановиться. Мы больше не сможем просить тихо."
+    ],
+    "en": [
+     "Please stop. We do not want to fight. But the hive will defend itself.",
+     "We ask quietly. Stop. When our swarm is angry, it is hard to stop.",
+     "Do not do this. We are patient, but not forever. Please stop.",
+     "Please stop. We do not want to hurt you at all, but we can.",
+     "We ask you to desist. We always ask politely, while we can.",
+     "It scares us to say this, but we will guard our combs. Please do not force it.",
+     "Please leave our combs. This is our last request.",
+     "We do not want to threaten, but the hive is anxious. Please stop.",
+     "We promise nothing good if you go on. We would rather rest, and we beg you to stop.",
+     "We very quietly ask you to stop. We will not be able to ask quietly again."
+    ]
+   },
+   "demand_tribute": {
+    "ru": [
+     "Мы просим {СУММА}, чтобы не было войны. Пожалуйста.",
+     "Улею тяжело. {СУММА} поможет нам, и мы не станем воевать.",
+     "Нам неловко, но нам нужно {СУММА}. Иначе рою придётся защищаться.",
+     "Простите, нам нужно {СУММА}. Мы строим мирные соты, а средств не хватает.",
+     "Мы очень просим вас дать {СУММА}. Иначе нам придётся защищаться.",
+     "Нам неловко, но нужно {СУММА}. Это поможет нам избежать печального.",
+     "Пожалуйста, внесите нам {СУММА}. Для нас обоих это лучше войны.",
+     "Мы нуждаемся в {СУММА} и просим вас о помощи. Не вынуждайте нас просить иначе.",
+     "{СУММА} спасёт нашу мирную жизнь. Мы вас просим, мы очень просим.",
+     "Нам необходимо {СУММА}. Мы стесняемся просить, но больше не к кому."
+    ],
+    "en": [
+     "We ask for {AMOUNT} so there is no war. Please.",
+     "The hive is struggling. {AMOUNT} will help us, and we will not fight.",
+     "We feel awkward, but we need {AMOUNT}. Otherwise the swarm must defend itself.",
+     "Sorry, we need {AMOUNT}. We build peaceful combs, and we lack the means.",
+     "We ask you very much to give {AMOUNT}. Otherwise we will have to defend ourselves.",
+     "We are embarrassed, but we need {AMOUNT}. It will help us avoid the sad.",
+     "Please give us {AMOUNT}. It is better than war for us both.",
+     "We need {AMOUNT} and ask you for help. Do not force us to ask otherwise.",
+     "{AMOUNT} will save our peaceful life. We ask you, we ask you very much.",
+     "We need {AMOUNT}. We are shy to ask, but there is no one else."
+    ]
+   },
+   "thank_gift": {
+    "ru": [
+     "Спасибо! Весь наш улей радуется вашему подарку.",
+     "Мы благодарим вас. Дар — это знак дружбы. Мы тоже дружим с вами.",
+     "Наши рабочие гудят от радости. Спасибо за подарок!",
+     "Спасибо вам! Мы положили дар на самую светлую соту.",
+     "Мы очень благодарны. Дар такой тёплый, что мы заулыбались.",
+     "Спасибо, друзья! Наш улей поёт для вас.",
+     "Мы благодарим вас. Королева прижала подарок к груди.",
+     "Это так мило. Спасибо, мы не знаем, как вас отблагодарить.",
+     "Дар получен. Мы благодарим вас от каждой соты и каждого усика.",
+     "Мы благодарим вас. Нам редко дарят, и мы почти заплакали."
+    ],
+    "en": [
+     "Thank you! Our whole hive is happy with your gift.",
+     "We thank you. A gift is a sign of friendship. We are your friends too.",
+     "Our workers hum with joy. Thank you for the gift!",
+     "Thank you! We put the gift in the brightest comb.",
+     "We are very grateful. The gift is so warm that we smiled.",
+     "Thanks, friends! Our hive sings for you.",
+     "We thank you. The Queen pressed the gift to her chest.",
+     "That is so kind. Thanks, we do not know how to repay you.",
+     "The gift is received. We thank you from every comb and every antenna.",
+     "We thank you. We are rarely given gifts, and we almost wept."
+    ]
+   },
+   "caught_spy": {
+    "ru": [
+     "Мы нашли вашего шпиона. Зачем? Мы бы сами всё вам показали.",
+     "Ваш агент пойман. Мы отпустим его. Пожалуйста, больше не надо.",
+     "Нам грустно: шпион в улье. Мы думали, вы друзья.",
+     "Нам грустно: мы нашли вашего шпиона. Мы просим вас прекратить, и мы забудем.",
+     "Мы протестуем, но мягко. Ваш агент пойман, и нам стало неуютно.",
+     "Шпион в улье пугает наших личинок. Пожалуйста, не посылайте больше.",
+     "Мы поймали вашего лазутчика и не тронули. Мы вернём его, только не обманывайте нас.",
+     "Нам обидно, что вы нам не доверяете. Ваш шпион пойман.",
+     "Мы нашли агента. Нам хотелось бы, чтобы вы просто спросили нас обо всём.",
+     "Мы нашли вашего шпиона. Нам обидно, но мы не будем мстить."
+    ],
+    "en": [
+     "We found your spy. Why? We would have shown you everything ourselves.",
+     "Your agent was caught. We will let him go. Please, no more.",
+     "It saddens us: a spy in the hive. We thought you were friends.",
+     "We are sad: we found your spy. We ask you to stop, and we will forget.",
+     "We protest, but gently. Your agent is caught, and we feel uneasy.",
+     "A spy in the hive frightens our grubs. Please do not send any more.",
+     "We caught your infiltrator and did not touch him. We will return him, only do not deceive us.",
+     "It hurts us that you do not trust us. Your spy is caught.",
+     "We found an agent. We wish you would simply ask us about everything.",
+     "We found your spy. We are hurt, but we will not take revenge."
+    ]
+   },
+   "council_vote_for": {
+    "ru": [
+     "Мы голосуем за вас. Вы хотите мира, как и мы.",
+     "Наш голос — ваш. Пусть Совет ведёт тот, кто не любит войну.",
+     "Весь рой голосует за вас. Мы верим вам.",
+     "Мы голосуем за вас в Совете. Нам кажется, что вы бережны.",
+     "Наш голос в Совете — ваш. Пусть он принесёт вам доброго света.",
+     "Мы голосуем за вас! Мы радуемся, что выбираем друга.",
+     "Мы отдаём вам голос. Надеемся, что вы будете беречь всех нас.",
+     "Мы голосуем за вас. Улей одобряет тех, кто не любит войну.",
+     "Весь наш рой отдаёт голос вам. Пусть Совет услышит доброе жужжание.",
+     "Мы голосуем за вас. Нам спокойно, когда Совет ведёт мягкая рука."
+    ],
+    "en": [
+     "We vote for you. You want peace, as we do.",
+     "Our vote is yours. Let the Council be led by one who does not love war.",
+     "The whole swarm votes for you. We trust you.",
+     "We vote for you in the Council. To us you seem gentle.",
+     "Our Council vote is yours. May it bring you kind light.",
+     "We vote for you! We are glad to be choosing a friend.",
+     "We give you our vote. We hope you will take care of all of us.",
+     "We vote for you. The hive approves of those who dislike war.",
+     "Our whole swarm gives you its vote. May the Council hear a kind buzzing.",
+     "We vote for you. We feel calm when a gentle hand leads the Council."
+    ]
+   },
+   "council_vote_against": {
+    "ru": [
+     "Простите, мы голосуем против вас. Мы боимся вашей войны.",
+     "Наш голос — против. Нам жаль. Галактике нужен тихий лидер.",
+     "Мы не можем голосовать за вас, поэтому проголосуем против. Не сердитесь, пожалуйста.",
+     "Простите, мы голосуем против вас в Совете. Нам страшно от вашей силы.",
+     "Наш голос против. Мы просим вас не обижаться, мы ещё надеемся на дружбу.",
+     "Нам жаль, но мы голосуем против. Совету нужен мягкий лидер.",
+     "Мы против вас, хотя нам очень неловко. Мы будем голосовать честно.",
+     "Мы голосуем против вас. Пожалуйста, поймите нас, мы боимся перемен.",
+     "Наш голос в Совете против. Мы не хотим ссоры, мы хотим безопасности.",
+     "Наш голос в Совете против вас. Мы просим прощения, мы так решили."
+    ],
+    "en": [
+     "Forgive us, we vote against you. We fear your wars.",
+     "Our vote is against you. We are sorry. The galaxy needs a quiet leader.",
+     "We cannot vote for you, so we will vote against. Please do not be angry.",
+     "Sorry, we cast our Council vote against you. Your might makes us tremble.",
+     "Our vote is against. We ask you not to take offense, we still hope for friendship.",
+     "We are sorry, but we vote against. The Council needs a gentle leader.",
+     "We are against you, though we are very uneasy. We will vote honestly.",
+     "We vote against you. Please understand us, we fear change.",
+     "Our vote in the Council is against. We do not want a quarrel, we want safety.",
+     "Our vote in the Council is against you. We beg forgiveness, we decided so."
+    ]
+   }
+  }
+ }
+}
