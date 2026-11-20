@@ -156,9 +156,11 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
     DOCTEST_CHECK(options.oracle_turns == 12);
     DOCTEST_CHECK(options.oracle_seed == 1);
     DOCTEST_CHECK(options.oracle_difficulty == -1);
-    DOCTEST_REQUIRE(Parse_({"-oracle-record=a", "-oracle-seed=17", "-oracle-difficulty=3"}, '-', &options, &error));
+    DOCTEST_CHECK_FALSE(options.oracle_tactical);
+    DOCTEST_REQUIRE(Parse_({"-oracle-record=a", "-oracle-seed=17", "-oracle-difficulty=3", "-oracle-tactical"}, '-', &options, &error));
     DOCTEST_CHECK(options.oracle_seed == 17);
     DOCTEST_CHECK(options.oracle_difficulty == 3);
+    DOCTEST_CHECK(options.oracle_tactical);
     DOCTEST_REQUIRE(Parse_({"/oracle-replay=some path"}, '/', &options, &error));
     DOCTEST_CHECK(options.oracle_replay == "some path");
     for (const auto& arguments : std::vector<std::vector<std::string>>{
@@ -166,7 +168,7 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
              {"-oracle-turns=1"}, {"-oracle-replay=a", "-oracle-turns=1"},
              {"-oracle-record=a", "-oracle-turns=0"}, {"-oracle-record=a", "-oracle-turns=100001"},
              {"-oracle-record=a", "-oracle-turns=1x"}, {"-oracle-record=a", "-oracle-turns=-1"},
-             {"-oracle-seed=5"}, {"-oracle-replay=a", "-oracle-difficulty=2"},
+             {"-oracle-seed=5"}, {"-oracle-replay=a", "-oracle-difficulty=2"}, {"-oracle-replay=a", "-oracle-tactical"},
              {"-oracle-record=a", "-oracle-seed=0"}, {"-oracle-record=a", "-oracle-seed=2147483648"},
              {"-oracle-record=a", "-oracle-difficulty=5"}, {"-oracle-record=a", "-oracle-difficulty=-1"}}) {
         DOCTEST_CHECK_FALSE(Parse_(arguments, '-', &options, &error));
@@ -178,5 +180,6 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-turns=1"}, '-', &options, &error));
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-seed=1"}, '-', &options, &error));
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-difficulty=1"}, '-', &options, &error));
+    DOCTEST_CHECK_FALSE(Parse_({"-oracle-tactical"}, '-', &options, &error));
 #endif
 }

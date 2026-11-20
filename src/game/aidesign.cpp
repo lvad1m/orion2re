@@ -1,4 +1,6 @@
 #include "pch.h"
+
+#include "game/advisor_apply.h"
 #include "legacy_world.h"
 
 namespace aidesign {
@@ -197,6 +199,8 @@ namespace aidesign {
         while (world->players[first_living_player].eliminated != 0) {
             first_living_player++;
         }
+        // Advisor: design against the real enemy; the first living player otherwise.
+        first_living_player = advisor::Design_Reference_Enemy(static_cast<uint8_t>(legacy_world::Slot(player_idx)), first_living_player);
 
         int16_t best_comp = INITSHIP::Best_Computer(*legacy_player);
         int16_t comp_bonus = TECHDATA::computers[best_comp].bonus;
@@ -1198,6 +1202,7 @@ namespace aidesign {
         while (world->players[competitor_idx].eliminated != 0) {
             competitor_idx++;
         }
+        competitor_idx = advisor::Design_Reference_Enemy(static_cast<uint8_t>(legacy_world::Slot(player_idx)), competitor_idx);
 
         int16_t max_shield = AIPOWER::Get_Best_Ship_Shield_Value(TECHDATA::shields, legacy_world::Player_Id(competitor_idx));
         int16_t comp_tech = (int16_t)Get_Competition_Player_Tech_Values(&world->players[0], 0x1C);
@@ -1376,6 +1381,8 @@ namespace aidesign {
     void Auto_Design_Ship(const game::s_view* world, game::id_player player_idx, s_ship_design* design, int16_t hull_idx) {
         const auto legacy_player = legacy_world::Index(player_idx);
         if (!legacy_player) return;
+        // Defensive specials answer the weapons of this empire: player 1 in the original.
+        const int16_t defense_reference = advisor::Design_Reference_Enemy(static_cast<uint8_t>(legacy_world::Slot(player_idx)), 0);
         const auto& design_rules = rules;
         const auto& priorities = design_rules.priorities;
         int16_t ship_class;
@@ -1448,7 +1455,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->fighters != -1) {
@@ -1472,7 +1479,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->missile_weapon != -1) {
@@ -1496,7 +1503,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->missile_special != -1) {
@@ -1524,7 +1531,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->fighters != -1) {
@@ -1552,7 +1559,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->heavy_beams != -1) {
@@ -1572,7 +1579,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->special_weapon != -1) {
@@ -1609,7 +1616,7 @@ namespace aidesign {
                 }
                 if (table->defense_special != -1) {
                     current_budget += (remaining_space * table->defense_special) / 100;
-                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[0]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
+                    const s_spcl* def_tbl = Best_Weapons_Are_Beams(&world->players[defense_reference]) ? priorities.defense_priority.human_beams : priorities.defense_priority.human_non_beams;
                     current_budget -= Add_Specials_To_Design(world, def_tbl, 19, player_idx, design, current_budget, &weapon_slot_idx);
                 }
                 if (table->beam_special != -1) {

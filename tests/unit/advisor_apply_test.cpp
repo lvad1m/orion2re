@@ -13,6 +13,8 @@ namespace {
         bool old_rules_objectives = advisor::rules_objectives;
         bool old_rules_spies = advisor::rules_spies;
         bool old_rules_expansion = advisor::rules_expansion;
+        bool old_rules_doctrine = advisor::rules_doctrine;
+        bool old_rules_counter_design = advisor::rules_counter_design;
         bool old_rules_outposts = advisor::rules_outposts;
         bool old_rules_exploration = advisor::rules_exploration;
         bool old_rules_lanchester = advisor::rules_lanchester;
@@ -27,6 +29,8 @@ namespace {
             advisor::rules_objectives = true;
             advisor::rules_spies = true;
             advisor::rules_expansion = true;
+            advisor::rules_doctrine = true;
+            advisor::rules_counter_design = true;
             advisor::rules_outposts = true;
             advisor::rules_exploration = true;
             advisor::rules_lanchester = true;
@@ -41,6 +45,8 @@ namespace {
             advisor::rules_objectives = old_rules_objectives;
             advisor::rules_spies = old_rules_spies;
             advisor::rules_expansion = old_rules_expansion;
+            advisor::rules_doctrine = old_rules_doctrine;
+            advisor::rules_counter_design = old_rules_counter_design;
             advisor::rules_outposts = old_rules_outposts;
             advisor::rules_exploration = old_rules_exploration;
             advisor::rules_lanchester = old_rules_lanchester;
@@ -348,7 +354,7 @@ DOCTEST_TEST_CASE("Attitude_Bias follows the directive's attitudes") {
 
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == -50);
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 0) == 50);
-    DOCTEST_CHECK(advisor::Attitude_Bias(1, 3) == 0);
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 3) == advisor::DOCTRINE_PEACE_BIAS);  // deterrence
     DOCTEST_CHECK(advisor::Attitude_Bias(0, 2) == 0);
     advisor::rules_balance = false;
     DOCTEST_CHECK(advisor::Attitude_Bias(1, 2) == 0);
@@ -423,4 +429,53 @@ DOCTEST_TEST_CASE("Attack_Margin_Percent asks advised empires for decisive force
     advisor::active_players = 255;
     advisor::rules_lanchester = false;
     DOCTEST_CHECK(advisor::Attack_Margin_Percent(1) == 100);
+}
+
+DOCTEST_TEST_CASE("Design_Reference_Enemy picks the real enemy for ship design") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);  // 0 human, 1-3 computer, 3 eliminated
+    state.players[1].contact[0] = 1;
+    state.players[1].contact[2] = 1;
+    state.players[1].contact[3] = 1;
+    state.players[0].total_ship_strength[1] = 50;
+    state.players[2].total_ship_strength[1] = 400;
+    state.players[3].total_ship_strength[1] = 9000;  // eliminated: ignored
+
+    DOCTEST_CHECK(advisor::Design_Reference_Enemy(1, 0) == 2);  // strongest living contact
+    advisor::s_directive directive = Directive_();
+    directive.main_rival = 0;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Design_Reference_Enemy(1, 0) == 0);  // the advisor's main rival
+
+    DOCTEST_CHECK(advisor::Design_Reference_Enemy(2, 1) == 1);  // no contacts: the fallback
+    DOCTEST_CHECK(advisor::Design_Reference_Enemy(0, 3) == 3);  // human: the fallback
+    advisor::rules_counter_design = false;
+    DOCTEST_CHECK(advisor::Design_Reference_Enemy(1, 3) == 3);
+}
+
+DOCTEST_TEST_CASE("Peace_Eagerness_Turns: buy peace from the rival when losing") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::s_directive directive = Directive_();
+    directive.posture = advisor::POSTURE_MAKE_PEACE;
+    directive.main_rival = 2;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Peace_Eagerness_Turns(1, 2) == advisor::DOCTRINE_PEACE_TURNS);
+    DOCTEST_CHECK(advisor::Peace_Eagerness_Turns(1, 3) == 0);
+    advisor::rules_doctrine = false;
+    DOCTEST_CHECK(advisor::Peace_Eagerness_Turns(1, 2) == 0);
+    DOCTEST_CHECK(advisor::Attitude_Bias(1, 3) == 0);
+}
+
+DOCTEST_TEST_CASE("Raid_Worthiness_Percent favours undefended targets under the doctrine") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, false) == 100);
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(0, true) == 100);  // human
+    advisor::rules_doctrine = false;
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == 100);
 }

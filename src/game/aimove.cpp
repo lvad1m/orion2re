@@ -1980,6 +1980,7 @@ namespace AIMOVE {
         } else {
             uint32_t colony_worth = Enemy_Colony_Worth_To_Player(ai, world, colony_id, ctx->player_idx);
             uint32_t defending_space = possible_space_strength + (AIPOWER::Colony_Space_Strength_Vs_Player(world, colony_id, ctx->player_idx) & 0xFFFF);
+            const bool undefended = defending_space == 0;
             uint32_t defending_ground = AIPOWER::Colony_Ground_Strength_Vs_Player(world, colony_id, ctx->player_idx) & 0xFFFF;
 
             uint32_t attack_space = total_space_strength + hostility_bonus;
@@ -2033,6 +2034,9 @@ namespace AIMOVE {
                 attack_strength = (attack_strength * total_bomb_strength) / defending_ground;
 
                 attack_worthiness = (reachable_sq * attack_strength) / 10;
+                // Advisor (Byzantine rule IV): raids on undefended colonies first; 100 % otherwise.
+                attack_worthiness = static_cast<uint32_t>(static_cast<uint64_t>(attack_worthiness) *
+                    advisor::Raid_Worthiness_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), undefended) / 100);
 
                 if (target_info != nullptr) {
                     uint32_t target_val = (total_space_strength * 100 / defending_space * total_bomb_strength) / defending_ground;

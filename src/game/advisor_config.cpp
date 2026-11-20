@@ -12,7 +12,9 @@ namespace advisor {
     bool rules_objectives = true;
     bool rules_spies = true;
     bool rules_expansion = true;
-    bool rules_outposts = true;
+    bool rules_doctrine = true;
+    bool rules_counter_design = true;
+    bool rules_outposts = false;
     bool rules_exploration = true;
     int32_t active_players = 255;
     bool rules_lanchester = true;

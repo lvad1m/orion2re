@@ -21,6 +21,7 @@ namespace startup {
             {"oracle-turns", true},
             {"oracle-seed", true},
             {"oracle-difficulty", true},
+            {"oracle-tactical", false},
 #endif
         };
         std::vector<command_line::s_option> parsed;
@@ -81,6 +82,9 @@ namespace startup {
                     }
                     break;
                 }
+                case 9:
+                    options->oracle_tactical = true;
+                    break;
             }
         }
         if ((!options->oracle_record.empty() && !options->oracle_replay.empty()) ||
@@ -93,8 +97,9 @@ namespace startup {
                 *error = "oracle-turns requires oracle-record; replay uses the recorded turn count";
                 return false;
             }
-            if ((option.definition_index == 7 || option.definition_index == 8) && options->oracle_record.empty()) {
-                *error = "oracle-seed and oracle-difficulty require oracle-record; replay uses the recorded game";
+            if ((option.definition_index == 7 || option.definition_index == 8 || option.definition_index == 9) &&
+                options->oracle_record.empty()) {
+                *error = "oracle-seed, oracle-difficulty and oracle-tactical require oracle-record; replay uses the recorded game";
                 return false;
             }
         }

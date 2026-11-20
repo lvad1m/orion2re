@@ -189,6 +189,31 @@ namespace advisor {
         return DECISIVE_FORCE_PERCENT;
     }
 
+    int16_t Design_Reference_Enemy(uint8_t player, int16_t fallback) {
+        if (!enabled || !rules_counter_design || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return fallback;
+        if (((active_players >> player) & 1) == 0) return fallback;
+        const s_player& p = game::current.players[player];
+        if (p.objectives == PLAYER_OBJECTIVE_HUMAN) return fallback;
+        const int32_t players = game::current.Player_Count() < MAX_PLAYERS ? game::current.Player_Count() : MAX_PLAYERS;
+        const auto living_contact = [&](int32_t other) {
+            return other >= 0 && other < players && other != player && p.contact[other] != 0 &&
+                game::current.players[other].eliminated == 0;
+        };
+        const s_directive* directive = Get_Directive(player);
+        if (directive != nullptr && Is_Active(directive, game::current.Stardate()) && living_contact(directive->main_rival)) {
+            return directive->main_rival;
+        }
+        int16_t best = -1;
+        for (int32_t other = 0; other < players; ++other) {
+            if (!living_contact(other)) continue;
+            if (best < 0 || game::current.players[other].total_ship_strength[player] >
+                                game::current.players[best].total_ship_strength[player]) {
+                best = static_cast<int16_t>(other);
+            }
+        }
+        return best >= 0 ? best : fallback;
+    }
+
     int32_t Attitude_Bias(uint8_t player, uint8_t target) {
         if (!enabled || !rules_balance || player >= MAX_PLAYERS || target >= MAX_PLAYERS) return 0;
         if (player >= game::current.Player_Count()) return 0;
@@ -201,8 +226,24 @@ namespace advisor {
             case ATTITUDE_WARY: return -25;
             case ATTITUDE_HOSTILE: return -50;
             case ATTITUDE_WAR: return -100;
-            default: return 0;
+            default: return rules_doctrine ? DOCTRINE_PEACE_BIAS : 0;
         }
+    }
+
+    int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended) {
+        if (!undefended || !enabled || !rules_doctrine || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 100;
+        if (((active_players >> player) & 1) == 0) return 100;
+        if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 100;
+        return DOCTRINE_RAID_PERCENT;
+    }
+
+    int32_t Peace_Eagerness_Turns(uint8_t player, uint8_t target) {
+        if (!enabled || !rules_doctrine || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 0;
+        if (((active_players >> player) & 1) == 0) return 0;
+        if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 0;
+        const s_directive* directive = Get_Directive(player);
+        if (directive == nullptr || !Is_Active(directive, game::current.Stardate())) return 0;
+        return (directive->posture == POSTURE_MAKE_PEACE && directive->main_rival == target) ? DOCTRINE_PEACE_TURNS : 0;
     }
 
     bool Range_Research_Push(uint8_t player) {

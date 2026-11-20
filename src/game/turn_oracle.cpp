@@ -20,6 +20,7 @@ namespace turn_oracle {
         int32_t turns;
         uint32_t record_seed = 1;
         int32_t record_difficulty = -1;
+        bool record_tactical = false;
         int exit_status = EXIT_FAILURE;
 
         bool Capture_(const std::filesystem::path& path, std::string* error) {
@@ -69,7 +70,9 @@ namespace turn_oracle {
             if (recording) {
                 // Every player is generated as AI, without race-selection UI.
                 memset(MOX::player, 0, MAX_PLAYERS * sizeof(*MOX::player));
-                MOX::settings.strategic_combat_flag = 1;
+                // Tactical settings change how computer players design ships (aidesign.cpp);
+                // battles between computer players are strategic either way (combfind.cpp).
+                MOX::settings.strategic_combat_flag = record_tactical ? 0 : 1;
                 MOX::settings.auto_saves = 0;
                 MOX::cmd_line_seed = record_seed;
                 if (record_difficulty >= GAME_DIFFICULTY_TUTOR && record_difficulty < GAME_DIFFICULTY_COUNT) {
@@ -118,6 +121,7 @@ namespace turn_oracle {
         recording = !options->oracle_record.empty();
         record_seed = options->oracle_seed;
         record_difficulty = options->oracle_difficulty;
+        record_tactical = options->oracle_tactical;
         std::error_code code;
         const std::string& directory = recording ? options->oracle_record : options->oracle_replay;
         history_directory = std::filesystem::absolute(std::filesystem::path(std::u8string(directory.begin(), directory.end())), code).lexically_normal();

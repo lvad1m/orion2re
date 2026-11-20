@@ -477,6 +477,8 @@ namespace npcdiplo {
                     int threshold = (6 - MOX::settings.game_difficulty) * 15 - (int)war_count * 20;
                     // Advisor (stage 2d): peace with a friend comes sooner, with the leader later.
                     threshold -= advisor::Attitude_Bias(static_cast<uint8_t>(i), static_cast<uint8_t>(j)) / 5;
+                    // Advisor (Byzantine rule VI): buy peace early when losing to this enemy.
+                    threshold -= advisor::Peace_Eagerness_Turns(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
 
                     if (threshold < (int)(uint8_t)p_i.time_since_last_attack[j]) {
                         int16_t surrender_to = NPC_Surrender_Check(i);

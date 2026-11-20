@@ -32,6 +32,8 @@ namespace advisor {
     extern bool rules_objectives;            // rules may change an empire's objective
     extern bool rules_spies;                 // rules may steer spy targets and missions
     extern bool rules_expansion;             // rules may keep a colony ship in production (stage 2v)
+    extern bool rules_doctrine;              // Byzantine doctrine: allies against enemies, buy peace, deterrence
+    extern bool rules_counter_design;        // advised empires design ships against their real enemies
     extern bool rules_outposts;              // rules may build and settle outposts
     extern bool rules_exploration;           // rules may push range research (rule 501)
     extern int32_t active_players;           // bit i: the advisor steers player i (0..255, default 255)

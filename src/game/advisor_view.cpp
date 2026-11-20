@@ -217,6 +217,11 @@ namespace advisor {
 
             // s_player::spies keeps the mission in its two high bits; the count is the low six.
             contact->our_spies = static_cast<uint8_t>(BILL::Get_Their_Spy_Number(player, other));
+            for (int32_t k = 0; k < world->Player_Count() && k < MAX_PLAYERS; ++k) {
+                if (k != other && them.treaty[k] >= 4 && them.treaty[k] <= 6) {
+                    contact->at_war_with = static_cast<uint8_t>(contact->at_war_with | (1u << k));
+                }
+            }
 
             // Intel network: our spies there report the whole empire, not only what we have seen.
             if (contact->our_spies > 0) {

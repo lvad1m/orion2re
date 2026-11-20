@@ -94,6 +94,7 @@ namespace advisor {
         s_fact their_ship_losses;         // ships they lost to us
         s_fact our_colony_losses;         // colonies we lost to them
         uint8_t our_spies = 0;            // our spies in their empire
+        uint8_t at_war_with = 0;          // bit k: this empire is at war with player k (public)
     };
 
     struct s_empire_view {

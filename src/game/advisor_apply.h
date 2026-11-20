@@ -94,6 +94,32 @@ namespace advisor {
     // otherwise 0; 0 unless `rules_balance` is on and `player` is an advised computer empire.
     int32_t Attitude_Bias(uint8_t player, uint8_t target);
 
+    // Byzantine doctrine (rules_doctrine): with no explicit attitude, an advised empire still
+    // prefers peace (rule I, deterrence): Attitude_Bias returns DOCTRINE_PEACE_BIAS instead of 0.
+    constexpr int32_t DOCTRINE_PEACE_BIAS = 20;
+
+    // Turns by which an advised empire's AI-to-AI peace comes sooner (npcdiplo.cpp
+    // NPC_Peace_Negotiations): DOCTRINE_PEACE_TURNS toward the main rival when the active
+    // directive's posture is MAKE_PEACE (rule VI, buy peace when losing), otherwise 0.
+    int32_t Peace_Eagerness_Turns(uint8_t player, uint8_t target);
+
+    constexpr int32_t DOCTRINE_PEACE_TURNS = 30;
+
+    // Byzantine rule IV (raids, not battles): attack worthiness in percent for an advised empire's
+    // attack on a colony with no defending space strength (aimove.cpp Compute_Attack_Worthiness):
+    // DOCTRINE_RAID_PERCENT with `rules_doctrine` on, otherwise 100.
+    int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended);
+
+    constexpr int32_t DOCTRINE_RAID_PERCENT = 200;
+
+    // Ship design (aidesign.cpp): the empire whose shields, drives and weapons an advised computer
+    // empire designs against. With `rules_counter_design` on: the directive's main rival when it is
+    // a living contact, otherwise the living contact with the strongest fleet against `player`
+    // (s_player::total_ship_strength), ties by lower index. `fallback` (the original choice, the
+    // first living player) when off, for human players, players outside active_players, or without
+    // contacts.
+    int16_t Design_Reference_Enemy(uint8_t player, int16_t fallback);
+
     // Rule 501 hook for newtech::Choose_Tech_Application: true when `rules_exploration` is on and
     // the advised computer player `player` has an active directive with research focus PROPULSION.
     // The engine then gives range applications (fuel cells, extended fuel tanks) five times their

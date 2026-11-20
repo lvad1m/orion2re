@@ -52,4 +52,5 @@ population and industry.
 | `/oracle-turns <n>` | number of turns to record (1-100000, default 100) |
 | `/oracle-seed <n>` | game seed of the new game (1-2147483647, default 1) |
 | `/oracle-difficulty <0-4>` | tutor to impossible; default: the configured difficulty |
+| `/oracle-tactical` | record with tactical-combat settings (`selfplay.ps1 -Tactical`): computer players design ships for tactical combat; battles between computer players are still resolved strategically |
 | `/oracle-replay <dir>` | replay a recorded history and compare the saves byte for byte |

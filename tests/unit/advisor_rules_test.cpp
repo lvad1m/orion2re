@@ -118,7 +118,8 @@ TEST_CASE("rules: 102 losing war by strength") {
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.rule_id == 102);
     CHECK(d.objective == PLAYER_OBJECTIVE_MILITARIST);
-    CHECK(d.posture == POSTURE_DEFEND);
+    // Byzantine doctrine (default on): seek peace when losing; DEFEND without it.
+    CHECK(d.posture == (rules_doctrine ? POSTURE_MAKE_PEACE : POSTURE_DEFEND));
     CHECK(d.main_rival == 2);
     CHECK(Has_(note, "rule 102"));
     CHECK(Has_(note, "7501"));
@@ -573,6 +574,7 @@ TEST_CASE("rules: 501 pushes range research while most of the galaxy is unexplor
     s_directive d;
     std::string note;
     s_empire_view v = Quiet_View_();
+    v.self.stardate = 35050;  // turn 50: early game
     v.self.stars_explored = 5;
     v.self.stars_total = 36;
     v.self.free_planets_in_reach = 1;
@@ -587,6 +589,10 @@ TEST_CASE("rules: 501 pushes range research while most of the galaxy is unexplor
     v.self.free_planets_in_reach = 0;
     v.self.stars_explored = 18;  // half explored
     CHECK_FALSE(Rules_Directive(&v, &d, &note));
+
+    v.self.stars_explored = 5;
+    v.self.stardate = 35100;  // turn 100: the early game is over
+    CHECK_FALSE(Rules_Directive(&v, &d, &note));
 }
 
 TEST_CASE("rules: 301 also fires for outpost sites alone") {
@@ -599,4 +605,65 @@ TEST_CASE("rules: 301 also fires for outpost sites alone") {
     CHECK(d.rule_id == 301);
     CHECK(d.weights[WEIGHT_COLONIZATION] == LEVEL_HIGH);
     CHECK(Has_(note, "0 free planets and 2 outpost sites in reach"));
+}
+
+TEST_CASE("rules: 402 befriends the enemies of our enemy (Byzantine doctrine)") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    rules_doctrine = true;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_HONORABLE, PLAYER_OBJECTIVE_MILITARIST);
+    Add_Easy_War_(&v, 1);                               // our enemy
+    Add_Contact_(&v, 2, 0, 0).at_war_with = 1u << 1;    // also fights player 1
+    Add_Contact_(&v, 3, 0, 0).at_war_with = 1u << 4;    // fights someone else
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_ALLY);
+    CHECK(d.attitude[3] == ATTITUDE_KEEP);
+    CHECK(Has_(note, "rule 402 enemy_of_my_enemy: 1 contacts"));
+    rules_doctrine = false;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    rules_doctrine = doctrine;
+}
+
+TEST_CASE("rules: losing a war seeks peace for every personality under the doctrine") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_DIPLOMATIC);
+    s_view_contact& enemy = Add_Contact_(&v, 1, 5, -80);
+    enemy.visible_fleet_strength.value = 10000;
+    rules_doctrine = true;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.rule_id == 102);
+    CHECK(d.posture == POSTURE_MAKE_PEACE);
+    rules_doctrine = false;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.posture == POSTURE_DEFEND);
+    rules_doctrine = doctrine;
+}
+
+TEST_CASE("rules: 403 spares a beaten enemy that does not lead (Byzantine doctrine)") {
+    s_period_scope period;
+    const bool doctrine = rules_doctrine;
+    rules_doctrine = true;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
+    v.self.fleet_strength = 9000;
+    v.self.combat_ships = 8;
+    s_view_contact& weak = Add_Easy_War_(&v, 1);
+    weak.known_colonies.value = 2;
+    weak.visible_fleet_strength.value = 1000;
+    weak.visible_combat_ships.value = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_FRIENDLY);
+    CHECK(Has_(note, "rule 403 spare: player 1"));
+
+    weak.known_colonies.value = 5;  // not beaten yet
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] != ATTITUDE_FRIENDLY);
+    rules_doctrine = doctrine;
 }

@@ -19,6 +19,43 @@
 #include <unistd.h>
 #endif
 
+#if defined(_WIN32) && defined(_DEBUG)
+#include <crtdbg.h>
+#include <cstdarg>
+#include <rtcapi.h>
+
+extern "C" __declspec(dllimport) unsigned int __stdcall SetErrorMode(unsigned int mode);
+
+// Unattended debug runs (turn oracle, self-play bench, or ORION2RE_SILENT_CRASH set): C runtime
+// assertions and run-time check failures go to stderr and the process exits with code 3, instead
+// of a modal "Debug Error" dialog that blocks the run until someone clicks it.
+static int __cdecl Silent_Rtc_Error_(int error_type, const wchar_t* file, int line, const wchar_t* module,
+    const wchar_t* format, ...) {
+    wchar_t message[1024] = {};
+    va_list args;
+    va_start(args, format);
+    _vsnwprintf_s(message, _countof(message), _TRUNCATE, format, args);
+    va_end(args);
+    fwprintf(stderr, L"run-time check failure %d at %ls(%d), module %ls: %ls\n", error_type,
+        file != nullptr ? file : L"?", line, module != nullptr ? module : L"?", message);
+    fflush(stderr);
+    printf("run-time check failure (details on stderr)\n");
+    fflush(stdout);
+    _exit(3);
+}
+
+static void Install_Silent_Crash_Handlers_() {
+    for (int type : {_CRT_WARN, _CRT_ERROR, _CRT_ASSERT}) {
+        _CrtSetReportMode(type, _CRTDBG_MODE_FILE | _CRTDBG_MODE_DEBUG);
+        _CrtSetReportFile(type, _CRTDBG_FILE_STDERR);
+    }
+    _set_abort_behavior(0, _WRITE_ABORT_MSG | _CALL_REPORTFAULT);
+    _RTC_SetErrorFuncW(Silent_Rtc_Error_);
+    SetErrorMode(0x0001u /* SEM_FAILCRITICALERRORS */ | 0x0002u /* SEM_NOGPFAULTERRORBOX */ |
+        0x8000u /* SEM_NOOPENFILEERRORBOX */);
+}
+#endif
+
 #if defined(ORION2RE_DEBUG_BUILD)
 static void Build_Path_(char* output, size_t output_size, const char* base_path, const char* relative_path) {
     if (base_path != nullptr && base_path[0] != '\0') {
@@ -213,6 +250,11 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
     if (turn_oracle::Is_Enabled()) MOX2::skip_intro = 1;
+#endif
+#if defined(_WIN32) && defined(_DEBUG) && defined(ORION2RE_DEBUG_BUILD)
+    if (turn_oracle::Is_Enabled() || std::getenv("ORION2RE_SILENT_CRASH") != nullptr) {
+        Install_Silent_Crash_Handlers_();
+    }
 #endif
 
     std::string game_directory;

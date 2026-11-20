@@ -25,6 +25,10 @@ namespace advisor {
 
         // Rule 401: the leader needs at least 30 % of the known power and 1.5 times the next empire.
         constexpr int32_t BALANCE_MIN_INDEX_ = 300;  // per mille
+        constexpr int32_t EXPLORE_LAST_TURN_ = 100;  // rule 501 stops at this turn
+        // Rule 403: a war enemy with at most this many known colonies and a third of our fighting power.
+        constexpr int32_t SPARE_MAX_COLONIES_ = 2;
+        constexpr int64_t SPARE_POWER_RATIO_ = 3;
         // Rule 301: with this many known free planets two colony ships may be built at once.
         constexpr int32_t EXPAND_TWO_SHIPS_FREE_PLANETS_ = 3;
         constexpr int32_t ALLIANCE_TREATY_ = 2;
@@ -142,7 +146,8 @@ namespace advisor {
                 objective_rule = 102;
                 chosen = pacifist ? PLAYER_OBJECTIVE_DIPLOMATIC : PLAYER_OBJECTIVE_MILITARIST;
                 d.main_rival = c.player;
-                d.posture = pacifist ? POSTURE_MAKE_PEACE : POSTURE_DEFEND;
+                // Byzantine rule VI: when losing, buy peace instead of bleeding (all personalities).
+                d.posture = (pacifist || rules_doctrine) ? POSTURE_MAKE_PEACE : POSTURE_DEFEND;
                 std::snprintf(line, sizeof(line),
                     "rule 102 losing_war: player %d visible %d vs ours %d, losses %d/%d -> %s, rival %d",
                     static_cast<int>(c.player), c.visible_fleet_strength.value, self.fleet_strength,
@@ -317,16 +322,60 @@ namespace advisor {
 
         // Rule 501 (exploration push): self-play showed AI empires stop exploring after about ten
         // turns at 5 of 36 stars, because ships cannot fly beyond fuel range of their colonies.
-        // While most of the galaxy is unexplored, research range. (A first version also required few
-        // free planets in reach; it fired in under 1 % of empire-turns and changed nothing.)
+        // While most of the galaxy is unexplored, research range - in the early game only. (A first
+        // version also required few free planets in reach and fired in under 1 % of empire-turns; a
+        // second fired for the whole game, because AI empires never explore half the galaxy, and
+        // left them with 12 % fewer technologies by turn 300.)
         uint16_t exploration_rule = 0;
-        if (2 * self.stars_explored < self.stars_total && objective_rule != 102) {
+        if (2 * self.stars_explored < self.stars_total && self.stardate - GAME_START_STARDATE_ < EXPLORE_LAST_TURN_ &&
+            objective_rule != 102) {
             exploration_rule = 501;
             d.research_focus = RESEARCH_PROPULSION;
             std::snprintf(line, sizeof(line),
                 "rule 501 explore: %d of %d stars explored, %d free planets in reach -> research PROPULSION (range)",
                 self.stars_explored, self.stars_total, self.free_planets_in_reach);
             Append_Note_(&text, line);
+        }
+
+        // Rule 402 (Byzantine rule V, enemy of my enemy): with a war on, every contact that also
+        // fights one of our enemies becomes a friend (peace sooner, treaties easier). Not toward a
+        // leader that rule 401 made hostile.
+        uint16_t doctrine_rule = 0;
+        if (rules_doctrine && any_war) {
+            uint8_t enemies = 0;
+            for (int i = 0; i < count; ++i) {
+                if (Is_War_(view->contacts[i])) {
+                    enemies = static_cast<uint8_t>(enemies | (1u << (view->contacts[i].player & 7)));
+                }
+            }
+            int friends = 0;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                if (Is_War_(c) || (c.at_war_with & enemies) == 0 || d.attitude[c.player] == ATTITUDE_HOSTILE) continue;
+                d.attitude[c.player] = ATTITUDE_ALLY;
+                ++friends;
+            }
+            if (friends > 0) {
+                doctrine_rule = 402;
+                std::snprintf(line, sizeof(line), "rule 402 enemy_of_my_enemy: %d contacts fight our enemies -> ALLY", friends);
+                Append_Note_(&text, line);
+            }
+
+            // Rule 403 (Byzantine rule VII): do not destroy a beaten enemy that does not lead the galaxy;
+            // today's enemy may be tomorrow's ally, and it stays a counterweight. Make peace with it.
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                if (!Is_War_(c) || d.attitude[c.player] == ATTITUDE_HOSTILE) continue;
+                const bool beaten = c.known_colonies.value <= SPARE_MAX_COLONIES_ &&
+                    Fighting_Power_(self.fleet_strength, self.combat_ships) >=
+                        SPARE_POWER_RATIO_ * Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                if (!beaten) continue;
+                d.attitude[c.player] = ATTITUDE_FRIENDLY;
+                if (doctrine_rule == 0) doctrine_rule = 403;
+                std::snprintf(line, sizeof(line), "rule 403 spare: player %d is beaten (%d colonies) -> FRIENDLY, make peace",
+                    static_cast<int>(c.player), c.known_colonies.value);
+                Append_Note_(&text, line);
+            }
         }
 
         // Expansion rule, independent of the objective and spy rules: a known free planet in reach
@@ -342,7 +391,8 @@ namespace advisor {
             Append_Note_(&text, line);
         }
 
-        if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0) {
+        if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0 &&
+            doctrine_rule == 0) {
             return false;
         }
 
@@ -354,6 +404,7 @@ namespace advisor {
             : spy_rule != 0             ? spy_rule
             : expansion_rule != 0       ? expansion_rule
             : balance_rule != 0         ? balance_rule
+            : doctrine_rule != 0        ? doctrine_rule
                                         : exploration_rule;
         *out = d;
         if (note != nullptr) {

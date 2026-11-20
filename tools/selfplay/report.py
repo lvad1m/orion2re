@@ -1,10 +1,11 @@
 """Compare self-play bench variants from advisor journals.
 
-Usage: python tools/selfplay/report.py <bench dir> [baseline variant, default "observe"]
+Usage: python tools/selfplay/report.py <bench dir> [baseline variant, default "observe"] [--turn N]
 
 Reads <bench dir>/d<difficulty>-s<seed>-<variant>.jsonl written by selfplay.ps1 and prints, per
-difficulty, the mean over seeds of the final-turn state summed over all empires, and how each
-variant compares with the baseline seed by seed (colonies).
+difficulty, the mean over seeds of the state summed over all empires at the last recorded turn (or
+at turn N, counted from the start of the game, with --turn), and how each variant compares with
+the baseline seed by seed (colonies).
 """
 import collections
 import json
@@ -15,12 +16,24 @@ from pathlib import Path
 
 METRICS = ["colonies", "outposts", "population", "industry", "research", "techs", "spies", "treasury", "fleet"]
 NAME = re.compile(r"^d(\d+)-s(\d+)-(.+)\.jsonl$")
+GAME_START_STARDATE = 35000
+TURN = None  # --turn N: snapshot at this turn instead of the last one
+
+
+def snapshot_stardate(rows):
+    """The last recorded stardate, or with --turn the last one not after that turn."""
+    stardates = [r["stardate"] for r in rows]
+    if TURN is None:
+        return max(stardates)
+    target = GAME_START_STARDATE + TURN
+    earlier = [s for s in stardates if s <= target]
+    return max(earlier) if earlier else min(stardates)
 
 
 def final_players(path):
-    """Final-turn colonies, population and industry per player."""
+    """Colonies, population and industry per player at the snapshot turn."""
     rows = [json.loads(line) for line in path.open(encoding="utf-8")]
-    last = max(r["stardate"] for r in rows)
+    last = snapshot_stardate(rows)
     players = {}
     for r in rows:
         if r["stardate"] != last:
@@ -65,7 +78,7 @@ def head_to_head(bench, difficulty, variant, baseline):
 
 def final_state(path):
     rows = [json.loads(line) for line in path.open(encoding="utf-8")]
-    last = max(r["stardate"] for r in rows)
+    last = snapshot_stardate(rows)
     totals = dict.fromkeys(METRICS, 0)
     for r in rows:
         if r["stardate"] != last:
@@ -95,8 +108,16 @@ def final_state(path):
 
 
 def main():
-    bench = Path(sys.argv[1])
-    baseline = sys.argv[2] if len(sys.argv) > 2 else "observe"
+    global TURN
+    args = sys.argv[1:]
+    if "--turn" in args:
+        position = args.index("--turn")
+        TURN = int(args[position + 1])
+        del args[position:position + 2]
+    bench = Path(args[0])
+    baseline = args[1] if len(args) > 1 else "observe"
+    if TURN is not None:
+        print(f"(snapshot at turn {TURN})")
     runs = collections.defaultdict(dict)  # (difficulty, variant) -> seed -> result
     variants = []
     for path in sorted(bench.glob("*.jsonl")):

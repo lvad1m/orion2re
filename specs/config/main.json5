@@ -8486,15 +8486,45 @@
       },
     },
 
-    rules_outposts: {
-      title: "Advisor rules build outposts",
-      description: "Lets the rule-based advisor make computer empires build outpost ships for free asteroids and gas giants in reach, send them to the farthest such star to extend their range, and settle them. The original AI never builds outposts.",
-      remarks: "Effective only while advisor enabled is true and the advisor has raised the colonization weight of the empire (rule 301). One outpost ship at a time.",
-      examples: ["advisor rules_outposts = false;"],
+    rules_doctrine: {
+      title: "Advisor follows the Byzantine doctrine",
+      description: "Lets the rule-based advisor apply three rules of the Byzantine operational code (Luttwak): befriend the enemies of our enemy (rule 402), seek peace early when losing a war, and prefer peace with everyone who is neither the galaxy's leader nor our rival.",
+      remarks: "Effective only while advisor enabled is true and for the players in advisor active_players. Biases war, peace and treaty decisions; never forces them.",
+      examples: ["advisor rules_doctrine = false;"],
       group: "gameplay",
       namespace: "advisor",
       type: "bool",
       default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_doctrine",
+      },
+    },
+
+    rules_counter_design: {
+      title: "Advisor designs ships against real enemies",
+      description: "Advised computer empires choose ship weapons against the shields and drives of their actual enemy (the advisor's main rival, otherwise the contact with the strongest fleet against them) and defensive specials against that enemy's weapons, instead of the first living player.",
+      remarks: "Effective only while advisor enabled is true. In the original, the first living player is often the designing empire itself in games without a human. Applies to tactical-combat designs; strategic-combat designs always use the best weapons.",
+      examples: ["advisor rules_counter_design = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_counter_design",
+      },
+    },
+
+    rules_outposts: {
+      title: "Advisor rules build outposts",
+      description: "Lets the rule-based advisor make computer empires build outpost ships for free asteroids and gas giants in reach, send them to the farthest such star to extend their range, and settle them. The original AI never builds outposts.",
+      remarks: "Effective only while advisor enabled is true and the advisor has raised the colonization weight of the empire (rule 301). One outpost ship at a time. Off by default: in 300-turn self-play outposts cost advised empires a quarter of their industry and population by turn 300.",
+      examples: ["advisor rules_outposts = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::rules_outposts",

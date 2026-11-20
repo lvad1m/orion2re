@@ -306,22 +306,31 @@ namespace COMBFIND {
                 if (retreat_failed) {
                     for (int k = 0; k < group_count; ++k) {
                         int16_t idx = ship_indices[k];
+                        // ORACLE: The original re-reads the outer ship's location after it may have
+                        // been killed. A location of -1 aliases the preceding player's final slot.
+                        // Fix this attribution bug later even though doing so diverges from the oracle.
+                        // For player 1 the alias is index -1, before the array: that wrote past the
+                        // stack frame (MSVC run-time check #2). Only such out-of-range slots are
+                        // redirected to the battle star; every in-range slot stays as in the original.
+                        int32_t slot = owner * retreat_location_count + MOX::ship[i].location;
+                        if (slot < 0 || slot >= MAX_PLAYERS * retreat_location_count) {
+                            slot = owner * retreat_location_count + loc;
+                        }
+                        const bool slot_valid = slot >= 0 && slot < MAX_PLAYERS * retreat_location_count;
                         int16_t leader_idx = MOX::ship[idx].officer_index;
                         if (leader_idx != -1) {
                             if (MOX::leaders[leader_idx].eta < 1) {
                                 OFFICER::Kill_Officer(leader_idx);
-                                report[owner * retreat_location_count + MOX::ship[i].location].killed_officers++;
+                                if (slot_valid) report[slot].killed_officers++;
                             } else {
                                 OFFICER::Move_Officer_To_Pool(leader_idx);
                             }
                         }
-                        // ORACLE: The original re-reads the outer ship's location after it may have
-                        // been killed. A location of -1 aliases the preceding player's final slot.
-                        // Fix this attribution bug later even though doing so diverges from the oracle.
-                        s_retreat_report& retreat =
-                            report[owner * retreat_location_count + MOX::ship[i].location];
-                        retreat.count++;
-                        retreat.reason = fail_reason;
+                        if (slot_valid) {
+                            s_retreat_report& retreat = report[slot];
+                            retreat.count++;
+                            retreat.reason = fail_reason;
+                        }
                         SHIPS::Kill_Ship(idx);
                     }
                 } else {

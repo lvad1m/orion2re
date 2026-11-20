@@ -23,6 +23,7 @@ param(
     [int[]] $Difficulties = @(2, 3),
     [int] $Turns = 100,
     [string] $Exe = "orion2re.exe",
+    [switch] $Tactical,
     [System.Collections.IDictionary] $Variants = $null
 )
 
@@ -30,7 +31,7 @@ $ErrorActionPreference = 'Stop'
 $on = "advisor enabled = true;`nadvisor journal = full;"
 if ($null -eq $Variants) {
     $Variants = [ordered]@{
-        "observe" = "$on`nadvisor rules_objectives = false;`nadvisor rules_spies = false;`nadvisor rules_expansion = false;`nadvisor rules_outposts = false;`nadvisor rules_exploration = false;`nadvisor rules_lanchester = false;`nadvisor rules_balance = false;"
+        "observe" = "$on`nadvisor rules_objectives = false;`nadvisor rules_spies = false;`nadvisor rules_expansion = false;`nadvisor rules_outposts = false;`nadvisor rules_exploration = false;`nadvisor rules_lanchester = false;`nadvisor rules_balance = false;`nadvisor rules_counter_design = false;`nadvisor rules_doctrine = false;"
         "advisor" = $on
     }
 }
@@ -57,6 +58,7 @@ foreach ($difficulty in $Difficulties) {
             if (Test-Path $journalDir) { Remove-Item -Recurse -Force $journalDir }
             $arguments = @("/config", $configName, "/oracle-record", "`"$history`"", "/oracle-turns", "$Turns",
                 "/oracle-seed", "$seed", "/oracle-difficulty", "$difficulty")
+            if ($Tactical) { $arguments += "/oracle-tactical" }
             $process = Start-Process $exePath -ArgumentList $arguments -WorkingDirectory $GameDir `
                 -RedirectStandardOutput (Join-Path $OutDir "$tag.out") -RedirectStandardError (Join-Path $OutDir "$tag.err") `
                 -PassThru -Wait
