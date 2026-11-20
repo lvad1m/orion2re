@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/advisor_apply.h"
+
 #include "legacy_world.h"
 
 namespace diplomac {
@@ -1154,6 +1156,9 @@ namespace diplomac {
 
         // Result calculation: ((Strength(p1->p2) * 4 + 4) * 25) / (Strength(p2->p1) + 1)
         int32_t result = ((strength1_v_2 * 4 + 4) * 25) / (strength2_v_1 + 1);
+        // Advisor (stage 2g): Lanchester's square law for advised empires; 100 % otherwise.
+        result = static_cast<int32_t>(static_cast<int64_t>(result) *
+            advisor::Lanchester_Percent(static_cast<uint8_t>(player_idx_1), static_cast<uint8_t>(player_idx_2)) / 100);
 
         if (result > 800) {
             result = 800;
@@ -3536,6 +3541,8 @@ namespace diplomac {
         }
 
         score += COLCALC::Best_Leader_Diplomat_Bonus(proposer_idx);
+        // Advisor (stage 2d): balance-of-power attitude of the evaluating AI; 0 otherwise.
+        score += static_cast<int16_t>(advisor::Attitude_Bias(static_cast<uint8_t>(evaluator_idx), static_cast<uint8_t>(proposer_idx)));
 
         if (score < -75) {
             return 0;

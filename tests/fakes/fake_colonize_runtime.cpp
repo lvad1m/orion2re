@@ -89,3 +89,10 @@ namespace SHIPS {
 namespace TECHDATA {
     s_tech_building_data buildings[BUILDING_COUNT];
 }
+
+namespace advisor {
+    // The advisor is off in these tests: no outposts for the AI.
+    bool Outpost_Push(uint8_t) {
+        return false;
+    }
+} // namespace advisor

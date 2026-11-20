@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/advisor_apply.h"
+
 namespace newtech {
     int16_t best_category[12];
 
@@ -443,6 +445,7 @@ namespace newtech {
 
         s_player* player = &MOX::player[player_idx];
         bool all_gray_boxes = All_Gray_Boxes_Researched(player) != 0;
+        const bool range_push = advisor::Range_Research_Push(static_cast<uint8_t>(player_idx));
         Set_Competition_Tech_Values(player_idx);
 
         for (int32_t i = 1; i < tech_choice_count; ++i) {
@@ -474,6 +477,10 @@ namespace newtech {
                         if (tech_field_id == tech_priority.double_field_2) value *= 2;
                         if (value == 0) value = 1;
                     }
+                    // Advisor (rule 501): range research first; no effect unless the advisor is on.
+                    if (range_push && advisor::Is_Range_Application(static_cast<int16_t>(i))) {
+                        value = (value == 0 ? 1 : value) * 5;
+                    }
 
                     has_candidate_tech = true;
                     tech_values[i] = value;
@@ -484,7 +491,8 @@ namespace newtech {
         if (has_candidate_tech) {
             int32_t research_threshold = 15;
             // BUG: Original assembly unconditionally reads from Player 0 instead of the current player.
-            int32_t research_produced = MOX::player[0].research_produced;
+            // `ai research_uses_own_output` fixes it; the classic default keeps the original.
+            int32_t research_produced = research_uses_own_output ? player->research_produced : MOX::player[0].research_produced;
             if (research_produced == 0) {
                 research_produced = 1;
             }

@@ -151,6 +151,7 @@ namespace spy {
         BILL::Set_Their_Spy_Number(player_idx, player_idx, (uint8_t)allocated_home);
 
         if (allocated_home >= total_spies) {
+            advisor::Cover_Contacts_With_Spies((uint8_t)player_idx);
             return;
         }
 
@@ -264,6 +265,7 @@ namespace spy {
                 BILL::Set_Their_Spy_Mission(player_idx, target, (int8_t)mission);
             }
         }
+        advisor::Cover_Contacts_With_Spies((uint8_t)player_idx);
     }
 
     void __cdecl Resolve_Player_Spies(s_player* player) {

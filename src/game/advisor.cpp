@@ -42,7 +42,13 @@ namespace advisor {
 
             s_directive fresh;
             const s_directive* stored = Get_Directive(index);
-            if (stored != nullptr && Is_Active(stored, stardate)) {
+            if (((active_players >> i) & 1) == 0) {
+                // Not steered (self-play bench): play the original AI, keep the journal.
+                if (stored != nullptr && stored->source != SOURCE_NONE) {
+                    Clear_Directive(&fresh);
+                    Set_Directive(index, &fresh);
+                }
+            } else if (stored != nullptr && Is_Active(stored, stardate)) {
                 entry.directive = stored;
                 entry.accepted = true;
                 entry.rule_note = "directive still active";

@@ -109,7 +109,8 @@ namespace aidudes {
         // Stage 2v: with the advisor's colonization push, an empire without a colony ship starts one
         // at its most productive colony as soon as it knows a target, instead of waiting for an
         // idle colony with industry worth of colony_ship_minimum_industry.
-        if (colonization_push && needs.colony_ships.current == 0 &&
+        if (colonization_push &&
+            needs.colony_ships.current < advisor::Colonization_Push_Ships(static_cast<uint8_t>(player_idx)) &&
             p->tech_applications[TECH_APP_COLONY_SHIP] == TECH_RESEARCH_STATUS_RESEARCHED) {
             int16_t push_colony = -1;
             int16_t push_worth = -1;
@@ -148,6 +149,65 @@ namespace aidudes {
                     pushed->producing[0] = COLBLDG::Colony_Production_From_Ship_Index(push_ship);
                     for (int32_t j = 0; j < colony_queue_count; ++j) {
                         if (legacy_world::Slot(colony_queue[j]) == (uint32_t)push_colony) {
+                            for (int32_t m = j; m + 1 < colony_queue_count; ++m) {
+                                colony_queue[m] = colony_queue[m + 1];
+                            }
+                            --colony_queue_count;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Advisor outposts: one outpost ship at a time while a free asteroid or gas giant is in reach.
+        if (advisor::Outpost_Push(static_cast<uint8_t>(player_idx))) {
+            bool outpost_ship_exists = false;
+            for (int16_t si = 0; si < world->Ship_Count() && !outpost_ship_exists; ++si) {
+                const s_ship_data& ship = world->ships[si];
+                outpost_ship_exists = ship.owner == (int8_t)player_idx && ship.d.ship_type == SHIP_TYPE_OUTPOST &&
+                    (ship.status <= 2 || ship.status == 6);
+            }
+            bool site = false;
+            for (int16_t pi = 0; pi < world->Planet_Count() && !site; ++pi) {
+                const s_planet_data& planet = world->planets[pi];
+                site = planet.colony_index == -1 && planet.planet_type != PLANET_TYPE_PLANET &&
+                    ((world->stars[planet.star_index].visited >> (player_idx & 0x1F)) & 1) != 0 &&
+                    ((ai->stars[legacy_world::Star_Id(planet.star_index)].in_extended_range >> (player_idx & 0x1F)) & 1) != 0;
+            }
+            int16_t outpost_colony = -1;
+            int16_t outpost_worth = -1;
+            for (int16_t ci = 0; ci < world->Colony_Count() && site && !outpost_ship_exists; ++ci) {
+                s_colony* candidate = &world->colonies[ci];
+                if (candidate->owner != (char)player_idx || candidate->outpost_flag != 0 || candidate->n_pops == 0 ||
+                    COLCALC::Colony_Is_Blockaded(candidate) || COLBLDG::Colony_Production_Is_Queued_Ship(candidate->producing[0])) {
+                    continue;
+                }
+                const int16_t worth = AIBUILD::Industry_Worth(candidate);
+                if (worth > outpost_worth) {
+                    outpost_worth = worth;
+                    outpost_colony = ci;
+                }
+            }
+            if (outpost_colony >= 0 && outpost_worth >= advisor::OUTPOST_PUSH_MIN_INDUSTRY_WORTH &&
+                world->colonies[outpost_colony].producing[6] == COLONY_PRODUCTION_NONE) {
+                s_ship_design outpost_design = {};
+                INITSHIP::Load_Outpost_Ship_Design(*legacy_player, &outpost_design);
+                const auto outpost_legacy_colony = legacy_world::Index(legacy_world::Colony_Id(outpost_colony));
+                const int16_t outpost_ship = outpost_legacy_colony
+                    ? COLBLDG::Create_Ship_From_Design(*legacy_player, &outpost_design, *outpost_legacy_colony)
+                    : (int16_t)-1;
+                if (outpost_ship != -1) {
+                    world->ships[outpost_ship].status = 6;
+                    s_colony* building = &world->colonies[outpost_colony];
+                    if (building->producing[0] != COLONY_PRODUCTION_AI_UNASSIGNED) {
+                        for (int k = 6; k > 0; --k) {
+                            building->producing[k] = building->producing[k - 1];
+                        }
+                    }
+                    building->producing[0] = COLBLDG::Colony_Production_From_Ship_Index(outpost_ship);
+                    for (int32_t j = 0; j < colony_queue_count; ++j) {
+                        if (legacy_world::Slot(colony_queue[j]) == (uint32_t)outpost_colony) {
                             for (int32_t m = j; m + 1 < colony_queue_count; ++m) {
                                 colony_queue[m] = colony_queue[m + 1];
                             }

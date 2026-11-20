@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "legacy_world.h"
+#include "game/advisor_apply.h"
 
 namespace AIBUILD {
 
@@ -404,6 +405,15 @@ namespace AIBUILD {
                     needs.spies.additional_wanted = (uint8_t)spy_limit;
                 }
             }
+        }
+
+        // Advisor intel network (stage 2b): replaces the "as many as the neighbours" demand above,
+        // which escalates into a spy race once one empire builds spies. No effect and no random
+        // draws unless the advisor is enabled.
+        uint8_t advisor_spies = 0;
+        if (advisor::Desired_Spies(static_cast<uint8_t>(player_idx), &advisor_spies)) {
+            needs.spies.additional_wanted =
+                advisor_spies > needs.spies.current ? static_cast<uint8_t>(advisor_spies - needs.spies.current) : 0;
         }
 
         Compute_Colony_Ship_Need(&needs);

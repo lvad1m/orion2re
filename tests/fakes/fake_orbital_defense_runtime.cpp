@@ -164,6 +164,12 @@ namespace advisor {
     bool Colonization_Push(uint8_t) {
         return false;
     }
+    int32_t Colonization_Push_Ships(uint8_t) {
+        return 0;
+    }
+    bool Outpost_Push(uint8_t) {
+        return false;
+    }
 } // namespace advisor
 
 namespace INITSHIP {

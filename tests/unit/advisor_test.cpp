@@ -40,6 +40,18 @@ namespace {
         }
     };
 
+    // Two militarists in peaceful contact at turn 60: rule 105 fires for both.
+    void Setup_World_Two_Militarists_At_Peace_(test::s_game_state* state) {
+        MOX::NUM_PLAYERS = 2;
+        MOX::stardate = 35060;  // the fixture restores the stardate on exit
+        for (int i = 0; i < 2; i++) {
+            state->players[i].objectives = PLAYER_OBJECTIVE_MILITARIST;
+            state->players[i].eliminated = 0;
+            state->players[i].contact[1 - i] = 1;
+            state->players[i].relations[1 - i] = 10;
+        }
+    }
+
     void Setup_Two_Computer_Players_(test::s_game_state* state) {
         MOX::NUM_PLAYERS = 2;
         for (int i = 0; i < 2; i++) {
@@ -127,4 +139,24 @@ DOCTEST_TEST_CASE("advisor enabled: a militarist at peace turns technologist (ru
     // Player 1 is not a militarist and no other rule fires in this galaxy.
     DOCTEST_CHECK(state.players[1].objectives == PLAYER_OBJECTIVE_EXPANSIONIST);
     advisor::rules_objectives = rules_objectives;
+}
+
+DOCTEST_TEST_CASE("advisor steers only the players in active_players") {
+    s_advisor_scope scope;
+    test::s_game_state state;
+    Setup_World_Two_Militarists_At_Peace_(&state);
+    advisor::enabled = true;
+    advisor::journal = advisor::JOURNAL_OFF;
+    const int32_t active = advisor::active_players;
+    advisor::active_players = 2;  // only player 1
+
+    advisor::Run_Turn(&game::current);
+
+    const advisor::s_directive* zero = advisor::Get_Directive(0);
+    DOCTEST_CHECK((zero == nullptr || zero->source == advisor::SOURCE_NONE));
+    DOCTEST_CHECK(state.players[0].objectives == PLAYER_OBJECTIVE_MILITARIST);
+    const advisor::s_directive* one = advisor::Get_Directive(1);
+    DOCTEST_REQUIRE(one != nullptr);
+    DOCTEST_CHECK(one->source == advisor::SOURCE_RULES);
+    advisor::active_players = active;
 }

@@ -23,6 +23,12 @@ namespace advisor {
         constexpr int32_t FAMINE_DEFICIT_ = 3;            // famine when food surplus <= -3
         constexpr int32_t PEACE_DIVIDEND_FIRST_TURN_ = 50;  // and at least one contact
 
+        // Rule 401: the leader needs at least 30 % of the known power and 1.5 times the next empire.
+        constexpr int32_t BALANCE_MIN_INDEX_ = 300;  // per mille
+        // Rule 301: with this many known free planets two colony ships may be built at once.
+        constexpr int32_t EXPAND_TWO_SHIPS_FREE_PLANETS_ = 3;
+        constexpr int32_t ALLIANCE_TREATY_ = 2;
+
         const char* Objective_Label_(int objective) {
             switch (objective) {
                 case PLAYER_OBJECTIVE_DIPLOMATIC: return "DIPLOMATIC";
@@ -43,9 +49,16 @@ namespace advisor {
             return 10 * c.our_colony_losses.value + c.our_ship_losses.value;
         }
 
+        // Lanchester's square law: fighting power grows with strength times the number of warships,
+        // so many weaker ships beat fewer stronger ones of the same total strength. Linear strength
+        // (the original comparison) when rules_lanchester is off. +1 keeps empty counts neutral.
+        int64_t Fighting_Power_(int32_t strength, int32_t warships) {
+            return rules_lanchester ? static_cast<int64_t>(strength) * (warships + 1) : strength;
+        }
+
         bool Is_Losing_(const s_view_self& self, const s_view_contact& c) {
-            const bool stronger = 2 * static_cast<int64_t>(c.visible_fleet_strength.value)
-                > 3 * static_cast<int64_t>(self.fleet_strength);
+            const bool stronger = 2 * Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value)
+                > 3 * Fighting_Power_(self.fleet_strength, self.combat_ships);
             const bool losses = c.our_ship_losses.value >= 2 * std::max(1, c.their_ship_losses.value);
             return stronger || losses;
         }
@@ -220,19 +233,116 @@ namespace advisor {
             }
         }
 
+        // Rule 203 (stage 2b): no spy rule above, because we have no spies at the candidates. Name a
+        // target to build spies for, so advisor::Desired_Spies asks the AI production for them: the
+        // main enemy at war, otherwise the contact with the lowest relations (ties: lower player).
+        if (spy_rule == 0 && count > 0) {
+            int idx = -1;
+            if (any_war) {
+                idx = Pick_Main_Enemy_(view, count, [](const s_view_contact&) { return true; });
+            } else {
+                for (int i = 0; i < count; ++i) {
+                    const s_view_contact& c = view->contacts[i];
+                    if (idx < 0 || c.relations.value < view->contacts[idx].relations.value
+                        || (c.relations.value == view->contacts[idx].relations.value
+                            && c.player < view->contacts[idx].player)) {
+                        idx = i;
+                    }
+                }
+            }
+            if (idx >= 0) {
+                const s_view_contact& c = view->contacts[idx];
+                const bool war = Is_War_(c);
+                spy_rule = 203;
+                d.spy_target = c.player;
+                d.spy_mission = (war && !(honorable || pacifist)) ? SPY_SABOTAGE : SPY_STEAL_TECH;
+                std::snprintf(line, sizeof(line), "rule 203 spy_build: player %d (%s), no spies there -> build spies, %s",
+                    static_cast<int>(c.player), war ? "war" : "peace",
+                    d.spy_mission == SPY_STEAL_TECH ? "STEAL_TECH" : "SABOTAGE");
+                Append_Note_(&text, line);
+            }
+        }
+
+        // Rule 401 (stage 2d, balance of power): a power index per empire, the mean of its colony
+        // share and fleet share among us and our contacts, from what we know (spies make it exact).
+        // When a contact clearly leads, everyone else gains by balancing against it: hostile to the
+        // leader, friendly to the others (peace sooner, treaties easier).
+        uint16_t balance_rule = 0;
+        if (count > 0) {
+            int64_t colonies_total = std::max(0, self.colonies);
+            int64_t fleet_total = std::max(0, self.fleet_strength);
+            for (int i = 0; i < count; ++i) {
+                colonies_total += std::max(0, view->contacts[i].known_colonies.value);
+                fleet_total += std::max(0, view->contacts[i].visible_fleet_strength.value);
+            }
+            const auto index = [&](int32_t colonies, int32_t fleet) -> int32_t {
+                const int64_t colony_share = colonies_total > 0 ? 1000 * static_cast<int64_t>(std::max(0, colonies)) / colonies_total : 0;
+                const int64_t fleet_share = fleet_total > 0 ? 1000 * static_cast<int64_t>(std::max(0, fleet)) / fleet_total : colony_share;
+                return static_cast<int32_t>((colony_share + fleet_share) / 2);
+            };
+            int leader = -1;  // -1: we lead
+            int32_t leader_index = index(self.colonies, self.fleet_strength);
+            int32_t second_index = 0;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                const int32_t value = index(c.known_colonies.value, c.visible_fleet_strength.value);
+                if (value > leader_index || (value == leader_index && leader >= 0 && c.player < view->contacts[leader].player)) {
+                    second_index = leader_index;
+                    leader_index = value;
+                    leader = i;
+                } else if (value > second_index) {
+                    second_index = value;
+                }
+            }
+            if (leader >= 0 && leader_index >= BALANCE_MIN_INDEX_ && 2 * leader_index >= 3 * second_index) {
+                const s_view_contact& top = view->contacts[leader];
+                balance_rule = 401;
+                if (top.treaty.value != ALLIANCE_TREATY_) {
+                    d.attitude[top.player] = ATTITUDE_HOSTILE;
+                }
+                for (int i = 0; i < count; ++i) {
+                    if (i != leader) {
+                        d.attitude[view->contacts[i].player] = ATTITUDE_FRIENDLY;
+                    }
+                }
+                if (d.main_rival == NO_PLAYER) {
+                    d.main_rival = top.player;
+                }
+                std::snprintf(line, sizeof(line),
+                    "rule 401 balance: player %d leads (index %d vs next %d per mille) -> HOSTILE to %d, FRIENDLY to the others",
+                    static_cast<int>(top.player), leader_index, second_index, static_cast<int>(top.player));
+                Append_Note_(&text, line);
+            }
+        }
+
+        // Rule 501 (exploration push): self-play showed AI empires stop exploring after about ten
+        // turns at 5 of 36 stars, because ships cannot fly beyond fuel range of their colonies.
+        // While most of the galaxy is unexplored, research range. (A first version also required few
+        // free planets in reach; it fired in under 1 % of empire-turns and changed nothing.)
+        uint16_t exploration_rule = 0;
+        if (2 * self.stars_explored < self.stars_total && objective_rule != 102) {
+            exploration_rule = 501;
+            d.research_focus = RESEARCH_PROPULSION;
+            std::snprintf(line, sizeof(line),
+                "rule 501 explore: %d of %d stars explored, %d free planets in reach -> research PROPULSION (range)",
+                self.stars_explored, self.stars_total, self.free_planets_in_reach);
+            Append_Note_(&text, line);
+        }
+
         // Expansion rule, independent of the objective and spy rules: a known free planet in reach
         // raises the colonization weight, which advisor::Colonization_Push turns into a colony
         // ship kept in production. Not while losing a war: production goes to defense then.
         uint16_t expansion_rule = 0;
-        if (self.free_planets_in_reach > 0 && objective_rule != 102) {
+        if ((self.free_planets_in_reach > 0 || self.free_outpost_sites_in_reach > 0) && objective_rule != 102) {
             expansion_rule = 301;
-            d.weights[WEIGHT_COLONIZATION] = LEVEL_HIGH;
-            std::snprintf(line, sizeof(line), "rule 301 expand: %d free planets in reach -> colonization HIGH",
-                self.free_planets_in_reach);
+            const bool many = self.free_planets_in_reach >= EXPAND_TWO_SHIPS_FREE_PLANETS_;
+            d.weights[WEIGHT_COLONIZATION] = many ? LEVEL_MAX : LEVEL_HIGH;
+            std::snprintf(line, sizeof(line), "rule 301 expand: %d free planets and %d outpost sites in reach -> colonization %s",
+                self.free_planets_in_reach, self.free_outpost_sites_in_reach, many ? "MAX" : "HIGH");
             Append_Note_(&text, line);
         }
 
-        if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0) {
+        if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0) {
             return false;
         }
 
@@ -240,7 +350,11 @@ namespace advisor {
         d.issued_stardate = self.stardate;
         d.expires_stardate = self.stardate + std::max<int32_t>(1, rules_period) - 1;
         d.objective = (chosen >= 0 && chosen != self.objective) ? static_cast<uint8_t>(chosen) : OBJECTIVE_KEEP;
-        d.rule_id = objective_rule != 0 ? objective_rule : spy_rule != 0 ? spy_rule : expansion_rule;
+        d.rule_id = objective_rule != 0 ? objective_rule
+            : spy_rule != 0             ? spy_rule
+            : expansion_rule != 0       ? expansion_rule
+            : balance_rule != 0         ? balance_rule
+                                        : exploration_rule;
         *out = d;
         if (note != nullptr) {
             *note = text;

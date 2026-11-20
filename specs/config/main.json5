@@ -4505,6 +4505,21 @@
       default_source: "native",
     },
 
+    research_uses_own_output: {
+      title: "AI research estimate uses its own output",
+      description: "When a computer player picks its next technology, estimates research times from its own research output instead of player 1's.",
+      remarks: "False preserves the classic behavior, which reads player 1's research output for every computer player (an original bug).",
+      examples: ["ai research_uses_own_output = true;"],
+      group: "gameplay",
+      namespace: "ai",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/newtech.h",
+        symbol: "newtech::research_uses_own_output",
+      },
+    },
+
     colony_bases_prewarp: {
       title: "Pre-Warp AI Colony Bases",
       description: "Allows AI players to build Colony Bases after researching Colony Base without a Colony Ship, fuel, or drive technology.",
@@ -8468,6 +8483,82 @@
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::rules_expansion",
+      },
+    },
+
+    rules_outposts: {
+      title: "Advisor rules build outposts",
+      description: "Lets the rule-based advisor make computer empires build outpost ships for free asteroids and gas giants in reach, send them to the farthest such star to extend their range, and settle them. The original AI never builds outposts.",
+      remarks: "Effective only while advisor enabled is true and the advisor has raised the colonization weight of the empire (rule 301). One outpost ship at a time.",
+      examples: ["advisor rules_outposts = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_outposts",
+      },
+    },
+
+    rules_exploration: {
+      title: "Advisor rules push range research",
+      description: "Lets the rule-based advisor make computer empires that have explored little and know few free planets research fuel cells and extended fuel tanks early, so their ships reach more of the galaxy (rule 501).",
+      remarks: "Effective only while advisor enabled is true and for the players in advisor active_players. Range technologies get five times their value even before the basic fields are done.",
+      examples: ["advisor rules_exploration = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_exploration",
+      },
+    },
+
+    rules_lanchester: {
+      title: "Advisor weighs fleets by Lanchester's law",
+      description: "Advised computer empires compare fleets by Lanchester's square law (strength times number of warships) instead of strength alone when they weigh war and peace.",
+      remarks: "Effective only while advisor enabled is true and for the players in advisor active_players.",
+      examples: ["advisor rules_lanchester = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_lanchester",
+      },
+    },
+
+    rules_balance: {
+      title: "Advisor balances against the leader",
+      description: "Lets the rule-based advisor turn advised computer empires against an empire that clearly leads the galaxy and make them friendlier to everyone else (rule 401).",
+      remarks: "Effective only while advisor enabled is true. Biases war, peace and treaty decisions; never forces them.",
+      examples: ["advisor rules_balance = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_balance",
+      },
+    },
+
+    active_players: {
+      title: "Advisor players",
+      description: "Bit mask of the player slots the advisor steers: bit 0 is player 1, bit 1 player 2 and so on. Players outside the mask play the original AI; the journal still describes them.",
+      remarks: "Effective only while advisor enabled is true. 255 steers every computer player. Used by the self-play bench to pit advised empires against original ones.",
+      examples: ["advisor active_players = 21;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 0, max: 255 },
+      default: 255,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::active_players",
       },
     },
 

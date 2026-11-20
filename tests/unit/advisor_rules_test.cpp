@@ -58,6 +58,15 @@ namespace {
     bool Has_(const std::string& note, const char* what) {
         return note.find(what) != std::string::npos;
     }
+
+    // With contacts but no other rule, only rule 203 fires: it names a spy target and keeps the
+    // objective.
+    bool Only_Spy_Build_(const s_empire_view* v) {
+        s_directive d;
+        std::string note;
+        return Rules_Directive(v, &d, &note) && d.rule_id == 203 && d.objective == OBJECTIVE_KEEP &&
+            d.spy_target != NO_PLAYER && d.weights[WEIGHT_COLONIZATION] == LEVEL_KEEP;
+    }
 } // namespace
 
 TEST_CASE("rules: nothing fires on a quiet empire") {
@@ -138,8 +147,7 @@ TEST_CASE("rules: 102 losing war by losses") {
     CHECK(Has_(note, "losses 2/0"));
 
     c.our_ship_losses.value = 1;  // 1 < 2
-    CHECK_FALSE(Rules_Directive(&v, &d, &note));  // honorable: no 103, no spies
-    CHECK(d.source == SOURCE_NONE);
+    CHECK(Only_Spy_Build_(&v));  // honorable: no 103; no spies yet, so rule 203
 }
 
 TEST_CASE("rules: 102 pacifist variant") {
@@ -216,13 +224,11 @@ TEST_CASE("rules: 103 does not fire for other personalities or a MILITARIST empi
     s_period_scope period;
     s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_HONORABLE, PLAYER_OBJECTIVE_DIPLOMATIC);
     Add_Easy_War_(&v, 1);
-    s_directive d;
-    std::string note;
-    CHECK_FALSE(Rules_Directive(&v, &d, &note));
+    CHECK(Only_Spy_Build_(&v));
 
     s_empire_view m = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
     Add_Easy_War_(&m, 1);
-    CHECK_FALSE(Rules_Directive(&m, &d, &note));
+    CHECK(Only_Spy_Build_(&m));
 }
 
 TEST_CASE("rules: 301 expand raises the colonization weight") {
@@ -233,10 +239,15 @@ TEST_CASE("rules: 301 expand raises the colonization weight") {
     std::string note;
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.rule_id == 301);
-    CHECK(d.weights[WEIGHT_COLONIZATION] == LEVEL_HIGH);
+    CHECK(d.weights[WEIGHT_COLONIZATION] == LEVEL_MAX);  // three or more: two colony ships at once
     CHECK(d.objective == OBJECTIVE_KEEP);
     CHECK(Has_(note, "rule 301"));
-    CHECK(Has_(note, "3 free planets in reach"));
+    CHECK(Has_(note, "3 free planets and 0 outpost sites in reach -> colonization MAX"));
+
+    v.self.free_planets_in_reach = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.weights[WEIGHT_COLONIZATION] == LEVEL_HIGH);
+    v.self.free_planets_in_reach = 3;
 
     // Nothing known to colonize: no directive in a quiet galaxy.
     v.self.free_planets_in_reach = 0;
@@ -309,13 +320,11 @@ TEST_CASE("rules: 105 peace dividend and its personality variants") {
 
     s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
     Add_Contact_(&v, 1, 0, -26);
-    s_directive d;
-    std::string note;
-    CHECK_FALSE(Rules_Directive(&v, &d, &note));
+    CHECK(Only_Spy_Build_(&v));
 
     s_empire_view n = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_INDUSTRIALIST);
     Add_Contact_(&n, 1, 0, 0);
-    CHECK_FALSE(Rules_Directive(&n, &d, &note));
+    CHECK(Only_Spy_Build_(&n));
 }
 
 TEST_CASE("rules: 201 spy war and its personality variants") {
@@ -456,8 +465,138 @@ TEST_CASE("rules: early-game and noise guards (self-play findings)") {
     s_empire_view early = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
     early.self.stardate = 35049;
     Add_Contact_(&early, 1, 0, 50);
-    CHECK_FALSE(Rules_Directive(&early, &d, &note));
+    CHECK(Only_Spy_Build_(&early));
     early.self.stardate = 35050;
     REQUIRE(Rules_Directive(&early, &d, &note));
     CHECK(d.rule_id == 105);
+}
+
+TEST_CASE("rules: 203 names a spy target to build spies for") {
+    s_period_scope period;
+    s_directive d;
+    std::string note;
+
+    // At war, no spies anywhere: the main enemy; sabotage unless honorable or pacifist.
+    for (uint8_t p : {static_cast<uint8_t>(PLAYER_PERSONALITY_AGGRESSIVE), static_cast<uint8_t>(PLAYER_PERSONALITY_HONORABLE)}) {
+        CAPTURE(static_cast<int>(p));
+        s_empire_view v = Quiet_View_(p, PLAYER_OBJECTIVE_MILITARIST);
+        Add_Easy_War_(&v, 1);
+        Add_Easy_War_(&v, 3).our_colony_losses.value = 1;
+        REQUIRE(Rules_Directive(&v, &d, &note));
+        CHECK(d.rule_id == 203);
+        CHECK(d.spy_target == 3);
+        CHECK(d.spy_mission == (p == PLAYER_PERSONALITY_HONORABLE ? SPY_STEAL_TECH : SPY_SABOTAGE));
+        CHECK(Has_(note, "rule 203 spy_build: player 3 (war), no spies there"));
+    }
+
+    // At peace: the lowest relations, ties by lower player; always steal technology.
+    s_empire_view peace = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_INDUSTRIALIST);
+    Add_Contact_(&peace, 4, 0, -40);
+    Add_Contact_(&peace, 2, 0, -40);
+    Add_Contact_(&peace, 1, 0, 30);
+    REQUIRE(Rules_Directive(&peace, &d, &note));
+    CHECK(d.rule_id == 203);
+    CHECK(d.spy_target == 2);
+    CHECK(d.spy_mission == SPY_STEAL_TECH);
+
+    // With spies at a contact, rule 202 steers them and 203 stays quiet.
+    peace.contacts[2].our_spies = 1;
+    REQUIRE(Rules_Directive(&peace, &d, &note));
+    CHECK(d.rule_id == 202);
+    CHECK(d.spy_target == 1);
+    CHECK_FALSE(Has_(note, "rule 203"));
+}
+
+TEST_CASE("rules: 401 balance of power turns against a clear leader") {
+    s_period_scope period;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_HONORABLE, PLAYER_OBJECTIVE_INDUSTRIALIST);
+    v.self.colonies = 4;
+    v.self.fleet_strength = 1000;
+    s_view_contact& big = Add_Contact_(&v, 3, 0, 10);
+    big.known_colonies.value = 14;
+    big.visible_fleet_strength.value = 6000;
+    s_view_contact& small = Add_Contact_(&v, 2, 0, 10);
+    small.known_colonies.value = 3;
+    small.visible_fleet_strength.value = 1000;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[3] == ATTITUDE_HOSTILE);
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.main_rival == 3);
+    CHECK(Has_(note, "rule 401 balance: player 3 leads"));
+
+    // An ally stays an ally: no hostility, the others still become friends.
+    big.treaty.value = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[3] == ATTITUDE_KEEP);
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+
+    // We lead: nothing to balance.
+    big.treaty.value = 0;
+    v.self.colonies = 30;
+    v.self.fleet_strength = 20000;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[3] == ATTITUDE_KEEP);
+    CHECK_FALSE(Has_(note, "rule 401"));
+
+    // A close race is not a runaway leader.
+    v.self.colonies = 12;
+    v.self.fleet_strength = 5000;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK_FALSE(Has_(note, "rule 401"));
+}
+
+TEST_CASE("rules: 102 weighs warship numbers by Lanchester's square law") {
+    s_period_scope period;
+    const bool lanchester = rules_lanchester;
+    s_directive d;
+    std::string note;
+    // Equal total strength, but they have ten warships to our two: under the square law we lose.
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_HONORABLE, PLAYER_OBJECTIVE_DIPLOMATIC);
+    v.self.fleet_strength = 5000;
+    v.self.combat_ships = 2;
+    s_view_contact& c = Add_Contact_(&v, 1, 5, -60);
+    c.visible_fleet_strength.value = 5000;
+    c.visible_combat_ships.value = 10;
+    rules_lanchester = true;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.rule_id == 102);
+    rules_lanchester = false;  // linear strength: an even fight
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.rule_id != 102);
+    rules_lanchester = lanchester;
+}
+
+TEST_CASE("rules: 501 pushes range research while most of the galaxy is unexplored") {
+    s_period_scope period;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_();
+    v.self.stars_explored = 5;
+    v.self.stars_total = 36;
+    v.self.free_planets_in_reach = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.research_focus == RESEARCH_PROPULSION);
+    CHECK(Has_(note, "rule 501 explore: 5 of 36 stars explored, 1 free planets in reach"));
+
+    v.self.free_planets_in_reach = 3;  // free planets in reach do not matter
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.research_focus == RESEARCH_PROPULSION);
+
+    v.self.free_planets_in_reach = 0;
+    v.self.stars_explored = 18;  // half explored
+    CHECK_FALSE(Rules_Directive(&v, &d, &note));
+}
+
+TEST_CASE("rules: 301 also fires for outpost sites alone") {
+    s_period_scope period;
+    s_directive d;
+    std::string note;
+    s_empire_view v = Quiet_View_();
+    v.self.free_outpost_sites_in_reach = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.rule_id == 301);
+    CHECK(d.weights[WEIGHT_COLONIZATION] == LEVEL_HIGH);
+    CHECK(Has_(note, "0 free planets and 2 outpost sites in reach"));
 }

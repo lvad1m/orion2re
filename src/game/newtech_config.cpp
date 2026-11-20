@@ -8,4 +8,5 @@ namespace newtech {
         TECH_APP_NEURAL_SCANNER,
         TECH_APP_DEUTERIUM_FUEL_CELLS,
     };
+    bool research_uses_own_output = false;
 }

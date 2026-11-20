@@ -37,7 +37,74 @@ namespace advisor {
     // productive colony and does not scrap a colony ship under construction.
     bool Colonization_Push(uint8_t player);
 
+    // How many colony ships the push keeps in production or on their way at once: 0 without the
+    // push, 1 with the colonization weight HIGH, 2 with MAX (rule 301 with 3+ known free planets).
+    int32_t Colonization_Push_Ships(uint8_t player);
+
+    // Outposts (`rules_outposts`), with the same conditions as Colonization_Push: the AI keeps one
+    // outpost ship in production or on its way while a free asteroid or gas giant is in reach
+    // (ai_empire_production.cpp), sends it to the farthest such star within range (aimove.cpp) and
+    // settles it there (colonize.cpp AI_Colonize).
+    bool Outpost_Push(uint8_t player);
+
+    constexpr int16_t OUTPOST_PUSH_MIN_INDUSTRY_WORTH = 6;
+
     // Minimum AIBUILD::Industry_Worth of the colony that starts the pushed colony ship.
     constexpr int16_t COLONIZATION_PUSH_MIN_INDUSTRY_WORTH = 10;
+
+    // Stage 2b, intel network (docs/LocalLLM/mechanics.md 3.2.6, lever 2). With `rules_spies` on and
+    // an active directive for the computer player `player`: true, and `*count` = spies it should
+    // own in total: one observer for every contact it may spy on, plus DESIRED_SPIES_AT_WAR - 1 or
+    // DESIRED_SPIES_AT_PEACE - 1 more at the directive's spy target, but never more than it owns now
+    // plus one per BC_INCOME_PER_DESIRED_SPY BC of net income (spies cost 1 BC a turn each).
+    // AIBUILD::Compute_Needs uses it instead of the original "as many as the neighbours" demand.
+    // False: no advisor demand, the original AI decides.
+    bool Desired_Spies(uint8_t player, uint8_t* count);
+
+    // Called at the end of spy::Allocate_AI_Spies. With the same conditions as Desired_Spies,
+    // moves single spies from the target holding the most (at least two), or from home when it
+    // holds at least two, to every uncovered contact: the directive's spy target first, then by
+    // lowest relations. Observers outside the spy target get the "hide" mission (2): they steal
+    // nothing and are caught less often. No random draws.
+    void Cover_Contacts_With_Spies(uint8_t player);
+
+    constexpr int8_t SPY_MISSION_HIDE = 2;
+
+    // Stage 2g (README.md 10.5, method 1): multiplier in percent for diplomac::
+    // Fleet_Strength_Comparison(player, other) when `player` is an advised computer empire and
+    // `rules_lanchester` is on: (warships of player + 1) / (warships of other + 1), clamped to
+    // LANCHESTER_MIN_PERCENT..LANCHESTER_MAX_PERCENT. 100 otherwise. Warships: active combat ships.
+    int32_t Lanchester_Percent(uint8_t player, uint8_t other);
+
+    constexpr int32_t LANCHESTER_MIN_PERCENT = 25;
+
+    // Decisive force (Lanchester): the space strength an advised computer empire wants, in percent
+    // of the defending space strength, before it attacks a colony (aimove.cpp
+    // Compute_Attack_Worthiness). Under the square law a 1.1:1 win leaves about 30 % of the fleet
+    // and a 1.5:1 win about 75 %. 100 (attack with any edge, the original rule) unless
+    // `rules_lanchester` is on for an advised computer empire.
+    int32_t Attack_Margin_Percent(uint8_t player);
+
+    constexpr int32_t DECISIVE_FORCE_PERCENT = 150;
+    constexpr int32_t LANCHESTER_MAX_PERCENT = 400;
+
+    // Stage 2d (README.md 10.5, method 2): score bias from the attitude of `player`'s active
+    // directive toward `target`, for the AI's war, peace and treaty decisions (npcdiplo.cpp,
+    // diplomac.cpp Diplomacy_Test). ALLY +100, FRIENDLY +50, WARY -25, HOSTILE -50, WAR -100,
+    // otherwise 0; 0 unless `rules_balance` is on and `player` is an advised computer empire.
+    int32_t Attitude_Bias(uint8_t player, uint8_t target);
+
+    // Rule 501 hook for newtech::Choose_Tech_Application: true when `rules_exploration` is on and
+    // the advised computer player `player` has an active directive with research focus PROPULSION.
+    // The engine then gives range applications (fuel cells, extended fuel tanks) five times their
+    // value, even before the basic fields are researched.
+    bool Range_Research_Push(uint8_t player);
+
+    // Fuel cells and extended fuel tanks: the applications that extend ship range.
+    bool Is_Range_Application(int16_t tech_app);
+
+    constexpr int32_t DESIRED_SPIES_AT_PEACE = 2;
+    constexpr int32_t DESIRED_SPIES_AT_WAR = 4;
+    constexpr int32_t BC_INCOME_PER_DESIRED_SPY = 5;
 
 } // namespace advisor

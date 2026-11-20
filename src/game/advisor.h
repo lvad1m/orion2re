@@ -32,6 +32,11 @@ namespace advisor {
     extern bool rules_objectives;            // rules may change an empire's objective
     extern bool rules_spies;                 // rules may steer spy targets and missions
     extern bool rules_expansion;             // rules may keep a colony ship in production (stage 2v)
+    extern bool rules_outposts;              // rules may build and settle outposts
+    extern bool rules_exploration;           // rules may push range research (rule 501)
+    extern int32_t active_players;           // bit i: the advisor steers player i (0..255, default 255)
+    extern bool rules_lanchester;            // advised empires weigh fleets by Lanchester's square law
+    extern bool rules_balance;               // rules may turn empires against a runaway leader (rule 401)
     extern int32_t rules_period;             // turns a rules directive stays active (1..50)
     extern int32_t objective_min_turns;      // minimum turns between objective changes (1..100)
     extern int32_t spy_target_weight_percent;  // weight multiplier for the directive's spy target (100..1000)

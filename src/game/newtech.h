@@ -16,6 +16,9 @@ namespace newtech {
     };
 
     extern s_ai_tech_priority tech_priority;
+    // false (classic): AI research-time estimates read player 1's research output, as the original
+    // game does; true: each computer player uses its own.
+    extern bool research_uses_own_output;
 
     /**
      * Returns the highest field AI group any other player has fully researched for the specified application AI group.

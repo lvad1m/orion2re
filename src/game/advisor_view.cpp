@@ -88,12 +88,13 @@ namespace advisor {
         }
 
         // The AI colonization targets (aimove.cpp Get_Colonizable_Planets): uncolonized planets of
-        // the regular type. Unlike the AI we count only stars this empire has visited.
-        int32_t Count_Free_Planets_In_Reach_(const game::s_view* world, uint8_t player) {
+        // the regular type, or with `outpost_sites` the other types (asteroids, gas giants). Unlike
+        // the AI we count only stars this empire has visited.
+        int32_t Count_Free_Planets_In_Reach_(const game::s_view* world, uint8_t player, bool outpost_sites = false) {
             int32_t count = 0;
             for (int32_t i = 0; i < world->Planet_Count(); ++i) {
                 const s_planet_data& planet = world->planets[i];
-                if (planet.colony_index != -1 || planet.planet_type != PLANET_TYPE_PLANET
+                if (planet.colony_index != -1 || (planet.planet_type == PLANET_TYPE_PLANET) == outpost_sites
                     || !Star_Visited_By(world, planet.star_index, player)) {
                     continue;
                 }
@@ -135,11 +136,26 @@ namespace advisor {
                 }
             }
             self->free_planets_in_reach = Count_Free_Planets_In_Reach_(world, player);
+            self->free_outpost_sites_in_reach = Count_Free_Planets_In_Reach_(world, player, true);
+            for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                if (world->colonies[i].owner == static_cast<int8_t>(player) && world->colonies[i].outpost_flag != 0) {
+                    ++self->outposts;
+                }
+            }
+            for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
+                if (plr.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
+                    ++self->techs_known;
+                }
+            }
             for (int32_t i = 0; i < world->Ship_Count(); ++i) {
                 const s_ship_data* ship = &world->ships[i];
                 if (Ship_Is_Alive(ship) && ship->owner == static_cast<int8_t>(player)) {
                     ++self->ships;
-                    self->fleet_strength += Combat_Ship_Strength(world, i, player);
+                    const int32_t strength = Combat_Ship_Strength(world, i, player);
+                    self->fleet_strength += strength;
+                    if (strength > 0) {
+                        ++self->combat_ships;
+                    }
                 }
             }
         }
@@ -174,6 +190,7 @@ namespace advisor {
 
             int32_t visible_ships = 0;
             int32_t visible_strength = 0;
+            int32_t visible_combat = 0;
             for (int32_t i = 0; i < world->Ship_Count(); ++i) {
                 const s_ship_data* ship = &world->ships[i];
                 if (!Ship_Is_Alive(ship) || ship->owner != static_cast<int8_t>(other)) {
@@ -183,17 +200,58 @@ namespace advisor {
                     continue;
                 }
                 ++visible_ships;
-                visible_strength += Combat_Ship_Strength(world, i, player);
+                const int32_t strength = Combat_Ship_Strength(world, i, player);
+                visible_strength += strength;
+                if (strength > 0) {
+                    ++visible_combat;
+                }
             }
             Set_Fact(&contact->visible_ships, visible_ships, FACT_SENSORS, CONFIDENCE_HIGH, now);
             Set_Fact(&contact->visible_fleet_strength, visible_strength, FACT_SENSORS, CONFIDENCE_HIGH, now);
+            Set_Fact(&contact->visible_combat_ships, visible_combat, FACT_SENSORS, CONFIDENCE_HIGH, now);
 
             // ship_war_losses[x] / colony_war_losses[x]: losses suffered in war with x (assumed).
             Set_Fact(&contact->our_ship_losses, me.ship_war_losses[other], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
             Set_Fact(&contact->their_ship_losses, them.ship_war_losses[player], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
             Set_Fact(&contact->our_colony_losses, me.colony_war_losses[other], FACT_OWN_RECORDS, CONFIDENCE_HIGH, now);
 
-            contact->our_spies = me.spies[other];
+            // s_player::spies keeps the mission in its two high bits; the count is the low six.
+            contact->our_spies = static_cast<uint8_t>(BILL::Get_Their_Spy_Number(player, other));
+
+            // Intel network: our spies there report the whole empire, not only what we have seen.
+            if (contact->our_spies > 0) {
+                int32_t colonies = 0;
+                for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                    if (world->colonies[i].owner == static_cast<int8_t>(other)) {
+                        ++colonies;
+                    }
+                }
+                int32_t ships = 0;
+                int32_t strength = 0;
+                int32_t combat = 0;
+                for (int32_t i = 0; i < world->Ship_Count(); ++i) {
+                    const s_ship_data* ship = &world->ships[i];
+                    if (Ship_Is_Alive(ship) && ship->owner == static_cast<int8_t>(other)) {
+                        ++ships;
+                        const int32_t ship_strength = Combat_Ship_Strength(world, i, player);
+                        strength += ship_strength;
+                        if (ship_strength > 0) {
+                            ++combat;
+                        }
+                    }
+                }
+                Set_Fact(&contact->visible_combat_ships, combat, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                int32_t techs = 0;
+                for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
+                    if (them.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
+                        ++techs;
+                    }
+                }
+                Set_Fact(&contact->known_colonies, colonies, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->visible_ships, ships, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->visible_fleet_strength, strength, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->techs_known, techs, FACT_SPY, CONFIDENCE_MEDIUM, now);
+            }
         }
 
         void Append_Format(std::string* out, const char* format, ...) {
@@ -257,17 +315,20 @@ namespace advisor {
         Append_Format(out, "STARDATE %d. You advise the %s (player %d). Leader: %s. Personality: %s. Objective: %s.\n",
                       static_cast<int>(self.stardate), self.race_name, static_cast<int>(self.player), self.leader_name,
                       Personality_Name(self.personality), Objective_Name(self.objective));
-        Append_Format(out, "OUR STATE: %d colonies, population %d, industry %d/turn, research %d RP/turn, "
+        Append_Format(out, "OUR STATE: %d colonies (%d outposts), population %d, industry %d/turn, research %d RP/turn, "
                            "income %+d BC/turn, treasury %d BC, food %+d.\n",
-                      static_cast<int>(self.colonies), static_cast<int>(self.population), static_cast<int>(self.industry),
+                      static_cast<int>(self.colonies), static_cast<int>(self.outposts), static_cast<int>(self.population),
+                      static_cast<int>(self.industry),
                       static_cast<int>(self.research), static_cast<int>(self.income_bc),
                       static_cast<int>(self.treasury_bc), static_cast<int>(self.food_surplus));
         Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars, "
-                           "%d free planets in reach.\n",
+                           "%d free planets and %d outpost sites in reach.\n",
                       static_cast<int>(self.ships), static_cast<int>(self.fleet_strength),
                       static_cast<int>(self.command_points_used), static_cast<int>(self.command_points),
                       static_cast<int>(self.stars_explored), static_cast<int>(self.stars_total),
-                      static_cast<int>(self.free_planets_in_reach));
+                      static_cast<int>(self.free_planets_in_reach), static_cast<int>(self.free_outpost_sites_in_reach));
+
+        Append_Format(out, "Technologies known: %d.\n", static_cast<int>(self.techs_known));
 
         out->append("CONTACTS:");
         if (view->contact_count <= 0) {
@@ -298,6 +359,9 @@ namespace advisor {
             Append_Fact_Line(out, "ships we lost to them", contact.our_ship_losses);
             Append_Fact_Line(out, "ships they lost to us", contact.their_ship_losses);
             Append_Fact_Line(out, "colonies we lost to them", contact.our_colony_losses);
+            if (contact.techs_known.source != FACT_UNKNOWN) {
+                Append_Fact_Line(out, "technologies known", contact.techs_known);
+            }
             Append_Format(out, "   - our spies in their empire: %d\n", static_cast<int>(contact.our_spies));
         }
     }

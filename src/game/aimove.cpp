@@ -1,4 +1,6 @@
 #include "pch.h"
+
+#include "game/advisor_apply.h"
 #include "ai_compat.h"
 
 #include "legacy_world.h"
@@ -119,6 +121,8 @@ namespace AIMOVE {
         Launch_Attacks(ai, ctx, 1, 2);
 
         Assign_New_Colony_Ship_Destinations(ai, ctx, &work.colonizable);
+
+        Dispatch_Advisor_Outpost_Ships(ai, ctx);
 
         Launch_Attacks(ai, ctx, 2, 2);
 
@@ -1121,6 +1125,79 @@ namespace AIMOVE {
         }
     }
 
+    // Advisor outposts: every idle outpost ship goes to the star farthest from our colonies that is
+    // within its range, visited, has a free asteroid or gas giant and is not already the target of
+    // another of our outpost ships. A new outpost there extends the empire's reach the most.
+    void Dispatch_Advisor_Outpost_Ships(AIDATA::s_state* ai, s_ai_movement_context* ctx) {
+        const auto* world = ctx->world;
+        const uint32_t i_ai = legacy_world::Slot(ctx->player_idx);
+        if (!advisor::Outpost_Push(static_cast<uint8_t>(i_ai))) return;
+
+        std::vector<uint8_t> targeted(world->Star_Count(), 0);
+        for (int16_t s = 0; s < world->Ship_Count(); ++s) {
+            s_ship_data* ship = &world->ships[s];
+            if (ship->owner == (int8_t)i_ai && ship->d.ship_type == SHIP_TYPE_OUTPOST && ship->status == 1) {
+                const int16_t destination = SHIPMOVE::Ship_Destination_Star(ship);
+                if (destination >= 0 && destination < world->Star_Count()) targeted[destination] = 1;
+            }
+        }
+
+        for (int16_t s = 0; s < world->Ship_Count(); ++s) {
+            s_ship_data* ship = &world->ships[s];
+            if (ship->owner != (int8_t)i_ai || ship->d.ship_type != SHIP_TYPE_OUTPOST || ship->status != 0 ||
+                !SHIPMOVE::Can_Order_Ship(ship)) {
+                continue;
+            }
+            const int16_t here = ship->location;
+            if (here >= 0 && here < world->Star_Count() && COLONIZE::Star_N_Outpostable_Planets(&world->stars[here]) > 0) {
+                bool site_here = false;
+                for (int p = 0; p < 5; ++p) {
+                    const int16_t planet_idx = world->stars[here].planet_index[p];
+                    site_here = site_here || (planet_idx != -1 && world->planets[planet_idx].colony_index == -1 &&
+                                                 world->planets[planet_idx].planet_type != PLANET_TYPE_PLANET);
+                }
+                if (site_here) continue;  // AI_Colonize settles it this turn
+            }
+
+            int16_t best = -1;
+            int64_t best_distance = -1;
+            for (int16_t star = 0; star < world->Star_Count(); ++star) {
+                if (targeted[star] || ((ai->stars[legacy_world::Star_Id(star)].in_range >> i_ai) & 1) == 0 ||
+                    ((world->stars[star].visited >> i_ai) & 1) == 0) {
+                    continue;
+                }
+                bool site = false;
+                for (int p = 0; p < 5; ++p) {
+                    const int16_t planet_idx = world->stars[star].planet_index[p];
+                    site = site || (planet_idx != -1 && world->planets[planet_idx].colony_index == -1 &&
+                                       world->planets[planet_idx].planet_type != PLANET_TYPE_PLANET);
+                }
+                if (!site) continue;
+                int64_t nearest = INT64_MAX;
+                for (int16_t c = 0; c < world->Colony_Count(); ++c) {
+                    const s_colony& colony = world->colonies[c];
+                    if (colony.owner != (int8_t)i_ai || colony.planet < 0) continue;
+                    const s_star_data& home = world->stars[world->planets[colony.planet].star_index];
+                    const int64_t dx = (int64_t)home.x - world->stars[star].x;
+                    const int64_t dy = (int64_t)home.y - world->stars[star].y;
+                    nearest = std::min(nearest, dx * dx + dy * dy);
+                }
+                if (nearest != INT64_MAX && nearest > best_distance) {
+                    best_distance = nearest;
+                    best = star;
+                }
+            }
+            if (best < 0) continue;
+            const std::array<id_ship, 1> ship_list{legacy_world::Ship_Id(s)};
+            s_ship_move_info move_info{};
+            ai_compat::Evaluate_Fleet_Move(ship_list, legacy_world::Star_Id(best), &move_info);
+            if (move_info.moving != 0) {
+                ai_compat::Order_Fleet_Move(ship_list, legacy_world::Star_Id(best), &move_info);
+                targeted[best] = 1;
+            }
+        }
+    }
+
     void Assign_New_Colony_Ship_Destinations(AIDATA::s_state* ai, s_ai_movement_context* ctx, std::vector<AIDATA::s_colonization_candidate>* planets) {
         const auto* world = ctx->world;
         const uint32_t i_ai = legacy_world::Slot(ctx->player_idx);
@@ -1910,6 +1987,11 @@ namespace AIMOVE {
 
             bool success = true;
             if (attack_space <= defending_space || attack_ground <= defending_ground) {
+                success = false;
+            }
+            // Advisor (Lanchester): decisive force only; 100 % keeps the original "any edge" rule.
+            const uint64_t margin = static_cast<uint64_t>(advisor::Attack_Margin_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx))));
+            if (margin > 100 && static_cast<uint64_t>(attack_space) * 100 < static_cast<uint64_t>(defending_space) * margin) {
                 success = false;
             }
 

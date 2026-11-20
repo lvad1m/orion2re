@@ -12,6 +12,11 @@ namespace advisor {
     bool rules_objectives = true;
     bool rules_spies = true;
     bool rules_expansion = true;
+    bool rules_outposts = true;
+    bool rules_exploration = true;
+    int32_t active_players = 255;
+    bool rules_lanchester = true;
+    bool rules_balance = true;
     int32_t rules_period = 5;
     int32_t objective_min_turns = 10;
     int32_t spy_target_weight_percent = 300;

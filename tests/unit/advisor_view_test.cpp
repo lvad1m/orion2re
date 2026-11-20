@@ -213,13 +213,66 @@ DOCTEST_TEST_CASE_FIXTURE(s_advisor_state, "advisor counts free regular planets 
 
     DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
     DOCTEST_CHECK(view.self.free_planets_in_reach == 2);
+    DOCTEST_CHECK(view.self.free_outpost_sites_in_reach == 1);  // the gas giant at star 1
 
     std::string summary;
     advisor::Format_Empire_Summary(&view, &summary);
-    DOCTEST_CHECK(summary.find("2 free planets in reach") != std::string::npos);
+    DOCTEST_CHECK(summary.find("2 free planets and 1 outpost sites in reach") != std::string::npos);
 
     // Longer range brings the far star into reach; the black hole still blocks star 4.
     MOX::player[0].ship_range = 10;
     DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
     DOCTEST_CHECK(view.self.free_planets_in_reach == 3);
+}
+
+DOCTEST_TEST_CASE_FIXTURE(s_advisor_state, "advisor counts researched technology applications") {
+    MOX::player[0].tech_applications[TECH_APP_COLONY_SHIP] = TECH_RESEARCH_STATUS_RESEARCHED;
+    MOX::player[0].tech_applications[TECH_APP_COLONY_BASE] = TECH_RESEARCH_STATUS_RESEARCHED;
+    MOX::player[1].tech_applications[TECH_APP_SPACEPORT] = TECH_RESEARCH_STATUS_RESEARCHED;
+    const game::s_view world = legacy_world::World();
+    advisor::s_empire_view view;
+
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.self.techs_known == 2);
+    std::string summary;
+    advisor::Format_Empire_Summary(&view, &summary);
+    DOCTEST_CHECK(summary.find("Technologies known: 2.") != std::string::npos);
+}
+
+DOCTEST_TEST_CASE_FIXTURE(s_advisor_state, "advisor learns a whole empire from its spies there") {
+    MOX::player[0].contact[1] = 1;
+    MOX::NUM_STARS = 2;
+    MOX::planet_count = 2;
+    MOX::NUM_COLONIES = 2;
+    MOX::planet[0].star_index = 0;
+    MOX::planet[1].star_index = 1;
+    MOX::colony[0].owner = 1;
+    MOX::colony[0].planet = 0;
+    MOX::colony[1].owner = 1;
+    MOX::colony[1].planet = 1;
+    MOX::star[0].visited = 1;  // we have seen only one of their colonies
+    MOX::player[1].tech_applications[TECH_APP_SPACEPORT] = TECH_RESEARCH_STATUS_RESEARCHED;
+    const game::s_view world = legacy_world::World();
+    advisor::s_empire_view view;
+
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.contacts[0].known_colonies.value == 1);
+    DOCTEST_CHECK(view.contacts[0].known_colonies.source == advisor::FACT_OWN_RECORDS);
+    DOCTEST_CHECK(view.contacts[0].techs_known.source == advisor::FACT_UNKNOWN);
+
+    MOX::player[0].spies[1] = 0x80;  // mission bits only (hide), no spy
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.contacts[0].our_spies == 0);
+    DOCTEST_CHECK(view.contacts[0].known_colonies.source == advisor::FACT_OWN_RECORDS);
+
+    MOX::player[0].spies[1] = 0x81;  // one spy hiding
+    DOCTEST_REQUIRE(advisor::Build_Empire_View(&world, 0, &view));
+    DOCTEST_CHECK(view.contacts[0].our_spies == 1);
+    DOCTEST_CHECK(view.contacts[0].known_colonies.value == 2);
+    DOCTEST_CHECK(view.contacts[0].known_colonies.source == advisor::FACT_SPY);
+    DOCTEST_CHECK(view.contacts[0].techs_known.value == 1);
+    DOCTEST_CHECK(view.contacts[0].techs_known.source == advisor::FACT_SPY);
+    std::string summary;
+    advisor::Format_Empire_Summary(&view, &summary);
+    DOCTEST_CHECK(summary.find("technologies known 1 [spy") != std::string::npos);
 }

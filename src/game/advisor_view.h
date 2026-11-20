@@ -15,7 +15,8 @@
 // rumours and disinformation come later through the same fields.
 //
 // Own data is complete. Other empires appear only after contact, their colonies only at stars
-// this empire has visited, and their fleets only as this empire detects them
+// this empire has visited, and their fleets only as this empire detects them; with our spies in
+// an empire its colonies, fleet and technologies come from the spy report (FACT_SPY)
 // (SHIPSTAK::Is_Ship_Detected_By, the rule of Remove_Non_Detected_Ships for any observer).
 namespace advisor {
 
@@ -61,6 +62,7 @@ namespace advisor {
         int32_t colonies = 0;
         int32_t ships = 0;
         int32_t fleet_strength = 0;
+        int32_t combat_ships = 0;         // ships with a combat strength above zero
         int32_t command_points = 0;
         int32_t command_points_used = 0;
         int32_t stars_explored = 0;
@@ -68,6 +70,10 @@ namespace advisor {
         // Uncolonized regular planets at stars we have visited and within our extended ship
         // range: the targets the AI colonization code could send a colony ship to.
         int32_t free_planets_in_reach = 0;
+        // Uncolonized asteroids and gas giants at visited stars within extended range: outpost sites.
+        int32_t free_outpost_sites_in_reach = 0;
+        int32_t outposts = 0;             // our colonies without population (included in `colonies`)
+        int32_t techs_known = 0;          // researched technology applications
     };
 
     struct s_view_contact {
@@ -82,6 +88,8 @@ namespace advisor {
         s_fact known_colonies;            // at stars we have visited
         s_fact visible_ships;             // detected this turn
         s_fact visible_fleet_strength;    // same measure as s_view_self::fleet_strength
+        s_fact visible_combat_ships;      // detected ships with a combat strength above zero
+        s_fact techs_known;               // researched applications; only from our spies there
         s_fact our_ship_losses;           // ships we lost to them
         s_fact their_ship_losses;         // ships they lost to us
         s_fact our_colony_losses;         // colonies we lost to them

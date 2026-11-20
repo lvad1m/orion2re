@@ -59,3 +59,12 @@ uint32_t __cdecl Random(uint32_t) {
     return 1;
 }
 }
+namespace advisor {
+    // The advisor is off in these tests: no range-research push.
+    bool Range_Research_Push(uint8_t) {
+        return false;
+    }
+    bool Is_Range_Application(int16_t) {
+        return false;
+    }
+} // namespace advisor

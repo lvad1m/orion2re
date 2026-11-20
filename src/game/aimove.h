@@ -127,6 +127,7 @@ namespace AIMOVE {
     void __cdecl Interceptions(AIDATA::s_state* ai, s_ai_movement_context* ctx, s_interception_target* intercepts, int* count, const std::unordered_map<id_star, uint32_t>* star_to_intercept_idx, int is_desperate);
 
     void Assign_New_Colony_Ship_Destinations(AIDATA::s_state* ai, s_ai_movement_context* ctx, std::vector<AIDATA::s_colonization_candidate>* planets);
+    void Dispatch_Advisor_Outpost_Ships(AIDATA::s_state* ai, s_ai_movement_context* ctx);
 
     bool Star_Has_Monster(const game::s_view* world, id_star star_idx);
 

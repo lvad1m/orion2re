@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/advisor_apply.h"
+
 namespace npcdiplo {
     s_npcdiplo_tech target_tech[TECH_APP_COUNT];
 
@@ -297,6 +299,8 @@ namespace npcdiplo {
                             threshold += 50;
                         else if (p_source.tribute_treaty[j] == 2)
                             threshold += 100;
+                        // Advisor (stage 2d): hostile lowers the bar for war, friendly raises it.
+                        threshold += 2 * advisor::Attitude_Bias(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
 
                         for (int k = 0; k < MOX::NUM_PLAYERS; ++k) {
                             if (k != i && k != j && !MOX::player[k].eliminated &&
@@ -471,6 +475,8 @@ namespace npcdiplo {
                     }
 
                     int threshold = (6 - MOX::settings.game_difficulty) * 15 - (int)war_count * 20;
+                    // Advisor (stage 2d): peace with a friend comes sooner, with the leader later.
+                    threshold -= advisor::Attitude_Bias(static_cast<uint8_t>(i), static_cast<uint8_t>(j)) / 5;
 
                     if (threshold < (int)(uint8_t)p_i.time_since_last_attack[j]) {
                         int16_t surrender_to = NPC_Surrender_Check(i);
@@ -651,6 +657,9 @@ namespace npcdiplo {
                             if (plr_j.threats[k] > 0) common_score += 5;
                         }
                     }
+                    // Advisor (stage 2d): both sides' balance-of-power attitudes.
+                    common_score += advisor::Attitude_Bias(static_cast<uint8_t>(i), static_cast<uint8_t>(j)) +
+                        advisor::Attitude_Bias(static_cast<uint8_t>(j), static_cast<uint8_t>(i));
 
                     int32_t num_player_allies = 0;
                     int32_t num_nonplayer_allies = 0;

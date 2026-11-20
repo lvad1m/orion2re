@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/advisor_apply.h"
+
 namespace COLONIZE {
     int16_t Star_N_Uncolonized_Planets(s_star_data* star) {
         int16_t uncolonized_count = 0;
@@ -257,6 +259,22 @@ namespace COLONIZE {
 
                     if (colony_base_ptr == nullptr && colony_ship_ptr == nullptr) {
                         done_with_star = true;
+                        // Advisor outposts: settle a free asteroid or gas giant with our outpost ship.
+                        s_ship_data* outpost_ship_ptr = advisor::Outpost_Push(static_cast<uint8_t>(player_idx))
+                            ? REPORT::Player_Ship_Type_At_Star(player_idx, SHIP_TYPE_OUTPOST, i, 1)
+                            : nullptr;
+                        if (outpost_ship_ptr != nullptr) {
+                            for (int p = 0; p < 5; ++p) {
+                                const int16_t planet_idx = star->planet_index[p];
+                                if (planet_idx != -1 && MOX::planet[planet_idx].colony_index == -1 &&
+                                    MOX::planet[planet_idx].planet_type != PLANET_TYPE_PLANET) {
+                                    COLONIZE::Make_New_Outpost(planet_idx, player_idx);
+                                    SHIPS::Kill_Ship((int16_t)(outpost_ship_ptr - MOX::ship));
+                                    MAINSCR::Update_Ship_Icons_In_Between_Turns();
+                                    break;
+                                }
+                            }
+                        }
                     } else {
                         uint32_t best_worth = 0;
                         int16_t best_planet_idx = -1;
