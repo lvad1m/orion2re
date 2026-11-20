@@ -1228,6 +1228,45 @@ target_link_libraries(orion2re-router PRIVATE
     ${ORION2RE_LZ4_TARGET}
 )
 
+# orion2re-launcher (docs/LocalLLM/launcher.md): language, rules preset and advisor mechanics,
+# written to data/user.cfg next to the game. Needs the vendored Dear ImGui SDL3 backends.
+set(ORION2RE_LAUNCHER_BACKEND_DIR "${ORION2RE_VENDORED_IMGUI_DIR}/backends")
+if(ORION2RE_BUILD_GAME AND TARGET orion2re_imgui AND NOT ORION2RE_IMGUI_USE_PREBUILT AND
+   EXISTS "${ORION2RE_LAUNCHER_BACKEND_DIR}/imgui_impl_sdl3.cpp" AND
+   EXISTS "${ORION2RE_LAUNCHER_BACKEND_DIR}/imgui_impl_sdlrenderer3.cpp")
+    add_executable(orion2re-launcher
+        tools/launcher/launcher_main.cpp
+        tools/launcher/launcher_config.cpp
+        "${ORION2RE_LAUNCHER_BACKEND_DIR}/imgui_impl_sdl3.cpp"
+        "${ORION2RE_LAUNCHER_BACKEND_DIR}/imgui_impl_sdlrenderer3.cpp"
+    )
+    if(ORION2RE_EXCLUDE_RUNTIME_FROM_ALL)
+        set_target_properties(orion2re-launcher PROPERTIES EXCLUDE_FROM_ALL YES)
+    endif()
+    target_compile_features(orion2re-launcher PRIVATE cxx_std_20)
+    target_include_directories(orion2re-launcher PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher"
+        "${ORION2RE_LAUNCHER_BACKEND_DIR}"
+    )
+    target_link_libraries(orion2re-launcher PRIVATE ${ORION2RE_SDL3_TARGET} orion2re_imgui)
+    install(TARGETS orion2re-launcher RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
+    if(WIN32)
+        set_target_properties(orion2re-launcher PROPERTIES WIN32_EXECUTABLE YES)
+    endif()
+    if(MSVC)
+        target_compile_options(orion2re-launcher PRIVATE /W3 /permissive- /utf-8)
+        target_compile_definitions(orion2re-launcher PRIVATE _CRT_SECURE_NO_DEPRECATE)
+    endif()
+    if(ORION2RE_GAME_DIR)
+        add_custom_command(TARGET orion2re-launcher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                $<TARGET_FILE:orion2re-launcher>
+                "${ORION2RE_GAME_DIR}/$<TARGET_FILE_NAME:orion2re-launcher>"
+        )
+        set_target_properties(orion2re-launcher PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${ORION2RE_GAME_DIR}")
+    endif()
+endif()
+
 if(ORION2RE_LITTLE_ENDIAN_COMPILE_FLAG)
     if(TARGET orion2re_game_objects)
         target_compile_options(orion2re_game_objects PRIVATE

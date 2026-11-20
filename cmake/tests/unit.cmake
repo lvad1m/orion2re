@@ -318,6 +318,18 @@ orion2re_add_unit_test(test_cfg_parser
         src/config/cfg_parser.cpp
 )
 
+orion2re_add_unit_test(test_launcher
+    SOURCES
+        tests/unit/launcher_test.cpp
+    PRODUCTION_SOURCES
+        tools/launcher/launcher_config.cpp
+        src/config/cfg_parser.cpp
+)
+target_include_directories(test_launcher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher")
+target_compile_definitions(test_launcher PRIVATE
+    CONFIG_MAIN_SCHEMA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/specs/config/main.json5"
+)
+
 orion2re_add_unit_test(test_config_enums
     SOURCES
         tests/unit/config_enums_test.cpp
