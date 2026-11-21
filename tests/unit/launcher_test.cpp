@@ -65,6 +65,7 @@ DOCTEST_TEST_CASE("presets choose the mechanics") {
     DOCTEST_CHECK(Has_(classic, "advisor enabled = false;"));
     DOCTEST_CHECK(!Has_(classic, "enable "));
     DOCTEST_CHECK(!Has_(classic, "research_uses_own_output"));
+    DOCTEST_CHECK(!Has_(classic, "diplomacy memory"));
 
     const std::string v150 = launcher::Build_User_Cfg(Settings_(launcher::PRESET_V150));
     DOCTEST_CHECK(Has_(v150, "\nenable v150;\n"));
@@ -76,6 +77,7 @@ DOCTEST_TEST_CASE("presets choose the mechanics") {
     DOCTEST_CHECK(Has_(rivals, "advisor rules_doctrine = true;"));
     DOCTEST_CHECK(Has_(rivals, "colony misc_costs spy = 60;"));
     DOCTEST_CHECK(Has_(rivals, "ai research_uses_own_output = true;"));
+    DOCTEST_CHECK(Has_(rivals, "\ndiplomacy memory = true;\n"));
 }
 
 DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
@@ -86,8 +88,10 @@ DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
     settings.mechanics.rivals_adapt = false;
     settings.mechanics.diplomacy = true;
     settings.mechanics.research_fix = false;
+    settings.mechanics.memory = false;
     settings.mods = {"v150", "bad mod;", "extra_rules"};
     const std::string text = launcher::Build_User_Cfg(settings);
+    DOCTEST_CHECK(!Has_(text, "diplomacy memory"));
     DOCTEST_CHECK(Has_(text, "\nenable v150;\n"));
     DOCTEST_CHECK(Has_(text, "\nenable extra_rules;\n"));
     DOCTEST_CHECK(!Has_(text, "bad mod"));
@@ -104,6 +108,7 @@ DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
     DOCTEST_CHECK(!read.mechanics.rivals_adapt);
     DOCTEST_CHECK(read.mechanics.diplomacy);
     DOCTEST_CHECK(!read.mechanics.research_fix);
+    DOCTEST_CHECK(!read.mechanics.memory);
     DOCTEST_REQUIRE(read.mods.size() == 2);
     DOCTEST_CHECK(read.mods[0] == "v150");
     DOCTEST_CHECK(read.mods[1] == "extra_rules");

@@ -51,6 +51,8 @@ namespace {
     const s_text TEXT_DIPLOMACY = {"Diplomacy: coalition against the leader, Byzantine doctrine",
         "Дипломатия: коалиция против лидера, византийская доктрина"};
     const s_text TEXT_RESEARCH_FIX = {"Fix the original AI research estimate", "Исправить ошибку оригинала в выборе исследований ИИ"};
+    const s_text TEXT_MEMORY = {"Diplomatic memory: trust heals, grievances fade, empires tire of costly wars",
+        "Дипломатическая память: доверие восстанавливается, обиды забываются, дорогие войны утомляют"};
     const s_text TEXT_MODS = {"Mods", "Моды"};
     const s_text TEXT_PREVIEW = {"user.cfg that will be written", "Будущий user.cfg"};
     const s_text TEXT_START = {"Start", "Старт"};
@@ -233,6 +235,7 @@ namespace {
             ImGui::Checkbox(T(*app, TEXT_DIPLOMACY), &m.diplomacy);
             ImGui::EndDisabled();
             ImGui::Checkbox(T(*app, TEXT_RESEARCH_FIX), &m.research_fix);
+            ImGui::Checkbox(T(*app, TEXT_MEMORY), &m.memory);
             if (!app->available_mods.empty()) {
                 ImGui::TextUnformatted(T(*app, TEXT_MODS));
                 if (ImGui::BeginTable("##mods", 4)) {

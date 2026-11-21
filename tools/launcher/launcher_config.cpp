@@ -50,9 +50,9 @@ namespace launcher {
 
         std::string Mechanics_Text_(const s_mechanics& m) {
             char buffer[160];
-            std::snprintf(buffer, sizeof(buffer), "advisor=%d espionage=%d expansion=%d rivals_adapt=%d diplomacy=%d research_fix=%d",
+            std::snprintf(buffer, sizeof(buffer), "advisor=%d espionage=%d expansion=%d rivals_adapt=%d diplomacy=%d research_fix=%d memory=%d",
                 m.advisor ? 1 : 0, m.espionage, m.expansion, m.rivals_adapt ? 1 : 0, m.diplomacy ? 1 : 0,
-                m.research_fix ? 1 : 0);
+                m.research_fix ? 1 : 0, m.memory ? 1 : 0);
             return buffer;
         }
 
@@ -70,6 +70,7 @@ namespace launcher {
                 else if (key == "rivals_adapt") m->rivals_adapt = value != 0;
                 else if (key == "diplomacy") m->diplomacy = value != 0;
                 else if (key == "research_fix") m->research_fix = value != 0;
+                else if (key == "memory") m->memory = value != 0;
             }
         }
 
@@ -123,6 +124,7 @@ namespace launcher {
                 m.rivals_adapt = false;
                 m.diplomacy = false;
                 m.research_fix = false;
+                m.memory = false;
                 break;
             case PRESET_LIVING_RIVALS:
                 m.advisor = true;
@@ -131,6 +133,7 @@ namespace launcher {
                 m.rivals_adapt = true;
                 m.diplomacy = true;
                 m.research_fix = true;
+                m.memory = true;  // README 10.4.4: wars end sooner, galaxies grow more
                 break;
             default:
                 break;
@@ -171,6 +174,7 @@ namespace launcher {
         }
         if (m.espionage > 1) Line_(&out, "colony misc_costs spy = 60;");
         if (m.research_fix) Line_(&out, "ai research_uses_own_output = true;");
+        if (m.memory) Line_(&out, "diplomacy memory = true;");
         return out;
     }
 

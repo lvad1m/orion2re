@@ -32,6 +32,7 @@ namespace launcher {
         bool rivals_adapt = true;  // objectives, exploration, Lanchester and decisive force
         bool diplomacy = true;     // coalition against the leader and the Byzantine doctrine
         bool research_fix = true;  // ai research_uses_own_output
+        bool memory = true;        // diplomacy memory: trust heals, grievances fade, war weariness (every empire)
     };
 
     struct s_settings {
