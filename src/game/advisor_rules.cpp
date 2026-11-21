@@ -39,8 +39,13 @@ namespace advisor {
         // Phase strategy (rules 406, 407): not before this turn, when the galaxy has taken shape.
         constexpr int32_t PHASE_FIRST_TURN_ = 100;
         // Rule 407: a would-be winner needs at least this many sure votes (population 100); the
-        // first bench games flagged "2 of 4 known votes" at turn 100.
+        // first bench games flagged "2 of 4 known votes" at turn 100. And 3/5 of the votes we know
+        // (the council needs 2/3 of all): at half it ganged up on every natural leader.
         constexpr int32_t PHASE_MIN_THREAT_VOTES_ = 10;
+        constexpr int32_t PHASE_THREAT_NUM_ = 3;
+        constexpr int32_t PHASE_THREAT_DEN_ = 5;
+        // Rule 406: we lead with at least 1.5 times the colonies of every contact, and at least this many.
+        constexpr int32_t PHASE_LEADER_MIN_COLONIES_ = 3;
 
         // We know a contact's size from our spies or from colonies of theirs we have seen.
         bool Known_Size_(const s_view_contact& c) {
@@ -319,7 +324,7 @@ namespace advisor {
         // When a contact clearly leads, everyone else gains by balancing against it: hostile to the
         // leader, friendly to the others (peace sooner, treaties easier).
         uint16_t balance_rule = 0;
-        bool we_lead = false;  // the test of rule 401 applied to us
+        bool we_lead = false;  // rule 406's claim to lead (below)
         int strongest_other = -1;  // contact index with the highest power index
         if (count > 0) {
             int64_t colonies_total = std::max(0, self.colonies);
@@ -347,15 +352,20 @@ namespace advisor {
                     second_index = value;
                 }
             }
-            // Without spies a contact's fleet is only what our scanners see this turn, so its power
-            // looks small: an empire of one colony "led" in the first bench games. We claim the lead
-            // only with spies at every contact and at least as many colonies as each (rule II).
-            bool lead_known = true;
+            // Rule 406's claim to lead: at least 1.5 times the colonies of every contact - the
+            // council counts population, not ships - each contact known through our spies or a
+            // broad exploration (half the stars) and with colonies we have seen. Fleets are left out:
+            // without spies a fleet is only what our scanners see this turn (an empire of one colony
+            // "led" in the first bench games). With spies at every contact the claim held in 5 % of
+            // the turns on Average, this way in 9 % (benches/phases400).
+            bool lead_known = self.colonies >= PHASE_LEADER_MIN_COLONIES_;
+            const bool explored = 2 * self.stars_explored >= self.stars_total;
             for (int i = 0; i < count; ++i) {
                 const s_view_contact& c = view->contacts[i];
-                lead_known = lead_known && c.our_spies > 0 && c.known_colonies.value <= self.colonies;
+                lead_known = lead_known && Known_Size_(c) && (c.our_spies > 0 || explored) &&
+                    3 * c.known_colonies.value <= 2 * self.colonies;
             }
-            we_lead = lead_known && leader < 0 && leader_index >= BALANCE_MIN_INDEX_ && 2 * leader_index >= 3 * second_index;
+            we_lead = lead_known;
             int32_t strongest_index = -1;
             for (int i = 0; i < count; ++i) {
                 const int32_t value = index(view->contacts[i].known_colonies.value, view->contacts[i].visible_fleet_strength.value);
@@ -405,19 +415,18 @@ namespace advisor {
         // Phase strategy (rules_phases; README.md 10.7). The Byzantine doctrine keeps an empire alive
         // among strong neighbours; MOO2 is won by conquest or by two thirds of the council votes
         // (population / 10; an ally always votes for its ally, council.cpp Vote_Check). From turn
-        // PHASE_FIRST_TURN_, with at least two contacts:
-        // - rule 407 (against a winner, any phase): a contact nominated for the council (one of the
-        //   two empires with the most votes) whose own and allies' votes - not the rival nominee's -
-        //   reach half of all votes we know is on its way to a council win -> HOSTILE (WARY if it
-        //   is our ally), its allies courted (FRIENDLY), it becomes the main rival;
-        // - rule 406 (leader, "Rome"): when we lead by power (the test rule 401 applies to others),
-        //   play for victory: a fleet (fleet weight HIGH, read by the Readiness hook), peace with the
+        // PHASE_FIRST_TURN_; each rule is a part of phase_parts:
+        // - rule 407 (against a winner, any phase, two contacts or more): a contact nominated for the
+        //   council (one of the two empires with the most votes) whose own and allies' votes - not
+        //   the rival nominee's - reach 3/5 of all votes we know is on its way to a council win ->
+        //   HOSTILE (WARY if it is our ally), its allies courted (FRIENDLY), it becomes the main rival;
+        // - rule 406 (leader, "Rome"): when we lead (the claim above: colonies), play for victory: a fleet (fleet weight HIGH, read by the Readiness hook), peace with the
         //   strongest other empire (one front), friends and an ally among the rest for their votes,
         //   and one weak neighbour at a time conquered (WAR, START_NEW_WAR, main rival; not spared by
         //   rule 403) - unless our own and our allies' votes already reach two thirds: then keep the
         //   peace and let the council crown us.
         uint16_t phase_rule = 0;
-        if (rules_phases && count >= 2 && self.stardate - GAME_START_STARDATE_ >= PHASE_FIRST_TURN_) {
+        if (rules_phases && count >= 1 && self.stardate - GAME_START_STARDATE_ >= PHASE_FIRST_TURN_) {
             int32_t votes[MAX_PLAYERS] = {};
             const int32_t our_votes = Votes_(self.population);
             int32_t total_votes = our_votes;
@@ -455,8 +464,8 @@ namespace advisor {
                 for (int j = 0; j < count; ++j) {
                     if (j != i && j != rival && (c.allied_with & bit(j)) != 0) sure += votes[j];
                 }
-                if (!Known_Size_(c) || sure < PHASE_MIN_THREAT_VOTES_) continue;
-                if (total_votes > 0 && 2 * sure >= total_votes && sure > threat_votes) {
+                if (!Phase(PHASE_PART_AGAINST_WINNER) || count < 2 || !Known_Size_(c) || sure < PHASE_MIN_THREAT_VOTES_) continue;
+                if (total_votes > 0 && PHASE_THREAT_DEN_ * sure >= PHASE_THREAT_NUM_ * total_votes && sure > threat_votes) {
                     threat = i;
                     threat_votes = sure;
                 }
@@ -478,7 +487,7 @@ namespace advisor {
                     static_cast<int>(x.player), threat_votes, total_votes,
                     x.treaty.value == ALLIANCE_TREATY_ ? "WARY" : "HOSTILE", courted);
                 Append_Note_(&text, line);
-            } else if (we_lead) {
+            } else if (we_lead && Phase(PHASE_PART_LEADER)) {
                 phase_rule = 406;
                 d.weights[WEIGHT_FLEET] = LEVEL_HIGH;
                 const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);

@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "string_overrides.h"
 #include "game/advisor_apply.h"
+#include "game/council_ai.h"
 
 namespace council {
     const char lbx_00559a68[12] = "council.lbx";
@@ -67,7 +68,11 @@ namespace council {
             return;
         }
 
-        council::Main_Council_Screen();
+        if (RUSS::all_ai_game != 0) {
+            Hold_Council_Without_Humans();
+        } else {
+            council::Main_Council_Screen();
+        }
         diplodef::next_council_meeting_turn = (int16_t)(current_turn_offset + meeting_schedule.meeting_interval);
     }
 
@@ -282,32 +287,129 @@ namespace council {
         council::council_voter = -1;
     }
 
-    void __cdecl Council_Vote_Result(int8_t vote_choice, uint8_t player_idx) {
-        uint8_t nominee_id;
+    namespace {
+        // The effects of one vote, without the screen: relations, the voter's choice for the next
+        // meeting and the nominee's vote total (council_vote_cast votes).
+        void Apply_Council_Vote_(int8_t vote_choice, uint8_t player_idx) {
+            uint8_t nominee_id;
 
-        if (vote_choice == 0) {
-            council::council_state = 3;
-            diplomac::Change_Relations(-6, player_idx, council::council_nominee_[1], 0, 0, 0);
-            diplomac::Change_Relations(-6, player_idx, council::council_nominee_[0], 0, 0, 0);
-            MOX::player[player_idx].council_voted_for = -1;
-        } else if (vote_choice == 1) {
-            council::council_nominee_vote_total[0] += council::council_vote_cast;
-            council::council_state = 2;
-            council::council_vote_for = 0;
-            diplomac::Change_Relations(24, player_idx, council::council_nominee_[0], 16, 0, 0);
-            diplomac::Change_Relations(-12, player_idx, council::council_nominee_[1], 9, 0, 0);
-            nominee_id = council::council_nominee_[0];
-            MOX::player[player_idx].council_voted_for = nominee_id;
-        } else if (vote_choice == 2) {
-            council::council_nominee_vote_total[1] += council::council_vote_cast;
-            council::council_state = 2;
-            council::council_vote_for = 1;
-            diplomac::Change_Relations(24, player_idx, council::council_nominee_[1], 16, 0, 0);
-            diplomac::Change_Relations(-12, player_idx, council::council_nominee_[0], 9, 0, 0);
-            nominee_id = council::council_nominee_[1];
-            MOX::player[player_idx].council_voted_for = nominee_id;
+            if (vote_choice == 0) {
+                council::council_state = 3;
+                diplomac::Change_Relations(-6, player_idx, council::council_nominee_[1], 0, 0, 0);
+                diplomac::Change_Relations(-6, player_idx, council::council_nominee_[0], 0, 0, 0);
+                MOX::player[player_idx].council_voted_for = -1;
+            } else if (vote_choice == 1) {
+                council::council_nominee_vote_total[0] += council::council_vote_cast;
+                council::council_state = 2;
+                council::council_vote_for = 0;
+                diplomac::Change_Relations(24, player_idx, council::council_nominee_[0], 16, 0, 0);
+                diplomac::Change_Relations(-12, player_idx, council::council_nominee_[1], 9, 0, 0);
+                nominee_id = council::council_nominee_[0];
+                MOX::player[player_idx].council_voted_for = nominee_id;
+            } else if (vote_choice == 2) {
+                council::council_nominee_vote_total[1] += council::council_vote_cast;
+                council::council_state = 2;
+                council::council_vote_for = 1;
+                diplomac::Change_Relations(24, player_idx, council::council_nominee_[1], 16, 0, 0);
+                diplomac::Change_Relations(-12, player_idx, council::council_nominee_[0], 9, 0, 0);
+                nominee_id = council::council_nominee_[1];
+                MOX::player[player_idx].council_voted_for = nominee_id;
+            }
         }
 
+        // A member's choice as Council_Votes makes it: abstain when it supports both or neither.
+        int8_t Member_Choice_(uint8_t member_id) {
+            const bool vote0 = Vote_Check(council_nominee_[0], member_id, council_nominee_[1]);
+            const bool vote1 = Vote_Check(council_nominee_[1], member_id, council_nominee_[0]);
+            if (vote0) return vote1 ? 0 : 1;
+            return vote1 ? 2 : 0;
+        }
+    } // namespace
+
+    int16_t Hold_Council_Without_Humans() {
+        // Nominees and members as Reload_Main_Council_Screen.
+        int16_t max_votes = 0;
+        for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
+            if (MOX::player[i].eliminated != 0) continue;
+            const int16_t votes = Get_Num_Votes((uint8_t)i);
+            if (max_votes < votes) {
+                max_votes = votes;
+                council_nominee_[0] = (uint8_t)i;
+            }
+        }
+        max_votes = 0;
+        for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
+            if (MOX::player[i].eliminated != 0 || (uint8_t)i == council_nominee_[0]) continue;
+            const int16_t votes = Get_Num_Votes((uint8_t)i);
+            if (max_votes < votes) {
+                max_votes = votes;
+                council_nominee_[1] = (uint8_t)i;
+            }
+        }
+        council_total_members = 0;
+        for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
+            if (MOX::player[i].eliminated == 0 && (uint8_t)i != council_nominee_[0] && (uint8_t)i != council_nominee_[1]) {
+                council_members[council_total_members++] = (uint8_t)i;
+            }
+        }
+        council_total_votes = 0;
+        for (int16_t i = 0; i < (int16_t)council_total_members; ++i) {
+            council_member_votes[i] = Get_Num_Votes(council_members[i]);
+            council_total_votes += council_member_votes[i];
+        }
+        council_nominee_votes[0] = Get_Num_Votes(council_nominee_[0]);
+        council_nominee_votes[1] = Get_Num_Votes(council_nominee_[1]);
+        council_total_votes += council_nominee_votes[0] + council_nominee_votes[1];
+        for (int16_t i = 0; i < (int16_t)council_total_members; ++i) {
+            for (int16_t j = 0; j < (int16_t)council_total_members - 1; ++j) {
+                if (council_member_votes[j] < council_member_votes[j + 1]) {
+                    strings::Swap_Short(&council_member_votes[j], &council_member_votes[j + 1]);
+                    strings::Swap_Char(&council_members[j], &council_members[j + 1]);
+                }
+            }
+        }
+
+        // The vote as Main_Council_Screen holds it, with every member voting like Council_Votes
+        // makes a computer empire vote.
+        diplodef::COUNCIL_FLAG = 1;
+        council_nominee_vote_total[0] = 0;
+        council_nominee_vote_total[1] = 0;
+        for (int16_t i = 0; i < (int16_t)council_total_members; ++i) {
+            const uint8_t member_id = council_members[i];
+            const int8_t choice = Member_Choice_(member_id);
+            council_vote_cast = council_member_votes[i];
+            council_voter = (int8_t)member_id;
+            Apply_Council_Vote_(choice, member_id);
+        }
+        for (int n = 0; n < 2; ++n) {
+            council_vote_cast = council_nominee_votes[n];
+            council_voter = (int8_t)council_nominee_[n];
+            Apply_Council_Vote_((int8_t)(council_nominee_votes[n] >= 1 ? n + 1 : 0), council_nominee_[n]);
+        }
+
+        // The two-thirds rule of Council_Finished_Voting; the elected nominee wins as if the
+        // ruling were accepted (Council_Accept_Ruling).
+        const int32_t threshold = (council_total_votes * 2 + 2) / 3;
+        int16_t winner = -1;
+        if (council_nominee_vote_total[0] >= threshold) {
+            winner = council_nominee_[0];
+        } else if (council_nominee_vote_total[1] >= threshold) {
+            winner = council_nominee_[1];
+        }
+        if (winner >= 0) {
+            diplodef::council_winner = winner;
+            MOX::player[winner].won_council_vote = 1;
+        }
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+            "council: stardate %d, nominees %d (%d votes) and %d (%d votes), %d and %d of %d votes cast for them, %d needed, elected %d",
+            (int)MOX::stardate, (int)council_nominee_[0], (int)council_nominee_votes[0], (int)council_nominee_[1],
+            (int)council_nominee_votes[1], (int)council_nominee_vote_total[0], (int)council_nominee_vote_total[1],
+            (int)council_total_votes, (int)threshold, (int)winner);
+        return winner;
+    }
+
+    void __cdecl Council_Vote_Result(int8_t vote_choice, uint8_t player_idx) {
+        Apply_Council_Vote_(vote_choice, player_idx);
         council::Get_Council_Message();
         council::Control_Main_Council_Screen();
     }

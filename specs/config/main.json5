@@ -8637,7 +8637,7 @@
 
     rules_phases: {
       title: "Advisor plays for victory by phases",
-      description: "Phase strategy above the Byzantine doctrine. Rule 406: from turn 100 an advised empire that leads the galaxy it knows by power plays for victory - a fleet sized to its strongest neighbour, peace with the strongest other empire, friends and an ally among the rest for their council votes, and one weak neighbour at a time conquered - unless its own and its allies' council votes already reach two thirds. Rule 407: a council nominee (one of the two empires with the most votes) whose own and allies' votes reach half of the votes known is resisted by every advised empire, which courts its allies away; in council votes advised empires follow these attitudes.",
+      description: "Phase strategy above the Byzantine doctrine. Rule 406: from turn 100 an advised empire with at least 1.5 times the colonies of every empire it knows (through spies or a broad exploration) plays for victory - a fleet sized to its strongest neighbour, peace with the strongest other empire, friends and an ally among the rest for their council votes, and one weak neighbour at a time conquered - unless its own and its allies' council votes already reach two thirds. Rule 407: a council nominee (one of the two empires with the most votes) whose own and allies' votes reach 3/5 of the votes known is resisted by every advised empire, which courts its allies away; in council votes advised empires follow these attitudes.",
       remarks: "Effective only while advisor enabled is true. Council votes are population / 10, as the game counts them; a contact's population is exact through spies and estimated from its known colonies otherwise. The council never meets in games without a human player.",
       examples: ["advisor rules_phases = true;"],
       group: "gameplay",
@@ -8647,6 +8647,22 @@
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::rules_phases",
+      },
+    },
+
+    phase_parts: {
+      title: "Parts of the phase strategy",
+      description: "Selects which parts of the phase strategy the advisor follows, as a sum of bits: 1 the leader plays for victory (rule 406: conquest one neighbour at a time, allies for council votes, a fleet sized to the strongest neighbour), 2 everyone resists a council nominee nearing a win (rule 407), 4 advised empires vote in the council by these attitudes.",
+      remarks: "Effective only while advisor rules_phases is true. 7 follows the whole strategy.",
+      examples: ["advisor phase_parts = 1;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "int32",
+      constraints: { min: 0, max: 7 },
+      default: 7,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::phase_parts",
       },
     },
 
@@ -9091,6 +9107,18 @@
         header: "game/colcalc.h",
         symbol: "COLCALC::psionics_government_limit",
       },
+    },
+
+    council_without_humans: {
+      title: "Council meets without human players",
+      description: "In a game without human players (self-play, an all-AI game) the galactic council meets on the usual schedule and conditions, and the game ends at the first victory: an elected council, the last empire standing or Antares captured. The turn oracle stops recording at that victory and prints it.",
+      remarks: "Off by default: the original never convenes the council without a human player, so such games could only end by conquest. Nominees, votes and the two-thirds rule are those of the council screen, every empire voting as a computer empire; an elected nominee wins as if the ruling were accepted.",
+      examples: ["gameplay council_without_humans = true;"],
+      group: "gameplay",
+      namespace: "gameplay",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/council_ai.h", symbol: "council::meetings_without_humans" },
     },
 
     council: {

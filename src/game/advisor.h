@@ -46,6 +46,7 @@ namespace advisor {
     extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..127)
     extern bool rules_phases;                // phase strategy: a leader plays for victory (rule 406),
                                              // everyone resists an empire nearing a council win (407)
+    extern int32_t phase_parts;              // e_phase_part bits active under rules_phases (0..7)
 
     // Parts of the Byzantine doctrine (Luttwak's seven rules, README.md 10.6), one bit each in
     // `doctrine_parts`, so each can be measured on its own. Rules II (intelligence), III (decisive
@@ -65,6 +66,19 @@ namespace advisor {
         // stays opt-in until the bench has measured it.
         DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS & ~DOCTRINE_PART_THIRD_PARTY,
     };
+
+    // Parts of the phase strategy (README.md 10.7), one bit each in `phase_parts`.
+    enum e_phase_part : int32_t {
+        PHASE_PART_LEADER = 1,          // rule 406: a leader conquers and courts votes; its fleet weight
+        PHASE_PART_AGAINST_WINNER = 2,  // rule 407: resist a council nominee nearing a win
+        PHASE_PART_COUNCIL_VOTES = 4,   // council votes follow the directive's attitudes
+        PHASE_PART_ALL = 7,
+    };
+
+    // True when rules_phases is on and `part` is in phase_parts.
+    inline bool Phase(int32_t part) {
+        return rules_phases && (phase_parts & part) != 0;
+    }
 
     // True when rules_doctrine is on and `part` is in doctrine_parts.
     inline bool Doctrine(int32_t part) {

@@ -237,14 +237,14 @@ namespace advisor {
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return false;
         if (Doctrine(DOCTRINE_PART_READINESS)) return true;
         // Phase strategy: a leader raising its army (rule 406) asks for the fleet weight.
-        if (!rules_phases) return false;
+        if (!Phase(PHASE_PART_LEADER)) return false;
         const s_directive* directive = Get_Directive(player);
         return directive != nullptr && Is_Active(directive, game::current.Stardate()) &&
             directive->weights[WEIGHT_FLEET] >= LEVEL_HIGH;
     }
 
     int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate) {
-        return rules_phases ? Attitude_Bias(voter, candidate) : 0;
+        return Phase(PHASE_PART_COUNCIL_VOTES) ? Attitude_Bias(voter, candidate) : 0;
     }
 
     int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended) {

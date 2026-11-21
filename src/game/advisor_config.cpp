@@ -25,5 +25,6 @@ namespace advisor {
     int32_t spy_target_weight_percent = 300;
     int32_t doctrine_parts = DOCTRINE_PART_DEFAULT;
     bool rules_phases = false;
+    int32_t phase_parts = PHASE_PART_ALL;
 
 } // namespace advisor

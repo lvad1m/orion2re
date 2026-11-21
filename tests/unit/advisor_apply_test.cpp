@@ -537,6 +537,11 @@ DOCTEST_TEST_CASE("phase strategy: a leader's fleet weight asks for readiness an
     DOCTEST_CHECK(advisor::Readiness(1));
     DOCTEST_CHECK(advisor::Council_Vote_Bias(1, 2) == -50);
     DOCTEST_CHECK(advisor::Council_Vote_Bias(0, 2) == 0);  // the human votes for themself
+    const int32_t parts = advisor::phase_parts;
+    advisor::phase_parts = advisor::PHASE_PART_AGAINST_WINNER;  // neither the leader nor the votes part
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
+    DOCTEST_CHECK(advisor::Council_Vote_Bias(1, 2) == 0);
+    advisor::phase_parts = parts;
     directive.weights[advisor::WEIGHT_FLEET] = advisor::LEVEL_NORMAL;
     advisor::Set_Directive(1, &directive);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));

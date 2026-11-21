@@ -8,6 +8,7 @@
 #include <fstream>
 
 #include "game/config_refresh.h"
+#include "game/council_ai.h"
 #include "game/savegame.h"
 #include "game/turn_oracle_history.h"
 #include "game/user_paths.h"
@@ -101,6 +102,34 @@ namespace turn_oracle {
                     std::filesystem::remove(actual, ignored);
                 }
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "oracle: %s turn %d/%d", recording ? "recorded" : "matched", turn, turns);
+                // Games without humans play to a winner when the council meets without them
+                // (gameplay council_without_humans): an elected council, the last empire standing
+                // or Antares captured end the game, and the history ends with it.
+                if (council::meetings_without_humans) {
+                    const char* kind = nullptr;
+                    int16_t winner = -1;
+                    if (diplodef::council_winner != -1) {
+                        kind = "council";
+                        winner = diplodef::council_winner;
+                    } else if (COLCALC::N_Living_Players() < 2) {
+                        kind = "conquest";
+                        winner = NEXTTURN::Get_Winner();
+                    } else {
+                        for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
+                            if (MOX::player[i].captured_antares != 0) {
+                                kind = "antares";
+                                winner = i;
+                                break;
+                            }
+                        }
+                    }
+                    if (kind != nullptr) {
+                        printf("oracle: victory %s player %d at stardate %d (turn %d)\n", kind, (int)winner, (int)MOX::stardate, turn);
+                        fflush(stdout);
+                        turns = turn;
+                        break;
+                    }
+                }
             }
             if (recording) {
                 std::ofstream manifest(history_directory / "history.txt");

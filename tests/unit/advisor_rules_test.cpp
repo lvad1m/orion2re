@@ -928,15 +928,18 @@ namespace {
     struct s_phase_scope {
         s_period_scope period;
         bool phases = rules_phases;
+        int32_t parts = phase_parts;
         bool doctrine = rules_doctrine;
         bool lanchester = rules_lanchester;
         s_phase_scope() {
             rules_phases = true;
+            phase_parts = PHASE_PART_ALL;
             rules_doctrine = false;
             rules_lanchester = true;
         }
         ~s_phase_scope() {
             rules_phases = phases;
+            phase_parts = parts;
             rules_doctrine = doctrine;
             rules_lanchester = lanchester;
         }
@@ -1011,16 +1014,32 @@ TEST_CASE("rules: 406 a leader conquers one weak neighbour at a time and courts 
     Add_Contact_(&blind, 4, 0, 0);
     Rules_Directive(&blind, &d, &note);
     CHECK_FALSE(Has_(note, "rule 406"));
-    // No spies at one contact: its fleet is unknown, so no claim to lead.
+    // No spies at one contact: known through a broad exploration (40 of 60 stars), but not after a
+    // narrow one.
     s_empire_view unspied = v;
     unspied.contacts[0].our_spies = 0;
     Rules_Directive(&unspied, &d, &note);
+    CHECK(Has_(note, "rule 406 leader"));
+    unspied.self.stars_explored = 20;
+    Rules_Directive(&unspied, &d, &note);
     CHECK_FALSE(Has_(note, "rule 406"));
-    // A contact with more colonies than ours: no claim to lead either.
-    s_empire_view outgrown = v;
-    outgrown.contacts[2].known_colonies.value = 13;
-    Rules_Directive(&outgrown, &d, &note);
+    // A contact with more than 2/3 of our colonies: no claim to lead.
+    s_empire_view close = v;
+    close.contacts[2].known_colonies.value = 9;
+    Rules_Directive(&close, &d, &note);
     CHECK_FALSE(Has_(note, "rule 406"));
+    close.contacts[2].known_colonies.value = 8;
+    Rules_Directive(&close, &d, &note);
+    CHECK(Has_(note, "rule 406 leader"));
+    // One contact is enough to lead; the leader part can be left out.
+    s_empire_view alone = v;
+    alone.contact_count = 1;
+    Rules_Directive(&alone, &d, &note);
+    CHECK(Has_(note, "rule 406 leader"));
+    phase_parts = PHASE_PART_AGAINST_WINNER;
+    Rules_Directive(&alone, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+    phase_parts = PHASE_PART_ALL;
 
     // Not before turn 100, and not with the flag off.
     v.self.stardate = 35050;
@@ -1054,6 +1073,18 @@ TEST_CASE("rules: 407 resists an empire nearing a council win and courts its all
     v.contacts[0].treaty.value = 2;
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.attitude[1] == ATTITUDE_WARY);
+
+    // Only with the part on.
+    phase_parts = PHASE_PART_LEADER;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 407"));
+    phase_parts = PHASE_PART_ALL;
+
+    // Over half but under 3/5 of the votes: nothing (16 of 28; at half it ganged up on every leader).
+    v.contacts[0].population.value = 100;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 407"));
+    v.contacts[0].population.value = 120;
 
     // Small numbers are noise: a would-be winner needs ten sure votes.
     v.contacts[0].treaty.value = 0;

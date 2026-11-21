@@ -2,6 +2,7 @@
 
 #include "legacy_world.h"
 #include "game/advisor.h"
+#include "game/council_ai.h"
 
 #include "lua/lua_game.h"
 
@@ -88,7 +89,9 @@ namespace NEXTTURN {
         diplomac::Determine_Diplomacy_Messages();
         diplomac::End_Of_Turn_Diplomacy_Adjustments();
 
-        if (MOX::game_type == 0 && RUSS::all_ai_game == 0) {
+        // The original never convenes the council without a human player; gameplay
+        // council_without_humans lets self-play reach a council victory (council_ai.h).
+        if (MOX::game_type == 0 && (RUSS::all_ai_game == 0 || council::meetings_without_humans)) {
             council::Check_For_Council_Meeting();
         }
 
