@@ -34,6 +34,7 @@ namespace advisor {
     extern bool rules_expansion;             // rules may keep a colony ship in production (stage 2v)
     extern bool rules_doctrine;              // Byzantine doctrine: allies against enemies, buy peace, deterrence
     extern bool rules_counter_design;        // advised empires design ships against their real enemies
+    extern bool rules_seen_ships;            // advised empires design against the ships they saw in battle
     extern bool rules_outposts;              // rules may build and settle outposts
     extern bool rules_exploration;           // rules may push range research (rule 501)
     extern int32_t active_players;           // bit i: the advisor steers player i (0..255, default 255)
@@ -42,7 +43,7 @@ namespace advisor {
     extern int32_t rules_period;             // turns a rules directive stays active (1..50)
     extern int32_t objective_min_turns;      // minimum turns between objective changes (1..100)
     extern int32_t spy_target_weight_percent;  // weight multiplier for the directive's spy target (100..1000)
-    extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..63)
+    extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..127)
 
     // Parts of the Byzantine doctrine (Luttwak's seven rules, README.md 10.6), one bit each in
     // `doctrine_parts`, so each can be measured on its own. Rules II (intelligence), III (decisive
@@ -55,10 +56,12 @@ namespace advisor {
         DOCTRINE_PART_ALLIANCES = 8,   // V: befriend our enemies' enemies, court our enemies' allies
         DOCTRINE_PART_BUY_PEACE = 16,  // VI: peace early when losing a war
         DOCTRINE_PART_SPARE = 32,      // VII: peace with a beaten enemy that does not lead
-        DOCTRINE_PART_ALL = 63,
+        DOCTRINE_PART_THIRD_PARTY = 64,  // III-V, VII: other empires' wars (rule 405); spare only a needed counterweight
+        DOCTRINE_PART_ALL = 127,
         // The default (61): readiness cost advised empires their expansion in 400-turn games
-        // against the original AI (README.md 10.4.4), so it stays opt-in.
-        DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS,
+        // against the original AI (README.md 10.4.4), so it stays opt-in; the third-party part
+        // stays opt-in until the bench has measured it.
+        DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS & ~DOCTRINE_PART_THIRD_PARTY,
     };
 
     // True when rules_doctrine is on and `part` is in doctrine_parts.
@@ -70,7 +73,7 @@ namespace advisor {
     // before any AI decision. Does nothing when `enabled` is false.
     void Run_Turn(const game::s_view* world);
 
-    // Clears directives and journal state: new game, failed load, tests.
+    // Clears directives, the intel memory and journal state: new game, failed load, tests.
     void Reset();
 
 } // namespace advisor

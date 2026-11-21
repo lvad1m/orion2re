@@ -671,7 +671,9 @@ TEST_CASE("rules: 403 spares a beaten enemy that does not lead (Byzantine doctri
 TEST_CASE("rules: 105 keeps the fleet while a neighbour is stronger (Byzantine rule I)") {
     s_period_scope period;
     const bool doctrine = rules_doctrine;
+    const int32_t parts = doctrine_parts;
     rules_doctrine = true;
+    doctrine_parts = DOCTRINE_PART_READINESS;  // off by default (61)
     s_directive d;
     std::string note;
     s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
@@ -693,6 +695,7 @@ TEST_CASE("rules: 105 keeps the fleet while a neighbour is stronger (Byzantine r
     CHECK(d.objective != OBJECTIVE_KEEP);
     CHECK(Has_(note, "rule 105 peace_dividend:"));
     rules_doctrine = doctrine;
+    doctrine_parts = parts;
 }
 
 TEST_CASE("rules: 404 prefers peace only with neighbours costly to fight") {
@@ -744,4 +747,178 @@ TEST_CASE("rules: 402 courts the allies of our enemies") {
     CHECK(Has_(note, "1 contacts fight our enemies -> ALLY, 1 allies of our enemies -> FRIENDLY"));
     rules_doctrine = doctrine;
     doctrine_parts = parts;
+}
+
+namespace {
+    // Rule 405 tests: only the third-party part (plus `extra`), Lanchester on; we have fighting
+    // power 3000 x (2 + 1) = 9000 and 12 colonies.
+    struct s_third_party_scope {
+        s_period_scope period;
+        bool doctrine = rules_doctrine;
+        int32_t parts = doctrine_parts;
+        bool lanchester = rules_lanchester;
+        explicit s_third_party_scope(int32_t extra = 0) {
+            rules_doctrine = true;
+            doctrine_parts = DOCTRINE_PART_THIRD_PARTY | extra;
+            rules_lanchester = true;
+        }
+        ~s_third_party_scope() {
+            rules_doctrine = doctrine;
+            doctrine_parts = parts;
+            rules_lanchester = lanchester;
+        }
+    };
+
+    s_empire_view Third_Party_View_() {
+        s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_INDUSTRIALIST);
+        v.self.fleet_strength = 3000;
+        v.self.combat_ships = 2;
+        v.self.free_planets_in_reach = 0;
+        return v;
+    }
+
+    // A contact with fighting power strength x (ships + 1), known through one of our spies.
+    s_view_contact& Add_Power_(s_empire_view* v, uint8_t player, int32_t strength, int32_t ships, int32_t treaty = 0) {
+        s_view_contact& c = Add_Contact_(v, player, treaty, 0);
+        c.visible_fleet_strength.value = strength;
+        c.visible_combat_ships.value = ships;
+        c.known_colonies.value = 3;
+        c.our_spies = 1;
+        c.in_range = 1;
+        return c;
+    }
+
+    void Fight_(s_view_contact* a, s_view_contact* b) {
+        a->at_war_with = static_cast<uint8_t>(a->at_war_with | (1u << b->player));
+        b->at_war_with = static_cast<uint8_t>(b->at_war_with | (1u << a->player));
+    }
+} // namespace
+
+TEST_CASE("rules: 405 protects a weak victim of an attacker dangerous to us") {
+    s_third_party_scope scope;
+    s_empire_view v = Third_Party_View_();
+    s_view_contact& attacker = Add_Power_(&v, 1, 4000, 2);  // 12000: dangerous to us
+    s_view_contact& victim = Add_Power_(&v, 2, 1000, 1);    // 2000: no danger to us
+    Fight_(&attacker, &victim);
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.attitude[1] == ATTITUDE_WARY);
+    CHECK(d.main_rival == 1);
+    CHECK(Has_(note, "rule 405 third_party: protect 1"));
+
+    // A pact with the attacker is kept: no wariness toward a partner.
+    v.contacts[0].treaty.value = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+
+    // About equal: stay out.
+    v.contacts[0].treaty.value = 0;
+    v.contacts[1].visible_fleet_strength.value = 4500;  // 9000 against 12000: more than 2/3
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    CHECK_FALSE(Has_(note, "rule 405"));
+}
+
+TEST_CASE("rules: 405 leaves a war between equals alone") {
+    s_third_party_scope scope;
+    s_empire_view v = Third_Party_View_();
+    s_view_contact& a = Add_Power_(&v, 1, 1000, 1);  // 2000 each: both weak for us
+    s_view_contact& b = Add_Power_(&v, 2, 1000, 1);
+    Fight_(&a, &b);
+    s_directive d;
+    std::string note;
+    Rules_Directive(&v, &d, &note);
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    CHECK_FALSE(Has_(note, "rule 405"));
+}
+
+TEST_CASE("rules: 405 joins a war on a weak neighbour only with a calm rear and known strength") {
+    s_third_party_scope scope;
+    s_empire_view v = Third_Party_View_();
+    s_view_contact& attacker = Add_Power_(&v, 1, 1500, 2);  // 4500: no danger to us
+    s_view_contact& victim = Add_Power_(&v, 2, 1000, 1);    // 2000: weak for us, losing to 4500
+    Fight_(&attacker, &victim);
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_HOSTILE);
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+    CHECK(Has_(note, "join 1 wars on weak neighbours"));
+
+    v.contacts[1].our_spies = 0;  // strength unknown: no war on a guess
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    v.contacts[1].our_spies = 1;
+
+    s_view_contact& giant = Add_Power_(&v, 3, 5000, 2);  // 15000: dangerous, not bound -> rear unsafe
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    giant.treaty.value = 1;  // a pact with the giant calms the rear
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_HOSTILE);
+    v.contacts[1].allied_with = 1u << 3;  // ...unless the victim is allied with the giant
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    v.contacts[1].allied_with = 0;
+
+    Add_Easy_War_(&v, 4);  // one front at a time
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+}
+
+TEST_CASE("rules: 405 preys on a weak isolated neighbour once peaceful expansion is over") {
+    s_third_party_scope scope;
+    s_empire_view v = Third_Party_View_();
+    Add_Power_(&v, 2, 1000, 1);
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_HOSTILE);
+    CHECK(Has_(note, "prey on 1 (HOSTILE)"));
+
+    v.self.free_planets_in_reach = 2;  // colonize first
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    v.self.free_planets_in_reach = 0;
+
+    v.contacts[0].in_range = 0;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    v.contacts[0].in_range = 1;
+
+    v.contacts[0].treaty.value = 2;  // an ally is never prey
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+    v.contacts[0].treaty.value = 0;
+
+    doctrine_parts = DOCTRINE_PART_DEFAULT;  // the default leaves the part out
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);
+}
+
+TEST_CASE("rules: with the third-party part 403 spares a beaten enemy only as a counterweight") {
+    s_third_party_scope scope(DOCTRINE_PART_SPARE);
+    s_empire_view v = Third_Party_View_();
+    s_view_contact& beaten = Add_Power_(&v, 2, 100, 1, 5);  // at war with us, 200 power
+    beaten.known_colonies.value = 1;
+    s_directive d;
+    std::string note;
+    Rules_Directive(&v, &d, &note);
+    CHECK(d.attitude[2] == ATTITUDE_KEEP);  // nobody else to balance: finish it
+    CHECK_FALSE(Has_(note, "rule 403"));
+
+    Add_Power_(&v, 3, 5000, 2);  // a dangerous neighbour: the beaten enemy is a counterweight
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(Has_(note, "rule 403 spare: player 2"));
+
+    doctrine_parts = DOCTRINE_PART_SPARE;  // without the part: always spared
+    v.contact_count = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "world_view.h"
+#include "game/advisor_intel.h"
 #include <cstdint>
 
 struct s_tech_specials_data;
@@ -87,6 +88,14 @@ namespace aidesign {
      * @param space Available space budget for additions.
      * @param weapon_index_ptr In/out weapon slot index for added weapon entries.
      */
+    // Intel memory (advisor rules_seen_ships): the defensive-special table with the answer to
+    // `threat` moved to the front (items of the answer missing from `base` are added) and the
+    // rest of `base` in its order. `out` holds SEEN_DEFENSE_TABLE_CAPACITY items. Returns the
+    // item count; SEEN_THREAT_NONE gives `base` unchanged.
+    constexpr int16_t DEFENSE_TABLE_SIZE = 19;
+    constexpr int16_t SEEN_DEFENSE_TABLE_CAPACITY = DEFENSE_TABLE_SIZE + 8;
+    int16_t Seen_Defense_Table(advisor::e_seen_threat threat, const struct s_spcl* base, int16_t base_count, struct s_spcl* out);
+
     int32_t Add_Specials_To_Design(const game::s_view* world, const struct s_spcl* list, int16_t count, game::id_player player_idx, struct s_ship_design* design, int32_t space, int16_t* weapon_index_ptr);
 
     /**

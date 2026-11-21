@@ -96,6 +96,11 @@ namespace advisor {
         uint8_t our_spies = 0;            // our spies in their empire
         uint8_t at_war_with = 0;          // bit k: this empire is at war with player k (public)
         uint8_t allied_with = 0;          // bit k: this empire has an alliance with player k (public)
+        uint8_t in_range = 0;             // 1: our ships reach their colonies (s_player::within_range)
+        // Intel memory (advisor_intel.h): what we saw of their warships in battle, fading.
+        uint16_t seen_warships = 0;
+        uint8_t seen_threat = 0;          // e_seen_threat
+        uint8_t seen_missile_screen = 0;  // 1: their ships screen missiles well
     };
 
     struct s_empire_view {

@@ -8621,13 +8621,13 @@
 
     doctrine_parts: {
       title: "Parts of the Byzantine doctrine",
-      description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead.",
-      remarks: "Effective only while advisor rules_doctrine is true. The default 61 leaves out readiness: in 400-turn games against the original AI it cost advised empires their expansion. 63 follows the whole doctrine; 0 is the same as rules_doctrine false.",
-      examples: ["advisor doctrine_parts = 63;"],
+      description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead, 64 other empires' wars (protect a weak victim of a dangerous attacker; join a war on, or attack, a weak neighbour when our rear is calm; with 32, spare a beaten enemy only while it is needed as a counterweight).",
+      remarks: "Effective only while advisor rules_doctrine is true. The default 61 leaves out readiness: in 400-turn games against the original AI it cost advised empires their expansion. Part 64 is off by default until measured. 127 follows the whole doctrine; 0 is the same as rules_doctrine false.",
+      examples: ["advisor doctrine_parts = 125;"],
       group: "gameplay",
       namespace: "advisor",
       type: "int32",
-      constraints: { min: 0, max: 63 },
+      constraints: { min: 0, max: 127 },
       default: 61,
       bind_root: {
         header: "game/advisor.h",
@@ -8647,6 +8647,21 @@
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::rules_counter_design",
+      },
+    },
+
+    rules_seen_ships: {
+      title: "Advisor designs against ships seen in battle",
+      description: "Advised computer empires remember the weapons and missile screens of the enemy warships they met in battle and design against them: defensive specials that answer the weapons they saw (jammers and lightning fields against missiles, shields and reflection fields against beams) go first, and they stop building missile ships and carriers against an enemy whose ships screen missiles well.",
+      remarks: "Effective only while advisor enabled is true. The enemy is the one rules_counter_design chooses. Both sides of every battle (strategic and tactical) remember the other side's warships; the memory fades by a quarter every 10 turns and is saved in an optional save section that older builds skip. Ships are redesigned when an empire learns a technology, so the answer comes a few turns after the battle. Applies to tactical-combat designs.",
+      examples: ["advisor rules_seen_ships = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_seen_ships",
       },
     },
 

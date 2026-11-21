@@ -384,6 +384,64 @@ DOCTEST_TEST_CASE("AI special-device and defense priorities use source-owned lis
     DOCTEST_CHECK(aidesign::Special_Devices_Available(&aidesign::rules.priorities, &players[kPlayer]) == 1);
 }
 
+DOCTEST_TEST_CASE("intel memory moves the answer to the seen threat to the front of the defense table") {
+    // The shipped defense table (aidesign.cpp; this binary does not load the configured one).
+    const s_spcl base[aidesign::DEFENSE_TABLE_SIZE] = {
+        {SPECIAL_SECURITY_STATIONS, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_DISPLACEMENT_DEVICE, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_LIGHTNING_FIELD, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_HARD_SHIELDS, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_WIDE_AREA_JAMMER, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_MULTI_WAVE_ECM_JAMMER, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_HEAVY_ARMOR, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_INERTIAL_NULLIFIER, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_ECM_JAMMER, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_REINFORCED_HULL, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_INERTIAL_STABILIZER, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_AUGMENTED_ENGINES, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_SHIELD_CAPACITOR, AI_SPECIAL_ITEM_SPECIAL},
+        {SPECIAL_MULTI_PHASED_SHIELDS, AI_SPECIAL_ITEM_SPECIAL},
+        {WEAPON_ANTI_MISSILE_ROCKET, AI_SPECIAL_ITEM_WEAPON},
+        {SPECIAL_REFLECTION_FIELD, AI_SPECIAL_ITEM_SPECIAL},
+        {WEAPON_SPATIAL_COMPRESSOR, AI_SPECIAL_ITEM_WEAPON},
+        {WEAPON_PULSAR, AI_SPECIAL_ITEM_WEAPON},
+        {SPECIAL_AUTOMATED_REPAIR_UNIT, AI_SPECIAL_ITEM_SPECIAL},
+    };
+    s_spcl table[aidesign::SEEN_DEFENSE_TABLE_CAPACITY];
+
+    // No threat: the original table, item for item.
+    DOCTEST_REQUIRE(aidesign::Seen_Defense_Table(advisor::SEEN_THREAT_NONE, base, aidesign::DEFENSE_TABLE_SIZE, table) == aidesign::DEFENSE_TABLE_SIZE);
+    for (int i = 0; i < aidesign::DEFENSE_TABLE_SIZE; ++i) {
+        DOCTEST_CHECK(table[i].id == base[i].id);
+        DOCTEST_CHECK(table[i].type == base[i].type);
+    }
+
+    // Missiles: jammers first; every base item stays exactly once and the rest keeps its order.
+    const int16_t count = aidesign::Seen_Defense_Table(advisor::SEEN_THREAT_MISSILES, base, aidesign::DEFENSE_TABLE_SIZE, table);
+    DOCTEST_CHECK(table[0].id == SPECIAL_WIDE_AREA_JAMMER);
+    DOCTEST_CHECK(table[1].id == SPECIAL_MULTI_WAVE_ECM_JAMMER);
+    DOCTEST_CHECK(table[2].id == SPECIAL_ECM_JAMMER);
+    DOCTEST_CHECK(table[4].id == WEAPON_ANTI_MISSILE_ROCKET);
+    DOCTEST_CHECK(table[4].type == AI_SPECIAL_ITEM_WEAPON);
+    for (int i = 0; i < aidesign::DEFENSE_TABLE_SIZE; ++i) {
+        int found = 0;
+        for (int j = 0; j < count; ++j) found += (table[j].id == base[i].id && table[j].type == base[i].type) ? 1 : 0;
+        DOCTEST_CHECK(found == 1);
+    }
+    DOCTEST_CHECK(table[6].id == SPECIAL_SECURITY_STATIONS);  // first of the rest, as in the base
+
+    DOCTEST_REQUIRE(aidesign::Seen_Defense_Table(advisor::SEEN_THREAT_BEAMS, base, aidesign::DEFENSE_TABLE_SIZE, table) >= aidesign::DEFENSE_TABLE_SIZE);
+    DOCTEST_CHECK(table[0].id == SPECIAL_HARD_SHIELDS);
+    DOCTEST_CHECK(table[1].id == SPECIAL_REFLECTION_FIELD);
+    DOCTEST_REQUIRE(aidesign::Seen_Defense_Table(advisor::SEEN_THREAT_FIGHTERS, base, aidesign::DEFENSE_TABLE_SIZE, table) >= aidesign::DEFENSE_TABLE_SIZE);
+    DOCTEST_CHECK(table[0].id == SPECIAL_LIGHTNING_FIELD);
+
+    // Items the base lacks are added in front, and the table never overflows.
+    s_spcl small[1] = {{SPECIAL_SECURITY_STATIONS, AI_SPECIAL_ITEM_SPECIAL}};
+    DOCTEST_CHECK(aidesign::Seen_Defense_Table(advisor::SEEN_THREAT_BEAMS, small, 1, table) == 8);
+    DOCTEST_CHECK(table[7].id == SPECIAL_SECURITY_STATIONS);
+}
+
 DOCTEST_TEST_CASE("AI design legality enforces every stealth and cloak pairing") {
     struct s_exclusion_pair {
         int16_t installed;

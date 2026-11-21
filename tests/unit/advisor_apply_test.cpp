@@ -56,6 +56,7 @@ namespace {
             advisor::active_players = old_active_players;
             advisor::objective_min_turns = old_min_turns;
             advisor::spy_target_weight_percent = old_weight_percent;
+            advisor::doctrine_parts = old_doctrine_parts;
         }
     };
 

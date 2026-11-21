@@ -6,6 +6,7 @@
 #include "config/config_snapshot.h"
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/advisor_intel.h"
 #include "game/savegame.h"
 #include "game/save_sections.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1612,9 +1613,11 @@ namespace {
 
         s_advisor_save_scope() {
             advisor::Clear_All_Directives();
+            advisor::Clear_Seen_Ships();
         }
         ~s_advisor_save_scope() {
             advisor::Clear_All_Directives();
+            advisor::Clear_Seen_Ships();
             advisor::enabled = old_enabled;
         }
     };
@@ -1758,6 +1761,54 @@ DOCTEST_TEST_CASE("advisor section with an unknown version is skipped when optio
     memcpy(Advisor_Section_Header_(&save) + 6, &required, sizeof(required));
     DOCTEST_CHECK_FALSE(Read_Advisor_Save_(save));
     DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_NONE);
+}
+
+DOCTEST_TEST_CASE("intel memory gets its own optional section only when it is not empty") {
+    s_advisor_save_scope scope;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+    advisor::enabled = true;
+
+    s_advisor_save empty_memory;
+    Write_Advisor_Save_(&empty_memory);
+    DOCTEST_CHECK(Extension_Section_Count_(empty_memory) == 3);
+
+    s_ship_design design = {};
+    design.ship_weapon[0].type = WEAPON_NUCLEAR_MISSILE;
+    design.ship_weapon[0].count = 4;
+    advisor::Observe_Design(1, 2, design);
+    const advisor::s_seen_ships expected = advisor::Seen_Ships(1, 2);
+    DOCTEST_REQUIRE(expected.ships == 1);
+    Set_Test_Directive_();
+    s_advisor_save save;
+    Write_Advisor_Save_(&save);
+    DOCTEST_CHECK(Extension_Section_Count_(save) == 4);
+    DOCTEST_CHECK(save.size == empty_memory.size + SAVEGAME::SECTION_HEADER_SIZE + advisor::Seen_Save_Size());
+    // The advisor section is still the last one.
+    uint32_t type = 0;
+    memcpy(&type, Advisor_Section_Header_(&save), sizeof(type));
+    DOCTEST_CHECK(type == SAVEGAME::SECTION_TYPE_ADVISOR);
+
+    advisor::Clear_Seen_Ships();
+    advisor::Clear_All_Directives();
+    DOCTEST_REQUIRE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(advisor::Seen_Ships(1, 2).ships == expected.ships);
+    DOCTEST_CHECK(advisor::Seen_Ships(1, 2).weapon[advisor::SEEN_MISSILE] == expected.weapon[advisor::SEEN_MISSILE]);
+    DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_DEBUG);
+
+    // A save without the section leaves no memory behind.
+    DOCTEST_REQUIRE(Read_Advisor_Save_(empty_memory));
+    DOCTEST_CHECK(advisor::Seen_Memory_Empty());
+
+    // An unknown section version is skipped (older and newer builds load each other's saves).
+    uint8_t* intel_header = Advisor_Section_Header_(&save) - advisor::Seen_Save_Size() - SAVEGAME::SECTION_HEADER_SIZE;
+    memcpy(&type, intel_header, sizeof(type));
+    DOCTEST_REQUIRE(type == SAVEGAME::SECTION_TYPE_ADVISOR_INTEL);
+    const uint16_t unknown_version = SAVEGAME::SECTION_FORMAT_VERSION + 1;
+    memcpy(intel_header + 4, &unknown_version, sizeof(unknown_version));
+    DOCTEST_REQUIRE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(advisor::Seen_Memory_Empty());
+    DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_DEBUG);
 }
 
 DOCTEST_TEST_CASE("corrupt advisor payload fails the load and leaves the store empty") {

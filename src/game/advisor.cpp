@@ -4,6 +4,7 @@
 
 #include "game/advisor_apply.h"
 #include "game/advisor_directive.h"
+#include "game/advisor_intel.h"
 #include "game/advisor_journal.h"
 #include "game/advisor_sources.h"
 #include "game/advisor_view.h"
@@ -24,6 +25,7 @@ namespace advisor {
     void Run_Turn(const game::s_view* world) {
         if (!enabled || world == nullptr || world->players == nullptr) return;
         const int32_t stardate = world->Stardate();
+        Fade_Seen_Ships(stardate);
         int32_t player_count = world->Player_Count();
         if (player_count > MAX_PLAYERS) player_count = MAX_PLAYERS;
 
@@ -75,6 +77,7 @@ namespace advisor {
 
     void Reset() {
         Clear_All_Directives();
+        Clear_Seen_Ships();
         Close_Journal();
     }
 

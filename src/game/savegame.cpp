@@ -6,6 +6,7 @@
 #include "config/config_snapshot.h"
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/advisor_intel.h"
 #include "game/save_sections.h"
 #include "lua/lua_game.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1809,9 +1810,14 @@ namespace SAVEGAME {
         const bool write_advisor = advisor::enabled;
         const uint32_t advisor_size =
             write_advisor ? static_cast<uint32_t>(advisor::Save_Size()) : 0;
-        const uint32_t section_count = write_advisor ? 3 : 2;
+        // The intel memory has its own optional section, written only when there is something
+        // to remember; it comes before the advisor section.
+        const bool write_intel = write_advisor && !advisor::Seen_Memory_Empty();
+        const uint32_t intel_size =
+            write_intel ? static_cast<uint32_t>(advisor::Seen_Save_Size()) : 0;
+        const uint32_t section_count = 2 + (write_advisor ? 1 : 0) + (write_intel ? 1 : 0);
         const uint32_t payload_size =
-            config_snapshot_size + lua_snapshot_size + advisor_size;
+            config_snapshot_size + lua_snapshot_size + advisor_size + intel_size;
         const uint32_t extension_size = Extension_Size(payload_size, section_count);
         writer->Write_Uint32(VERSIONED_HEADER);
         writer->Write_Bytes(description, sizeof(s_metadata::description));
@@ -1839,6 +1845,14 @@ namespace SAVEGAME {
             SECTION_FLAG_REQUIRED,
             lua_snapshot_size);
         orion2re::lua::Write_Lua_Save_Snapshot(writer, &lua_snapshot);
+        if (write_intel) {
+            Write_Section_Header(writer,
+                SECTION_TYPE_ADVISOR_INTEL,
+                SECTION_FORMAT_VERSION,
+                0,
+                intel_size);
+            advisor::Write_Seen_Save(writer);
+        }
         if (write_advisor) {
             Write_Section_Header(writer,
                 SECTION_TYPE_ADVISOR,
@@ -1856,6 +1870,7 @@ namespace SAVEGAME {
         if (reader == nullptr || metadata == nullptr || saved_settings == nullptr || random_seed == nullptr) return false;
         // A save without the advisor section, or a failed load, leaves no directives behind.
         advisor::Clear_All_Directives();
+        advisor::Clear_Seen_Ships();
 
         metadata->header = reader->Read_Uint32();
         if (metadata->header != LEGACY_HEADER && metadata->header != VERSIONED_HEADER) return false;
@@ -1906,6 +1921,7 @@ namespace SAVEGAME {
         advisor::s_directive loaded_directives[MAX_PLAYERS];
         int32_t loaded_objective_changes[MAX_PLAYERS] = {};
         bool found_advisor_directives = false;
+        std::unique_ptr<advisor::s_seen_ships[]> loaded_seen;
         if (metadata->version >= LUA_SAVE_SNAPSHOT_VERSION) {
             s_section_view sections[MAX_EXTENSION_SECTIONS];
             uint32_t section_count = 0;
@@ -1961,6 +1977,23 @@ namespace SAVEGAME {
                     advisor::Clear_All_Directives();
                     found_advisor = true;
                     found_advisor_directives = true;
+                    continue;
+                }
+                if (section.type == SECTION_TYPE_ADVISOR_INTEL &&
+                    section.version == SECTION_FORMAT_VERSION) {
+                    SERIAL::Reader_ intel_reader(section.data, section.size, "invalid save extension section payload", true);
+                    std::string intel_error;
+                    auto parsed = std::make_unique<advisor::s_seen_ships[]>(MAX_PLAYERS * MAX_PLAYERS);
+                    if (loaded_seen ||
+                        !advisor::Read_Seen_Save(&intel_reader, parsed.get(), &intel_error) ||
+                        intel_reader.Remaining() != 0) {
+                        if (error_text != nullptr) {
+                            *error_text = "Error loading advisor intel memory: " +
+                                (intel_error.empty() ? std::string("duplicate section") : intel_error);
+                        }
+                        return fail_after_native_read();
+                    }
+                    loaded_seen = std::move(parsed);
                     continue;
                 }
                 if (section.version != SECTION_FORMAT_VERSION) {
@@ -2076,6 +2109,7 @@ namespace SAVEGAME {
                 advisor::Set_Last_Objective_Change(player, loaded_objective_changes[player]);
             }
         }
+        if (loaded_seen) advisor::Commit_Seen_Save(loaded_seen.get());
         free(prior_state);
         return true;
     }

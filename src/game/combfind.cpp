@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "legacy_ids.h"
+#include "game/advisor_intel.h"
 
 namespace COMBFIND {
 
@@ -1607,6 +1608,9 @@ namespace COMBFIND {
         if (((attacker_count == 0) || (defender_count == 0 && colony_idx == -1)) && (star_idx != MOX::NUM_STARS)) {
             return 0;
         }
+
+        // Intel memory (advisor rules_seen_ships): both sides see the other's warships.
+        advisor::Observe_Battle(attacker_ships, attacker_count, defender_ships, defender_count);
 
         if (attacker_idx < MAX_PLAYERS) {
             REPORT::something_interesting_happened[attacker_idx] = 1;

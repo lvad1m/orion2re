@@ -7,6 +7,7 @@
 #include <cstdio>
 #include <cstring>
 
+#include "game/advisor_intel.h"
 #include "game/aipower.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
@@ -226,6 +227,12 @@ namespace advisor {
                 }
             }
 
+            contact->in_range = me.within_range[other] == 1 ? 1 : 0;
+            const s_seen_ships& seen = Seen_Ships(player, static_cast<uint8_t>(other));
+            contact->seen_warships = seen.ships;
+            contact->seen_threat = static_cast<uint8_t>(Seen_Threat(seen));
+            contact->seen_missile_screen = Seen_Missile_Screen(seen) ? 1 : 0;
+
             // Intel network: our spies there report the whole empire, not only what we have seen.
             if (contact->our_spies > 0) {
                 int32_t colonies = 0;
@@ -371,6 +378,13 @@ namespace advisor {
                 Append_Fact_Line(out, "technologies known", contact.techs_known);
             }
             Append_Format(out, "   - our spies in their empire: %d\n", static_cast<int>(contact.our_spies));
+            if (contact.seen_warships > 0) {
+                static const char* const threats[] = {"mixed weapons", "mostly missiles", "mostly fighters", "mostly beams"};
+                Append_Format(out, "   - seen in battle: %d warships (fading memory), %s%s\n",
+                              static_cast<int>(contact.seen_warships),
+                              threats[contact.seen_threat < 4 ? contact.seen_threat : 0],
+                              contact.seen_missile_screen != 0 ? ", strong missile screen" : "");
+            }
         }
     }
 

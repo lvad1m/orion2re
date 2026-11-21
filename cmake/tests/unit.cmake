@@ -947,6 +947,7 @@ orion2re_add_game_test(test_advisor
     tests/unit/advisor_journal_test.cpp
     tests/unit/advisor_rules_test.cpp
     tests/unit/advisor_apply_test.cpp
+    tests/unit/advisor_intel_test.cpp
 )
 
 orion2re_add_game_test(test_advisor_detection
@@ -1337,6 +1338,7 @@ orion2re_add_unit_test(test_savegame
         src/game/savegame.cpp
         src/game/save_sections.cpp
         src/game/advisor_directive.cpp
+        src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp
         src/game/serialization.cpp
         src/game/arena.cpp

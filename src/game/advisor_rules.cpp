@@ -35,6 +35,7 @@ namespace advisor {
         // Rule 301: with this many known free planets two colony ships may be built at once.
         constexpr int32_t EXPAND_TWO_SHIPS_FREE_PLANETS_ = 3;
         constexpr int32_t ALLIANCE_TREATY_ = 2;
+        constexpr int32_t PACT_TREATY_ = 1;  // non-aggression pact
 
         const char* Objective_Label_(int objective) {
             switch (objective) {
@@ -68,6 +69,22 @@ namespace advisor {
                 > 3 * Fighting_Power_(self.fleet_strength, self.combat_ships);
             const bool losses = c.our_ship_losses.value >= 2 * std::max(1, c.their_ship_losses.value);
             return stronger || losses;
+        }
+
+        // Rules 404 and 405: a contact is dangerous to us from 2/3 of our fighting power.
+        bool Dangerous_(const s_view_self& self, const s_view_contact& c) {
+            const int64_t theirs = Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+            return theirs > 0 && PEACE_THREAT_DEN_ * theirs >= PEACE_THREAT_NUM_ * Fighting_Power_(self.fleet_strength, self.combat_ships);
+        }
+
+        // Rule 403 with the third-party part: a beaten enemy is worth keeping as a counterweight
+        // only while another contact is dangerous to us.
+        bool Counterweight_Needed_(const s_empire_view* view, uint8_t beaten) {
+            for (int i = 0; i < view->contact_count && i < MAX_PLAYERS; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                if (c.player != beaten && Dangerous_(view->self, c)) return true;
+            }
+            return false;
         }
 
         // Index of the warring contact with the highest grievance among those accepted by
@@ -394,10 +411,87 @@ namespace advisor {
                     Fighting_Power_(self.fleet_strength, self.combat_ships) >=
                         SPARE_POWER_RATIO_ * Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
                 if (!beaten) continue;
+                // With the third-party part a beaten enemy is spared only while it is needed as a
+                // counterweight: someone else is dangerous to us. Otherwise it is finished off.
+                if (Doctrine(DOCTRINE_PART_THIRD_PARTY) && !Counterweight_Needed_(view, c.player)) continue;
                 d.attitude[c.player] = ATTITUDE_FRIENDLY;
                 if (doctrine_rule == 0) doctrine_rule = 403;
                 std::snprintf(line, sizeof(line), "rule 403 spare: player %d is beaten (%d colonies) -> FRIENDLY, make peace",
                     static_cast<int>(c.player), c.known_colonies.value);
+                Append_Note_(&text, line);
+            }
+        }
+
+        // Rule 405 (third-party war, Byzantine rules III, IV, V and VII; README.md 10.6): other
+        // empires' wars and weak neighbours. Only contacts no rule above judged, never a partner
+        // bound to us by a pact or an alliance (we keep our word: switching sides is the Byzantine
+        // answer, not betrayal).
+        // - protect: Y loses a war to X (at most 2/3 of X's power), X is dangerous to us, Y is no
+        //   danger to us -> Y FRIENDLY, X WARY and the main rival if we have none (balance, a buffer);
+        // - jackal: Y loses a war to X, X is no danger to us, Y is weak for us, in reach, known through our
+        //   spies, our rear is calm and Y has no dangerous allies -> Y HOSTILE (its fleet is busy);
+        // - prey: the same Y at peace with everyone, once no free planet is left in reach ->
+        //   Y HOSTILE (peaceful expansion comes first);
+        // - X and Y about equal: stay out and let them bleed each other.
+        // No jackal or prey while we fight a war of our own: one front at a time.
+        if (Doctrine(DOCTRINE_PART_THIRD_PARTY)) {
+            const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
+            const auto power = [](const s_view_contact& c) {
+                return Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+            };
+            const auto dangerous = [&](const s_view_contact& c) { return Dangerous_(self, c); };
+            const auto bound = [](const s_view_contact& c) {
+                return c.treaty.value == PACT_TREATY_ || c.treaty.value == ALLIANCE_TREATY_;
+            };
+            const auto weak_for_us = [&](const s_view_contact& c) {
+                return ours > 0 && 2 * power(c) <= ours && c.known_colonies.value <= self.colonies && c.our_spies > 0;
+            };
+            // Our rear is calm when no unbound contact is dangerous to us or unknown within reach.
+            uint8_t dangerous_mask = 0;
+            bool rear_calm = true;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                if (dangerous(c)) dangerous_mask = static_cast<uint8_t>(dangerous_mask | (1u << (c.player & 7)));
+                if (!bound(c) && (dangerous(c) || (c.our_spies == 0 && c.in_range != 0))) rear_calm = false;
+            }
+            int protected_count = 0;
+            int jackal = 0;
+            int prey = 0;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& y = view->contacts[i];
+                if (d.attitude[y.player] != ATTITUDE_KEEP || Is_War_(y) || bound(y)) continue;
+                int attacker = -1;
+                for (int j = 0; j < count; ++j) {
+                    const s_view_contact& x = view->contacts[j];
+                    if (j == i || (y.at_war_with & (1u << (x.player & 7))) == 0) continue;
+                    if (attacker < 0 || power(x) > power(view->contacts[attacker])) attacker = j;
+                }
+                const bool opportunity = !any_war && rear_calm && weak_for_us(y) && y.in_range != 0 &&
+                    (y.allied_with & dangerous_mask) == 0;
+                if (attacker >= 0) {
+                    const s_view_contact& x = view->contacts[attacker];
+                    // Y must be clearly losing (at most 2/3 of X); about equal sides are left alone.
+                    const bool losing = power(x) > 0 && 3 * power(y) <= 2 * power(x);
+                    if (!losing) continue;
+                    if (dangerous(x) && !dangerous(y)) {
+                        d.attitude[y.player] = ATTITUDE_FRIENDLY;
+                        if (d.attitude[x.player] == ATTITUDE_KEEP && !bound(x)) d.attitude[x.player] = ATTITUDE_WARY;
+                        if (d.main_rival == NO_PLAYER) d.main_rival = x.player;
+                        ++protected_count;
+                    } else if (!dangerous(x) && opportunity) {
+                        d.attitude[y.player] = ATTITUDE_HOSTILE;
+                        ++jackal;
+                    }
+                } else if (opportunity && self.free_planets_in_reach == 0) {
+                    d.attitude[y.player] = ATTITUDE_HOSTILE;
+                    ++prey;
+                }
+            }
+            if (protected_count > 0 || jackal > 0 || prey > 0) {
+                if (doctrine_rule == 0) doctrine_rule = 405;
+                std::snprintf(line, sizeof(line),
+                    "rule 405 third_party: protect %d weak victims (FRIENDLY), join %d wars on weak neighbours, prey on %d (HOSTILE)",
+                    protected_count, jackal, prey);
                 Append_Note_(&text, line);
             }
         }
