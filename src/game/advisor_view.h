@@ -102,6 +102,9 @@ namespace advisor {
         uint16_t seen_warships = 0;
         uint8_t seen_threat = 0;          // e_seen_threat
         uint8_t seen_missile_screen = 0;  // 1: their ships screen missiles well
+        // Military report (advisor_reports.h): the fighting power they claim near our colonies,
+        // times the share of it we believe; source FACT_DIPLOMACY when they sent one this turn.
+        s_fact reported_power;
     };
 
     struct s_empire_view {

@@ -111,6 +111,12 @@ namespace advisor {
     int32_t Attack_Margin_Percent_Vs(uint8_t player, uint8_t target);
     int32_t Coalition_Worthiness_Percent(uint8_t player, uint8_t target);
 
+    // Rule 408, a late joiner preparing its spoils (phase part 16): the troop transports the AI
+    // production should hold (aibuild.cpp transport needs, under its usual caps) while the
+    // directive's fleet weight is MAX; 0 otherwise.
+    inline constexpr int32_t INVASION_TRANSPORTS = 4;
+    int32_t Invasion_Transports(uint8_t player);
+
     // Council vote (council.cpp Vote_Check) of the computer empire `voter` for `candidate`, outside
     // war and alliance: with the council-votes part of `rules_phases` on, the directive's attitude moves the vote score like
     // Attitude_Bias (an empire resisting a would-be winner votes against it); 0 otherwise.

@@ -540,10 +540,16 @@ namespace advisor {
                 const s_view_contact& x = view->contacts[giant];
                 const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
                 const int64_t theirs = Fighting_Power_(x.visible_fleet_strength.value, x.visible_combat_ships.value);
+                // Help at hand: with military reports, what the giant's other enemies report near our
+                // colonies, as far as we believe them; without, their fleets if they are in our reach.
                 for (int j = 0; j < count; ++j) {
                     const s_view_contact& c = view->contacts[j];
-                    if (j == giant || c.in_range == 0 || (c.at_war_with & (1u << (x.player & 7))) == 0) continue;
-                    support += Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                    if (j == giant || (c.at_war_with & (1u << (x.player & 7))) == 0) continue;
+                    if (Phase(PHASE_PART_REPORTS)) {
+                        if (c.reported_power.source == FACT_DIPLOMACY) support += c.reported_power.value;
+                    } else if (c.in_range != 0) {
+                        support += Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                    }
                 }
                 const bool exposed = x.in_range != 0;
                 const bool known = x.our_spies > 0;
@@ -569,11 +575,15 @@ namespace advisor {
                     static_cast<int>(x.player), votes[giant], total_votes, static_cast<long long>(support));
                 Append_Note_(&text, line);
             } else if (giant >= 0 && wait_last) {
+                // Waiting is preparing (the author): warships and troop transports for the spoils
+                // (fleet weight MAX, advisor::Invasion_Transports), our spies and designs on it.
                 const s_view_contact& x = view->contacts[giant];
                 d.attitude[x.player] = ATTITUDE_NEUTRAL;
+                d.main_rival = x.player;
+                d.weights[WEIGHT_FLEET] = LEVEL_MAX;
                 phase_rule = 408;
                 std::snprintf(line, sizeof(line),
-                    "rule 408 coalition: player %d holds %d of %d known votes by itself; its enemies have %lld against its %lld -> wait to join last (NEUTRAL)",
+                    "rule 408 coalition: player %d holds %d of %d known votes by itself; its enemies have %lld against its %lld -> wait to join last (NEUTRAL), prepare troops",
                     static_cast<int>(x.player), votes[giant], total_votes, static_cast<long long>(enemies),
                     static_cast<long long>(giant_power));
                 Append_Note_(&text, line);
@@ -582,7 +592,8 @@ namespace advisor {
                 d.attitude[x.player] = ATTITUDE_WAR;
                 d.main_rival = x.player;
                 d.posture = Is_War_(x) ? POSTURE_ATTACK_CURRENT_ENEMIES : POSTURE_START_NEW_WAR;
-                d.weights[WEIGHT_FLEET] = LEVEL_HIGH;
+                // A late joiner comes for the spoils: troop transports too (fleet weight MAX).
+                d.weights[WEIGHT_FLEET] = Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality) ? LEVEL_MAX : LEVEL_HIGH;
                 int partners = 0;
                 for (int j = 0; j < count; ++j) {
                     if (j == giant) continue;

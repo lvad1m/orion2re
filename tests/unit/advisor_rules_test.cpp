@@ -7,6 +7,7 @@
 #include "game/advisor_directive.h"
 #include "game/advisor_sources.h"
 #include "game/advisor_view.h"
+#include "game/advisor_reports.h"
 #include "game/orion2_consts.h"
 
 namespace {
@@ -1106,6 +1107,7 @@ TEST_CASE("rules: 407 resists an empire nearing a council win and courts its all
 
 TEST_CASE("rules: 408 goes to war in a coalition against a nominee holding half the votes") {
     s_phase_scope scope;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_REPORTS;  // partners in reach; reports are tested apart
     s_empire_view v = Phase_View_();
     v.self.population = 40;  // 4 votes
     v.self.colonies = 4;
@@ -1234,13 +1236,16 @@ TEST_CASE("rules: 408 a ruthless leader joins the coalition last, once the front
     s_directive d;
     std::string note;
     REQUIRE(Rules_Directive(&v, &d, &note));
-    CHECK(Has_(note, "its enemies have 2000 against its 9000 -> wait to join last (NEUTRAL)"));
+    CHECK(Has_(note, "its enemies have 2000 against its 9000 -> wait to join last (NEUTRAL), prepare troops"));
     CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    CHECK(d.main_rival == 1);
+    CHECK(d.weights[WEIGHT_FLEET] == LEVEL_MAX);  // warships and troop transports
 
-    // The tide turns: its enemies match it -> join.
+    // The tide turns: its enemies match it -> join, with the troops.
     v.contacts[1].visible_fleet_strength.value = 5000;  // 10000
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.attitude[1] == ATTITUDE_WAR);
+    CHECK(d.weights[WEIGHT_FLEET] == LEVEL_MAX);
     v.contacts[1].visible_fleet_strength.value = 1000;
 
     // Three fifths of the way to the council: no time to wait (15 of 25).
@@ -1257,4 +1262,46 @@ TEST_CASE("rules: 408 a ruthless leader joins the coalition last, once the front
     phase_parts = PHASE_PART_ALL & ~PHASE_PART_JOIN_LAST;
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.attitude[1] == ATTITUDE_WAR);
+}
+
+TEST_CASE("rules: 408 with military reports counts reported help near us") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.population = 40;
+    v.self.colonies = 4;
+    v.self.fleet_strength = 500;  // 1000: a weak neighbour of the giant
+    v.self.combat_ships = 1;
+    s_view_contact& giant = Add_Empire_(&v, 1, 8, 120, 3000, 2);   // 9000
+    s_view_contact& partner = Add_Empire_(&v, 2, 3, 40, 1000, 1);  // in reach, 2000 visible
+    Add_Empire_(&v, 3, 2, 20, 1000, 1);
+    partner.at_war_with = 1u << 1;
+    giant.at_war_with = 1u << 2;
+    s_directive d;
+    std::string note;
+    // No report: the partner in reach does not count any more.
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "but we border it alone (support 0) -> lie low"));
+    // It reports 8000 near us, as far as we believe it: 1000 + 8000 matches the giant.
+    v.contacts[1].reported_power.value = 8000;
+    v.contacts[1].reported_power.source = FACT_DIPLOMACY;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    // Without the reports part, partners in reach count as before.
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_REPORTS;
+    v.contacts[1].reported_power.value = 0;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "(support 2000) -> lie low"));
+}
+
+TEST_CASE("military reports: inflation by character and belief by trust") {
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_HONORABLE) == 100);
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_PACIFIST) == 100);
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_AGGRESSIVE) == 150);
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_XENOPHOBIC) == 150);
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_RUTHLESS) == 200);
+    CHECK(Report_Exaggeration_Percent(PLAYER_PERSONALITY_ERRATIC) == 200);
+    CHECK(Report_Credibility_Percent(0) == 50);
+    CHECK(Report_Credibility_Percent(30) == 80);
+    CHECK(Report_Credibility_Percent(70) == 100);
+    CHECK(Report_Credibility_Percent(-60) == 10);
 }

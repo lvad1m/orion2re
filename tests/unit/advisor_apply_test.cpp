@@ -5,6 +5,7 @@
 #include "game/advisor.h"
 #include "game/advisor_apply.h"
 #include "game/advisor_directive.h"
+#include "game/advisor_reports.h"
 
 namespace {
     // Restores every advisor global the tests touch.
@@ -579,5 +580,45 @@ DOCTEST_TEST_CASE("coalition war: partners' strength counts, no decisive margin,
     advisor::phase_parts = advisor::PHASE_PART_ALL & ~advisor::PHASE_PART_COALITION;
     DOCTEST_CHECK(advisor::Coalition_Percent(1, 2) == 100);
     DOCTEST_CHECK(advisor::Coalition_Worthiness_Percent(1, 2) == 100);
+    advisor::phase_parts = parts;
+}
+
+DOCTEST_TEST_CASE("a late joiner preparing its spoils asks for troop transports") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    const int32_t parts = advisor::phase_parts;
+    advisor::rules_phases = true;
+    advisor::phase_parts = advisor::PHASE_PART_ALL;
+    advisor::s_directive directive = Directive_();
+    directive.weights[advisor::WEIGHT_FLEET] = advisor::LEVEL_HIGH;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Invasion_Transports(1) == 0);
+    directive.weights[advisor::WEIGHT_FLEET] = advisor::LEVEL_MAX;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Invasion_Transports(1) == advisor::INVASION_TRANSPORTS);
+    DOCTEST_CHECK(advisor::Readiness(1));
+    DOCTEST_CHECK(advisor::Invasion_Transports(0) == 0);  // the human
+    advisor::phase_parts = advisor::PHASE_PART_ALL & ~advisor::PHASE_PART_JOIN_LAST;
+    DOCTEST_CHECK(advisor::Invasion_Transports(1) == 0);
+    advisor::phase_parts = parts;
+}
+
+DOCTEST_TEST_CASE("military reports are sent only with the part on, between computer empires") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    const int32_t parts = advisor::phase_parts;
+    advisor::rules_phases = true;
+    advisor::phase_parts = advisor::PHASE_PART_ALL & ~advisor::PHASE_PART_REPORTS;
+    state.players[1].contact[2] = 1;
+    state.players[2].treaty[0] = 4;  // player 2 is at war with someone else
+    DOCTEST_CHECK_FALSE(advisor::Military_Report(&game::current, 1, 2).sent);
+    advisor::phase_parts = advisor::PHASE_PART_ALL;
+    DOCTEST_CHECK(advisor::Military_Report(&game::current, 1, 2).sent);
+    DOCTEST_CHECK(advisor::Military_Report(&game::current, 1, 2).claimed == 0);  // no ships near us
+    DOCTEST_CHECK_FALSE(advisor::Military_Report(&game::current, 1, 0).sent);  // the human sends none
+    state.players[2].treaty[0] = 0;
+    DOCTEST_CHECK_FALSE(advisor::Military_Report(&game::current, 1, 2).sent);  // nobody to fight
     advisor::phase_parts = parts;
 }

@@ -8,6 +8,7 @@
 #include <cstring>
 
 #include "game/advisor_intel.h"
+#include "game/advisor_reports.h"
 #include "game/aipower.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
@@ -244,6 +245,12 @@ namespace advisor {
             contact->seen_warships = seen.ships;
             contact->seen_threat = static_cast<uint8_t>(Seen_Threat(seen));
             contact->seen_missile_screen = Seen_Missile_Screen(seen) ? 1 : 0;
+            const s_military_report report = Military_Report(world, player, static_cast<uint8_t>(other));
+            if (report.sent) {
+                const int64_t credited = std::min<int64_t>(report.claimed * report.credibility / 100, INT32_MAX);
+                Set_Fact(&contact->reported_power, static_cast<int32_t>(credited), FACT_DIPLOMACY,
+                    report.credibility >= 70 ? CONFIDENCE_MEDIUM : CONFIDENCE_LOW, now);
+            }
 
             // Intel network: our spies there report the whole empire, not only what we have seen.
             if (contact->our_spies > 0) {
@@ -394,6 +401,9 @@ namespace advisor {
                 Append_Fact_Line(out, "technologies known", contact.techs_known);
             }
             Append_Format(out, "   - our spies in their empire: %d\n", static_cast<int>(contact.our_spies));
+            if (contact.reported_power.source == FACT_DIPLOMACY) {
+                Append_Fact_Line(out, "reported fighting power near us, as far as we believe it", contact.reported_power);
+            }
             if (contact.seen_warships > 0) {
                 static const char* const threats[] = {"mixed weapons", "mostly missiles", "mostly fighters", "mostly beams"};
                 Append_Format(out, "   - seen in battle: %d warships (fading memory), %s%s\n",

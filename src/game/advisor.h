@@ -46,7 +46,7 @@ namespace advisor {
     extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..127)
     extern bool rules_phases;                // phase strategy: a leader plays for victory (rule 406),
                                              // everyone resists an empire nearing a council win (407)
-    extern int32_t phase_parts;              // e_phase_part bits active under rules_phases (0..31)
+    extern int32_t phase_parts;              // e_phase_part bits active under rules_phases (0..63)
 
     // Parts of the Byzantine doctrine (Luttwak's seven rules, README.md 10.6), one bit each in
     // `doctrine_parts`, so each can be measured on its own. Rules II (intelligence), III (decisive
@@ -76,7 +76,9 @@ namespace advisor {
                                         // holds half grows in peace
         PHASE_PART_JOIN_LAST = 16,      // rule 408: ruthless, erratic and pacifist leaders join the
                                         // coalition last, once the would-be winner is outmatched
-        PHASE_PART_ALL = 31,
+        PHASE_PART_REPORTS = 32,        // military reports between empires at war (advisor_reports.h);
+                                        // rule 408 counts reported help near us
+        PHASE_PART_ALL = 63,
     };
 
     // True when rules_phases is on and `part` is in phase_parts.

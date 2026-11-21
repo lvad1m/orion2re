@@ -6,6 +6,7 @@
 #include "game/advisor_directive.h"
 #include "game/advisor_intel.h"
 #include "game/advisor_journal.h"
+#include "game/advisor_reports.h"
 #include "game/advisor_sources.h"
 #include "game/advisor_view.h"
 
@@ -26,6 +27,7 @@ namespace advisor {
         if (!enabled || world == nullptr || world->players == nullptr) return;
         const int32_t stardate = world->Stardate();
         Fade_Seen_Ships(stardate);
+        Check_Military_Reports(world);
         int32_t player_count = world->Player_Count();
         if (player_count > MAX_PLAYERS) player_count = MAX_PLAYERS;
 

@@ -303,6 +303,13 @@ namespace AIBUILD {
                 }
             }
 
+            // Advisor (rule 408): a late joiner prepares troop transports for its spoils; the caps
+            // below still apply.
+            const int32_t invasion = advisor::Invasion_Transports(static_cast<uint8_t>(player_idx));
+            if (needs.transports.current < invasion && needs.transports.additional_wanted < invasion - needs.transports.current) {
+                needs.transports.additional_wanted = (int8_t)(invasion - needs.transports.current);
+            }
+
             if (needs.transports.current < 20) {
                 if (colony_limit < needs.transports.additional_wanted) {
                     needs.transports.additional_wanted = (int8_t)colony_limit;

@@ -289,6 +289,15 @@ namespace advisor {
         return Joint_War_(player, target) ? COALITION_TARGET_PERCENT : 100;
     }
 
+    int32_t Invasion_Transports(uint8_t player) {
+        if (!enabled || !Phase(PHASE_PART_JOIN_LAST) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 0;
+        if (((active_players >> player) & 1) == 0) return 0;
+        if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 0;
+        const s_directive* directive = Get_Directive(player);
+        if (directive == nullptr || !Is_Active(directive, game::current.Stardate())) return 0;
+        return directive->weights[WEIGHT_FLEET] >= LEVEL_MAX ? INVASION_TRANSPORTS : 0;
+    }
+
     int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate) {
         return Phase(PHASE_PART_COUNCIL_VOTES) ? Attitude_Bias(voter, candidate) : 0;
     }
