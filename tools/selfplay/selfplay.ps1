@@ -24,6 +24,7 @@ param(
     [int] $Turns = 100,
     [string] $Exe = "orion2re.exe",
     [switch] $Tactical,
+    [switch] $Visible,
     [System.Collections.IDictionary] $Variants = $null
 )
 
@@ -34,6 +35,74 @@ if ($null -eq $Variants) {
         "observe" = "$on`nadvisor rules_objectives = false;`nadvisor rules_spies = false;`nadvisor rules_expansion = false;`nadvisor rules_outposts = false;`nadvisor rules_exploration = false;`nadvisor rules_lanchester = false;`nadvisor rules_balance = false;`nadvisor rules_counter_design = false;`nadvisor rules_doctrine = false;"
         "advisor" = $on
     }
+}
+
+# Games start minimized in the taskbar without taking the keyboard focus (SW_SHOWMINNOACTIVE), so
+# a bench does not interrupt other work; -Visible starts them as usual. PowerShell's Start-Process
+# can only ask for SW_SHOWMINIMIZED, which still activates the window.
+if (-not $Visible -and -not ("SelfplayQuietLaunch" -as [type])) {
+    Add-Type -TypeDefinition @"
+using System;
+using System.Runtime.InteropServices;
+using System.Text;
+public static class SelfplayQuietLaunch {
+    [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+    struct STARTUPINFO {
+        public int cb; public string lpReserved; public string lpDesktop; public string lpTitle;
+        public int dwX, dwY, dwXSize, dwYSize, dwXCountChars, dwYCountChars, dwFillAttribute, dwFlags;
+        public short wShowWindow, cbReserved2; public IntPtr lpReserved2, hStdInput, hStdOutput, hStdError;
+    }
+    [StructLayout(LayoutKind.Sequential)]
+    struct PROCESS_INFORMATION { public IntPtr hProcess, hThread; public int dwProcessId, dwThreadId; }
+    [StructLayout(LayoutKind.Sequential)]
+    struct SECURITY_ATTRIBUTES { public int nLength; public IntPtr lpSecurityDescriptor; public bool bInheritHandle; }
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern bool CreateProcess(string app, StringBuilder cmd, IntPtr pa, IntPtr ta, bool inherit, uint flags,
+        IntPtr env, string dir, ref STARTUPINFO si, out PROCESS_INFORMATION pi);
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern IntPtr CreateFile(string name, uint access, uint share, ref SECURITY_ATTRIBUTES sa, uint disposition,
+        uint flags, IntPtr template);
+    [DllImport("kernel32.dll")] static extern uint WaitForSingleObject(IntPtr handle, uint ms);
+    [DllImport("kernel32.dll")] static extern bool GetExitCodeProcess(IntPtr handle, out uint code);
+    [DllImport("kernel32.dll")] static extern bool CloseHandle(IntPtr handle);
+
+    static IntPtr Open_(string path) {
+        var sa = new SECURITY_ATTRIBUTES { nLength = Marshal.SizeOf(typeof(SECURITY_ATTRIBUTES)), bInheritHandle = true };
+        IntPtr handle = CreateFile(path, 0x40000000 /* GENERIC_WRITE */, 3 /* share read, write */, ref sa,
+            2 /* CREATE_ALWAYS */, 0x80 /* FILE_ATTRIBUTE_NORMAL */, IntPtr.Zero);
+        if (handle == new IntPtr(-1)) throw new System.ComponentModel.Win32Exception();
+        return handle;
+    }
+
+    // Runs `exe arguments` in `dir` minimized and not activated, stdout and stderr to files; returns the exit code.
+    public static int Run(string exe, string arguments, string dir, string outPath, string errPath) {
+        IntPtr output = Open_(outPath);
+        IntPtr error = Open_(errPath);
+        try {
+            var si = new STARTUPINFO();
+            si.cb = Marshal.SizeOf(typeof(STARTUPINFO));
+            si.dwFlags = 0x1 /* STARTF_USESHOWWINDOW */ | 0x100 /* STARTF_USESTDHANDLES */;
+            si.wShowWindow = 7; /* SW_SHOWMINNOACTIVE */
+            si.hStdOutput = output;
+            si.hStdError = error;
+            PROCESS_INFORMATION pi;
+            var command = new StringBuilder("\"" + exe + "\" " + arguments);
+            if (!CreateProcess(null, command, IntPtr.Zero, IntPtr.Zero, true, 0, IntPtr.Zero, dir, ref si, out pi)) {
+                throw new System.ComponentModel.Win32Exception();
+            }
+            WaitForSingleObject(pi.hProcess, 0xFFFFFFFF);
+            uint code;
+            GetExitCodeProcess(pi.hProcess, out code);
+            CloseHandle(pi.hThread);
+            CloseHandle(pi.hProcess);
+            return unchecked((int)code);
+        } finally {
+            CloseHandle(output);
+            CloseHandle(error);
+        }
+    }
+}
+"@
 }
 
 $exePath = Join-Path $GameDir $Exe
@@ -59,10 +128,16 @@ foreach ($difficulty in $Difficulties) {
             $arguments = @("/config", $configName, "/oracle-record", "`"$history`"", "/oracle-turns", "$Turns",
                 "/oracle-seed", "$seed", "/oracle-difficulty", "$difficulty")
             if ($Tactical) { $arguments += "/oracle-tactical" }
-            $process = Start-Process $exePath -ArgumentList $arguments -WorkingDirectory $GameDir `
-                -RedirectStandardOutput (Join-Path $OutDir "$tag.out") -RedirectStandardError (Join-Path $OutDir "$tag.err") `
-                -PassThru -Wait
-            "$tag exit $($process.ExitCode)"
+            if ($Visible) {
+                $process = Start-Process $exePath -ArgumentList $arguments -WorkingDirectory $GameDir `
+                    -RedirectStandardOutput (Join-Path $OutDir "$tag.out") -RedirectStandardError (Join-Path $OutDir "$tag.err") `
+                    -PassThru -Wait
+                $exitCode = $process.ExitCode
+            } else {
+                $exitCode = [SelfplayQuietLaunch]::Run($exePath, ($arguments -join " "), $GameDir,
+                    (Join-Path $OutDir "$tag.out"), (Join-Path $OutDir "$tag.err"))
+            }
+            "$tag exit $exitCode"
             Get-ChildItem $journalDir -Filter *.jsonl -ErrorAction SilentlyContinue |
                 ForEach-Object { Move-Item $_.FullName (Join-Path $OutDir "$tag.jsonl") -Force }
             # Oracle histories are large and not needed for the comparison.

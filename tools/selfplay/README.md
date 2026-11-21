@@ -25,6 +25,10 @@ orion2re /config selfplay-<variant>.cfg /oracle-record <dir> /oracle-turns 100 /
 and keeps only the advisor journal (`d<difficulty>-s<seed>-<variant>.jsonl`). Variants are config
 lines appended to a copy of `data/orion2re.cfg`; pass your own with `-Variants @{ name = "lines" }`.
 
+Games start minimized in the taskbar without taking the keyboard focus (`SW_SHOWMINNOACTIVE`, through
+`CreateProcess`: PowerShell's `Start-Process -WindowStyle Minimized` still activates the window), so a
+long bench does not interrupt other work; `-Visible` starts them as usual.
+
 The default variants:
 
 | Variant | Config | Meaning |
