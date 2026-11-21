@@ -78,6 +78,7 @@ DOCTEST_TEST_CASE("presets choose the mechanics") {
     DOCTEST_CHECK(Has_(rivals, "colony misc_costs spy = 60;"));
     DOCTEST_CHECK(Has_(rivals, "ai research_uses_own_output = true;"));
     DOCTEST_CHECK(Has_(rivals, "\ndiplomacy memory = true;\n"));
+    DOCTEST_CHECK(Has_(rivals, "\nadvisor rules_phases = true;\n"));
 }
 
 DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
@@ -89,6 +90,7 @@ DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
     settings.mechanics.diplomacy = true;
     settings.mechanics.research_fix = false;
     settings.mechanics.memory = false;
+    settings.mechanics.phases = false;
     settings.mods = {"v150", "bad mod;", "extra_rules"};
     const std::string text = launcher::Build_User_Cfg(settings);
     DOCTEST_CHECK(!Has_(text, "diplomacy memory"));
@@ -98,6 +100,7 @@ DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
     DOCTEST_CHECK(Has_(text, "advisor rules_spies = false;"));
     DOCTEST_CHECK(Has_(text, "advisor rules_outposts = true;"));
     DOCTEST_CHECK(Has_(text, "advisor rules_lanchester = false;"));
+    DOCTEST_CHECK(Has_(text, "advisor rules_phases = false;"));
     DOCTEST_CHECK(!Has_(text, "misc_costs"));
 
     launcher::s_settings read;
@@ -109,6 +112,7 @@ DOCTEST_TEST_CASE("custom settings and mods round-trip through user.cfg") {
     DOCTEST_CHECK(read.mechanics.diplomacy);
     DOCTEST_CHECK(!read.mechanics.research_fix);
     DOCTEST_CHECK(!read.mechanics.memory);
+    DOCTEST_CHECK(!read.mechanics.phases);
     DOCTEST_REQUIRE(read.mods.size() == 2);
     DOCTEST_CHECK(read.mods[0] == "v150");
     DOCTEST_CHECK(read.mods[1] == "extra_rules");

@@ -50,9 +50,9 @@ namespace launcher {
 
         std::string Mechanics_Text_(const s_mechanics& m) {
             char buffer[160];
-            std::snprintf(buffer, sizeof(buffer), "advisor=%d espionage=%d expansion=%d rivals_adapt=%d diplomacy=%d research_fix=%d memory=%d",
+            std::snprintf(buffer, sizeof(buffer), "advisor=%d espionage=%d expansion=%d rivals_adapt=%d diplomacy=%d phases=%d research_fix=%d memory=%d",
                 m.advisor ? 1 : 0, m.espionage, m.expansion, m.rivals_adapt ? 1 : 0, m.diplomacy ? 1 : 0,
-                m.research_fix ? 1 : 0, m.memory ? 1 : 0);
+                m.phases ? 1 : 0, m.research_fix ? 1 : 0, m.memory ? 1 : 0);
             return buffer;
         }
 
@@ -69,6 +69,7 @@ namespace launcher {
                 else if (key == "expansion") m->expansion = Clamp_(value, 0, 2);
                 else if (key == "rivals_adapt") m->rivals_adapt = value != 0;
                 else if (key == "diplomacy") m->diplomacy = value != 0;
+                else if (key == "phases") m->phases = value != 0;
                 else if (key == "research_fix") m->research_fix = value != 0;
                 else if (key == "memory") m->memory = value != 0;
             }
@@ -123,6 +124,7 @@ namespace launcher {
                 m.expansion = 0;
                 m.rivals_adapt = false;
                 m.diplomacy = false;
+                m.phases = false;
                 m.research_fix = false;
                 m.memory = false;
                 break;
@@ -132,6 +134,7 @@ namespace launcher {
                 m.expansion = 1;  // outposts stay off: they cost long games
                 m.rivals_adapt = true;
                 m.diplomacy = true;
+                m.phases = true;  // README 10.7: a leader plays for victory, coalitions resist it (decided 21.11.2026)
                 m.research_fix = true;
                 m.memory = true;  // README 10.4.4: wars end sooner, galaxies grow more
                 break;
@@ -172,6 +175,7 @@ namespace launcher {
             Line_(&out, std::string("advisor rules_seen_ships = ") + Bool_(m.rivals_adapt) + ";");
             Line_(&out, std::string("advisor rules_balance = ") + Bool_(m.diplomacy) + ";");
             Line_(&out, std::string("advisor rules_doctrine = ") + Bool_(m.diplomacy) + ";");
+            Line_(&out, std::string("advisor rules_phases = ") + Bool_(m.phases) + ";");
         }
         if (m.espionage > 1) Line_(&out, "colony misc_costs spy = 60;");
         if (m.research_fix) Line_(&out, "ai research_uses_own_output = true;");

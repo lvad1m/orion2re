@@ -50,6 +50,8 @@ namespace {
         "Соперники приспосабливаются: цели, дальность, Ланчестер, контр-дизайн"};
     const s_text TEXT_DIPLOMACY = {"Diplomacy: coalition against the leader, Byzantine doctrine",
         "Дипломатия: коалиция против лидера, византийская доктрина"};
+    const s_text TEXT_PHASES = {"Play for victory: a leader conquers, everyone resists a would-be winner",
+        "Игра на победу: лидер завоёвывает, все поднимаются против претендента"};
     const s_text TEXT_RESEARCH_FIX = {"Fix the original AI research estimate", "Исправить ошибку оригинала в выборе исследований ИИ"};
     const s_text TEXT_MEMORY = {"Diplomatic memory: trust heals, grievances fade, empires tire of costly wars",
         "Дипломатическая память: доверие восстанавливается, обиды забываются, дорогие войны утомляют"};
@@ -233,6 +235,7 @@ namespace {
                 ImGuiSliderFlags_AlwaysClamp | ImGuiSliderFlags_NoInput);
             ImGui::Checkbox(T(*app, TEXT_ADAPT), &m.rivals_adapt);
             ImGui::Checkbox(T(*app, TEXT_DIPLOMACY), &m.diplomacy);
+            ImGui::Checkbox(T(*app, TEXT_PHASES), &m.phases);
             ImGui::EndDisabled();
             ImGui::Checkbox(T(*app, TEXT_RESEARCH_FIX), &m.research_fix);
             ImGui::Checkbox(T(*app, TEXT_MEMORY), &m.memory);

@@ -31,6 +31,7 @@ namespace launcher {
         int expansion = 1;         // 1: colony ships; 2: also outposts (cost long games, see README 10.4.2)
         bool rivals_adapt = true;  // objectives, exploration, Lanchester and decisive force
         bool diplomacy = true;     // coalition against the leader and the Byzantine doctrine
+        bool phases = true;        // advisor rules_phases: leaders conquer, everyone resists a would-be winner
         bool research_fix = true;  // ai research_uses_own_output
         bool memory = true;        // diplomacy memory: trust heals, grievances fade, war weariness (every empire)
     };
