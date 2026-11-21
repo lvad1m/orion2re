@@ -1219,3 +1219,42 @@ TEST_CASE("rules: 408 sends spies to the vote leader we cannot see into") {
     Rules_Directive(&v, &d, &note);
     CHECK_FALSE(Has_(note, "rule 408 watch"));
 }
+
+TEST_CASE("rules: 408 a ruthless leader joins the coalition last, once the front-runner is outmatched") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.personality = PLAYER_PERSONALITY_RUTHLESS;
+    v.self.population = 40;  // 4 votes
+    v.self.colonies = 4;
+    s_view_contact& giant = Add_Empire_(&v, 1, 8, 100, 3000, 2);   // 10 of 20 votes, power 9000
+    s_view_contact& partner = Add_Empire_(&v, 2, 3, 40, 1000, 1);  // at war with it, power 2000
+    Add_Empire_(&v, 3, 2, 20, 1000, 1);
+    partner.at_war_with = 1u << 1;
+    giant.at_war_with = 1u << 2;
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "its enemies have 2000 against its 9000 -> wait to join last (NEUTRAL)"));
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+
+    // The tide turns: its enemies match it -> join.
+    v.contacts[1].visible_fleet_strength.value = 5000;  // 10000
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.contacts[1].visible_fleet_strength.value = 1000;
+
+    // Three fifths of the way to the council: no time to wait (15 of 25).
+    v.contacts[0].population.value = 150;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.contacts[0].population.value = 100;
+
+    // An aggressive leader joins at once; and without the part nobody waits.
+    v.self.personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.self.personality = PLAYER_PERSONALITY_RUTHLESS;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_JOIN_LAST;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+}

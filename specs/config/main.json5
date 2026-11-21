@@ -8652,14 +8652,14 @@
 
     phase_parts: {
       title: "Parts of the phase strategy",
-      description: "Selects which parts of the phase strategy the advisor follows, as a sum of bits: 1 the leader plays for victory (rule 406: conquest one neighbour at a time, allies for council votes, a fleet sized to the strongest neighbour), 2 everyone resists a council nominee nearing a win (rule 407), 4 advised empires vote in the council by these attitudes, 8 coalition war on a council nominee holding 2/5 of the known votes by itself, or a third while it leads the vote and is at war with someone else (rule 408; at least 15 known votes; spies go to the vote leader we cannot see into: war on it, friendship with its other enemies, peace elsewhere; the coalition's strength counts in the war decision and attacks on it need no decisive margin; a weak neighbour of the nominee joins only when the nominee's other enemies within its reach can help, and otherwise lies low), while a leader holding 2/5 grows in peace.",
-      remarks: "Effective only while advisor rules_phases is true. 15 follows the whole strategy.",
+      description: "Selects which parts of the phase strategy the advisor follows, as a sum of bits: 1 the leader plays for victory (rule 406: conquest one neighbour at a time, allies for council votes, a fleet sized to the strongest neighbour), 2 everyone resists a council nominee nearing a win (rule 407), 4 advised empires vote in the council by these attitudes, 8 coalition war on a council nominee holding 2/5 of the known votes by itself, or a third while it leads the vote and is at war with someone else (rule 408; at least 15 known votes; spies go to the vote leader we cannot see into: war on it, friendship with its other enemies, peace elsewhere; the coalition's strength counts in the war decision and attacks on it need no decisive margin; a weak neighbour of the nominee joins only when the nominee's other enemies within its reach can help, and otherwise lies low), while a leader holding 2/5 grows in peace; 16 ruthless, erratic and pacifist leaders join that coalition last, once the would-be winner's enemies match its strength or it holds 3/5 of the votes.",
+      remarks: "Effective only while advisor rules_phases is true. 31 follows the whole strategy.",
       examples: ["advisor phase_parts = 1;"],
       group: "gameplay",
       namespace: "advisor",
       type: "int32",
-      constraints: { min: 0, max: 15 },
-      default: 15,
+      constraints: { min: 0, max: 31 },
+      default: 31,
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::phase_parts",

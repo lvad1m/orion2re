@@ -52,6 +52,14 @@ namespace advisor {
         constexpr int32_t COALITION_SHARE_DEN_ = 5;
         constexpr int32_t COALITION_MARCH_SHARE_DEN_ = 3;
         constexpr int32_t COALITION_MIN_TOTAL_VOTES_ = 15;
+
+        // Rule 408, join last (phase part 16; the author: in a game of thrones the winners are often
+        // those who entered the fight last). Ruthless, erratic and pacifist leaders let others bleed
+        // first; aggressive, xenophobic and honorable ones join at once.
+        bool Joins_Last_(uint8_t personality) {
+            return personality == PLAYER_PERSONALITY_RUTHLESS || personality == PLAYER_PERSONALITY_ERRATIC ||
+                personality == PLAYER_PERSONALITY_PACIFIST;
+        }
         // Rule 406: we lead with at least 1.5 times the colonies of every contact, and at least this many.
         constexpr int32_t PHASE_LEADER_MIN_COLONIES_ = 3;
 
@@ -524,7 +532,10 @@ namespace advisor {
             // giant's fleet is unknown, so an exposed neighbour lies low. Fleet positions are not in
             // the empire view; partners in reach stand in for "troops nearby".
             bool lie_low = false;
+            bool wait_last = false;
             int64_t support = 0;
+            int64_t enemies = 0;     // fighting power of everyone at war with the giant
+            int64_t giant_power = 0;
             if (giant >= 0) {
                 const s_view_contact& x = view->contacts[giant];
                 const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
@@ -538,6 +549,16 @@ namespace advisor {
                 const bool known = x.our_spies > 0;
                 lie_low = exposed && !Is_War_(x) &&
                     (!known || (3 * ours < theirs && ours + support < theirs));
+                // Join last: wait while the giant still matches everyone fighting it - unless it is
+                // three fifths of the way to the council (no time left) or we already fight it.
+                for (int j = 0; j < count; ++j) {
+                    const s_view_contact& c = view->contacts[j];
+                    if (j == giant || (c.at_war_with & (1u << (x.player & 7))) == 0) continue;
+                    enemies += Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                }
+                giant_power = theirs;
+                wait_last = !lie_low && Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality) && !Is_War_(x) &&
+                    PHASE_THREAT_DEN_ * votes[giant] < PHASE_THREAT_NUM_ * total_votes && enemies < theirs;
             }
             if (giant >= 0 && lie_low) {
                 const s_view_contact& x = view->contacts[giant];
@@ -546,6 +567,15 @@ namespace advisor {
                 std::snprintf(line, sizeof(line),
                     "rule 408 coalition: player %d holds %d of %d known votes by itself, but we border it alone (support %lld) -> lie low (NEUTRAL)",
                     static_cast<int>(x.player), votes[giant], total_votes, static_cast<long long>(support));
+                Append_Note_(&text, line);
+            } else if (giant >= 0 && wait_last) {
+                const s_view_contact& x = view->contacts[giant];
+                d.attitude[x.player] = ATTITUDE_NEUTRAL;
+                phase_rule = 408;
+                std::snprintf(line, sizeof(line),
+                    "rule 408 coalition: player %d holds %d of %d known votes by itself; its enemies have %lld against its %lld -> wait to join last (NEUTRAL)",
+                    static_cast<int>(x.player), votes[giant], total_votes, static_cast<long long>(enemies),
+                    static_cast<long long>(giant_power));
                 Append_Note_(&text, line);
             } else if (giant >= 0) {
                 const s_view_contact& x = view->contacts[giant];
