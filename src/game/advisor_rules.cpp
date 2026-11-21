@@ -44,6 +44,14 @@ namespace advisor {
         constexpr int32_t PHASE_MIN_THREAT_VOTES_ = 10;
         constexpr int32_t PHASE_THREAT_NUM_ = 3;
         constexpr int32_t PHASE_THREAT_DEN_ = 5;
+        // Rule 408 (README.md 10.4.7): the first version called the coalition at half of the known
+        // votes and fired a few times in 8 games - a front-runner passed half in one conquest (39 %
+        // to 66 % in seven turns). Now at 2/5, or at 1/3 for the vote leader already at war with
+        // someone else (on the march), once the known galaxy holds 15 votes.
+        constexpr int32_t COALITION_SHARE_NUM_ = 2;
+        constexpr int32_t COALITION_SHARE_DEN_ = 5;
+        constexpr int32_t COALITION_MARCH_SHARE_DEN_ = 3;
+        constexpr int32_t COALITION_MIN_TOTAL_VOTES_ = 15;
         // Rule 406: we lead with at least 1.5 times the colonies of every contact, and at least this many.
         constexpr int32_t PHASE_LEADER_MIN_COLONIES_ = 3;
 
@@ -479,18 +487,34 @@ namespace advisor {
             // counts the coalition's strength in the war decision and drops the decisive-force
             // margin in attacks on it (advisor_apply.h, Coalition_Percent).
             int giant = -1;
-            for (int n = 0; n < 2 && Phase(PHASE_PART_COALITION) && count >= 2; ++n) {
+            bool marching = false;
+            const uint32_t us_bit = 1u << (self.player & 7);
+            for (int n = 0; n < 2 && Phase(PHASE_PART_COALITION) && count >= 2 && total_votes >= COALITION_MIN_TOTAL_VOTES_; ++n) {
                 const int i = nominee[n];
                 if (i < 0) continue;
                 const s_view_contact& c = view->contacts[i];
-                if (!Known_Size_(c) || votes[i] < PHASE_MIN_THREAT_VOTES_ || 2 * votes[i] < total_votes) continue;
-                if (c.treaty.value == ALLIANCE_TREATY_) continue;  // our ally: rule 407 makes us wary instead
+                if (!Known_Size_(c) || c.treaty.value == ALLIANCE_TREATY_) continue;  // our ally: rule 407 makes us wary instead
+                const bool large = COALITION_SHARE_DEN_ * votes[i] >= COALITION_SHARE_NUM_ * total_votes;
+                const bool on_march = n == 0 && COALITION_MARCH_SHARE_DEN_ * votes[i] >= total_votes &&
+                    (c.at_war_with & ~us_bit) != 0;
+                if (!large && !on_march) continue;
                 giant = i;
+                marching = !large;
+                break;
             }
-            // A leader holding half of the votes itself expects that coalition: no new conquests,
+            // A leader holding 2/5 of the votes itself expects that coalition: no new conquests,
             // the fleet for defence, growth in peace (rule 406 below).
-            const bool we_hold_half = Phase(PHASE_PART_COALITION) && count >= 2 &&
-                our_votes >= PHASE_MIN_THREAT_VOTES_ && 2 * our_votes >= total_votes;
+            const bool we_hold_half = Phase(PHASE_PART_COALITION) && count >= 2 && total_votes >= COALITION_MIN_TOTAL_VOTES_ &&
+                COALITION_SHARE_DEN_ * our_votes >= COALITION_SHARE_NUM_ * total_votes;
+            // Know the front-runner: with no spies at the contact with the most votes and no war of
+            // ours to watch, our spies go there (rule 203 otherwise picks by relations).
+            if (Phase(PHASE_PART_COALITION) && !any_war && nominee[0] >= 0 && view->contacts[nominee[0]].our_spies == 0) {
+                d.spy_target = view->contacts[nominee[0]].player;
+                d.spy_mission = SPY_STEAL_TECH;
+                std::snprintf(line, sizeof(line), "rule 408 watch: player %d leads the vote, no spies there -> spies there",
+                    static_cast<int>(d.spy_target));
+                Append_Note_(&text, line);
+            }
             // Who joins (the author's point: a small neighbour that joins alone is crushed first).
             // A distant empire joins: the war costs it little and an empire at war never votes for
             // its enemy (council.cpp Vote_Check). A neighbour - the giant is in our reach - joins
@@ -542,8 +566,8 @@ namespace advisor {
                 }
                 phase_rule = 408;
                 std::snprintf(line, sizeof(line),
-                    "rule 408 coalition: player %d holds %d of %d known votes by itself -> WAR, %d partners at war with it (ALLY), peace with the rest",
-                    static_cast<int>(x.player), votes[giant], total_votes, partners);
+                    "rule 408 coalition: player %d holds %d of %d known votes by itself%s -> WAR, %d partners at war with it (ALLY), peace with the rest",
+                    static_cast<int>(x.player), votes[giant], total_votes, marching ? " and is on the march" : "", partners);
                 Append_Note_(&text, line);
             } else if (threat >= 0) {
                 const s_view_contact& x = view->contacts[threat];
@@ -610,7 +634,7 @@ namespace advisor {
                 if (ally >= 0 && !secured) d.attitude[view->contacts[ally].player] = ATTITUDE_ALLY;
                 std::snprintf(line, sizeof(line),
                     "rule 406 leader: %d of %d known votes with our allies%s; %s%d; peace with %d; ally sought %d",
-                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : we_hold_half ? " (half by ourselves: grow in peace)" : "",
+                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : we_hold_half ? " (2/5 by ourselves: grow in peace)" : "",
                     target >= 0 ? "conquer player " : "no new war, target ", target >= 0 ? static_cast<int>(view->contacts[target].player) : -1,
                     strongest_other >= 0 ? static_cast<int>(view->contacts[strongest_other].player) : -1,
                     ally >= 0 && !secured ? static_cast<int>(view->contacts[ally].player) : -1);

@@ -1054,6 +1054,7 @@ TEST_CASE("rules: 406 a leader conquers one weak neighbour at a time and courts 
 
 TEST_CASE("rules: 407 resists an empire nearing a council win and courts its allies") {
     s_phase_scope scope;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_COALITION;  // at 12 of 30 votes the coalition would fire
     s_empire_view v = Phase_View_();
     v.self.population = 80;  // 8 votes; we do not lead
     v.self.colonies = 4;
@@ -1158,11 +1159,29 @@ TEST_CASE("rules: 408 goes to war in a coalition against a nominee holding half 
     CHECK(d.attitude[1] != ATTITUDE_WAR);
     v.contacts[0].treaty.value = 0;
 
-    // Under half of the votes, or with the part off: no coalition.
-    v.contacts[0].population.value = 80;  // 8 of 18
+    // 2/5 is enough (7 of 17); under it (6 of 16) only on the march: the vote leader at war with
+    // someone else.
+    v.contacts[0].population.value = 70;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 408 coalition: player 1 holds 7 of 17 known votes by itself -> WAR"));
+    v.contacts[0].population.value = 60;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 408 coalition: player 1 holds 6 of 16 known votes by itself and is on the march -> WAR"));
+    v.contacts[0].at_war_with = 0;
+    v.contacts[1].at_war_with = 0;
     Rules_Directive(&v, &d, &note);
-    CHECK_FALSE(Has_(note, "rule 408"));
+    CHECK_FALSE(Has_(note, "rule 408 coalition"));
+    v.contacts[0].at_war_with = 1u << 2;
+    v.contacts[1].at_war_with = 1u << 1;
+    // A small known galaxy (under 15 votes) is no basis for a coalition.
+    v.contacts[0].population.value = 40;
+    v.contacts[1].population.value = 30;
+    v.contacts[2].population.value = 10;  // 4 + 4 + 3 + 1 = 12
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 408 coalition"));
     v.contacts[0].population.value = 120;
+    v.contacts[1].population.value = 40;
+    v.contacts[2].population.value = 20;
     phase_parts = PHASE_PART_ALL & ~PHASE_PART_COALITION;
     Rules_Directive(&v, &d, &note);
     CHECK_FALSE(Has_(note, "rule 408"));
@@ -1177,8 +1196,26 @@ TEST_CASE("rules: 406 a leader holding half of the votes grows in peace") {
     s_directive d;
     std::string note;
     REQUIRE(Rules_Directive(&v, &d, &note));
-    CHECK(Has_(note, "(half by ourselves: grow in peace); no new war, target -1"));
+    CHECK(Has_(note, "(2/5 by ourselves: grow in peace); no new war, target -1"));
     CHECK(d.attitude[2] != ATTITUDE_WAR);
     CHECK(d.posture == POSTURE_DEFEND);
     CHECK(d.weights[WEIGHT_FLEET] == LEVEL_HIGH);
+}
+
+TEST_CASE("rules: 408 sends spies to the vote leader we cannot see into") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.population = 40;
+    v.self.colonies = 4;
+    s_view_contact& leader = Add_Empire_(&v, 1, 6, 60, 1000, 1);
+    Add_Empire_(&v, 2, 3, 30, 1000, 1);
+    leader.our_spies = 0;
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 408 watch: player 1 leads the vote, no spies there -> spies there"));
+    CHECK(d.spy_target == 1);
+    leader.our_spies = 1;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 408 watch"));
 }
