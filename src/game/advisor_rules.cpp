@@ -491,7 +491,39 @@ namespace advisor {
             // the fleet for defence, growth in peace (rule 406 below).
             const bool we_hold_half = Phase(PHASE_PART_COALITION) && count >= 2 &&
                 our_votes >= PHASE_MIN_THREAT_VOTES_ && 2 * our_votes >= total_votes;
+            // Who joins (the author's point: a small neighbour that joins alone is crushed first).
+            // A distant empire joins: the war costs it little and an empire at war never votes for
+            // its enemy (council.cpp Vote_Check). A neighbour - the giant is in our reach - joins
+            // with at least a third of the giant's fighting power, or when we and the partners
+            // already at war with it and within our reach together match it (help can come);
+            // otherwise it lies low (NEUTRAL: peace bias, nothing to provoke). Without spies there the
+            // giant's fleet is unknown, so an exposed neighbour lies low. Fleet positions are not in
+            // the empire view; partners in reach stand in for "troops nearby".
+            bool lie_low = false;
+            int64_t support = 0;
             if (giant >= 0) {
+                const s_view_contact& x = view->contacts[giant];
+                const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
+                const int64_t theirs = Fighting_Power_(x.visible_fleet_strength.value, x.visible_combat_ships.value);
+                for (int j = 0; j < count; ++j) {
+                    const s_view_contact& c = view->contacts[j];
+                    if (j == giant || c.in_range == 0 || (c.at_war_with & (1u << (x.player & 7))) == 0) continue;
+                    support += Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                }
+                const bool exposed = x.in_range != 0;
+                const bool known = x.our_spies > 0;
+                lie_low = exposed && !Is_War_(x) &&
+                    (!known || (3 * ours < theirs && ours + support < theirs));
+            }
+            if (giant >= 0 && lie_low) {
+                const s_view_contact& x = view->contacts[giant];
+                d.attitude[x.player] = ATTITUDE_NEUTRAL;
+                phase_rule = 408;
+                std::snprintf(line, sizeof(line),
+                    "rule 408 coalition: player %d holds %d of %d known votes by itself, but we border it alone (support %lld) -> lie low (NEUTRAL)",
+                    static_cast<int>(x.player), votes[giant], total_votes, static_cast<long long>(support));
+                Append_Note_(&text, line);
+            } else if (giant >= 0) {
                 const s_view_contact& x = view->contacts[giant];
                 d.attitude[x.player] = ATTITUDE_WAR;
                 d.main_rival = x.player;

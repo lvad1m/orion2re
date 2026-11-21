@@ -1124,6 +1124,33 @@ TEST_CASE("rules: 408 goes to war in a coalition against a nominee holding half 
     CHECK(d.posture == POSTURE_START_NEW_WAR);
     CHECK(d.weights[WEIGHT_FLEET] == LEVEL_HIGH);
 
+    // A weak neighbour of the giant (power 1000 against its 9000) joins only with help in reach.
+    v.self.fleet_strength = 500;
+    v.self.combat_ships = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "but we border it alone (support 2000) -> lie low (NEUTRAL)"));
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    v.contacts[1].visible_fleet_strength.value = 4000;  // the partner at war with it: 8000 in our reach, 9000 with us
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.contacts[1].visible_fleet_strength.value = 1000;
+    v.contacts[1].in_range = 0;  // a strong partner out of reach is no help
+    v.contacts[1].visible_fleet_strength.value = 4000;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    v.contacts[1].visible_fleet_strength.value = 1000;
+    v.contacts[1].in_range = 1;
+    v.contacts[0].in_range = 0;  // out of the giant's reach: the war costs little
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.contacts[0].in_range = 1;
+    v.contacts[0].our_spies = 0;  // the giant's fleet unknown: a neighbour lies low
+    v.self.fleet_strength = 3000;
+    v.self.combat_ships = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    v.contacts[0].our_spies = 1;
+
     // Our ally: no war (an alliance is kept).
     v.contacts[0].treaty.value = 2;
     Rules_Directive(&v, &d, &note);

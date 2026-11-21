@@ -8652,7 +8652,7 @@
 
     phase_parts: {
       title: "Parts of the phase strategy",
-      description: "Selects which parts of the phase strategy the advisor follows, as a sum of bits: 1 the leader plays for victory (rule 406: conquest one neighbour at a time, allies for council votes, a fleet sized to the strongest neighbour), 2 everyone resists a council nominee nearing a win (rule 407), 4 advised empires vote in the council by these attitudes, 8 coalition war on a council nominee holding half of the votes by itself (rule 408: war on it, friendship with its other enemies, peace elsewhere; the coalition's strength counts in the war decision and attacks on it need no decisive margin), while a leader holding half grows in peace.",
+      description: "Selects which parts of the phase strategy the advisor follows, as a sum of bits: 1 the leader plays for victory (rule 406: conquest one neighbour at a time, allies for council votes, a fleet sized to the strongest neighbour), 2 everyone resists a council nominee nearing a win (rule 407), 4 advised empires vote in the council by these attitudes, 8 coalition war on a council nominee holding half of the votes by itself (rule 408: war on it, friendship with its other enemies, peace elsewhere; the coalition's strength counts in the war decision and attacks on it need no decisive margin; a weak neighbour of the nominee joins only when the nominee's other enemies within its reach can help, and otherwise lies low), while a leader holding half grows in peace.",
       remarks: "Effective only while advisor rules_phases is true. 15 follows the whole strategy.",
       examples: ["advisor phase_parts = 1;"],
       group: "gameplay",
