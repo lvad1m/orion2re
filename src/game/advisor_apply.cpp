@@ -4,6 +4,7 @@
 
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/advisor_race.h"
 
 #include <algorithm>
 
@@ -306,6 +307,8 @@ namespace advisor {
         if (!undefended || !enabled || !Doctrine(DOCTRINE_PART_RAIDS) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 100;
         if (((active_players >> player) & 1) == 0) return 100;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 100;
+        // Race doctrine: stealthy races strike where the enemy is not, thrice rather than twice.
+        if (rules_race && Race_Leanings(game::current.players[player].traits).stealth >= 1) return STEALTH_RAID_PERCENT;
         return DOCTRINE_RAID_PERCENT;
     }
 

@@ -123,6 +123,7 @@ namespace advisor {
             self->research = plr.research_produced;  // the game stores 0x7FFF here for a special case
             self->food_surplus = plr.surplus_food;
             self->population = plr.total_pop;
+            self->race = Race_Leanings(plr.traits);
             self->command_points = plr.command_points;
             self->command_points_used = plr.command_points_used;
             self->stars_total = world->Star_Count();
@@ -364,6 +365,12 @@ namespace advisor {
                       static_cast<int>(self.free_planets_in_reach), static_cast<int>(self.free_outpost_sites_in_reach));
 
         Append_Format(out, "Technologies known: %d.\n", static_cast<int>(self.techs_known));
+        const s_race_leanings& race = self.race;
+        if (race.war != 0 || race.diplomacy != 0 || race.spying != 0 || race.growth != 0 || race.stealth != 0) {
+            Append_Format(out, "Race leanings: war %+d, diplomacy %+d, spying %+d, growth %+d, stealth %+d.\n",
+                          static_cast<int>(race.war), static_cast<int>(race.diplomacy), static_cast<int>(race.spying),
+                          static_cast<int>(race.growth), static_cast<int>(race.stealth));
+        }
 
         out->append("CONTACTS:");
         if (view->contact_count <= 0) {

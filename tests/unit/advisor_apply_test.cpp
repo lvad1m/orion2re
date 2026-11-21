@@ -622,3 +622,18 @@ DOCTEST_TEST_CASE("military reports are sent only with the part on, between comp
     DOCTEST_CHECK_FALSE(advisor::Military_Report(&game::current, 1, 2).sent);  // nobody to fight
     advisor::phase_parts = parts;
 }
+
+DOCTEST_TEST_CASE("race doctrine: stealthy races value raids three times") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    const bool race = advisor::rules_race;
+    advisor::rules_race = true;
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
+    state.players[1].traits[TRAIT_STEALTHY_SHIPS] = 1;
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::STEALTH_RAID_PERCENT);
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, false) == 100);
+    advisor::rules_race = false;
+    DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
+    advisor::rules_race = race;
+}

@@ -35,6 +35,7 @@ namespace advisor {
     extern bool rules_doctrine;              // Byzantine doctrine: allies against enemies, buy peace, deterrence
     extern bool rules_counter_design;        // advised empires design ships against their real enemies
     extern bool rules_seen_ships;            // advised empires design against the ships they saw in battle
+    extern bool rules_race;                  // the race's traits lean the rules a little (advisor_race.h)
     extern bool rules_outposts;              // rules may build and settle outposts
     extern bool rules_exploration;           // rules may push range research (rule 501)
     extern int32_t active_players;           // bit i: the advisor steers player i (0..255, default 255)

@@ -8,6 +8,7 @@
 #include "game/advisor_sources.h"
 #include "game/advisor_view.h"
 #include "game/advisor_reports.h"
+#include "game/advisor_race.h"
 #include "game/orion2_consts.h"
 
 namespace {
@@ -1304,4 +1305,118 @@ TEST_CASE("military reports: inflation by character and belief by trust") {
     CHECK(Report_Credibility_Percent(30) == 80);
     CHECK(Report_Credibility_Percent(70) == 100);
     CHECK(Report_Credibility_Percent(-60) == 10);
+}
+
+TEST_CASE("race doctrine: leanings come from the race's traits") {
+    int8_t traits[TRAIT_COUNT] = {};
+    CHECK(Race_Leanings(traits).war == 0);
+    traits[TRAIT_GROUND_COMBAT_BONUS] = 1;  // a soldier race
+    traits[TRAIT_SHIP_ATTACK] = 1;
+    CHECK(Race_Leanings(traits).war == 2);
+    int8_t spies[TRAIT_COUNT] = {};
+    spies[TRAIT_SPYING_BONUS] = 2;  // a spy race with stealthy ships
+    spies[TRAIT_STEALTHY_SHIPS] = 1;
+    CHECK(Race_Leanings(spies).spying == 1);
+    CHECK(Race_Leanings(spies).stealth == 1);
+    int8_t traders[TRAIT_COUNT] = {};
+    traders[TRAIT_FANTASTIC_TRADERS] = 1;
+    traders[TRAIT_CHARISMATIC] = 1;
+    CHECK(Race_Leanings(traders).diplomacy == 2);
+    CHECK(Race_Leanings(traders).war == -1);
+    int8_t loners[TRAIT_COUNT] = {};
+    loners[TRAIT_REPULSIVE] = 1;
+    loners[TRAIT_EATS_MINERALS] = 1;
+    loners[TRAIT_POP_GROWTH_BONUS] = -1;
+    CHECK(Race_Leanings(loners).diplomacy == -2);
+    CHECK(Race_Leanings(loners).war == 1);
+    CHECK(Race_Leanings(loners).growth == 0);
+    CHECK(Race_Leanings(nullptr).war == 0);
+
+    s_race_leanings warlike;
+    warlike.war = 1;
+    s_race_leanings peaceful;
+    peaceful.war = -1;
+    CHECK(Weak_For_Race(500, 1000, s_race_leanings{}));
+    CHECK_FALSE(Weak_For_Race(600, 1000, s_race_leanings{}));
+    CHECK(Weak_For_Race(600, 1000, warlike));
+    CHECK_FALSE(Weak_For_Race(400, 1000, peaceful));
+    CHECK(Weak_For_Race(300, 1000, peaceful));
+    CHECK_FALSE(Weak_For_Race(0, 0, warlike));
+    CHECK(Coalition_Join_Denominator(warlike) == 4);
+    CHECK(Coalition_Join_Denominator(peaceful) == 2);
+}
+
+TEST_CASE("race doctrine: a warlike race preys on a stronger neighbour, a peaceful one does not") {
+    s_third_party_scope scope;
+    s_empire_view v = Third_Party_View_();  // our power 9000
+    Add_Power_(&v, 2, 2750, 1);             // 5500: over half of ours, under the 2/3 that makes it dangerous
+    s_directive d;
+    std::string note;
+    Rules_Directive(&v, &d, &note);
+    CHECK(d.attitude[2] != ATTITUDE_HOSTILE);  // not weak for the plain rules (over half)
+    v.self.race.war = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[2] == ATTITUDE_HOSTILE);
+    rules_race = false;  // the flag off: the plain rules again
+    Rules_Directive(&v, &d, &note);
+    CHECK(d.attitude[2] != ATTITUDE_HOSTILE);
+    rules_race = true;
+}
+
+TEST_CASE("race doctrine: spy races join last and sabotage, warlike races never wait") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.population = 40;
+    v.self.colonies = 4;
+    s_view_contact& giant = Add_Empire_(&v, 1, 8, 100, 3000, 2);
+    s_view_contact& partner = Add_Empire_(&v, 2, 3, 40, 1000, 1);
+    Add_Empire_(&v, 3, 2, 20, 1000, 1);
+    partner.at_war_with = 1u << 1;
+    giant.at_war_with = 1u << 2;
+    s_directive d;
+    std::string note;
+    // An aggressive leader of a spy race still joins at once; an honorable one waits.
+    v.self.race.spying = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    v.self.personality = PLAYER_PERSONALITY_HONORABLE;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "wait to join last"));
+    // A ruthless leader of a warlike race never waits.
+    v.self.race.spying = 0;
+    v.self.race.war = 1;
+    v.self.personality = PLAYER_PERSONALITY_RUTHLESS;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+}
+
+TEST_CASE("race doctrine: diplomat races court allies, growth races grow in peace sooner") {
+    s_phase_scope scope;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_COALITION;
+    s_empire_view v = Phase_View_();
+    Add_Empire_(&v, 1, 4, 40, 1500, 2);
+    Add_Empire_(&v, 2, 2, 20, 500, 1);
+    Add_Empire_(&v, 3, 3, 30, 1000, 1);
+    Add_Empire_(&v, 4, 2, 20, 1000, 1);
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[3] == ATTITUDE_ALLY);       // the one with the most votes
+    CHECK(d.attitude[4] == ATTITUDE_FRIENDLY);
+    v.self.race.diplomacy = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[4] == ATTITUDE_ALLY);       // a diplomat courts everyone as an ally
+    v.self.race.diplomacy = -2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[3] == ATTITUDE_FRIENDLY);   // a repulsive race seeks no ally
+
+    // 10 of 26 votes: not 2/5, but a third - a growth race grows in peace.
+    phase_parts = PHASE_PART_ALL;
+    v.self.race.diplomacy = 0;
+    v.contacts[0].population.value = 90;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK_FALSE(Has_(note, "grow in peace"));
+    v.self.race.growth = 1;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "(a third by ourselves, a growing race: grow in peace)"));
 }

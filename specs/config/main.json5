@@ -8666,6 +8666,21 @@
       },
     },
 
+    rules_race: {
+      title: "Advisor rules lean by race",
+      description: "The race's traits lean the advisor's rules a little, so races with the same leader character play differently: warlike races (ship attack, ground combat, warlords, telepathy) count stronger neighbours as weak prey, join coalitions sooner and never wait to join last; diplomat races (charismatic, fantastic traders) court every friend as an ally, repulsive races court nobody; spy races keep spies at the vote leader, sabotage at war and join coalitions last; growth races (population growth, subterranean, aquatic, large home world, lithovores) grow in peace from a third of the council votes and send two colony ships sooner; stealthy races value raids on undefended colonies three times instead of twice.",
+      remarks: "Effective only while advisor enabled is true. Each leaning shifts a threshold of an existing rule; the leader's character stays the second axis (README.md 10.8).",
+      examples: ["advisor rules_race = false;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: true,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_race",
+      },
+    },
+
     rules_counter_design: {
       title: "Advisor designs ships against real enemies",
       description: "Advised computer empires choose ship weapons against the shields and drives of their actual enemy (the advisor's main rival, otherwise the contact with the strongest fleet against them) and defensive specials against that enemy's weapons, instead of the first living player.",

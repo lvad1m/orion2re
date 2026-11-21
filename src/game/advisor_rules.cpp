@@ -56,7 +56,11 @@ namespace advisor {
         // Rule 408, join last (phase part 16; the author: in a game of thrones the winners are often
         // those who entered the fight last). Ruthless, erratic and pacifist leaders let others bleed
         // first; aggressive, xenophobic and honorable ones join at once.
-        bool Joins_Last_(uint8_t personality) {
+        // The race leans it (rules_race, README.md 10.8): warlike races never wait; spy races wait
+        // unless their leader is aggressive (the network of Varys).
+        bool Joins_Last_(uint8_t personality, const s_race_leanings& race) {
+            if (race.war >= 1) return false;
+            if (race.spying >= 1 && personality != PLAYER_PERSONALITY_AGGRESSIVE) return true;
             return personality == PLAYER_PERSONALITY_RUTHLESS || personality == PLAYER_PERSONALITY_ERRATIC ||
                 personality == PLAYER_PERSONALITY_PACIFIST;
         }
@@ -169,6 +173,9 @@ namespace advisor {
 
         const s_view_self& self = view->self;
         const int32_t count = std::clamp<int32_t>(view->contact_count, 0, MAX_PLAYERS);
+        // Race doctrine (rules_race, README.md 10.8): the race's leanings shift thresholds below;
+        // all zero - the plain rules - with the flag off.
+        const s_race_leanings race = rules_race ? self.race : s_race_leanings{};
 
         bool any_war = false;
         for (int i = 0; i < count; ++i) {
@@ -274,7 +281,7 @@ namespace advisor {
                 const s_view_contact& c = view->contacts[idx];
                 spy_rule = 201;
                 d.spy_target = c.player;
-                d.spy_mission = (honorable || pacifist) ? SPY_STEAL_TECH : SPY_SABOTAGE;
+                d.spy_mission = ((honorable || pacifist) && race.spying < 1) ? SPY_STEAL_TECH : SPY_SABOTAGE;
                 std::snprintf(line, sizeof(line), "rule 201 spy_war: player %d, %d spies -> %s",
                     static_cast<int>(c.player), static_cast<int>(c.our_spies),
                     d.spy_mission == SPY_STEAL_TECH ? "STEAL_TECH" : "SABOTAGE");
@@ -327,7 +334,7 @@ namespace advisor {
                 const bool war = Is_War_(c);
                 spy_rule = 203;
                 d.spy_target = c.player;
-                d.spy_mission = (war && !(honorable || pacifist)) ? SPY_SABOTAGE : SPY_STEAL_TECH;
+                d.spy_mission = (war && (!(honorable || pacifist) || race.spying >= 1)) ? SPY_SABOTAGE : SPY_STEAL_TECH;
                 std::snprintf(line, sizeof(line), "rule 203 spy_build: player %d (%s), no spies there -> build spies, %s",
                     static_cast<int>(c.player), war ? "war" : "peace",
                     d.spy_mission == SPY_STEAL_TECH ? "STEAL_TECH" : "SABOTAGE");
@@ -512,11 +519,13 @@ namespace advisor {
             }
             // A leader holding 2/5 of the votes itself expects that coalition: no new conquests,
             // the fleet for defence, growth in peace (rule 406 below).
+            // Growth races win the council by numbers: they grow in peace from a third of the votes.
             const bool we_hold_half = Phase(PHASE_PART_COALITION) && count >= 2 && total_votes >= COALITION_MIN_TOTAL_VOTES_ &&
-                COALITION_SHARE_DEN_ * our_votes >= COALITION_SHARE_NUM_ * total_votes;
+                (race.growth >= 1 ? 3 * our_votes >= total_votes : COALITION_SHARE_DEN_ * our_votes >= COALITION_SHARE_NUM_ * total_votes);
             // Know the front-runner: with no spies at the contact with the most votes and no war of
             // ours to watch, our spies go there (rule 203 otherwise picks by relations).
-            if (Phase(PHASE_PART_COALITION) && !any_war && nominee[0] >= 0 && view->contacts[nominee[0]].our_spies == 0) {
+            if (Phase(PHASE_PART_COALITION) && !any_war && nominee[0] >= 0 &&
+                (view->contacts[nominee[0]].our_spies == 0 || race.spying >= 1)) {
                 d.spy_target = view->contacts[nominee[0]].player;
                 d.spy_mission = SPY_STEAL_TECH;
                 std::snprintf(line, sizeof(line), "rule 408 watch: player %d leads the vote, no spies there -> spies there",
@@ -554,7 +563,7 @@ namespace advisor {
                 const bool exposed = x.in_range != 0;
                 const bool known = x.our_spies > 0;
                 lie_low = exposed && !Is_War_(x) &&
-                    (!known || (3 * ours < theirs && ours + support < theirs));
+                    (!known || (Coalition_Join_Denominator(race) * ours < theirs && ours + support < theirs));
                 // Join last: wait while the giant still matches everyone fighting it - unless it is
                 // three fifths of the way to the council (no time left) or we already fight it.
                 for (int j = 0; j < count; ++j) {
@@ -563,7 +572,7 @@ namespace advisor {
                     enemies += Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
                 }
                 giant_power = theirs;
-                wait_last = !lie_low && Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality) && !Is_War_(x) &&
+                wait_last = !lie_low && Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality, race) && !Is_War_(x) &&
                     PHASE_THREAT_DEN_ * votes[giant] < PHASE_THREAT_NUM_ * total_votes && enemies < theirs;
             }
             if (giant >= 0 && lie_low) {
@@ -593,7 +602,7 @@ namespace advisor {
                 d.main_rival = x.player;
                 d.posture = Is_War_(x) ? POSTURE_ATTACK_CURRENT_ENEMIES : POSTURE_START_NEW_WAR;
                 // A late joiner comes for the spoils: troop transports too (fleet weight MAX).
-                d.weights[WEIGHT_FLEET] = Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality) ? LEVEL_MAX : LEVEL_HIGH;
+                d.weights[WEIGHT_FLEET] = Phase(PHASE_PART_JOIN_LAST) && Joins_Last_(self.personality, race) ? LEVEL_MAX : LEVEL_HIGH;
                 int partners = 0;
                 for (int j = 0; j < count; ++j) {
                     if (j == giant) continue;
@@ -643,7 +652,7 @@ namespace advisor {
                     for (int i = 0; i < count; ++i) {
                         const s_view_contact& c = view->contacts[i];
                         if (i == strongest_other || c.treaty.value == PACT_TREATY_ || c.treaty.value == ALLIANCE_TREATY_) continue;
-                        if (c.our_spies == 0 || c.in_range == 0 || ours <= 0 || 2 * power(c) > ours) continue;
+                        if (c.our_spies == 0 || c.in_range == 0 || !Weak_For_Race(power(c), ours, race)) continue;
                         if (target < 0 || power(c) < power(view->contacts[target])) target = i;
                     }
                 }
@@ -659,7 +668,7 @@ namespace advisor {
                     d.posture = POSTURE_ATTACK_CURRENT_ENEMIES;
                     for (int i = 0; i < count; ++i) {
                         const s_view_contact& c = view->contacts[i];
-                        if (Is_War_(c) && ours > 0 && 2 * power(c) <= ours) d.attitude[c.player] = ATTITUDE_WAR;
+                        if (Is_War_(c) && Weak_For_Race(power(c), ours, race)) d.attitude[c.player] = ATTITUDE_WAR;
                     }
                 }
                 if (strongest_other >= 0 && !Is_War_(view->contacts[strongest_other]) && strongest_other != target) {
@@ -669,13 +678,15 @@ namespace advisor {
                 for (int i = 0; i < count; ++i) {
                     const s_view_contact& c = view->contacts[i];
                     if (i == target || i == strongest_other || Is_War_(c) || d.attitude[c.player] != ATTITUDE_KEEP) continue;
-                    d.attitude[c.player] = ATTITUDE_FRIENDLY;
+                    // Diplomat races court everyone as allies ("let others wage war; you, marry").
+                    d.attitude[c.player] = (race.diplomacy >= 1 && !secured && c.treaty.value != ALLIANCE_TREATY_) ? ATTITUDE_ALLY : ATTITUDE_FRIENDLY;
                     if (c.treaty.value != ALLIANCE_TREATY_ && (ally < 0 || votes[i] > votes[ally])) ally = i;
                 }
+                if (race.diplomacy <= -1) ally = -1;  // a repulsive race wins no friends
                 if (ally >= 0 && !secured) d.attitude[view->contacts[ally].player] = ATTITUDE_ALLY;
                 std::snprintf(line, sizeof(line),
                     "rule 406 leader: %d of %d known votes with our allies%s; %s%d; peace with %d; ally sought %d",
-                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : we_hold_half ? " (2/5 by ourselves: grow in peace)" : "",
+                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : !we_hold_half ? "" : race.growth >= 1 ? " (a third by ourselves, a growing race: grow in peace)" : " (2/5 by ourselves: grow in peace)",
                     target >= 0 ? "conquer player " : "no new war, target ", target >= 0 ? static_cast<int>(view->contacts[target].player) : -1,
                     strongest_other >= 0 ? static_cast<int>(view->contacts[strongest_other].player) : -1,
                     ally >= 0 && !secured ? static_cast<int>(view->contacts[ally].player) : -1);
@@ -760,7 +771,7 @@ namespace advisor {
                 return c.treaty.value == PACT_TREATY_ || c.treaty.value == ALLIANCE_TREATY_;
             };
             const auto weak_for_us = [&](const s_view_contact& c) {
-                return ours > 0 && 2 * power(c) <= ours && c.known_colonies.value <= self.colonies && c.our_spies > 0;
+                return Weak_For_Race(power(c), ours, race) && c.known_colonies.value <= self.colonies && c.our_spies > 0;
             };
             // Our rear is calm when no unbound contact is dangerous to us or unknown within reach.
             uint8_t dangerous_mask = 0;
@@ -841,7 +852,7 @@ namespace advisor {
         uint16_t expansion_rule = 0;
         if ((self.free_planets_in_reach > 0 || self.free_outpost_sites_in_reach > 0) && objective_rule != 102) {
             expansion_rule = 301;
-            const bool many = self.free_planets_in_reach >= EXPAND_TWO_SHIPS_FREE_PLANETS_;
+            const bool many = self.free_planets_in_reach >= EXPAND_TWO_SHIPS_FREE_PLANETS_ - (race.growth >= 1 ? 1 : 0);
             d.weights[WEIGHT_COLONIZATION] = many ? LEVEL_MAX : LEVEL_HIGH;
             std::snprintf(line, sizeof(line), "rule 301 expand: %d free planets and %d outpost sites in reach -> colonization %s",
                 self.free_planets_in_reach, self.free_outpost_sites_in_reach, many ? "MAX" : "HIGH");

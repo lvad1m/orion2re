@@ -144,6 +144,8 @@ namespace advisor {
     int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended);
 
     constexpr int32_t DOCTRINE_RAID_PERCENT = 200;
+    // Race doctrine (rules_race): raids of stealthy races (stealthy ships, trans-dimensional).
+    constexpr int32_t STEALTH_RAID_PERCENT = 300;
 
     // Ship design (aidesign.cpp): the empire whose shields, drives and weapons an advised computer
     // empire designs against. With `rules_counter_design` on: the directive's main rival when it is

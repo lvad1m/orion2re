@@ -173,6 +173,7 @@ namespace launcher {
             Line_(&out, std::string("advisor rules_lanchester = ") + Bool_(m.rivals_adapt) + ";");
             Line_(&out, std::string("advisor rules_counter_design = ") + Bool_(m.rivals_adapt) + ";");
             Line_(&out, std::string("advisor rules_seen_ships = ") + Bool_(m.rivals_adapt) + ";");
+            Line_(&out, std::string("advisor rules_race = ") + Bool_(m.rivals_adapt) + ";");
             Line_(&out, std::string("advisor rules_balance = ") + Bool_(m.diplomacy) + ";");
             Line_(&out, std::string("advisor rules_doctrine = ") + Bool_(m.diplomacy) + ";");
             Line_(&out, std::string("advisor rules_phases = ") + Bool_(m.phases) + ";");

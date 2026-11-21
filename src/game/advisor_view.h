@@ -4,6 +4,7 @@
 #include <string>
 
 #include "game/consts.h"
+#include "game/advisor_race.h"
 #include "game/world_view.h"
 
 // An empire's view of the galaxy, gathered for a directive source and the turn journal, and
@@ -74,6 +75,7 @@ namespace advisor {
         int32_t free_outpost_sites_in_reach = 0;
         int32_t outposts = 0;             // our colonies without population (included in `colonies`)
         int32_t techs_known = 0;          // researched technology applications
+        s_race_leanings race;             // from our race's traits (advisor_race.h)
     };
 
     struct s_view_contact {
