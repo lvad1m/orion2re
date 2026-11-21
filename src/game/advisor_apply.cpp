@@ -236,11 +236,57 @@ namespace advisor {
         if (((active_players >> player) & 1) == 0) return false;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return false;
         if (Doctrine(DOCTRINE_PART_READINESS)) return true;
-        // Phase strategy: a leader raising its army (rule 406) asks for the fleet weight.
-        if (!Phase(PHASE_PART_LEADER)) return false;
+        // Phase strategy: a leader raising its army (rule 406) or a coalition at war (408) asks for
+        // the fleet weight.
+        if (!Phase(PHASE_PART_LEADER) && !Phase(PHASE_PART_COALITION)) return false;
         const s_directive* directive = Get_Directive(player);
         return directive != nullptr && Is_Active(directive, game::current.Stardate()) &&
             directive->weights[WEIGHT_FLEET] >= LEVEL_HIGH;
+    }
+
+    namespace {
+        // Rule 408's joint war: `target` is the WAR main rival of the advised computer empire
+        // `player`, and another living empire is at war with `target` too.
+        bool Joint_War_(uint8_t player, uint8_t target) {
+            if (!enabled || !Phase(PHASE_PART_COALITION) || player >= MAX_PLAYERS || target >= MAX_PLAYERS || player == target) return false;
+            const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
+            if (player >= players || target >= players) return false;
+            if (((active_players >> player) & 1) == 0) return false;
+            if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return false;
+            const s_directive* directive = Get_Directive(player);
+            if (directive == nullptr || !Is_Active(directive, game::current.Stardate()) ||
+                directive->main_rival != target || directive->attitude[target] != ATTITUDE_WAR) {
+                return false;
+            }
+            for (int32_t k = 0; k < players; ++k) {
+                if (k == player || k == target || game::current.players[k].eliminated != 0) continue;
+                const int8_t treaty = game::current.players[k].treaty[target];
+                if (treaty >= 4 && treaty <= 6) return true;
+            }
+            return false;
+        }
+    } // namespace
+
+    int32_t Coalition_Percent(uint8_t player, uint8_t target) {
+        if (!Joint_War_(player, target)) return 100;
+        const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
+        const int64_t ours = game::current.players[player].total_ship_strength[target];
+        int64_t partners = 0;
+        for (int32_t k = 0; k < players; ++k) {
+            if (k == player || k == target || game::current.players[k].eliminated != 0) continue;
+            const int8_t treaty = game::current.players[k].treaty[target];
+            if (treaty >= 4 && treaty <= 6) partners += game::current.players[k].total_ship_strength[target];
+        }
+        const int64_t percent = 100 * (ours + partners) / std::max<int64_t>(1, ours);
+        return static_cast<int32_t>(std::clamp<int64_t>(percent, 100, COALITION_MAX_PERCENT));
+    }
+
+    int32_t Attack_Margin_Percent_Vs(uint8_t player, uint8_t target) {
+        return Joint_War_(player, target) ? 100 : Attack_Margin_Percent(player);
+    }
+
+    int32_t Coalition_Worthiness_Percent(uint8_t player, uint8_t target) {
+        return Joint_War_(player, target) ? COALITION_TARGET_PERCENT : 100;
     }
 
     int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate) {

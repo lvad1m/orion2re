@@ -471,7 +471,49 @@ namespace advisor {
                 }
             }
             const int our_rival = nominee[0] == -1 ? nominee[1] : nominee[1] == -1 ? nominee[0] : -3;  // -3: we are no nominee
-            if (threat >= 0) {
+            // Rule 408 (coalition war): the council is won by size - the elected empire holds about
+            // two thirds of the population itself (README.md 10.4.6) - so a nominee holding half of
+            // the known votes by itself can only be stopped by war before it grows further. Every
+            // advised empire not allied with it goes to war with it, befriends those already
+            // fighting it (ALLY) and seeks peace with everyone else (one front). The engine then
+            // counts the coalition's strength in the war decision and drops the decisive-force
+            // margin in attacks on it (advisor_apply.h, Coalition_Percent).
+            int giant = -1;
+            for (int n = 0; n < 2 && Phase(PHASE_PART_COALITION) && count >= 2; ++n) {
+                const int i = nominee[n];
+                if (i < 0) continue;
+                const s_view_contact& c = view->contacts[i];
+                if (!Known_Size_(c) || votes[i] < PHASE_MIN_THREAT_VOTES_ || 2 * votes[i] < total_votes) continue;
+                if (c.treaty.value == ALLIANCE_TREATY_) continue;  // our ally: rule 407 makes us wary instead
+                giant = i;
+            }
+            // A leader holding half of the votes itself expects that coalition: no new conquests,
+            // the fleet for defence, growth in peace (rule 406 below).
+            const bool we_hold_half = Phase(PHASE_PART_COALITION) && count >= 2 &&
+                our_votes >= PHASE_MIN_THREAT_VOTES_ && 2 * our_votes >= total_votes;
+            if (giant >= 0) {
+                const s_view_contact& x = view->contacts[giant];
+                d.attitude[x.player] = ATTITUDE_WAR;
+                d.main_rival = x.player;
+                d.posture = Is_War_(x) ? POSTURE_ATTACK_CURRENT_ENEMIES : POSTURE_START_NEW_WAR;
+                d.weights[WEIGHT_FLEET] = LEVEL_HIGH;
+                int partners = 0;
+                for (int j = 0; j < count; ++j) {
+                    if (j == giant) continue;
+                    const s_view_contact& c = view->contacts[j];
+                    if ((c.at_war_with & (1u << (x.player & 7))) != 0) {
+                        d.attitude[c.player] = ATTITUDE_ALLY;
+                        ++partners;
+                    } else {
+                        d.attitude[c.player] = ATTITUDE_FRIENDLY;
+                    }
+                }
+                phase_rule = 408;
+                std::snprintf(line, sizeof(line),
+                    "rule 408 coalition: player %d holds %d of %d known votes by itself -> WAR, %d partners at war with it (ALLY), peace with the rest",
+                    static_cast<int>(x.player), votes[giant], total_votes, partners);
+                Append_Note_(&text, line);
+            } else if (threat >= 0) {
                 const s_view_contact& x = view->contacts[threat];
                 d.attitude[x.player] = x.treaty.value == ALLIANCE_TREATY_ ? ATTITUDE_WARY : ATTITUDE_HOSTILE;
                 int courted = 0;
@@ -500,7 +542,7 @@ namespace advisor {
                 }
                 const bool secured = our_rival != -3 && 3 * our_sure >= 2 * total_votes;
                 int target = -1;
-                if (!secured && !any_war) {
+                if (!secured && !any_war && !we_hold_half) {
                     for (int i = 0; i < count; ++i) {
                         const s_view_contact& c = view->contacts[i];
                         if (i == strongest_other || c.treaty.value == PACT_TREATY_ || c.treaty.value == ALLIANCE_TREATY_) continue;
@@ -512,6 +554,8 @@ namespace advisor {
                     d.attitude[view->contacts[target].player] = ATTITUDE_WAR;
                     d.posture = POSTURE_START_NEW_WAR;
                     d.main_rival = view->contacts[target].player;
+                } else if (we_hold_half && !secured) {
+                    d.posture = POSTURE_DEFEND;
                 } else if (any_war && !secured) {
                     // Finish the weak enemies we fight (no early peace with them); stronger enemies
                     // are left to the other rules.
@@ -534,7 +578,7 @@ namespace advisor {
                 if (ally >= 0 && !secured) d.attitude[view->contacts[ally].player] = ATTITUDE_ALLY;
                 std::snprintf(line, sizeof(line),
                     "rule 406 leader: %d of %d known votes with our allies%s; %s%d; peace with %d; ally sought %d",
-                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : "",
+                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : we_hold_half ? " (half by ourselves: grow in peace)" : "",
                     target >= 0 ? "conquer player " : "no new war, target ", target >= 0 ? static_cast<int>(view->contacts[target].player) : -1,
                     strongest_other >= 0 ? static_cast<int>(view->contacts[strongest_other].player) : -1,
                     ally >= 0 && !secured ? static_cast<int>(view->contacts[ally].player) : -1);

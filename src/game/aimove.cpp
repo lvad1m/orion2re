@@ -1991,7 +1991,9 @@ namespace AIMOVE {
                 success = false;
             }
             // Advisor (Lanchester): decisive force only; 100 % keeps the original "any edge" rule.
-            const uint64_t margin = static_cast<uint64_t>(advisor::Attack_Margin_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx))));
+            // Rule 408: none in a joint war on a would-be winner (the coalition shares the losses).
+            const uint64_t margin = static_cast<uint64_t>(advisor::Attack_Margin_Percent_Vs(
+                static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), static_cast<uint8_t>(owner)));
             if (margin > 100 && static_cast<uint64_t>(attack_space) * 100 < static_cast<uint64_t>(defending_space) * margin) {
                 success = false;
             }
@@ -2037,6 +2039,9 @@ namespace AIMOVE {
                 // Advisor (Byzantine rule IV): raids on undefended colonies first; 100 % otherwise.
                 attack_worthiness = static_cast<uint32_t>(static_cast<uint64_t>(attack_worthiness) *
                     advisor::Raid_Worthiness_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), undefended) / 100);
+                // Rule 408: the coalition's target first.
+                attack_worthiness = static_cast<uint32_t>(static_cast<uint64_t>(attack_worthiness) *
+                    advisor::Coalition_Worthiness_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), static_cast<uint8_t>(owner)) / 100);
 
                 if (target_info != nullptr) {
                     uint32_t target_val = (total_space_strength * 100 / defending_space * total_bomb_strength) / defending_ground;

@@ -546,3 +546,38 @@ DOCTEST_TEST_CASE("phase strategy: a leader's fleet weight asks for readiness an
     advisor::Set_Directive(1, &directive);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
 }
+
+DOCTEST_TEST_CASE("coalition war: partners' strength counts, no decisive margin, the target first") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    const int32_t parts = advisor::phase_parts;
+    advisor::rules_phases = true;
+    advisor::phase_parts = advisor::PHASE_PART_ALL;
+    advisor::rules_lanchester = true;
+    advisor::s_directive directive = Directive_();
+    directive.main_rival = 2;
+    directive.attitude[2] = advisor::ATTITUDE_WAR;
+    advisor::Set_Directive(1, &directive);
+    state.players[1].total_ship_strength[2] = 100;
+    state.players[0].total_ship_strength[2] = 200;
+
+    // Nobody else fights player 2: the usual caution.
+    DOCTEST_CHECK(advisor::Coalition_Percent(1, 2) == 100);
+    DOCTEST_CHECK(advisor::Attack_Margin_Percent_Vs(1, 2) == advisor::Attack_Margin_Percent(1));
+    DOCTEST_CHECK(advisor::Coalition_Worthiness_Percent(1, 2) == 100);
+
+    state.players[0].treaty[2] = 4;  // the human fights player 2 too: a joint war
+    DOCTEST_CHECK(advisor::Coalition_Percent(1, 2) == 300);
+    DOCTEST_CHECK(advisor::Attack_Margin_Percent_Vs(1, 2) == 100);
+    DOCTEST_CHECK(advisor::Coalition_Worthiness_Percent(1, 2) == advisor::COALITION_TARGET_PERCENT);
+    DOCTEST_CHECK(advisor::Coalition_Percent(1, 0) == 100);  // not our target
+
+    state.players[0].total_ship_strength[2] = 10000;
+    DOCTEST_CHECK(advisor::Coalition_Percent(1, 2) == advisor::COALITION_MAX_PERCENT);
+
+    advisor::phase_parts = advisor::PHASE_PART_ALL & ~advisor::PHASE_PART_COALITION;
+    DOCTEST_CHECK(advisor::Coalition_Percent(1, 2) == 100);
+    DOCTEST_CHECK(advisor::Coalition_Worthiness_Percent(1, 2) == 100);
+    advisor::phase_parts = parts;
+}

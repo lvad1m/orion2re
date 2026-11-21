@@ -1163,6 +1163,9 @@ namespace diplomac {
         // Advisor (stage 2g): Lanchester's square law for advised empires; 100 % otherwise.
         result = static_cast<int32_t>(static_cast<int64_t>(result) *
             advisor::Lanchester_Percent(static_cast<uint8_t>(player_idx_1), static_cast<uint8_t>(player_idx_2)) / 100);
+        // Advisor (rule 408): in a joint war on a would-be winner the coalition's strength counts.
+        result = static_cast<int32_t>(static_cast<int64_t>(result) *
+            advisor::Coalition_Percent(static_cast<uint8_t>(player_idx_1), static_cast<uint8_t>(player_idx_2)) / 100);
 
         if (result > 800) {
             result = 800;

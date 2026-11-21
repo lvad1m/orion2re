@@ -96,6 +96,21 @@ namespace advisor {
     // advised computer empire.
     int32_t Attitude_Bias(uint8_t player, uint8_t target);
 
+    // Rule 408 (coalition war, phase part 8): when `target` is the WAR main rival of the advised
+    // computer empire `player` and another living empire fights `target` too (a joint war):
+    // - Coalition_Percent: the war decision (diplomac.cpp Fleet_Strength_Comparison) counts the
+    //   partners' strength against `target` with ours, up to COALITION_MAX_PERCENT; 100 otherwise;
+    // - Attack_Margin_Percent_Vs: attacks on `target` need no decisive margin (100); otherwise
+    //   Attack_Margin_Percent(player);
+    // - Coalition_Worthiness_Percent: colonies of `target` are worth COALITION_TARGET_PERCENT as
+    //   targets (aimove.cpp); 100 otherwise.
+    // A war nobody else fights (a leader's conquest of a weak neighbour) keeps the usual caution.
+    inline constexpr int32_t COALITION_MAX_PERCENT = 400;
+    inline constexpr int32_t COALITION_TARGET_PERCENT = 200;
+    int32_t Coalition_Percent(uint8_t player, uint8_t target);
+    int32_t Attack_Margin_Percent_Vs(uint8_t player, uint8_t target);
+    int32_t Coalition_Worthiness_Percent(uint8_t player, uint8_t target);
+
     // Council vote (council.cpp Vote_Check) of the computer empire `voter` for `candidate`, outside
     // war and alliance: with the council-votes part of `rules_phases` on, the directive's attitude moves the vote score like
     // Attitude_Bias (an empire resisting a would-be winner votes against it); 0 otherwise.

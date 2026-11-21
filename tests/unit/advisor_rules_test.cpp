@@ -970,6 +970,7 @@ namespace {
 
 TEST_CASE("rules: 406 a leader conquers one weak neighbour at a time and courts the rest for votes") {
     s_phase_scope scope;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_COALITION;  // its growth in peace is tested apart
     s_empire_view v = Phase_View_();
     Add_Empire_(&v, 1, 4, 40, 1500, 2);  // the strongest other empire (power 4500)
     Add_Empire_(&v, 2, 2, 20, 500, 1);   // the weakest neighbour (1000): the target
@@ -1100,4 +1101,57 @@ TEST_CASE("rules: 407 resists an empire nearing a council win and courts its all
     v.contacts[1].allied_with = 0;
     Rules_Directive(&v, &d, &note);
     CHECK_FALSE(Has_(note, "rule 407"));
+}
+
+TEST_CASE("rules: 408 goes to war in a coalition against a nominee holding half the votes") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.population = 40;  // 4 votes
+    v.self.colonies = 4;
+    s_view_contact& giant = Add_Empire_(&v, 1, 8, 120, 3000, 2);  // 12 of 22 votes by itself
+    s_view_contact& partner = Add_Empire_(&v, 2, 3, 40, 1000, 1);  // 4 votes, already at war with it
+    Add_Empire_(&v, 3, 2, 20, 1000, 1);                            // 2 votes
+    partner.at_war_with = 1u << 1;
+    giant.at_war_with = 1u << 2;
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 408 coalition: player 1 holds 12 of 22 known votes by itself -> WAR, 1 partners at war with it (ALLY), peace with the rest"));
+    CHECK(d.attitude[1] == ATTITUDE_WAR);
+    CHECK(d.attitude[2] == ATTITUDE_ALLY);
+    CHECK(d.attitude[3] == ATTITUDE_FRIENDLY);
+    CHECK(d.main_rival == 1);
+    CHECK(d.posture == POSTURE_START_NEW_WAR);
+    CHECK(d.weights[WEIGHT_FLEET] == LEVEL_HIGH);
+
+    // Our ally: no war (an alliance is kept).
+    v.contacts[0].treaty.value = 2;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 408"));
+    CHECK(d.attitude[1] != ATTITUDE_WAR);
+    v.contacts[0].treaty.value = 0;
+
+    // Under half of the votes, or with the part off: no coalition.
+    v.contacts[0].population.value = 80;  // 8 of 18
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 408"));
+    v.contacts[0].population.value = 120;
+    phase_parts = PHASE_PART_ALL & ~PHASE_PART_COALITION;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 408"));
+}
+
+TEST_CASE("rules: 406 a leader holding half of the votes grows in peace") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();  // 10 of 19 votes by ourselves
+    Add_Empire_(&v, 1, 4, 40, 1500, 2);
+    Add_Empire_(&v, 2, 2, 20, 500, 1);
+    Add_Empire_(&v, 3, 3, 30, 1000, 1);
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "(half by ourselves: grow in peace); no new war, target -1"));
+    CHECK(d.attitude[2] != ATTITUDE_WAR);
+    CHECK(d.posture == POSTURE_DEFEND);
+    CHECK(d.weights[WEIGHT_FLEET] == LEVEL_HIGH);
 }
