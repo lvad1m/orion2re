@@ -44,6 +44,8 @@ namespace advisor {
     extern int32_t objective_min_turns;      // minimum turns between objective changes (1..100)
     extern int32_t spy_target_weight_percent;  // weight multiplier for the directive's spy target (100..1000)
     extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..127)
+    extern bool rules_phases;                // phase strategy: a leader plays for victory (rule 406),
+                                             // everyone resists an empire nearing a council win (407)
 
     // Parts of the Byzantine doctrine (Luttwak's seven rules, README.md 10.6), one bit each in
     // `doctrine_parts`, so each can be measured on its own. Rules II (intelligence), III (decisive

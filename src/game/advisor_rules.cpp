@@ -36,6 +36,22 @@ namespace advisor {
         constexpr int32_t EXPAND_TWO_SHIPS_FREE_PLANETS_ = 3;
         constexpr int32_t ALLIANCE_TREATY_ = 2;
         constexpr int32_t PACT_TREATY_ = 1;  // non-aggression pact
+        // Phase strategy (rules 406, 407): not before this turn, when the galaxy has taken shape.
+        constexpr int32_t PHASE_FIRST_TURN_ = 100;
+        // Rule 407: a would-be winner needs at least this many sure votes (population 100); the
+        // first bench games flagged "2 of 4 known votes" at turn 100.
+        constexpr int32_t PHASE_MIN_THREAT_VOTES_ = 10;
+
+        // We know a contact's size from our spies or from colonies of theirs we have seen.
+        bool Known_Size_(const s_view_contact& c) {
+            return c.our_spies > 0 || c.known_colonies.value > 0;
+        }
+
+        // Council votes as the game counts them (council.cpp Get_Num_Votes): population / 10,
+        // rounded up.
+        int32_t Votes_(int32_t population) {
+            return population > 0 ? (population + 9) / 10 : 0;
+        }
 
         const char* Objective_Label_(int objective) {
             switch (objective) {
@@ -303,6 +319,8 @@ namespace advisor {
         // When a contact clearly leads, everyone else gains by balancing against it: hostile to the
         // leader, friendly to the others (peace sooner, treaties easier).
         uint16_t balance_rule = 0;
+        bool we_lead = false;  // the test of rule 401 applied to us
+        int strongest_other = -1;  // contact index with the highest power index
         if (count > 0) {
             int64_t colonies_total = std::max(0, self.colonies);
             int64_t fleet_total = std::max(0, self.fleet_strength);
@@ -327,6 +345,23 @@ namespace advisor {
                     leader = i;
                 } else if (value > second_index) {
                     second_index = value;
+                }
+            }
+            // Without spies a contact's fleet is only what our scanners see this turn, so its power
+            // looks small: an empire of one colony "led" in the first bench games. We claim the lead
+            // only with spies at every contact and at least as many colonies as each (rule II).
+            bool lead_known = true;
+            for (int i = 0; i < count; ++i) {
+                const s_view_contact& c = view->contacts[i];
+                lead_known = lead_known && c.our_spies > 0 && c.known_colonies.value <= self.colonies;
+            }
+            we_lead = lead_known && leader < 0 && leader_index >= BALANCE_MIN_INDEX_ && 2 * leader_index >= 3 * second_index;
+            int32_t strongest_index = -1;
+            for (int i = 0; i < count; ++i) {
+                const int32_t value = index(view->contacts[i].known_colonies.value, view->contacts[i].visible_fleet_strength.value);
+                if (value > strongest_index) {
+                    strongest_index = value;
+                    strongest_other = i;
                 }
             }
             if (leader >= 0 && leader_index >= BALANCE_MIN_INDEX_ && 2 * leader_index >= 3 * second_index) {
@@ -367,6 +402,137 @@ namespace advisor {
             Append_Note_(&text, line);
         }
 
+        // Phase strategy (rules_phases; README.md 10.7). The Byzantine doctrine keeps an empire alive
+        // among strong neighbours; MOO2 is won by conquest or by two thirds of the council votes
+        // (population / 10; an ally always votes for its ally, council.cpp Vote_Check). From turn
+        // PHASE_FIRST_TURN_, with at least two contacts:
+        // - rule 407 (against a winner, any phase): a contact nominated for the council (one of the
+        //   two empires with the most votes) whose own and allies' votes - not the rival nominee's -
+        //   reach half of all votes we know is on its way to a council win -> HOSTILE (WARY if it
+        //   is our ally), its allies courted (FRIENDLY), it becomes the main rival;
+        // - rule 406 (leader, "Rome"): when we lead by power (the test rule 401 applies to others),
+        //   play for victory: a fleet (fleet weight HIGH, read by the Readiness hook), peace with the
+        //   strongest other empire (one front), friends and an ally among the rest for their votes,
+        //   and one weak neighbour at a time conquered (WAR, START_NEW_WAR, main rival; not spared by
+        //   rule 403) - unless our own and our allies' votes already reach two thirds: then keep the
+        //   peace and let the council crown us.
+        uint16_t phase_rule = 0;
+        if (rules_phases && count >= 2 && self.stardate - GAME_START_STARDATE_ >= PHASE_FIRST_TURN_) {
+            int32_t votes[MAX_PLAYERS] = {};
+            const int32_t our_votes = Votes_(self.population);
+            int32_t total_votes = our_votes;
+            for (int i = 0; i < count; ++i) {
+                // An empire of unknown size counts as large as we are.
+                votes[i] = Known_Size_(view->contacts[i]) ? Votes_(view->contacts[i].population.value) : our_votes;
+                total_votes += votes[i];
+            }
+            const auto bit = [&](int i) { return 1u << (view->contacts[i].player & 7); };
+            // The council nominates the two empires with the most votes (-1: us); a nominee votes
+            // for itself, so its rival nominee's votes never count as sure.
+            int nominee[2] = {-2, -2};
+            int32_t nominee_votes[2] = {-1, -1};
+            const auto consider = [&](int i, int32_t v) {
+                if (v > nominee_votes[0]) {
+                    nominee[1] = nominee[0];
+                    nominee_votes[1] = nominee_votes[0];
+                    nominee[0] = i;
+                    nominee_votes[0] = v;
+                } else if (v > nominee_votes[1]) {
+                    nominee[1] = i;
+                    nominee_votes[1] = v;
+                }
+            };
+            consider(-1, our_votes);
+            for (int i = 0; i < count; ++i) consider(i, votes[i]);
+            int threat = -1;
+            int32_t threat_votes = 0;
+            for (int n = 0; n < 2; ++n) {
+                const int i = nominee[n];
+                const int rival = nominee[1 - n];
+                if (i < 0) continue;
+                const s_view_contact& c = view->contacts[i];
+                int32_t sure = votes[i] + (c.treaty.value == ALLIANCE_TREATY_ && rival != -1 ? our_votes : 0);
+                for (int j = 0; j < count; ++j) {
+                    if (j != i && j != rival && (c.allied_with & bit(j)) != 0) sure += votes[j];
+                }
+                if (!Known_Size_(c) || sure < PHASE_MIN_THREAT_VOTES_) continue;
+                if (total_votes > 0 && 2 * sure >= total_votes && sure > threat_votes) {
+                    threat = i;
+                    threat_votes = sure;
+                }
+            }
+            const int our_rival = nominee[0] == -1 ? nominee[1] : nominee[1] == -1 ? nominee[0] : -3;  // -3: we are no nominee
+            if (threat >= 0) {
+                const s_view_contact& x = view->contacts[threat];
+                d.attitude[x.player] = x.treaty.value == ALLIANCE_TREATY_ ? ATTITUDE_WARY : ATTITUDE_HOSTILE;
+                int courted = 0;
+                for (int j = 0; j < count; ++j) {
+                    if (j == threat || (x.allied_with & bit(j)) == 0 || Is_War_(view->contacts[j])) continue;
+                    d.attitude[view->contacts[j].player] = ATTITUDE_FRIENDLY;
+                    ++courted;
+                }
+                d.main_rival = x.player;
+                phase_rule = 407;
+                std::snprintf(line, sizeof(line),
+                    "rule 407 council_threat: player %d has %d of %d known votes with its allies -> %s, court %d of its allies",
+                    static_cast<int>(x.player), threat_votes, total_votes,
+                    x.treaty.value == ALLIANCE_TREATY_ ? "WARY" : "HOSTILE", courted);
+                Append_Note_(&text, line);
+            } else if (we_lead) {
+                phase_rule = 406;
+                d.weights[WEIGHT_FLEET] = LEVEL_HIGH;
+                const int64_t ours = Fighting_Power_(self.fleet_strength, self.combat_ships);
+                const auto power = [](const s_view_contact& c) {
+                    return Fighting_Power_(c.visible_fleet_strength.value, c.visible_combat_ships.value);
+                };
+                int32_t our_sure = our_votes;
+                for (int i = 0; i < count; ++i) {
+                    if (i != our_rival && view->contacts[i].treaty.value == ALLIANCE_TREATY_) our_sure += votes[i];
+                }
+                const bool secured = our_rival != -3 && 3 * our_sure >= 2 * total_votes;
+                int target = -1;
+                if (!secured && !any_war) {
+                    for (int i = 0; i < count; ++i) {
+                        const s_view_contact& c = view->contacts[i];
+                        if (i == strongest_other || c.treaty.value == PACT_TREATY_ || c.treaty.value == ALLIANCE_TREATY_) continue;
+                        if (c.our_spies == 0 || c.in_range == 0 || ours <= 0 || 2 * power(c) > ours) continue;
+                        if (target < 0 || power(c) < power(view->contacts[target])) target = i;
+                    }
+                }
+                if (target >= 0) {
+                    d.attitude[view->contacts[target].player] = ATTITUDE_WAR;
+                    d.posture = POSTURE_START_NEW_WAR;
+                    d.main_rival = view->contacts[target].player;
+                } else if (any_war && !secured) {
+                    // Finish the weak enemies we fight (no early peace with them); stronger enemies
+                    // are left to the other rules.
+                    d.posture = POSTURE_ATTACK_CURRENT_ENEMIES;
+                    for (int i = 0; i < count; ++i) {
+                        const s_view_contact& c = view->contacts[i];
+                        if (Is_War_(c) && ours > 0 && 2 * power(c) <= ours) d.attitude[c.player] = ATTITUDE_WAR;
+                    }
+                }
+                if (strongest_other >= 0 && !Is_War_(view->contacts[strongest_other]) && strongest_other != target) {
+                    d.attitude[view->contacts[strongest_other].player] = ATTITUDE_NEUTRAL;
+                }
+                int ally = -1;
+                for (int i = 0; i < count; ++i) {
+                    const s_view_contact& c = view->contacts[i];
+                    if (i == target || i == strongest_other || Is_War_(c) || d.attitude[c.player] != ATTITUDE_KEEP) continue;
+                    d.attitude[c.player] = ATTITUDE_FRIENDLY;
+                    if (c.treaty.value != ALLIANCE_TREATY_ && (ally < 0 || votes[i] > votes[ally])) ally = i;
+                }
+                if (ally >= 0 && !secured) d.attitude[view->contacts[ally].player] = ATTITUDE_ALLY;
+                std::snprintf(line, sizeof(line),
+                    "rule 406 leader: %d of %d known votes with our allies%s; %s%d; peace with %d; ally sought %d",
+                    our_sure, total_votes, secured ? " (two thirds: keep the peace)" : "",
+                    target >= 0 ? "conquer player " : "no new war, target ", target >= 0 ? static_cast<int>(view->contacts[target].player) : -1,
+                    strongest_other >= 0 ? static_cast<int>(view->contacts[strongest_other].player) : -1,
+                    ally >= 0 && !secured ? static_cast<int>(view->contacts[ally].player) : -1);
+                Append_Note_(&text, line);
+            }
+        }
+
         // Rule 402 (Byzantine rule V, enemy of my enemy): with a war on, every contact that also
         // fights one of our enemies becomes a friend (peace sooner, treaties easier), and every
         // contact allied with one of our enemies is courted (friendly), to detach it - "the best
@@ -400,7 +566,7 @@ namespace advisor {
                 Append_Note_(&text, line);
             }
         }
-        if (Doctrine(DOCTRINE_PART_SPARE) && any_war) {
+        if (Doctrine(DOCTRINE_PART_SPARE) && any_war && phase_rule != 406) {
 
             // Rule 403 (Byzantine rule VII): do not destroy a beaten enemy that does not lead the galaxy;
             // today's enemy may be tomorrow's ally, and it stays a counterweight. Make peace with it.
@@ -533,7 +699,7 @@ namespace advisor {
         }
 
         if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0 &&
-            doctrine_rule == 0) {
+            doctrine_rule == 0 && phase_rule == 0) {
             return false;
         }
 
@@ -544,6 +710,7 @@ namespace advisor {
         d.rule_id = objective_rule != 0 ? objective_rule
             : spy_rule != 0             ? spy_rule
             : expansion_rule != 0       ? expansion_rule
+            : phase_rule != 0           ? phase_rule
             : balance_rule != 0         ? balance_rule
             : doctrine_rule != 0        ? doctrine_rule
                                         : exploration_rule;

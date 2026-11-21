@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "string_overrides.h"
+#include "game/advisor_apply.h"
 
 namespace council {
     const char lbx_00559a68[12] = "council.lbx";
@@ -754,6 +755,9 @@ namespace council {
             if (MOX::player[voter_idx].research_treaty[candidate_idx] != 0) {
                 vote_score += 25;
             }
+
+            // Advisor phase strategy: an empire resisting a would-be winner votes against it.
+            vote_score = static_cast<int16_t>(vote_score + advisor::Council_Vote_Bias(static_cast<uint8_t>(voter_idx), static_cast<uint8_t>(candidate_idx)));
 
             if (MOX::player[candidate_idx].objectives == PLAYER_OBJECTIVE_HUMAN) {
                 if (MOX::settings.game_difficulty > GAME_DIFFICULTY_AVERAGE) {

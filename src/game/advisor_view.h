@@ -86,6 +86,7 @@ namespace advisor {
         s_fact trade_treaty;              // 0/1
         s_fact research_treaty;           // 0/1
         s_fact known_colonies;            // at stars we have visited
+        s_fact population;                // spies: exact; known colonies x our population per colony; else unknown
         s_fact visible_ships;             // detected this turn
         s_fact visible_fleet_strength;    // same measure as s_view_self::fleet_strength
         s_fact visible_combat_ships;      // detected ships with a combat strength above zero

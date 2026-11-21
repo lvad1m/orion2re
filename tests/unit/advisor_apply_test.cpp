@@ -23,6 +23,7 @@ namespace {
         int32_t old_min_turns = advisor::objective_min_turns;
         int32_t old_weight_percent = advisor::spy_target_weight_percent;
         int32_t old_doctrine_parts = advisor::doctrine_parts;
+        bool old_rules_phases = advisor::rules_phases;
 
         s_apply_scope() {
             advisor::Clear_All_Directives();
@@ -57,6 +58,7 @@ namespace {
             advisor::objective_min_turns = old_min_turns;
             advisor::spy_target_weight_percent = old_weight_percent;
             advisor::doctrine_parts = old_doctrine_parts;
+            advisor::rules_phases = old_rules_phases;
         }
     };
 
@@ -515,5 +517,27 @@ DOCTEST_TEST_CASE("Readiness and the other doctrine parts follow doctrine_parts"
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == 100);
     advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
     advisor::rules_doctrine = false;
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
+}
+
+DOCTEST_TEST_CASE("phase strategy: a leader's fleet weight asks for readiness and council votes follow attitudes") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // readiness itself off
+    advisor::rules_phases = false;
+    advisor::s_directive directive = Directive_();
+    directive.weights[advisor::WEIGHT_FLEET] = advisor::LEVEL_HIGH;
+    directive.attitude[2] = advisor::ATTITUDE_HOSTILE;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK_FALSE(advisor::Readiness(1));
+    DOCTEST_CHECK(advisor::Council_Vote_Bias(1, 2) == 0);
+
+    advisor::rules_phases = true;
+    DOCTEST_CHECK(advisor::Readiness(1));
+    DOCTEST_CHECK(advisor::Council_Vote_Bias(1, 2) == -50);
+    DOCTEST_CHECK(advisor::Council_Vote_Bias(0, 2) == 0);  // the human votes for themself
+    directive.weights[advisor::WEIGHT_FLEET] = advisor::LEVEL_NORMAL;
+    advisor::Set_Directive(1, &directive);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
 }

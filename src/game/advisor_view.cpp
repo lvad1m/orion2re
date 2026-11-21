@@ -228,6 +228,18 @@ namespace advisor {
             }
 
             contact->in_range = me.within_range[other] == 1 ? 1 : 0;
+            // Council votes come from population (population / 10). Without spies: an estimate from
+            // the colonies we know and our own population per populated colony; without either, unknown.
+            if (contact->known_colonies.value > 0) {
+                int32_t our_populated = 0;
+                for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                    if (world->colonies[i].owner == static_cast<int8_t>(player) && world->colonies[i].outpost_flag == 0) {
+                        ++our_populated;
+                    }
+                }
+                const int32_t per_colony = our_populated > 0 ? me.total_pop / our_populated : 0;
+                Set_Fact(&contact->population, contact->known_colonies.value * per_colony, FACT_OWN_RECORDS, CONFIDENCE_LOW, now);
+            }
             const s_seen_ships& seen = Seen_Ships(player, static_cast<uint8_t>(other));
             contact->seen_warships = seen.ships;
             contact->seen_threat = static_cast<uint8_t>(Seen_Threat(seen));
@@ -266,6 +278,7 @@ namespace advisor {
                 Set_Fact(&contact->visible_ships, ships, FACT_SPY, CONFIDENCE_MEDIUM, now);
                 Set_Fact(&contact->visible_fleet_strength, strength, FACT_SPY, CONFIDENCE_MEDIUM, now);
                 Set_Fact(&contact->techs_known, techs, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->population, them.total_pop, FACT_SPY, CONFIDENCE_MEDIUM, now);
             }
         }
 
@@ -369,6 +382,9 @@ namespace advisor {
             Append_Tag(out, contact.research_treaty);
             out->push_back('\n');
             Append_Fact_Line(out, "known colonies", contact.known_colonies);
+            if (contact.population.source != FACT_UNKNOWN) {
+                Append_Fact_Line(out, "population", contact.population);
+            }
             Append_Fact_Line(out, "visible ships", contact.visible_ships);
             Append_Fact_Line(out, "visible fleet strength", contact.visible_fleet_strength);
             Append_Fact_Line(out, "ships we lost to them", contact.our_ship_losses);

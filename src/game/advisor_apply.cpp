@@ -215,7 +215,7 @@ namespace advisor {
     }
 
     int32_t Attitude_Bias(uint8_t player, uint8_t target) {
-        if (!enabled || (!rules_balance && !rules_doctrine) || player >= MAX_PLAYERS || target >= MAX_PLAYERS) return 0;
+        if (!enabled || (!rules_balance && !rules_doctrine && !rules_phases) || player >= MAX_PLAYERS || target >= MAX_PLAYERS) return 0;
         if (player >= game::current.Player_Count()) return 0;
         if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return 0;
         const s_directive* directive = Get_Directive(player);
@@ -232,11 +232,19 @@ namespace advisor {
     }
 
     bool Readiness(uint8_t player) {
-        if (!enabled || !Doctrine(DOCTRINE_PART_READINESS) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) {
-            return false;
-        }
+        if (!enabled || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return false;
         if (((active_players >> player) & 1) == 0) return false;
-        return game::current.players[player].objectives != PLAYER_OBJECTIVE_HUMAN;
+        if (game::current.players[player].objectives == PLAYER_OBJECTIVE_HUMAN) return false;
+        if (Doctrine(DOCTRINE_PART_READINESS)) return true;
+        // Phase strategy: a leader raising its army (rule 406) asks for the fleet weight.
+        if (!rules_phases) return false;
+        const s_directive* directive = Get_Directive(player);
+        return directive != nullptr && Is_Active(directive, game::current.Stardate()) &&
+            directive->weights[WEIGHT_FLEET] >= LEVEL_HIGH;
+    }
+
+    int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate) {
+        return rules_phases ? Attitude_Bias(voter, candidate) : 0;
     }
 
     int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended) {

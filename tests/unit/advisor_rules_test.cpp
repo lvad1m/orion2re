@@ -922,3 +922,151 @@ TEST_CASE("rules: with the third-party part 403 spares a beaten enemy only as a 
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
 }
+
+namespace {
+    // Phase strategy tests: rules_phases on, the doctrine off (its rules would also set attitudes).
+    struct s_phase_scope {
+        s_period_scope period;
+        bool phases = rules_phases;
+        bool doctrine = rules_doctrine;
+        bool lanchester = rules_lanchester;
+        s_phase_scope() {
+            rules_phases = true;
+            rules_doctrine = false;
+            rules_lanchester = true;
+        }
+        ~s_phase_scope() {
+            rules_phases = phases;
+            rules_doctrine = doctrine;
+            rules_lanchester = lanchester;
+        }
+    };
+
+    // Turn 150; we hold 12 colonies, population 100 (10 votes) and fighting power 3000 x 3 = 9000.
+    s_empire_view Phase_View_() {
+        s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_INDUSTRIALIST);
+        v.self.stardate = 35150;
+        v.self.population = 100;
+        v.self.fleet_strength = 3000;
+        v.self.combat_ships = 2;
+        return v;
+    }
+
+    s_view_contact& Add_Empire_(s_empire_view* v, uint8_t player, int32_t colonies, int32_t population,
+        int32_t strength, int32_t ships, int32_t treaty = 0) {
+        s_view_contact& c = Add_Contact_(v, player, treaty, 0);
+        c.known_colonies.value = colonies;
+        c.population.value = population;
+        c.visible_fleet_strength.value = strength;
+        c.visible_combat_ships.value = ships;
+        c.our_spies = 1;
+        c.in_range = 1;
+        return c;
+    }
+} // namespace
+
+TEST_CASE("rules: 406 a leader conquers one weak neighbour at a time and courts the rest for votes") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    Add_Empire_(&v, 1, 4, 40, 1500, 2);  // the strongest other empire (power 4500)
+    Add_Empire_(&v, 2, 2, 20, 500, 1);   // the weakest neighbour (1000): the target
+    Add_Empire_(&v, 3, 3, 30, 1000, 1);  // weak too (2000), but the most votes among the rest
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 406 leader: 10 of 19 known votes with our allies; conquer player 2; peace with 1; ally sought 3"));
+    CHECK(d.attitude[2] == ATTITUDE_WAR);
+    CHECK(d.posture == POSTURE_START_NEW_WAR);
+    CHECK(d.main_rival == 2);
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);
+    CHECK(d.attitude[3] == ATTITUDE_ALLY);
+    CHECK(d.weights[WEIGHT_FLEET] == LEVEL_HIGH);
+
+    // An ally's votes bring us to two thirds: keep the peace and let the council decide.
+    v.contacts[2].treaty.value = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "13 of 19 known votes with our allies (two thirds: keep the peace)"));
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.posture == POSTURE_KEEP);
+    v.contacts[2].treaty.value = 0;
+
+    // A war of our own comes first: no new target; a weak enemy is fought to the end, a strong
+    // one is left to the other rules.
+    v.contacts[1].treaty.value = 5;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.posture == POSTURE_ATTACK_CURRENT_ENEMIES);
+    CHECK(d.attitude[2] == ATTITUDE_WAR);
+    CHECK(d.attitude[1] == ATTITUDE_NEUTRAL);  // peace with the strongest other empire
+    v.contacts[1].treaty.value = 0;
+    v.contacts[0].treaty.value = 5;
+    v.contacts[0].visible_fleet_strength.value = 2000;  // 6000: not weak
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_KEEP);
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    v.contacts[0].treaty.value = 0;
+    v.contacts[0].visible_fleet_strength.value = 1500;
+
+    // An empire we know nothing about looks empty: no claim to lead, and it counts as large as us.
+    s_empire_view blind = v;
+    Add_Contact_(&blind, 4, 0, 0);
+    Rules_Directive(&blind, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+    // No spies at one contact: its fleet is unknown, so no claim to lead.
+    s_empire_view unspied = v;
+    unspied.contacts[0].our_spies = 0;
+    Rules_Directive(&unspied, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+    // A contact with more colonies than ours: no claim to lead either.
+    s_empire_view outgrown = v;
+    outgrown.contacts[2].known_colonies.value = 13;
+    Rules_Directive(&outgrown, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+
+    // Not before turn 100, and not with the flag off.
+    v.self.stardate = 35050;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+    v.self.stardate = 35150;
+    rules_phases = false;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 406"));
+}
+
+TEST_CASE("rules: 407 resists an empire nearing a council win and courts its allies") {
+    s_phase_scope scope;
+    s_empire_view v = Phase_View_();
+    v.self.population = 80;  // 8 votes; we do not lead
+    v.self.colonies = 4;
+    s_view_contact& giant = Add_Empire_(&v, 1, 6, 120, 3000, 2);  // 12 votes
+    s_view_contact& friend_of_giant = Add_Empire_(&v, 2, 3, 60, 1000, 1);  // 6 votes
+    Add_Empire_(&v, 3, 2, 40, 1000, 1);  // 4 votes
+    giant.allied_with = 1u << 2;
+    friend_of_giant.allied_with = 1u << 1;
+    s_directive d;
+    std::string note;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(Has_(note, "rule 407 council_threat: player 1 has 18 of 30 known votes with its allies -> HOSTILE, court 1 of its allies"));
+    CHECK(d.attitude[1] == ATTITUDE_HOSTILE);
+    CHECK(d.attitude[2] == ATTITUDE_FRIENDLY);
+    CHECK(d.main_rival == 1);
+
+    // Our ally is the would-be winner: wary, not hostile (an alliance is kept).
+    v.contacts[0].treaty.value = 2;
+    REQUIRE(Rules_Directive(&v, &d, &note));
+    CHECK(d.attitude[1] == ATTITUDE_WARY);
+
+    // Small numbers are noise: a would-be winner needs ten sure votes.
+    v.contacts[0].treaty.value = 0;
+    for (int i = 0; i < 3; ++i) v.contacts[i].population.value /= 10;
+    v.self.population /= 10;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 407"));
+    for (int i = 0; i < 3; ++i) v.contacts[i].population.value *= 10;
+    v.self.population *= 10;
+
+    // Under half of the votes: nothing.
+    v.contacts[0].allied_with = 0;
+    v.contacts[1].allied_with = 0;
+    Rules_Directive(&v, &d, &note);
+    CHECK_FALSE(Has_(note, "rule 407"));
+}

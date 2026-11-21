@@ -8635,6 +8635,21 @@
       },
     },
 
+    rules_phases: {
+      title: "Advisor plays for victory by phases",
+      description: "Phase strategy above the Byzantine doctrine. Rule 406: from turn 100 an advised empire that leads the galaxy it knows by power plays for victory - a fleet sized to its strongest neighbour, peace with the strongest other empire, friends and an ally among the rest for their council votes, and one weak neighbour at a time conquered - unless its own and its allies' council votes already reach two thirds. Rule 407: a council nominee (one of the two empires with the most votes) whose own and allies' votes reach half of the votes known is resisted by every advised empire, which courts its allies away; in council votes advised empires follow these attitudes.",
+      remarks: "Effective only while advisor enabled is true. Council votes are population / 10, as the game counts them; a contact's population is exact through spies and estimated from its known colonies otherwise. The council never meets in games without a human player.",
+      examples: ["advisor rules_phases = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/advisor.h",
+        symbol: "advisor::rules_phases",
+      },
+    },
+
     rules_counter_design: {
       title: "Advisor designs ships against real enemies",
       description: "Advised computer empires choose ship weapons against the shields and drives of their actual enemy (the advisor's main rival, otherwise the contact with the strongest fleet against them) and defensive specials against that enemy's weapons, instead of the first living player.",

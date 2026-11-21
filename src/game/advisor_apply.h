@@ -96,6 +96,11 @@ namespace advisor {
     // advised computer empire.
     int32_t Attitude_Bias(uint8_t player, uint8_t target);
 
+    // Council vote (council.cpp Vote_Check) of the computer empire `voter` for `candidate`, outside
+    // war and alliance: with `rules_phases` on, the directive's attitude moves the vote score like
+    // Attitude_Bias (an empire resisting a would-be winner votes against it); 0 otherwise.
+    int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate);
+
     // Byzantine rule I (doctrine peace part): the bias toward peace with a neighbour that would be
     // costly to fight (rule 404 sets attitude NEUTRAL).
     constexpr int32_t DOCTRINE_PEACE_BIAS = 20;
