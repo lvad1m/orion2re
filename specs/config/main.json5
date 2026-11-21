@@ -8606,7 +8606,7 @@
 
     rules_doctrine: {
       title: "Advisor follows the Byzantine doctrine",
-      description: "Lets the rule-based advisor follow the Byzantine operational code (Luttwak): prefer peace with neighbours that would be costly to fight (rule 404) while keeping a fleet sized to the strongest neighbour and no peace dividend while out-gunned (rule 105), raid undefended colonies rather than fight battles, befriend the enemies of our enemy and court its allies (rule 402), seek peace early when losing a war, and spare a beaten enemy that does not lead (rule 403).",
+      description: "Lets the rule-based advisor follow the Byzantine operational code (Luttwak): prefer peace with neighbours that would be costly to fight (rule 404), raid undefended colonies rather than fight battles, befriend the enemies of our enemy and court its allies (rule 402), seek peace early when losing a war, and spare a beaten enemy that does not lead (rule 403). Readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned) is off by default.",
       remarks: "Effective only while advisor enabled is true and for the players in advisor active_players. Biases war, peace, treaty and fleet-size decisions; never forces them. advisor doctrine_parts selects the parts.",
       examples: ["advisor rules_doctrine = false;"],
       group: "gameplay",
@@ -8622,13 +8622,13 @@
     doctrine_parts: {
       title: "Parts of the Byzantine doctrine",
       description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead.",
-      remarks: "Effective only while advisor rules_doctrine is true. 63 follows the whole doctrine; 0 is the same as rules_doctrine false. Meant for measuring the parts one by one.",
-      examples: ["advisor doctrine_parts = 62;"],
+      remarks: "Effective only while advisor rules_doctrine is true. The default 61 leaves out readiness: in 400-turn games against the original AI it cost advised empires their expansion. 63 follows the whole doctrine; 0 is the same as rules_doctrine false.",
+      examples: ["advisor doctrine_parts = 63;"],
       group: "gameplay",
       namespace: "advisor",
       type: "int32",
       constraints: { min: 0, max: 63 },
-      default: 63,
+      default: 61,
       bind_root: {
         header: "game/advisor.h",
         symbol: "advisor::doctrine_parts",

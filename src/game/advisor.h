@@ -56,6 +56,9 @@ namespace advisor {
         DOCTRINE_PART_BUY_PEACE = 16,  // VI: peace early when losing a war
         DOCTRINE_PART_SPARE = 32,      // VII: peace with a beaten enemy that does not lead
         DOCTRINE_PART_ALL = 63,
+        // The default (61): readiness cost advised empires their expansion in 400-turn games
+        // against the original AI (README.md 10.4.4), so it stays opt-in.
+        DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS,
     };
 
     // True when rules_doctrine is on and `part` is in doctrine_parts.

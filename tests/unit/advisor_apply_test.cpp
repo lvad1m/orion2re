@@ -506,7 +506,8 @@ DOCTEST_TEST_CASE("Readiness and the other doctrine parts follow doctrine_parts"
     advisor::active_players = 0xFF & ~(1 << 1);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
     advisor::active_players = 255;
-    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_READINESS;
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // 61: everything but readiness
+    DOCTEST_CHECK(advisor::DOCTRINE_PART_DEFAULT == 61);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
     advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_RAIDS;
