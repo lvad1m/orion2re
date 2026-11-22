@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/espionage.h"
+#include "game/beliefs.h"
 #include "game/intrigue.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -59,6 +60,8 @@ namespace spy {
         spy_ranks::Turn();
         // Intrigues (off by default): caught spies' fates, revealed plans, proxy wars, letters, favours.
         intrigue::Turn();
+        // Beliefs (off by default): disinformation seen through or planted; the evidence fades.
+        beliefs::Turn();
     }
 
 

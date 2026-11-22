@@ -2,6 +2,7 @@
 
 #include "game/opinion.h"
 
+#include "game/beliefs.h"
 #include "game/serialization.h"
 
 #include <algorithm>
@@ -40,6 +41,7 @@ namespace opinion {
         if (!Holds_Opinions_(holder) || !Valid_(target) || MOX::player[target].eliminated != 0) return;
         int8_t& slot = table[holder][target][reason];
         slot = static_cast<int8_t>(std::clamp<int32_t>(slot + value, -MODIFIER_LIMIT, MODIFIER_LIMIT));
+        beliefs::On_Opinion(holder, target, reason, value);  // the neighbour model (off by default)
     }
 
     void Set(int16_t holder, int16_t target, e_reason reason, int32_t value) {

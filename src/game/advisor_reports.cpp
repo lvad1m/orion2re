@@ -7,6 +7,7 @@
 
 #include "game/advisor.h"
 #include "game/aipower.h"
+#include "game/beliefs.h"
 #include "game/diplomacy_memory.h"
 #include "game/legacy_ids.h"
 #include "game/shipstak.h"
@@ -120,6 +121,7 @@ namespace advisor {
                 if (!report.sent || report.claimed <= 0 || 100 * report.claimed <= REPORT_LIE_PERCENT * report.detected) continue;
                 // Caught: what the scanners see is far less than claimed. Trust never drops past the
                 // floor the diplomacy memory keeps (classic int8 trust would wrap).
+                beliefs::On_Lie(static_cast<int16_t>(receiver), static_cast<int16_t>(sender));
                 if (world->players[receiver].trust_worthiness[sender] - REPORT_LIE_TRUST < diplomemory::TRUST_FLOOR) continue;
                 diplomemory::Lower_Trust(static_cast<int16_t>(receiver), static_cast<int16_t>(sender), REPORT_LIE_TRUST);
             }

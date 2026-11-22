@@ -4,6 +4,7 @@
 
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/beliefs.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 #include "game/intrigue.h"
@@ -111,6 +112,7 @@ namespace pacts {
                     if (MOX::player[a].contact[b] == 0 || MOX::player[b].contact[a] == 0) continue;
                     if (opinion::Relations(a, b) < opinion_min || opinion::Relations(b, a) < opinion_min) continue;
                     if (!Advisor_Allows_(a, b) || !Advisor_Allows_(b, a)) continue;
+                    if (!beliefs::Believes_Faithful(a, b) || !beliefs::Believes_Faithful(b, a)) continue;
                     const int16_t threat = Common_Threat_(a, b);
                     if (threat >= 0) Sign_Pact(a, b, threat);
                 }

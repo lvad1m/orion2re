@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/advisor_apply.h"
+#include "game/beliefs.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
@@ -1443,6 +1444,7 @@ namespace diplomac {
         }
 
         uint8_t current_treaty = p1->treaty[p2_idx];
+        beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
 
         p2->last_broken_treaty[p1_idx] = p2->treaty[p1_idx];
         p2->threats[p1_idx]++;

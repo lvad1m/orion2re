@@ -51,6 +51,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_SPY_RANKS = 0x52595053;
     // 'INTR': intrigues - favours, revealed plots, double agents (game/intrigue.h).
     inline constexpr uint32_t SECTION_TYPE_INTRIGUE = 0x52544E49;
+    // 'BELF': the neighbour model's evidence and disinformation (game/beliefs.h).
+    inline constexpr uint32_t SECTION_TYPE_BELIEFS = 0x464C4542;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

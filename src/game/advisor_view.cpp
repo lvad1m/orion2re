@@ -10,6 +10,7 @@
 #include "game/advisor_intel.h"
 #include "game/advisor_reports.h"
 #include "game/aipower.h"
+#include "game/beliefs.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -210,6 +211,11 @@ namespace advisor {
             contact->our_embargo = embargo::Participates(player, other) ? 1 : 0;
             contact->their_embargo = embargo::Participates(other, player) ? 1 : 0;
             contact->network_points = static_cast<int16_t>(espionage::Points(player, other));
+            if (beliefs::neighbour_model) {
+                contact->belief_hostile = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_HOSTILE));
+                contact->belief_faithful = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_FAITHFUL));
+                contact->belief_honest = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_HONEST));
+            }
             static_assert(sizeof(contact->opinion) == opinion::REASON_COUNT, "one opinion slot per reason");
             for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
                 contact->opinion[r] = static_cast<int8_t>(opinion::Modifier(player, other, static_cast<opinion::e_reason>(r)));
@@ -317,13 +323,18 @@ namespace advisor {
                         }
                     }
                 }
-                Set_Fact(&contact->visible_combat_ships, combat, FACT_SPY, spy_confidence, now);
                 int32_t techs = 0;
                 for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
                     if (them.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
                         ++techs;
                     }
                 }
+                // Disinformation (beliefs.h, off by default): the fleet they want us to see.
+                const int32_t shown = beliefs::Distortion_Percent(static_cast<int16_t>(player), static_cast<int16_t>(other));
+                ships = ships * shown / 100;
+                strength = strength * shown / 100;
+                combat = combat * shown / 100;
+                Set_Fact(&contact->visible_combat_ships, combat, FACT_SPY, spy_confidence, now);
                 Set_Fact(&contact->known_colonies, colonies, FACT_SPY, spy_confidence, now);
                 Set_Fact(&contact->visible_ships, ships, FACT_SPY, spy_confidence, now);
                 Set_Fact(&contact->visible_fleet_strength, strength, FACT_SPY, spy_confidence, now);
@@ -456,6 +467,11 @@ namespace advisor {
             if (contact.their_embargo != 0) out->append("   - embargo: they hold one on us (no trade or research treaties)\n");
             if (contact.network_points > 0) {
                 Append_Format(out, "   - our spy network there: %d points\n", static_cast<int>(contact.network_points));
+            }
+            if (contact.belief_hostile != 0 || contact.belief_faithful != 0 || contact.belief_honest != 0) {
+                Append_Format(out, "   - we think they will attack us: %d %%, keep their treaties: %d %%, tell the truth: %d %%\n",
+                    static_cast<int>(contact.belief_hostile), static_cast<int>(contact.belief_faithful),
+                    static_cast<int>(contact.belief_honest));
             }
             Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
             Append_Tag(out, contact.treaty);

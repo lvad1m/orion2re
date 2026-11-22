@@ -2,6 +2,7 @@
 
 #include "game/rules_sections.h"
 
+#include "game/beliefs.h"
 #include "game/embargo.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
@@ -61,6 +62,10 @@ namespace SAVEGAME {
             return intrigue::Any_Enabled() && !intrigue::Empty();
         }
 
+        bool Beliefs_Has_State_() {
+            return (beliefs::neighbour_model || beliefs::disinformation) && !beliefs::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -85,6 +90,8 @@ namespace SAVEGAME {
                 spy_ranks::Write_Save, spy_ranks::Parse_Save, spy_ranks::Commit_Save, spy_ranks::Discard_Save, spy_ranks::Clear},
             {SECTION_TYPE_INTRIGUE, 1, "intrigues", Intrigue_Has_State_, intrigue::Save_Size, intrigue::Write_Save,
                 intrigue::Parse_Save, intrigue::Commit_Save, intrigue::Discard_Save, intrigue::Clear},
+            {SECTION_TYPE_BELIEFS, 1, "beliefs", Beliefs_Has_State_, beliefs::Save_Size, beliefs::Write_Save,
+                beliefs::Parse_Save, beliefs::Commit_Save, beliefs::Discard_Save, beliefs::Clear},
         };
     } // namespace
 

@@ -4,6 +4,7 @@
 
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/beliefs.h"
 #include "game/bill.h"
 #include "game/dice.h"
 #include "game/diplomac.h"
@@ -122,8 +123,10 @@ namespace intrigue {
                         if (sources == 0) continue;
                         if (s != victim) {
                             // A third empire keeps an ally's secret and warns only an empire it likes,
-                            // unless it is at war with the plotter or its rival.
+                            // unless it is at war with the plotter or its rival; a warner the victim
+                            // thinks a liar is not believed (the neighbour model).
                             if (Bound_(s, plotter) || !Contact_(s, victim) || At_War_(s, victim)) continue;
+                            if (Computer_(victim) && !beliefs::Trusts(victim, s)) continue;
                             if (opinion::Relations(s, victim) < WARN_MIN_RELATIONS && !At_War_(s, plotter) &&
                                 rivalry::Rival_Of(s) != plotter) {
                                 continue;
@@ -152,7 +155,7 @@ namespace intrigue {
                         if (!Contact_(t, payer) || !Contact_(t, enemy)) continue;
                         if (At_War_(t, enemy) || At_War_(t, payer) || Bound_(t, enemy)) continue;
                         if (diplomemory::Too_Weary_For_New_War(t) || Advisor_Forbids_War_(t, enemy)) continue;
-                        if (opinion::Relations(t, payer) < 0) continue;
+                        if (opinion::Relations(t, payer) < 0 || !beliefs::Trusts(t, payer)) continue;
                         const int32_t relations = opinion::Relations(t, enemy);
                         if (relations <= PROXY_MAX_RELATIONS && relations < best_relations) {
                             best = t;

@@ -129,6 +129,11 @@ namespace advisor {
         uint8_t their_embargo = 0;
         // Spy network (espionage.h): our network points in their empire.
         int16_t network_points = 0;
+        // Neighbour model (beliefs.h): how likely we think it, in percent, that they will attack us,
+        // keep their treaties, tell the truth; 0 with the model off.
+        uint8_t belief_hostile = 0;
+        uint8_t belief_faithful = 0;
+        uint8_t belief_honest = 0;
     };
 
     struct s_empire_view {

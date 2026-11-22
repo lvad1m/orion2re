@@ -5220,6 +5220,18 @@
       bind_root: { header: "game/intrigue.h", symbol: "intrigue::proxy_payment_percent" },
     },
 
+    neighbour_model: {
+      title: "Neighbour model",
+      description: "Each computer empire keeps what it believes of every other - will it attack us, does it keep its treaties, does it tell the truth - as a prior from its public personality (aggressive and ruthless empires are thought likelier to attack, honorable ones to keep their word, erratic and dishonored ones neither) plus the evidence of what it did: every opinion memory (a sneak attack, a defence under a pact, a caught spy, a revealed plot), broken treaties (the victim most, everyone who knows it a little) and lies in military reports; the evidence fades a step every 10 turns. A computer signs a defence pact only with an empire it thinks at least 35 percent likely to keep it, and acts on a warning of a plot or a payment for a proxy war only from an empire it thinks at least 35 percent honest. The advisor's view shows the three beliefs.",
+      remarks: "False preserves classic behavior. The evidence from memories needs diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy neighbour_model = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/beliefs.h", symbol: "beliefs::neighbour_model" },
+    },
+
     favours: {
       title: "Favours",
       description: "Keeps a ledger of favours between empires (at most 3 owed to one empire): owed for a warning of a planned attack, a defence under a pact or a guarantee, a caught spy sent home. A debtor pays with its council vote - a favour adds to its vote for the creditor, and the vote spends it: paid (+20, 'did us a service') or denied (-20) - or, every 10 turns, by joining its creditor's war on an empire it likes less than 30, unless too weary of war; a refusal also spends the favour (-20, 'left us alone').",
@@ -5650,6 +5662,31 @@
       type: "bool",
       default: false,
       bind_root: { header: "game/intrigue.h", symbol: "intrigue::spy_fate" },
+    },
+
+    disinformation: {
+      title: "Disinformation",
+      description: "Every 10 turns a computer empire with a turned spy or spies in another feeds it a false picture of its fleet: half again as strong when it fears that empire (whose fleet against it is a quarter stronger), 60 percent when it plans to attack it. A turned spy carries the lie for free; otherwise it costs network points and a dice check like data collection, and an exposed attempt costs the spy (-15). For 20 turns the advisor's view of the deceived empire shows the false ship counts and fleet strength from its spies, unless its spies see through the lie: 20 per mille a turn for each of them there (at most 5) and 100 for a resident, which ends it (-15, 'plotted against us').",
+      remarks: "False preserves classic behavior. Needs spy network. Deceives the advisor's view (and so advised empires and, later, the language model); the original AI reads the true numbers.",
+      examples: ["spy disinformation = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/beliefs.h", symbol: "beliefs::disinformation" },
+    },
+
+    disinformation_cost: {
+      title: "Disinformation cost",
+      description: "Sets the network points a planted lie costs when no turned spy carries it.",
+      remarks: "Effective only while spy disinformation and spy network are true.",
+      examples: ["spy disinformation_cost = 40;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 30,
+      bind_root: { header: "game/beliefs.h", symbol: "beliefs::disinformation_cost" },
     },
 
     disable_scan: {
