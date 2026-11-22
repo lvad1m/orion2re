@@ -1,0 +1,131 @@
+#include "pch.h"
+
+#include "game/espionage.h"
+
+#include "game/advisor.h"
+#include "game/advisor_directive.h"
+#include "game/bill.h"
+#include "game/loyalty.h"
+#include "game/officer.h"
+#include "game/opinion.h"
+#include "game/random.h"
+
+#include <algorithm>
+
+// The behaviour of the spy network core (mechanics.md 3.2.5.2); the state and its save section are
+// in espionage_state.cpp. game_random is drawn only under a witch hunt.
+namespace espionage {
+
+    namespace {
+        constexpr int8_t STATUS_POOL = 0;
+        constexpr int8_t STATUS_ASSIGNED = 1;
+        constexpr int8_t STATUS_LIMBO = 2;
+
+        int16_t Players_() {
+            return static_cast<int16_t>(std::min<int32_t>(MOX::NUM_PLAYERS, MAX_PLAYERS));
+        }
+
+        bool Alive_(int16_t player) {
+            return player >= 0 && player < Players_() && MOX::player[player].eliminated == 0;
+        }
+
+        bool Computer_(int16_t player) {
+            return Alive_(player) && MOX::player[player].objectives != PLAYER_OBJECTIVE_HUMAN;
+        }
+
+        bool Holds_(const s_leader_data& leader, int16_t player) {
+            return leader.player_index == player &&
+                (leader.status == STATUS_POOL || leader.status == STATUS_ASSIGNED || leader.status == STATUS_LIMBO);
+        }
+
+        // A spy master in the empire's service, or the neural scanner: a free spy now and then.
+        bool Draws_Free_Spies_(int16_t player) {
+            if (MOX::player[player].tech_applications[TECH_APP_NEURAL_SCANNER] == TECH_RESEARCH_STATUS_RESEARCHED) return true;
+            for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                const s_leader_data& leader = MOX::leaders[i];
+                if (Holds_(leader, player) &&
+                    (leader.general_skills & (LEADER_GENERAL_SKILL_SPY_MASTER | LEADER_GENERAL_SKILL_SPY_MASTER2)) != 0) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        void Network_Turn_() {
+            s_state* s = State();
+            for (int16_t owner = 0; owner < Players_(); ++owner) {
+                for (int16_t target = 0; target < Players_(); ++target) {
+                    if (owner == target) continue;
+                    int16_t& points = s->points[owner][target];
+                    const int32_t spies = Alive_(owner) && Alive_(target) ? BILL::Get_Their_Spy_Number(owner, target) : 0;
+                    if (spies > 0) {
+                        points = static_cast<int16_t>(std::min<int32_t>(network_cap, points + spies * points_per_spy));
+                    } else if (points > 0) {
+                        --points;
+                    }
+                }
+            }
+            if (free_spy_turns < 1 || MOX::stardate % free_spy_turns != 0) return;
+            for (int16_t p = 0; p < Players_(); ++p) {
+                if (!Alive_(p) || !Draws_Free_Spies_(p)) continue;
+                if (BILL::Add_Their_Spy(p, p) != 0) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d gains a spy", (int)MOX::stardate, (int)p);
+                }
+            }
+        }
+
+        void Counterintelligence_Turn_() {
+            s_state* s = State();
+            for (int16_t p = 0; p < Players_(); ++p) {
+                if (!Alive_(p)) continue;
+                if (s->caught[p] != 0 && MOX::stardate - s->last_caught[p] > RECENT_TURNS) s->caught[p] = 0;
+                const e_mode mode = Mode(p);
+                s_player& player = MOX::player[p];
+                const int32_t cost = std::max<int32_t>(0, player.surplus_bc) * MODE_COST_PERCENT[mode] / 100;
+                player.bc -= std::min<int32_t>(player.bc, cost);
+                if (mode != MODE_WITCH_HUNT) continue;
+                for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                    const s_leader_data& leader = MOX::leaders[i];
+                    if (!Holds_(leader, p) || leader.status == STATUS_LIMBO) continue;
+                    const int32_t trust = loyalty::Of(i);
+                    const int32_t chance = trust == loyalty::UNTRACKED ? witch_hunt_accusation
+                                                                       : witch_hunt_accusation * (100 - trust) / 50;
+                    if (static_cast<int32_t>(game_random::Random(1000)) > chance) continue;
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d dismisses its leader %d in a witch hunt",
+                        (int)MOX::stardate, (int)p, (int)i);
+                    OFFICER::Deassign_Officer(i);
+                }
+            }
+            if (MOX::stardate % MODE_PERIOD != 0) return;
+            for (int16_t p = 0; p < Players_(); ++p) {
+                if (!Computer_(p)) continue;
+                e_mode wanted = s->caught[p] >= 3 ? MODE_WITCH_HUNT : s->caught[p] >= 1 ? MODE_HEIGHTENED : MODE_NORMAL;
+                if (advisor::enabled && ((advisor::active_players >> p) & 1) != 0) {
+                    const advisor::s_directive* d = advisor::Get_Directive(static_cast<uint8_t>(p));
+                    if (d != nullptr && advisor::Is_Active(d, MOX::stardate) && d->spy_mission == advisor::SPY_COUNTERINTEL &&
+                        wanted < MODE_HEIGHTENED) {
+                        wanted = MODE_HEIGHTENED;
+                    }
+                }
+                Set_Mode(p, wanted);
+            }
+        }
+    } // namespace
+
+    void On_Spy_Caught(int16_t victim, int16_t attacker) {
+        if (!counterintelligence || !Alive_(victim) || attacker < 0 || attacker >= MAX_PLAYERS || victim == attacker) return;
+        s_state* s = State();
+        if (s->caught[victim] != 0 && MOX::stardate - s->last_caught[victim] > RECENT_TURNS) s->caught[victim] = 0;
+        if (s->caught[victim] < 255) ++s->caught[victim];
+        s->last_caught[victim] = MOX::stardate;
+        opinion::Add(victim, attacker, opinion::REASON_CAUGHT_SPYING, caught_opinion);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d catches a spy of player %d",
+            (int)MOX::stardate, (int)victim, (int)attacker);
+    }
+
+    void Turn() {
+        if (network) Network_Turn_();
+        if (counterintelligence) Counterintelligence_Turn_();
+    }
+
+} // namespace espionage

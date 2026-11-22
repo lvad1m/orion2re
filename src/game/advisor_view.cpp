@@ -15,6 +15,7 @@
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
+#include "game/espionage.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
 #include "game/stability.h"
@@ -207,6 +208,7 @@ namespace advisor {
             contact->they_guarantee = pacts::Guarantees(other, player) ? 1 : 0;
             contact->our_embargo = embargo::Participates(player, other) ? 1 : 0;
             contact->their_embargo = embargo::Participates(other, player) ? 1 : 0;
+            contact->network_points = static_cast<int16_t>(espionage::Points(player, other));
             static_assert(sizeof(contact->opinion) == opinion::REASON_COUNT, "one opinion slot per reason");
             for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
                 contact->opinion[r] = static_cast<int8_t>(opinion::Modifier(player, other, static_cast<opinion::e_reason>(r)));
@@ -449,6 +451,9 @@ namespace advisor {
             if (contact.they_guarantee != 0) out->append("   - they guarantee our independence\n");
             if (contact.our_embargo != 0) out->append("   - embargo: we hold one on them (no trade or research treaties)\n");
             if (contact.their_embargo != 0) out->append("   - embargo: they hold one on us (no trade or research treaties)\n");
+            if (contact.network_points > 0) {
+                Append_Format(out, "   - our spy network there: %d points\n", static_cast<int>(contact.network_points));
+            }
             Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
             Append_Tag(out, contact.treaty);
             out->push_back('\n');

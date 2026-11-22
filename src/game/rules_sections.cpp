@@ -3,6 +3,7 @@
 #include "game/rules_sections.h"
 
 #include "game/embargo.h"
+#include "game/espionage.h"
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
@@ -41,6 +42,10 @@ namespace SAVEGAME {
             return loyalty::enabled && !loyalty::Empty();
         }
 
+        bool Espionage_Has_State_() {
+            return (espionage::network || espionage::counterintelligence) && !espionage::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -57,6 +62,8 @@ namespace SAVEGAME {
                 stability::Parse_Save, stability::Commit_Save, stability::Discard_Save, stability::Clear},
             {SECTION_TYPE_LOYALTY, 1, "leader loyalty", Loyalty_Has_State_, loyalty::Save_Size, loyalty::Write_Save,
                 loyalty::Parse_Save, loyalty::Commit_Save, loyalty::Discard_Save, loyalty::Clear},
+            {SECTION_TYPE_ESPIONAGE, 1, "spy network", Espionage_Has_State_, espionage::Save_Size, espionage::Write_Save,
+                espionage::Parse_Save, espionage::Commit_Save, espionage::Discard_Save, espionage::Clear},
         };
     } // namespace
 

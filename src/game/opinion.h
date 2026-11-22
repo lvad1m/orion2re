@@ -30,8 +30,16 @@ namespace opinion {
         REASON_DEFENDED_US = 4,    // came to our defence under a pact or a guarantee
         REASON_ABANDONED_US = 5,   // left us alone against an attacker it had promised to stop
         REASON_BROKE_BAN = 6,      // broke a ban of the galactic council
-        REASON_RESERVED_7 = 7,
-        REASON_COUNT = 8,
+        REASON_CAUGHT_SPYING = 7,  // its spy was caught working against us
+        REASON_BRIBED_OUR_LEADER = 8,
+        REASON_STIRRED_UNREST = 9,
+        REASON_KILLED_OUR_SCIENTIST = 10,
+        REASON_FRAMED_OUR_LEADER = 11,
+        REASON_RESERVED_12 = 12,
+        REASON_RESERVED_13 = 13,
+        REASON_RESERVED_14 = 14,
+        REASON_RESERVED_15 = 15,
+        REASON_COUNT = 16,
     };
 
     // Largest size of one modifier; a repeated reason deepens it up to this.
@@ -75,9 +83,10 @@ namespace opinion {
     void Clear();
     bool Empty();
 
-    // Save section 'OPIN' (game/rules_sections.h): payload version 1, then MAX_PLAYERS x
-    // MAX_PLAYERS x REASON_COUNT int8 values. Parse reads into a pending copy that Commit makes
-    // current once the whole load has succeeded.
+    // Save section 'OPIN' (game/rules_sections.h): payload version 2, then MAX_PLAYERS x
+    // MAX_PLAYERS x REASON_COUNT (16) int8 values; version 1 (8 reasons per pair) still loads, the
+    // newer reasons empty. Parse reads into a pending copy that Commit makes current once the
+    // whole load has succeeded.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);

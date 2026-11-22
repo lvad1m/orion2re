@@ -5273,6 +5273,116 @@
       },
     },
 
+    network: {
+      title: "Spy networks",
+      description: "Lets spies build up network points in the empire they work in, each turn a few per spy up to a cap; the points melt away while no spy works there. Spy masters and the neural scanner bring an empire a free spy now and then. Espionage operations spend the points.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["spy network = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::network",
+      },
+    },
+
+    network_points_per_spy: {
+      title: "Network points per spy",
+      description: "Sets the network points each spy adds every turn in the empire it works in.",
+      remarks: "Effective only while spy network is true.",
+      examples: ["spy network_points_per_spy = 2;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 20 },
+      default: 1,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::points_per_spy",
+      },
+    },
+
+    network_cap: {
+      title: "Largest spy network",
+      description: "Sets the most network points an empire's spies can hold in one foreign empire.",
+      remarks: "Effective only while spy network is true.",
+      examples: ["spy network_cap = 50;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 30,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::network_cap",
+      },
+    },
+
+    free_spy_turns: {
+      title: "Free spy interval",
+      description: "Sets how many turns pass between the free spies an empire with a spy master in its service or the neural scanner receives.",
+      remarks: "Effective only while spy network is true.",
+      examples: ["spy free_spy_turns = 30;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 1, max: 200 },
+      default: 20,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::free_spy_turns",
+      },
+    },
+
+    counterintelligence: {
+      title: "Counterintelligence modes",
+      description: "Lets empires keep their counterintelligence normal, heightened or on a witch hunt. A heightened watch adds 10 to the defence against spies, costs 2 percent of income a turn and 1 point of colony morale; a witch hunt adds 25, costs 4 percent and 3 points of morale, and may dismiss honest leaders on false accusations. Computer empires choose by the spies they caught lately. A caught spy is a diplomatic incident.",
+      remarks: "False preserves classic behavior. The human chooses a mode with the espionage screen; until then the human's watch stays normal. Disloyal leaders (loyalty leaders) are accused more often.",
+      examples: ["spy counterintelligence = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::counterintelligence",
+      },
+    },
+
+    witch_hunt_accusation: {
+      title: "False accusations in a witch hunt",
+      description: "Sets the chance, in thousandths per leader and turn, that a witch hunt dismisses an honest leader; with leader loyalty it is scaled by disloyalty (none at loyalty 100, twice at 0).",
+      remarks: "Effective only while spy counterintelligence is true.",
+      examples: ["spy witch_hunt_accusation = 10;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 20,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::witch_hunt_accusation",
+      },
+    },
+
+    caught_opinion: {
+      title: "Opinion of a caught spy's master",
+      description: "Sets the opinion modifier an empire gets toward the empire whose spy it caught.",
+      remarks: "Effective only while spy counterintelligence and diplomacy opinion are true.",
+      examples: ["spy caught_opinion = -25;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -15,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::caught_opinion",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

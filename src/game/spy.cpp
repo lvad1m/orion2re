@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/espionage.h"
 
 #include "game/advisor_apply.h"
 
@@ -22,6 +23,8 @@ namespace spy {
                     &MOX::player[i],
                     &spy_bonuses[i * 2],
                     &spy_bonuses[i * 2 + 1]);
+                // Counterintelligence modes (off by default) add to the defence.
+                spy_bonuses[i * 2 + 1] += static_cast<int16_t>(espionage::Defense_Bonus(i));
             }
         }
 
@@ -44,6 +47,9 @@ namespace spy {
                 Resolve_Player_Spies(&MOX::player[player_idx]);
             }
         }
+
+        // Spy network core (off by default): network points, free spies, counterintelligence.
+        espionage::Turn();
     }
 
 
@@ -337,6 +343,8 @@ namespace spy {
             if (catch_roll <= -80 || rand4 == 100) {
                 other_spies--;
                 BILL::Set_Their_Spy_Number(other_plr_idx, player_idx, (uint8_t)other_spies);
+                // Counterintelligence (off by default): a caught spy is a diplomatic incident.
+                espionage::On_Spy_Caught(player_idx, other_plr_idx);
 
                 s_MSG msg;
                 memset(&msg, 0, sizeof(s_MSG));

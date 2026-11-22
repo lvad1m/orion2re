@@ -116,7 +116,7 @@ namespace advisor {
         s_fact reported_power;
         // Opinion modifiers (opinion.h): why we feel as we do about them, by opinion::e_reason;
         // all zero with the flag off.
-        int8_t opinion[8] = {};
+        int8_t opinion[16] = {};
         // Rivalry (rivalry.h): 1 when we declared them our rival / they declared us theirs.
         uint8_t our_rival = 0;
         uint8_t their_rival = 0;
@@ -127,6 +127,8 @@ namespace advisor {
         // Embargo (embargo.h): 1 when we hold one on them / they hold one on us.
         uint8_t our_embargo = 0;
         uint8_t their_embargo = 0;
+        // Spy network (espionage.h): our network points in their empire.
+        int16_t network_points = 0;
     };
 
     struct s_empire_view {

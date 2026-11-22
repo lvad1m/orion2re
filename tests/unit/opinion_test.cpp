@@ -7,6 +7,7 @@
 #include "game/opinion.h"
 #include "game/serialization.h"
 
+#include <cstring>
 #include <memory>
 
 namespace {
@@ -179,6 +180,26 @@ DOCTEST_TEST_CASE("the save payload round-trips; a bad payload leaves the curren
     DOCTEST_CHECK_FALSE(opinion::Parse_Save(&wrong, &error));
     SERIAL::Reader_ short_read(buffer.get(), 1, "test underflow", true);
     DOCTEST_CHECK_FALSE(opinion::Parse_Save(&short_read, &error));
+}
+
+DOCTEST_TEST_CASE("a version 1 payload (8 reasons per pair) still loads, the newer reasons empty") {
+    s_opinion_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    const uint32_t size = sizeof(uint16_t) + MAX_PLAYERS * MAX_PLAYERS * 8;
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    std::memset(buffer.get(), 0, size);
+    buffer[0] = 1;  // version 1, little endian
+    // Holder 1, target 2: pair index 1 * 8 + 2, reason 0 (sneak attack).
+    buffer[2 + (1 * MAX_PLAYERS + 2) * 8 + opinion::REASON_SNEAK_ATTACK] = static_cast<uint8_t>(-40);
+    opinion::Add(1, 2, opinion::REASON_CAUGHT_SPYING, -15);  // present before the load: replaced
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(opinion::Parse_Save(&reader, &error));
+    opinion::Commit_Save();
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -40);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_CAUGHT_SPYING) == 0);
+    DOCTEST_CHECK(opinion::Save_Size() == sizeof(uint16_t) + MAX_PLAYERS * MAX_PLAYERS * opinion::REASON_COUNT);
 }
 
 }

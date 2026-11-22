@@ -11,7 +11,7 @@
 namespace opinion {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 16 reasons per pair (version 1: 8)
         constexpr uint32_t TABLE_SIZE = MAX_PLAYERS * MAX_PLAYERS * REASON_COUNT;
         constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + TABLE_SIZE;
         // Treaty states 4 and above are war (advisor_view.cpp Treaty_Name).
@@ -76,6 +76,11 @@ namespace opinion {
             case REASON_DEFENDED_US: return "came to our defence";
             case REASON_ABANDONED_US: return "left us alone against an attacker";
             case REASON_BROKE_BAN: return "broke a ban of the council";
+            case REASON_CAUGHT_SPYING: return "its spies were caught working against us";
+            case REASON_BRIBED_OUR_LEADER: return "bribed one of our leaders";
+            case REASON_STIRRED_UNREST: return "stirred up unrest among our people";
+            case REASON_KILLED_OUR_SCIENTIST: return "killed one of our scientists";
+            case REASON_FRAMED_OUR_LEADER: return "framed one of our leaders";
             default: return "unknown";
         }
     }
@@ -144,11 +149,16 @@ namespace opinion {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("opinion save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported opinion payload version");
-        if (reader->Remaining() != TABLE_SIZE) return fail("opinion save has the wrong size");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != SAVE_PAYLOAD_VERSION && version != 1) return fail("unsupported opinion payload version");
+        // Version 1 held 8 reasons per pair; the newer reasons start empty.
+        const uint32_t reasons_saved = version == 1 ? 8 : REASON_COUNT;
+        if (reader->Remaining() != MAX_PLAYERS * MAX_PLAYERS * reasons_saved) return fail("opinion save has the wrong size");
+        std::memset(pending, 0, sizeof(pending));
         for (auto& row : pending) {
             for (auto& reasons : row) {
-                for (int8_t& value : reasons) {
+                for (uint32_t r = 0; r < reasons_saved; ++r) {
+                    int8_t& value = reasons[r];
                     value = reader->Read_Int8();
                     if (value < -MODIFIER_LIMIT || value > MODIFIER_LIMIT) return fail("opinion save has an out-of-range value");
                 }

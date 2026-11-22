@@ -43,6 +43,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_STABILITY = 0x42415453;
     // 'LOYL': leader loyalty (game/loyalty.h).
     inline constexpr uint32_t SECTION_TYPE_LOYALTY = 0x4C594F4C;
+    // 'SPYN': the spy network core - network points, counterintelligence (game/espionage.h).
+    inline constexpr uint32_t SECTION_TYPE_ESPIONAGE = 0x4E595053;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);
