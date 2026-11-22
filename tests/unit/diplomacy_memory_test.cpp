@@ -2,6 +2,7 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 
 namespace {
@@ -128,6 +129,39 @@ DOCTEST_TEST_CASE("war weariness counts lost ships and population against what i
     plr.treaty[2] = TREATY_PEACE;
     DOCTEST_CHECK(diplomemory::War_Weariness(1, 2) == 0);
     DOCTEST_CHECK(diplomemory::War_Weariness(1, 1) == 0);
+}
+
+DOCTEST_TEST_CASE("a war-weary empire starts no new wars") {
+    s_memory_scope scope;
+    test::s_saved_value<int32_t> limit{diplomemory::weary_limit};
+    test::s_game_state state;
+    Setup_(&state);
+    s_player& plr = state.players[1];
+    plr.treaty[2] = state.players[2].treaty[1] = TREATY_WAR;
+    MOX::NUM_SHIPS = 1;
+    state.ships[0].owner = 1;
+    state.ships[0].status = 0;
+    state.ships[0].d.size = 3;
+    plr.ship_war_losses[2] = 8;  // weariness 16 (see above)
+
+    diplomemory::weary_limit = 0;  // off
+    DOCTEST_CHECK_FALSE(diplomemory::Too_Weary_For_New_War(1));
+    diplomemory::weary_limit = 20;
+    DOCTEST_CHECK_FALSE(diplomemory::Too_Weary_For_New_War(1));
+    diplomemory::weary_limit = 16;
+    DOCTEST_CHECK(diplomemory::Too_Weary_For_New_War(1));
+    DOCTEST_CHECK_FALSE(diplomemory::Too_Weary_For_New_War(2));  // 2 lost nothing
+    diplomemory::enabled = false;
+    DOCTEST_CHECK_FALSE(diplomemory::Too_Weary_For_New_War(1));
+    diplomemory::enabled = true;
+
+    // An incident with player 0 (no opportunity planet, no fleets: the original declares war).
+    plr.opportunity_planet_num[0] = -1;
+    diplomac::Sneak_Attack_Or_Declare_War(1, 0, 0);
+    DOCTEST_CHECK(plr.treaty[0] < TREATY_WAR);  // weary: the incident passes
+    diplomemory::weary_limit = 0;
+    diplomac::Sneak_Attack_Or_Declare_War(1, 0, 0);
+    DOCTEST_CHECK(plr.treaty[0] >= TREATY_WAR);
 }
 
 } // DOCTEST_TEST_SUITE

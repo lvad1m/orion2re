@@ -75,4 +75,16 @@ namespace diplomemory {
         return static_cast<int32_t>(std::min<int64_t>(std::max(0, weariness_cap), ship_share / 2 + colony_share));
     }
 
+    bool Too_Weary_For_New_War(int16_t player) {
+        if (!enabled || weary_limit <= 0 || !Valid_(player)) return false;
+        for (int16_t enemy = 0; enemy < MOX::NUM_PLAYERS && enemy < MAX_PLAYERS; ++enemy) {
+            if (enemy != player && War_Weariness(player, enemy) >= weary_limit) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "diplomacy: stardate %d, player %d is too weary of its war with player %d for a new war",
+                    (int)MOX::stardate, (int)player, (int)enemy);
+                return true;
+            }
+        }
+        return false;
+    }
+
 } // namespace diplomemory

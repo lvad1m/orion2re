@@ -337,9 +337,12 @@ namespace npcdiplo {
                 }
             }
 
+            // Diplomacy memory: a war-weary empire starts no new wars.
+            const bool weary = diplomemory::Too_Weary_For_New_War(static_cast<int16_t>(i));
+
             // Execution Loop 1: Immediate/Forced Declarations
             for (int j = 0; j < MOX::NUM_PLAYERS; ++j) {
-                if (j != i && decision[j] == 2 && p_source.peace_duration[j] < 1) {
+                if (j != i && decision[j] == 2 && p_source.peace_duration[j] < 1 && !weary) {
                     if (MOX::player[j].objectives == PLAYER_OBJECTIVE_HUMAN) {
                         diplomac::Change_Relations(-10000, j, i, reason[j], 0, 0);
                     }
@@ -361,7 +364,7 @@ namespace npcdiplo {
                 }
             }
 
-            if (protective_treaties == 0 && potential_targets_count > 0) {
+            if (protective_treaties == 0 && potential_targets_count > 0 && !weary) {
                 int target_idx = game_random::Random(potential_targets_count);
                 for (int j = 0; j < MOX::NUM_PLAYERS; ++j) {
                     if (j != i && decision[j] == 1) {

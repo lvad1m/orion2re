@@ -4752,6 +4752,22 @@
       },
     },
 
+    memory_weary_limit: {
+      title: "War weariness that stops new wars",
+      description: "A computer empire whose weariness in one of its current wars reaches this value starts no new wars: no revenge or elective declarations, no planned sneak attack, no war over an incident or an insulting demand, and it does not join its ally's war. Wars declared on it are fought as usual.",
+      remarks: "Effective only while diplomacy memory is true. 0 turns the rule off (classic behavior). Weariness is capped by diplomacy memory_weariness_cap.",
+      examples: ["diplomacy memory_weary_limit = 30;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 200 },
+      default: 0,
+      bind_root: {
+        header: "game/diplomacy_memory.h",
+        symbol: "diplomemory::weary_limit",
+      },
+    },
+
     opinion: {
       title: "Opinion modifiers",
       description: "Lets computer empires remember why they like or dislike another empire - a sneak attack, help in their war - with each memory fading over time. Their treaty answers, war plans, demands and council votes read the classic relations plus these memories.",

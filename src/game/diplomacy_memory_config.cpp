@@ -10,5 +10,6 @@ namespace diplomemory {
     int32_t period = 5;
     int32_t trust_cap = 30;
     int32_t weariness_cap = 60;
+    int32_t weary_limit = 0;
 
 } // namespace diplomemory

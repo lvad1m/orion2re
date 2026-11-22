@@ -478,6 +478,8 @@ namespace diplomac {
             }
 
             if (plr1->sneak_attack_planet == -1 && human_war_count == 0) {
+                // Diplomacy memory: a war-weary empire plans no attack.
+                if (diplomemory::Too_Weary_For_New_War(p1)) continue;
                 for (int16_t p2 = 0; p2 < (int16_t)MOX::NUM_PLAYERS; ++p2) {
                     if (plr1->opportunity_planet_num[p2] == -1) {
                         plr1->opportunity_planet_value[p2] = 0;
@@ -863,6 +865,8 @@ namespace diplomac {
     }
 
     void __cdecl Sneak_Attack_Or_Declare_War(int16_t attacker_idx, int16_t target_idx, int8_t message_idx) {
+        // Diplomacy memory: a war-weary empire lets the incident pass.
+        if (diplomemory::Too_Weary_For_New_War(attacker_idx)) return;
         s_player* player_ptr = MOX::player;
         s_player& attacker = player_ptr[attacker_idx];
 
@@ -2023,7 +2027,8 @@ namespace diplomac {
                     }
                 }
 
-                if (target_idx != -1) {
+                // Diplomacy memory: a war-weary empire does not join its ally's war.
+                if (target_idx != -1 && !diplomemory::Too_Weary_For_New_War(p1_idx)) {
                     // Set diplomacy message to 'F' and the proposed war target
                     MOX::player[active_plr].diplomacy_message[other_plr] = 0x46 /* 'F' */;
                     MOX::player[active_plr].diplomacy_proposal_war_player[other_plr] = (int8_t)target_idx;
@@ -2890,7 +2895,9 @@ namespace diplomac {
 
         int8_t treaty = MOX::player[player_a].treaty[player_b];
         if (treaty == 1 || treaty == 2) {
-            if (modifier < -100 || Get_Player_Diplomacy_Personality(player_b, player_a) == PLAYER_PERSONALITY_DISHONORED) {
+            // Diplomacy memory: a war-weary empire answers an insult with threats, not war.
+            if ((modifier < -100 || Get_Player_Diplomacy_Personality(player_b, player_a) == PLAYER_PERSONALITY_DISHONORED) &&
+                !diplomemory::Too_Weary_For_New_War(player_a)) {
                 *response_code = 0xA5;
                 Declare_War(player_a, player_b);
                 *accepted = 0;
@@ -2923,7 +2930,8 @@ namespace diplomac {
                 *accepted = 1;
             }
         } else {
-            if (modifier < -150 || Get_Player_Diplomacy_Personality(player_b, player_a) == PLAYER_PERSONALITY_DISHONORED) {
+            if ((modifier < -150 || Get_Player_Diplomacy_Personality(player_b, player_a) == PLAYER_PERSONALITY_DISHONORED) &&
+                !diplomemory::Too_Weary_For_New_War(player_a)) {
                 *response_code = 0xA5;
                 Declare_War(player_a, player_b);
                 *accepted = 0;

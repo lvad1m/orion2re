@@ -13,6 +13,7 @@ namespace diplomemory {
     extern int32_t period;          // diplomacy memory_period: turns per step of healing and fading
     extern int32_t trust_cap;       // diplomacy memory_trust_cap: trust kept treaties earn at most
     extern int32_t weariness_cap;   // diplomacy memory_weariness_cap: largest war weariness
+    extern int32_t weary_limit;     // diplomacy memory_weary_limit: weariness that stops new wars (0: off)
 
     // Trust never falls below this with memory on (classic trust wraps around the int8 range).
     constexpr int32_t TRUST_FLOOR = -100;
@@ -30,5 +31,10 @@ namespace diplomemory {
     // peace): half the share of its fleet lost to this enemy plus the share of its population
     // lost to it, in percent. Fleet in the units the combat loss counter uses (2^(size + 1)).
     int32_t War_Weariness(int16_t player, int16_t enemy);
+
+    // A war-weary empire starts no new wars (mechanics.md 4.1): true when memory is on,
+    // `weary_limit` is above 0 and the weariness of one of `player`'s current wars reaches it.
+    // The computer's own new wars ask this; wars declared on it do not.
+    bool Too_Weary_For_New_War(int16_t player);
 
 } // namespace diplomemory
