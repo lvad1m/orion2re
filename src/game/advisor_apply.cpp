@@ -301,6 +301,9 @@ namespace advisor {
     }
 
     namespace {
+        // s_player::treaty value of an alliance (advisor_view.cpp Treaty_Name).
+        constexpr int8_t FRAME_ALLIANCE_TREATY_ = 2;
+
         bool Steered_Computer_Now_(uint8_t player) {
             if (!enabled || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return false;
             if (((active_players >> player) & 1) == 0) return false;
@@ -360,19 +363,27 @@ namespace advisor {
 
     int16_t Frame_Choice(uint8_t actor, uint8_t victim, uint32_t candidates, int16_t original) {
         if (!Doctrine(DOCTRINE_PART_DIVIDE) || !Steered_Computer_Now_(actor) || victim >= MAX_PLAYERS) return original;
+        const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
+        const s_player& self = game::current.players[actor];
+        const auto allowed = [&](int32_t i) {
+            return i >= 0 && i < players && i != actor && i != victim && ((candidates >> i) & 1) != 0 &&
+                self.treaty[i] != FRAME_ALLIANCE_TREATY_;
+        };
         const s_directive* directive = Get_Directive(actor);
         int16_t choice = -1;
         if (directive != nullptr && Is_Active(directive, game::current.Stardate()) && directive->main_rival < MAX_PLAYERS &&
-            directive->main_rival != victim && ((candidates >> directive->main_rival) & 1) != 0) {
+            allowed(directive->main_rival)) {
             choice = directive->main_rival;
         }
-        const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
-        if (choice < 0) {
+        if (choice < 0 && Phase(PHASE_PART_COUNCIL_VOTES)) {
+            const auto votes = [](const s_player& p) { return p.total_pop > 0 ? (p.total_pop + 9) / 10 : 0; };  // council.cpp Get_Num_Votes
+            int32_t leader = -1;
             for (int32_t i = 0; i < players; ++i) {
-                if (((candidates >> i) & 1) == 0 || i == victim || i == actor) continue;
-                if (choice < 0 || game::current.players[i].total_ship_strength[victim] > game::current.players[choice].total_ship_strength[victim]) {
-                    choice = static_cast<int16_t>(i);
-                }
+                if (i == actor || game::current.players[i].eliminated != 0) continue;
+                if (leader < 0 || votes(game::current.players[i]) > votes(game::current.players[leader])) leader = i;
+            }
+            if (leader >= 0 && votes(game::current.players[leader]) >= votes(self) && allowed(leader)) {
+                choice = static_cast<int16_t>(leader);
             }
         }
         if (choice < 0) return original;

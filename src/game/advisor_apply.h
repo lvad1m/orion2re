@@ -135,12 +135,18 @@ namespace advisor {
     void After_Peace(uint8_t a, uint8_t b);
     void Review_Tributes();
 
-    // Divide and rule (doctrine part 256; spy.cpp, spy_actions.cpp Frame_Another): when a spy of the
-    // advised computer empire `actor` frames someone for a theft or sabotage at `victim`, it frames
-    // its directive's main rival if that is a candidate, otherwise the candidate with the strongest
-    // fleet against the victim - the victim's anger falls on a rival of ours. `candidates` has bit i
-    // for every empire the original may frame; returns `original` when the part is off or no
-    // candidate suits.
+    // Divide and rule v2 (doctrine part 256; spy.cpp, spy_actions.cpp Frame_Another): when a spy of
+    // the advised computer empire `actor` frames someone for a theft or sabotage at `victim`, the
+    // victim's anger should fall on a rival of ours, never on a friend. Among the candidates the
+    // original may frame (`candidates`, bit i per empire) except our allies, it frames:
+    // 1. our directive's main rival (under the phase strategy, the would-be council winner of rules
+    //    407 and 408);
+    // 2. with the phase part "council votes", the empire with the most council votes other than us
+    //    if it has at least as many as we do - votes are public at every meeting, and a neutral
+    //    member's vote follows its relations (council.cpp Vote_Check);
+    // 3. otherwise whomever the original chose (`original`): it already frames our enemies first and
+    //    our allies last. v1 fell back to the victim's strongest neighbour, which ignored treaties
+    //    and could frame our own ally (README.md 10.4.12).
     int16_t Frame_Choice(uint8_t actor, uint8_t victim, uint32_t candidates, int16_t original);
 
     // Council vote (council.cpp Vote_Check) of the computer empire `voter` for `candidate`, outside

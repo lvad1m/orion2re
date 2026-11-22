@@ -379,6 +379,15 @@ namespace council {
             const int8_t choice = Member_Choice_(member_id);
             council_vote_cast = council_member_votes[i];
             council_voter = (int8_t)member_id;
+            // Each member's vote, so a bench can see whom it turned from (advisor framing, alliances).
+            if (choice == 0) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "council: stardate %d, member %d (%d votes) abstains",
+                    (int)MOX::stardate, (int)member_id, (int)council_member_votes[i]);
+            } else {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "council: stardate %d, member %d (%d votes) votes for player %d",
+                    (int)MOX::stardate, (int)member_id, (int)council_member_votes[i],
+                    (int)council_nominee_[choice == 2 ? 1 : 0]);
+            }
             Apply_Council_Vote_(choice, member_id);
         }
         for (int n = 0; n < 2; ++n) {

@@ -667,7 +667,7 @@ DOCTEST_TEST_CASE("Byzantine rule VI: a losing empire buys peace with tribute an
     DOCTEST_CHECK(advisor::Tribute_Peace_Turns(2, 1) == 0);
 }
 
-DOCTEST_TEST_CASE("divide and rule: spies frame our main rival, or the victim's strongest neighbour") {
+DOCTEST_TEST_CASE("divide and rule v2: frame our main rival or the vote leader, never an ally, else as the original") {
     s_apply_scope scope;
     test::s_game_state state;
     Setup_World_(&state);
@@ -675,18 +675,41 @@ DOCTEST_TEST_CASE("divide and rule: spies frame our main rival, or the victim's 
     state.players[4].objectives = PLAYER_OBJECTIVE_MILITARIST;
     state.players[3].eliminated = 0;
     advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
+    advisor::rules_phases = false;
     advisor::s_directive directive = Directive_();
     directive.main_rival = 3;
     advisor::Set_Directive(1, &directive);
     const uint32_t candidates = (1u << 3) | (1u << 4);
     DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 4) == 3);  // our main rival
+    state.players[1].treaty[3] = 2;                                   // ... unless it is our ally
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 4) == 4);
+    state.players[1].treaty[3] = 0;
     directive.main_rival = advisor::NO_PLAYER;
     advisor::Set_Directive(1, &directive);
     state.players[3].total_ship_strength[2] = 100;
     state.players[4].total_ship_strength[2] = 300;
-    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 4);  // the victim's strongest neighbour
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);  // no rival: as the original (v1 took 4)
+
+    // The vote leader (phase part "council votes"): votes are population / 10, rounded up.
+    advisor::rules_phases = true;
+    state.players[1].total_pop = 80;   // 8 votes
+    state.players[2].total_pop = 30;
+    state.players[3].total_pop = 50;
+    state.players[4].total_pop = 115;  // 12 votes
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 4);
+    state.players[4].total_pop = 61;  // 7 votes: behind us
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);
+    state.players[4].total_pop = 115;
+    state.players[1].treaty[4] = 2;  // our ally
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);
+    state.players[1].treaty[4] = 0;
+    state.players[2].total_pop = 300;  // the victim leads: it cannot be framed at itself
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);
+    state.players[2].total_pop = 30;
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, 1u << 3, 3) == 3);  // the leader is no candidate
+
     DOCTEST_CHECK(advisor::Frame_Choice(1, 2, 0, -1) == -1);         // nobody to frame
     DOCTEST_CHECK(advisor::Frame_Choice(0, 2, candidates, 3) == 3);  // the human frames as the original does
-    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;        // off by default
     DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);
 }
