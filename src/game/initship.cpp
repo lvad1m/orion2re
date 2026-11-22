@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/world_events.h"
 #include "legacy_ids.h"
 #include "game/ship_config.h"
 #include "game/shipstak.h"
@@ -423,6 +424,7 @@ namespace INITSHIP {
             if (MOX::player[player_idx].traits[TRAIT_TRANS_DIMENSIONAL] != 0) {
                 speed += td_ftl_bonus;
             }
+            speed = static_cast<int16_t>(speed + world_events::Speed_Bonus(player_idx));  // a fair wind (off by default)
         }
 
         return speed;

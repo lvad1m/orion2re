@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/world_events.h"
 #include "game/spy_ranks.h"
 #include "legacy_world.h"
 
@@ -592,6 +593,8 @@ namespace COLCALC {
             }
         }
 
+        // New events (off by default): a warm current feeds the ocean worlds.
+        food_total = static_cast<int16_t>(food_total + world_events::Food2_Bonus(colony));
         return food_total;
     }
 
@@ -805,7 +808,8 @@ namespace COLCALC {
             return;
         }
 
-        bool pop_boom = static_cast<bool>(EVENTS::Event_Check_Population_Boom(colony_idx));
+        bool pop_boom = static_cast<bool>(EVENTS::Event_Check_Population_Boom(colony_idx)) ||
+            world_events::Population_Boom(colony_idx);  // a clutch (new events, off by default)
         bool plague = static_cast<bool>(EVENTS::Event_Check_Plague(colony_idx));
 
         int food_pool = (colony->imports[ECON_FOOD] + colony->production[ECON_FOOD]) * 2;

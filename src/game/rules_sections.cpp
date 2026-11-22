@@ -14,6 +14,7 @@
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 #include "game/stability.h"
+#include "game/world_events.h"
 
 namespace SAVEGAME {
 
@@ -66,6 +67,10 @@ namespace SAVEGAME {
             return (beliefs::neighbour_model || beliefs::disinformation) && !beliefs::Empty();
         }
 
+        bool World_Events_Has_State_() {
+            return world_events::enabled && !world_events::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -92,6 +97,9 @@ namespace SAVEGAME {
                 intrigue::Parse_Save, intrigue::Commit_Save, intrigue::Discard_Save, intrigue::Clear},
             {SECTION_TYPE_BELIEFS, 1, "beliefs", Beliefs_Has_State_, beliefs::Save_Size, beliefs::Write_Save,
                 beliefs::Parse_Save, beliefs::Commit_Save, beliefs::Discard_Save, beliefs::Clear},
+            {SECTION_TYPE_WORLD_EVENTS, 1, "new events", World_Events_Has_State_, world_events::Save_Size,
+                world_events::Write_Save, world_events::Parse_Save, world_events::Commit_Save, world_events::Discard_Save,
+                world_events::Clear},
         };
     } // namespace
 

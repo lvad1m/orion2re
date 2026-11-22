@@ -2,6 +2,7 @@
 
 #include "fake_colony_services.h"
 #include "game/spy_ranks.h"
+#include "game/world_events.h"
 
 // Counter-agents and ranks are not under test here.
 namespace spy_ranks {
@@ -10,6 +11,12 @@ namespace spy_ranks {
     bool Can_Build(const s_colony*, int16_t) { return false; }
     bool On_Built(int16_t, int16_t) { return false; }
 } // namespace spy_ranks
+
+// New events are not under test here.
+namespace world_events {
+    int32_t Food2_Bonus(const s_colony*) { return 0; }
+    bool Population_Boom(int16_t) { return false; }
+} // namespace world_events
 #include "lua/lua_game.h"
 
 namespace {

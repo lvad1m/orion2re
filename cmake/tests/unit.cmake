@@ -43,6 +43,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/spy_ranks_config.cpp
     src/game/intrigue_config.cpp
     src/game/beliefs_config.cpp
+    src/game/world_events_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1019,6 +1020,10 @@ orion2re_add_game_test(test_beliefs
     tests/unit/beliefs_test.cpp
 )
 
+orion2re_add_game_test(test_world_events
+    tests/unit/world_events_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1240,6 +1245,7 @@ orion2re_add_unit_test(test_initship
         src/game/ship_config.cpp
     FAKE_SOURCES
         tests/fakes/fake_memory.cpp
+        tests/fakes/fake_world_events_speed.cpp
     LINK_SDL
 )
 
@@ -1415,6 +1421,7 @@ orion2re_add_unit_test(test_savegame
         src/game/spy_ranks_state.cpp
         src/game/intrigue_state.cpp
         src/game/beliefs_state.cpp
+        src/game/world_events_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

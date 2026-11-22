@@ -2,6 +2,7 @@
 #include "game/stability.h"
 #include "game/espionage.h"
 #include "game/spy_ops.h"
+#include "game/world_events.h"
 #include "game/spy_ranks.h"
 
 #include "strbuild.h"
@@ -30,6 +31,8 @@ namespace COLCALC {
         const int vigilance_penalty = espionage::Morale_Effect(owner);
         // Spy operations (off by default): a bribed governor neglects its colonies.
         const int bribe_penalty = spy_ops::Morale_Effect(colony);
+        // New events (off by default): a duel of honour lifts the people.
+        const int event_bonus = world_events::Morale_Bonus(colony);
         colony->morale = morale_lookup_table[govt];
 
         if (gov_type != GOVERNMENT_UNIFICATION / 2) {
@@ -76,7 +79,7 @@ namespace COLCALC {
             colony->morale += mixed_race_penalty + leader_bonus + holo_simulator_bonus +
                 vr_network_bonus + pleasure_dome_bonus + psychophysics_bonus +
                 barracks_bonus + marine_barracks_bonus + no_capital_penalty + unrest_penalty + vigilance_penalty +
-                bribe_penalty;
+                bribe_penalty + event_bonus;
         }
 
         if (debug_out) {
@@ -129,6 +132,9 @@ namespace COLCALC {
 
             if (bribe_penalty != 0)
                 STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", bribe_penalty * 5, "Poor administration");
+
+            if (event_bonus != 0)
+                STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", event_bonus * 5, "Event");
 
             STRBUILD::Sprintf(debug_out, "\r");
             STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", colony->morale * 5, total_morale_msg);

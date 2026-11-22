@@ -279,6 +279,9 @@ namespace stability {
 namespace loyalty {
     void Turn() {}
 }
+namespace world_events {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}
