@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/espionage.h"
+#include "game/intrigue.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 
@@ -56,6 +57,8 @@ namespace spy {
         spy_ops::Turn();
         // Counter-agents and ranks (off by default): saboteurs strike; the computers buy agents.
         spy_ranks::Turn();
+        // Intrigues (off by default): caught spies' fates, revealed plans, proxy wars, letters, favours.
+        intrigue::Turn();
     }
 
 

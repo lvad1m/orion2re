@@ -41,6 +41,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/espionage_config.cpp
     src/game/spy_ops_config.cpp
     src/game/spy_ranks_config.cpp
+    src/game/intrigue_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1009,6 +1010,10 @@ orion2re_add_game_test(test_spy_ranks
     tests/unit/spy_ranks_test.cpp
 )
 
+orion2re_add_game_test(test_intrigue
+    tests/unit/intrigue_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1403,6 +1408,7 @@ orion2re_add_unit_test(test_savegame
         src/game/espionage_state.cpp
         src/game/spy_ops_state.cpp
         src/game/spy_ranks_state.cpp
+        src/game/intrigue_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

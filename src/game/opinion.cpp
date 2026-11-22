@@ -82,6 +82,9 @@ namespace opinion {
             case REASON_KILLED_OUR_SCIENTIST: return "killed one of our scientists";
             case REASON_FRAMED_OUR_LEADER: return "framed one of our leaders";
             case REASON_SABOTAGE: return "sent saboteurs against us";
+            case REASON_DID_US_A_SERVICE: return "did us a service";
+            case REASON_PLOTTED_AGAINST_US: return "plotted against us";
+            case REASON_TREATED_OUR_SPY: return "decided the fate of a spy of ours";
             default: return "unknown";
         }
     }

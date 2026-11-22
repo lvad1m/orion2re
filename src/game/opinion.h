@@ -36,9 +36,9 @@ namespace opinion {
         REASON_KILLED_OUR_SCIENTIST = 10,
         REASON_FRAMED_OUR_LEADER = 11,
         REASON_SABOTAGE = 12,      // its saboteur was caught at work against us
-        REASON_RESERVED_13 = 13,
-        REASON_RESERVED_14 = 14,
-        REASON_RESERVED_15 = 15,
+        REASON_DID_US_A_SERVICE = 13,   // warned us of an attack, paid a favour it owed (intrigue.h)
+        REASON_PLOTTED_AGAINST_US = 14, // planned an attack, paid for a war or forged a letter against us
+        REASON_TREATED_OUR_SPY = 15,    // executed (-) or sent home (+) a spy of ours
         REASON_COUNT = 16,
     };
 

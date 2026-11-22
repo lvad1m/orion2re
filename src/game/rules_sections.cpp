@@ -4,6 +4,7 @@
 
 #include "game/embargo.h"
 #include "game/espionage.h"
+#include "game/intrigue.h"
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
@@ -56,6 +57,10 @@ namespace SAVEGAME {
             return (spy_ranks::counter_agents || spy_ranks::ranks) && !spy_ranks::Empty();
         }
 
+        bool Intrigue_Has_State_() {
+            return intrigue::Any_Enabled() && !intrigue::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -78,6 +83,8 @@ namespace SAVEGAME {
                 spy_ops::Parse_Save, spy_ops::Commit_Save, spy_ops::Discard_Save, spy_ops::Clear},
             {SECTION_TYPE_SPY_RANKS, 1, "counter-agents and spy ranks", Spy_Ranks_Has_State_, spy_ranks::Save_Size,
                 spy_ranks::Write_Save, spy_ranks::Parse_Save, spy_ranks::Commit_Save, spy_ranks::Discard_Save, spy_ranks::Clear},
+            {SECTION_TYPE_INTRIGUE, 1, "intrigues", Intrigue_Has_State_, intrigue::Save_Size, intrigue::Write_Save,
+                intrigue::Parse_Save, intrigue::Commit_Save, intrigue::Discard_Save, intrigue::Clear},
         };
     } // namespace
 

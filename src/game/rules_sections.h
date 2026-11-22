@@ -49,6 +49,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_SPY_OPS = 0x4F595053;
     // 'SPYR': counter-agents, saboteurs and residents (game/spy_ranks.h).
     inline constexpr uint32_t SECTION_TYPE_SPY_RANKS = 0x52595053;
+    // 'INTR': intrigues - favours, revealed plots, double agents (game/intrigue.h).
+    inline constexpr uint32_t SECTION_TYPE_INTRIGUE = 0x52544E49;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

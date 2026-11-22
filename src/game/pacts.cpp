@@ -6,6 +6,7 @@
 #include "game/advisor_directive.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
+#include "game/intrigue.h"
 #include "game/opinion.h"
 
 #include <algorithm>
@@ -148,6 +149,7 @@ namespace pacts {
             }
             diplomac::Declare_War(p, aggressor);
             opinion::Add(victim, p, opinion::REASON_DEFENDED_US, defended_opinion);
+            intrigue::Owe(victim, p);  // favours (off by default)
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "pacts: stardate %d, player %d honours its word to player %d: war on player %d",
                 (int)MOX::stardate, (int)p, (int)victim, (int)aggressor);
         }

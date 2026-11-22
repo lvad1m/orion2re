@@ -9,6 +9,7 @@
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/espionage.h"
+#include "game/intrigue.h"
 #include "game/invasion.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
@@ -238,6 +239,7 @@ namespace spy_ops {
         const espionage::e_mode mode = espionage::Mode(target);
         int32_t value = 10 + defense / 10 + BILL::Get_Their_Spy_Number(target, target) / 3;
         value += mode == espionage::MODE_WITCH_HUNT ? 4 : mode == espionage::MODE_HEIGHTENED ? 2 : 0;
+        value += intrigue::Double_Agent_Difficulty(attacker, target);  // intrigues, off by default
         switch (op) {
             case OP_KILL_SCIENTIST: value += 2; break;
             case OP_DATA: value -= 2; break;

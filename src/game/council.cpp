@@ -4,6 +4,7 @@
 #include "game/council_ai.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
+#include "game/intrigue.h"
 #include "game/resolutions.h"
 
 namespace council {
@@ -318,6 +319,9 @@ namespace council {
                 nominee_id = council::council_nominee_[1];
                 MOX::player[player_idx].council_voted_for = nominee_id;
             }
+            // Intrigues (off by default): debts to the nominees are paid or dishonoured.
+            const int16_t voted_for = vote_choice == 1 ? council::council_nominee_[0] : vote_choice == 2 ? council::council_nominee_[1] : -1;
+            intrigue::On_Council_Vote(player_idx, voted_for, council::council_nominee_[0], council::council_nominee_[1]);
         }
 
         // A member's choice as Council_Votes makes it: abstain when it supports both or neither.
@@ -875,6 +879,8 @@ namespace council {
 
             // Advisor phase strategy: an empire resisting a would-be winner votes against it.
             vote_score = static_cast<int16_t>(vote_score + advisor::Council_Vote_Bias(static_cast<uint8_t>(voter_idx), static_cast<uint8_t>(candidate_idx)));
+            // Intrigues (off by default): a favour owed to the candidate is paid with the vote.
+            vote_score = static_cast<int16_t>(vote_score + intrigue::Council_Vote_Bias(voter_idx, candidate_idx));
 
             if (MOX::player[candidate_idx].objectives == PLAYER_OBJECTIVE_HUMAN) {
                 if (MOX::settings.game_difficulty > GAME_DIFFICULTY_AVERAGE) {
