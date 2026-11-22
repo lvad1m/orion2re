@@ -16,6 +16,9 @@ namespace advisor {
     bool rules_counter_design = true;
     bool rules_seen_ships = true;
     bool rules_race = true;
+    bool rules_production = false;
+    bool rules_war_goals = false;
+    bool rules_tactics = false;
     bool rules_outposts = false;
     bool rules_exploration = true;
     int32_t active_players = 255;

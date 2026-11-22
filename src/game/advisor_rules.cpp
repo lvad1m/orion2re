@@ -872,8 +872,29 @@ namespace advisor {
             Append_Note_(&text, line);
         }
 
+        // Rule 120 (rules_production, tier 6, README.md 5.2): weights for the colonies' buildings -
+        // defence at war or when told to defend, food in a deficit, economy for an industrialist or
+        // an empire losing money, research for a technologist. Only weights no other rule set.
+        uint16_t production_rule = 0;
+        if (rules_production) {
+            const auto set = [&](uint8_t weight, uint8_t level) {
+                if (d.weights[weight] != LEVEL_KEEP) return;
+                d.weights[weight] = level;
+                production_rule = 120;
+            };
+            if (any_war || d.posture == POSTURE_DEFEND) set(WEIGHT_DEFENSE, LEVEL_HIGH);
+            if (self.food_surplus < 0) set(WEIGHT_FOOD, self.food_surplus <= -FAMINE_DEFICIT_ ? LEVEL_MAX : LEVEL_HIGH);
+            if (self.objective == PLAYER_OBJECTIVE_INDUSTRIALIST || self.income_bc < 0) set(WEIGHT_ECONOMY, LEVEL_HIGH);
+            if (self.objective == PLAYER_OBJECTIVE_TECHNOLOGIST) set(WEIGHT_RESEARCH, LEVEL_HIGH);
+            if (production_rule != 0) {
+                std::snprintf(line, sizeof(line), "rule 120 production: defence %d, economy %d, food %d, research %d (levels)",
+                    d.weights[WEIGHT_DEFENSE], d.weights[WEIGHT_ECONOMY], d.weights[WEIGHT_FOOD], d.weights[WEIGHT_RESEARCH]);
+                Append_Note_(&text, line);
+            }
+        }
+
         if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0 &&
-            doctrine_rule == 0 && phase_rule == 0 && stability_rule == 0) {
+            doctrine_rule == 0 && phase_rule == 0 && stability_rule == 0 && production_rule == 0) {
             return false;
         }
 
@@ -888,7 +909,8 @@ namespace advisor {
             : balance_rule != 0         ? balance_rule
             : doctrine_rule != 0        ? doctrine_rule
             : stability_rule != 0       ? stability_rule
-                                        : exploration_rule;
+            : exploration_rule != 0     ? exploration_rule
+                                        : production_rule;
         *out = d;
         if (note != nullptr) {
             *note = text;

@@ -407,6 +407,93 @@ namespace advisor {
         return DOCTRINE_RAID_PERCENT;
     }
 
+    namespace {
+        // The active directive of an advised living computer empire; nullptr otherwise.
+        const s_directive* Steered_Directive_(uint8_t player) {
+            if (!enabled || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return nullptr;
+            if (((active_players >> player) & 1) == 0) return nullptr;
+            const s_player& p = game::current.players[player];
+            if (p.eliminated != 0 || p.objectives == PLAYER_OBJECTIVE_HUMAN) return nullptr;
+            const s_directive* directive = Get_Directive(player);
+            return (directive != nullptr && Is_Active(directive, game::current.Stardate())) ? directive : nullptr;
+        }
+
+        int32_t Building_Kind_(int16_t building) {
+            switch (building) {
+                case BUILDING_ARMOR_BARRACKS: case BUILDING_ARTEMIS_SYSTEM_NET: case BUILDING_BATTLESTATION:
+                case BUILDING_MARINE_BARRACKS: case BUILDING_BARRIER_SHIELD: case BUILDING_FLUX_SHIELD:
+                case BUILDING_MISSILE_BASE: case BUILDING_GROUND_BATTERIES: case BUILDING_RADIATION_SHIELD:
+                case BUILDING_STAR_BASE: case BUILDING_STAR_FORTRESS: case BUILDING_STELLAR_CONVERTER:
+                case BUILDING_WARP_INTERDICTOR: case BUILDING_FIGHTER_GARRISON:
+                    return WEIGHT_DEFENSE;
+                case BUILDING_AUTOMATED_FACTORY: case BUILDING_DEEP_CORE_MINE: case BUILDING_CURRENCY_EXCHANGE:
+                case BUILDING_ROBOTIC_FACTORY: case BUILDING_ROBO_MINER_PLANT: case BUILDING_SPACEPORT:
+                case BUILDING_STOCK_EXCHANGE: case BUILDING_RECYCLOTRON:
+                    return WEIGHT_ECONOMY;
+                case BUILDING_FOOD_REPLICATORS: case BUILDING_HYDROPONIC_FARM: case BUILDING_SOIL_ENRICHMENT:
+                case BUILDING_SUBTERRANEAN_FARMS: case BUILDING_WEATHER_CONTROLLER:
+                    return WEIGHT_FOOD;
+                case BUILDING_ASTRO_UNIVERSITY: case BUILDING_AUTOLAB: case BUILDING_GALACTIC_CYBERNET:
+                case BUILDING_SUPERCOMPUTER: case BUILDING_RESEARCH_LAB:
+                    return WEIGHT_RESEARCH;
+                default: return -1;
+            }
+        }
+    } // namespace
+
+    int32_t Weight_Level(uint8_t player, uint8_t weight) {
+        const s_directive* directive = Steered_Directive_(player);
+        return directive == nullptr || weight >= WEIGHT_COUNT ? 0 : directive->weights[weight];
+    }
+
+    int32_t Building_Weight_Percent(uint8_t player, int16_t building) {
+        const int32_t kind = Building_Kind_(building);
+        if (kind < 0) return 100;
+        switch (Weight_Level(player, static_cast<uint8_t>(kind))) {
+            case LEVEL_LOW: return 60;
+            case LEVEL_HIGH: return 150;
+            case LEVEL_MAX: return 200;
+            default: return 100;
+        }
+    }
+
+    int32_t Target_Worth_Percent(uint8_t player, uint8_t owner) {
+        if (!rules_war_goals || owner >= MAX_PLAYERS) return 100;
+        const s_directive* directive = Steered_Directive_(player);
+        if (directive == nullptr) return 100;
+        if (directive->main_rival == owner) return 150;
+        return directive->attitude[owner] == ATTITUDE_WAR ? 125 : 100;
+    }
+
+    e_tactics Tactical_Doctrine(uint8_t player) {
+        if (!rules_tactics) return TACTICS_BALANCED;
+        const s_directive* directive = Steered_Directive_(player);
+        if (directive == nullptr) return TACTICS_BALANCED;
+        switch (directive->posture) {
+            case POSTURE_START_NEW_WAR:
+            case POSTURE_ATTACK_CURRENT_ENEMIES: return TACTICS_ASSAULT;
+            case POSTURE_MAKE_PEACE: return TACTICS_HOLD_DISTANCE;
+            case POSTURE_DEFEND: return TACTICS_TRANSPORTS_FIRST;
+            default: break;
+        }
+        const uint8_t personality = game::current.players[player].personality;
+        return personality == PLAYER_PERSONALITY_HONORABLE || personality == PLAYER_PERSONALITY_PACIFIST ? TACTICS_PROTECT_FLAGSHIP
+                                                                                                         : TACTICS_BALANCED;
+    }
+
+    int32_t Retreat_Ratio(uint8_t player, bool leader_aboard) {
+        switch (Tactical_Doctrine(player)) {
+            case TACTICS_HOLD_DISTANCE: return 3;
+            case TACTICS_ASSAULT: return 8;
+            case TACTICS_PROTECT_FLAGSHIP: return leader_aboard ? 3 : 5;
+            default: return 5;
+        }
+    }
+
+    int32_t Target_Value_Percent(uint8_t player, bool target_has_troop_pods) {
+        return target_has_troop_pods && Tactical_Doctrine(player) == TACTICS_TRANSPORTS_FIRST ? 300 : 100;
+    }
+
     int32_t Peace_Eagerness_Turns(uint8_t player, uint8_t target) {
         if (!enabled || !Doctrine(DOCTRINE_PART_BUY_PEACE) || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return 0;
         if (((active_players >> player) & 1) == 0) return 0;

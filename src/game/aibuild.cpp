@@ -2,6 +2,7 @@
 
 #include "legacy_world.h"
 #include "game/advisor_apply.h"
+#include "game/advisor_directive.h"
 
 namespace AIBUILD {
 
@@ -615,6 +616,11 @@ namespace AIBUILD {
             (uint8_t)ai_colony->other_player_arrivals * 5 + (uint8_t)star_info->hostile_players_in_range * 6 +
             (uint8_t)star_info->players_only_in_extended_range * 2 + (uint8_t)star_info->neutral_players_in_range * 3 +
             (uint8_t)star_info->treaty_partners_in_range;
+        // Production priorities (tier 6, README.md 5.2): the advisor's weights as extension metrics
+        // 1..6 for the production rules (0 without a directive).
+        for (uint8_t w = 0; w < advisor::WEIGHT_COUNT; ++w) {
+            context->metrics[production_rules::METRIC_EXTENSION_1 + w] = advisor::Weight_Level(static_cast<uint8_t>(owner), w);
+        }
 
         int8_t government_family = player->traits[TRAIT_CURRENT_GOVERNMENT] / 2;
         bool industrial_focus = colony->buildings[BUILDING_AUTOMATED_FACTORY] == 0 &&
@@ -1114,6 +1120,9 @@ namespace AIBUILD {
                 production_rules::Evaluate_Eligibility(&context, &candidate->eligibility)) {
                 evaluated_weights[i] = production_rules::Evaluate_Weight(
                     &context, &candidate->weight, Colony_Building_Score(ai, world, colony_idx, colony, i));
+                // Production priorities (tier 6): the advisor's weights for defence, economy, food, research.
+                evaluated_weights[i] = static_cast<int32_t>(static_cast<int64_t>(evaluated_weights[i]) *
+                    advisor::Building_Weight_Percent(static_cast<uint8_t>(colony->owner), i) / 100);
             }
         }
 

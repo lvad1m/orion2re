@@ -2049,6 +2049,9 @@ namespace AIMOVE {
                 // Rule 408: the coalition's target first.
                 attack_worthiness = static_cast<uint32_t>(static_cast<uint64_t>(attack_worthiness) *
                     advisor::Coalition_Worthiness_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), static_cast<uint8_t>(owner)) / 100);
+                // War goals (tier 6): the main rival's colonies first.
+                attack_worthiness = static_cast<uint32_t>(static_cast<uint64_t>(attack_worthiness) *
+                    advisor::Target_Worth_Percent(static_cast<uint8_t>(legacy_world::Slot(ctx->player_idx)), static_cast<uint8_t>(owner)) / 100);
 
                 if (target_info != nullptr) {
                     uint32_t target_val = (total_space_strength * 100 / defending_space * total_bomb_strength) / defending_ground;

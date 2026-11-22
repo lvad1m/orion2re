@@ -9618,6 +9618,42 @@
       },
     },
 
+    rules_production: {
+      title: "Production priorities",
+      description: "Rule 120 sets the directive's weights for the colonies' buildings that no other rule set: defence at war or when told to defend, food in a deficit (MAX in a famine), economy for an industrialist or an empire losing money, research for a technologist. The weights multiply the classic autobuild weight of each kind of building (defence: bases, shields, barracks, interdictors; economy: factories, mines, exchanges, spaceports; food: farms, soil enrichment, weather control, replicators; research: laboratories, computers, universities): LOW 60 percent, HIGH 150, MAX 200; all six weights are also written as the production rules' extension metrics 1-6 (0 KEEP .. 4 MAX) for configured rules.",
+      remarks: "False preserves the earlier advisor behavior. Effective only while advisor enabled is true; the human's colonies are never steered.",
+      examples: ["advisor rules_production = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/advisor.h", symbol: "advisor::rules_production" },
+    },
+
+    rules_war_goals: {
+      title: "War goals",
+      description: "Advised empires strike their directive's main rival first: the worth of its colonies as targets is half as much again (150 percent), and an empire the directive says to fight counts 125 percent, in the original AI's choice of attacks.",
+      remarks: "False preserves the earlier advisor behavior. Effective only while advisor enabled is true.",
+      examples: ["advisor rules_war_goals = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/advisor.h", symbol: "advisor::rules_war_goals" },
+    },
+
+    rules_tactics: {
+      title: "Tactical doctrine",
+      description: "Advised computer empires fight battles by a doctrine chosen on the strategic pass, never in battle: on the attack (a new or a current war) they retreat only when the enemy is 8 times their threat instead of 5; making peace they hold their distance and retreat at 3; defending they shoot the ships carrying troop pods first (three times their value as targets); honorable and pacifist empires spare their leaders - a fleet with an officer aboard retreats at 3.",
+      remarks: "False preserves the earlier advisor behavior. Effective only while advisor enabled is true and the computers' retreat is on (as in the original).",
+      examples: ["advisor rules_tactics = true;"],
+      group: "gameplay",
+      namespace: "advisor",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/advisor.h", symbol: "advisor::rules_tactics" },
+    },
+
     rules_counter_design: {
       title: "Advisor designs ships against real enemies",
       description: "Advised computer empires choose ship weapons against the shields and drives of their actual enemy (the advisor's main rival, otherwise the contact with the strongest fleet against them) and defensive specials against that enemy's weapons, instead of the first living player.",

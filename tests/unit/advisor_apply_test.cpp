@@ -25,6 +25,8 @@ namespace {
         int32_t old_weight_percent = advisor::spy_target_weight_percent;
         int32_t old_doctrine_parts = advisor::doctrine_parts;
         bool old_rules_phases = advisor::rules_phases;
+        bool old_rules_war_goals = advisor::rules_war_goals;
+        bool old_rules_tactics = advisor::rules_tactics;
 
         s_apply_scope() {
             advisor::Clear_All_Directives();
@@ -60,6 +62,8 @@ namespace {
             advisor::spy_target_weight_percent = old_weight_percent;
             advisor::doctrine_parts = old_doctrine_parts;
             advisor::rules_phases = old_rules_phases;
+            advisor::rules_war_goals = old_rules_war_goals;
+            advisor::rules_tactics = old_rules_tactics;
         }
     };
 
@@ -156,6 +160,74 @@ DOCTEST_TEST_CASE("Apply_Directives rate limits objective changes") {
     advisor::Apply_Directives(&game::current);
     DOCTEST_CHECK(Objective_(state, 1) == PLAYER_OBJECTIVE_TECHNOLOGIST);
     DOCTEST_CHECK(advisor::Last_Objective_Change(1) == 35010);
+}
+
+DOCTEST_TEST_CASE("production priorities: the directive's weights as metric levels and building weights") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    DOCTEST_CHECK(advisor::Weight_Level(1, advisor::WEIGHT_DEFENSE) == 0);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_MISSILE_BASE) == 100);
+    advisor::s_directive directive = Directive_();
+    directive.weights[advisor::WEIGHT_DEFENSE] = advisor::LEVEL_HIGH;
+    directive.weights[advisor::WEIGHT_FOOD] = advisor::LEVEL_MAX;
+    directive.weights[advisor::WEIGHT_RESEARCH] = advisor::LEVEL_LOW;
+    advisor::Set_Directive(1, &directive);
+    advisor::Set_Directive(0, &directive);  // human: never steered
+    DOCTEST_CHECK(advisor::Weight_Level(1, advisor::WEIGHT_DEFENSE) == advisor::LEVEL_HIGH);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_MISSILE_BASE) == 150);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_HYDROPONIC_FARM) == 200);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_RESEARCH_LAB) == 60);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_AUTOMATED_FACTORY) == 100);  // economy KEEP
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(1, BUILDING_CAPITOL) == 100);
+    DOCTEST_CHECK(advisor::Building_Weight_Percent(0, BUILDING_MISSILE_BASE) == 100);
+    MOX::stardate = 35006;  // the directive ran out
+    DOCTEST_CHECK(advisor::Weight_Level(1, advisor::WEIGHT_DEFENSE) == 0);
+}
+
+DOCTEST_TEST_CASE("war goals: the main rival's colonies are worth more, with the flag only") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::s_directive directive = Directive_();
+    directive.main_rival = 2;
+    directive.attitude[0] = advisor::ATTITUDE_WAR;
+    advisor::Set_Directive(1, &directive);
+    advisor::rules_war_goals = false;
+    DOCTEST_CHECK(advisor::Target_Worth_Percent(1, 2) == 100);
+    advisor::rules_war_goals = true;
+    DOCTEST_CHECK(advisor::Target_Worth_Percent(1, 2) == 150);
+    DOCTEST_CHECK(advisor::Target_Worth_Percent(1, 0) == 125);
+    DOCTEST_CHECK(advisor::Target_Worth_Percent(1, 3) == 100);
+    advisor::active_players = 0;
+    DOCTEST_CHECK(advisor::Target_Worth_Percent(1, 2) == 100);
+}
+
+DOCTEST_TEST_CASE("tactical doctrine: retreat ratio and troop carriers by posture and character") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::s_directive directive = Directive_();
+    directive.posture = advisor::POSTURE_START_NEW_WAR;
+    advisor::Set_Directive(1, &directive);
+    advisor::rules_tactics = false;
+    DOCTEST_CHECK(advisor::Tactical_Doctrine(1) == advisor::TACTICS_BALANCED);
+    DOCTEST_CHECK(advisor::Retreat_Ratio(1, false) == 5);
+    advisor::rules_tactics = true;
+    DOCTEST_CHECK(advisor::Retreat_Ratio(1, false) == 8);
+    directive.posture = advisor::POSTURE_MAKE_PEACE;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Retreat_Ratio(1, false) == 3);
+    directive.posture = advisor::POSTURE_DEFEND;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Target_Value_Percent(1, true) == 300);
+    DOCTEST_CHECK(advisor::Target_Value_Percent(1, false) == 100);
+    directive.posture = advisor::POSTURE_KEEP;
+    advisor::Set_Directive(1, &directive);
+    state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;
+    DOCTEST_CHECK(advisor::Retreat_Ratio(1, true) == 3);
+    DOCTEST_CHECK(advisor::Retreat_Ratio(1, false) == 5);
+    DOCTEST_CHECK(advisor::Retreat_Ratio(0, true) == 5);  // the human is never steered
 }
 
 DOCTEST_TEST_CASE("spy hooks give the directive target a higher weight") {

@@ -1420,3 +1420,24 @@ TEST_CASE("race doctrine: diplomat races court allies, growth races grow in peac
     REQUIRE(Rules_Directive(&v, &d, &note));
     CHECK(Has_(note, "(a third by ourselves, a growing race: grow in peace)"));
 }
+
+DOCTEST_TEST_CASE("rule 120 sets the production weights no other rule set, with the flag only") {
+    s_period_scope period;
+    const bool saved = advisor::rules_production;
+    advisor::rules_production = false;
+    s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_HONORABLE, PLAYER_OBJECTIVE_TECHNOLOGIST);
+    v.self.food_surplus = -1;
+    v.self.income_bc = -5;
+    s_directive d;
+    std::string note;
+    Rules_Directive(&v, &d, &note);
+    DOCTEST_CHECK(d.weights[WEIGHT_RESEARCH] == LEVEL_KEEP);
+    advisor::rules_production = true;
+    DOCTEST_REQUIRE(Rules_Directive(&v, &d, &note));
+    DOCTEST_CHECK(d.weights[WEIGHT_RESEARCH] == LEVEL_HIGH);
+    DOCTEST_CHECK(d.weights[WEIGHT_FOOD] == LEVEL_HIGH);
+    DOCTEST_CHECK(d.weights[WEIGHT_ECONOMY] == LEVEL_HIGH);
+    DOCTEST_CHECK(d.weights[WEIGHT_DEFENSE] == LEVEL_KEEP);  // at peace
+    DOCTEST_CHECK(note.find("rule 120") != std::string::npos);
+    advisor::rules_production = saved;
+}

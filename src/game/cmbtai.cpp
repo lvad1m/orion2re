@@ -1,4 +1,6 @@
 #include "pch.h"
+#include "game/advisor_apply.h"
+#include "game/struct.h"
 
 #include "game/boarding.h"
 
@@ -412,7 +414,16 @@ namespace CMBTAI {
                     enemy_threat = (uint32_t)((enemy_expected_damage * kThreatPercentScale) / player_total_hits);
                 }
 
-                if (player_threat * 5 < enemy_threat) {
+                // Tactical doctrine (tier 6, off by default): an advised empire retreats sooner or
+                // later than the original 1 to 5; the original arithmetic is kept for 5.
+                bool leader_aboard = false;
+                for (int16_t i = 1; i < MOX::combat_total_ship_count; ++i) {
+                    if (MOX::combat_data[i].owner == player_idx && MOX::combat_data[i].officer_idx >= 0) leader_aboard = true;
+                }
+                const int32_t ratio = advisor::Retreat_Ratio(static_cast<uint8_t>(player_idx), leader_aboard);
+                const bool retreat = ratio == 5 ? player_threat * 5 < enemy_threat
+                                                : static_cast<uint64_t>(player_threat) * static_cast<uint64_t>(ratio) < enemy_threat;
+                if (retreat) {
                     retreat_result = 1;
                 }
             }
@@ -613,6 +624,14 @@ namespace CMBTAI {
 
         if (CMBTMOV1::Ship_In_Black_Hole(target_idx)) {
             value /= 2;
+        }
+
+        // Tactical doctrine (tier 6, off by default): a defending advised empire shoots the ships
+        // that carry troops first.
+        const int8_t attacker_owner = MOX::combat_data[attacker_idx].owner;
+        if (attacker_owner >= 0 && attacker_owner < MAX_PLAYERS && target_idx != 0) {
+            const bool troops = struct_::Test_Bit_Field(MOX::combat_data[target_idx].special_device_flags, SPECIAL_TROOP_PODS) == 1;
+            value = static_cast<int32_t>(static_cast<int64_t>(value) * advisor::Target_Value_Percent(static_cast<uint8_t>(attacker_owner), troops) / 100);
         }
 
         if (CMBTAI::Missile_Overkill_Check(target_idx) == 1) {

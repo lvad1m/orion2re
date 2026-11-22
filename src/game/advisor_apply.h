@@ -175,6 +175,36 @@ namespace advisor {
     // DOCTRINE_RAID_PERCENT with `rules_doctrine` on, otherwise 100.
     int32_t Raid_Worthiness_Percent(uint8_t player, bool undefended);
 
+    // Production priorities (tier 6, README.md 5.2). The active directive's weight `weight` of an
+    // advised computer empire as a level 0 (KEEP) .. 4 (MAX), for the production rules' extension
+    // metrics (METRIC_EXTENSION_1 + weight); 0 without a directive.
+    int32_t Weight_Level(uint8_t player, uint8_t weight);
+    // The directive's weight for the kind of `building` (defence, economy, food, research) as a percent
+    // of the classic autobuild weight: LOW 60, HIGH 150, MAX 200, otherwise 100.
+    int32_t Building_Weight_Percent(uint8_t player, int16_t building);
+    // War goals (tier 6, README.md 5.4; rules_war_goals): the worth of `owner`'s colonies as targets
+    // for `player`, in percent: the directive's main rival 150, an empire it is told to fight 125,
+    // otherwise 100.
+    int32_t Target_Worth_Percent(uint8_t player, uint8_t owner);
+
+    // Tactical doctrine (tier 6, README.md 5.6; rules_tactics). Chosen on the strategic pass, never
+    // in battle: from the active directive's posture and the empire's character. Not saved: it is
+    // worked out again whenever it is read.
+    enum e_tactics : uint8_t {
+        TACTICS_BALANCED = 0,          // the original AI: retreat at 1 to 5
+        TACTICS_HOLD_DISTANCE = 1,     // making peace: retreat at 1 to 3
+        TACTICS_ASSAULT = 2,           // a new or current war on the attack: retreat only at 1 to 8
+        TACTICS_PROTECT_FLAGSHIP = 3,  // honorable and pacifist empires: retreat at 1 to 3 with a leader aboard
+        TACTICS_TRANSPORTS_FIRST = 4,  // defending: ships with troop pods are worth three times as targets
+        TACTICS_COUNT = 5,
+    };
+    e_tactics Tactical_Doctrine(uint8_t player);
+    // The enemy-to-own threat ratio at which the empire's fleet retreats (cmbtai.cpp Retreat_Check);
+    // 5 is the original. `leader_aboard`: one of its ships in the battle has an officer.
+    int32_t Retreat_Ratio(uint8_t player, bool leader_aboard);
+    // A percent applied to the original value of a target (cmbtai.cpp Target_Ship_Value).
+    int32_t Target_Value_Percent(uint8_t player, bool target_has_troop_pods);
+
     constexpr int32_t DOCTRINE_RAID_PERCENT = 200;
     // Race doctrine (rules_race): raids of stealthy races (stealthy ships, trans-dimensional).
     constexpr int32_t STEALTH_RAID_PERCENT = 300;
