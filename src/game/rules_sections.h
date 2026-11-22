@@ -55,6 +55,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_BELIEFS = 0x464C4542;
     // 'EVTS': the new events - modifiers, situations (game/world_events.h).
     inline constexpr uint32_t SECTION_TYPE_WORLD_EVENTS = 0x53545645;
+    // 'CRIS': open crises and their follow-ups (game/crises.h).
+    inline constexpr uint32_t SECTION_TYPE_CRISES = 0x53495243;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

@@ -282,6 +282,9 @@ namespace loyalty {
 namespace world_events {
     void Turn() {}
 }
+namespace crises {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}

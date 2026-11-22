@@ -5,6 +5,7 @@
 #include "game/council_ai.h"
 #include "game/loyalty.h"
 #include "game/stability.h"
+#include "game/crises.h"
 #include "game/world_events.h"
 
 #include "lua/lua_game.h"
@@ -78,6 +79,8 @@ namespace NEXTTURN {
         EVENTS::Event_Twiddle();
         // New events (off by default): modifiers, the bankruptcy scale, galaxy, empire and race events.
         world_events::Turn();
+        // Crises (off by default): checks of the choices made, follow-ups, new crises.
+        crises::Turn();
         lostship::Lose_Out_Of_Range_Ships();
         COLCALC::Compute_Blockades();
         SETTLER::Move_Settlers();

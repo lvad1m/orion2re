@@ -10551,6 +10551,31 @@
       bind_root: { header: "game/world_events.h", symbol: "world_events::empire_chance" },
     },
 
+    crises: {
+      title: "Crises",
+      description: "Adds crises with a choice (the template of events-catalog.md 5.1): an asteroid falling toward the capital, brain parasites in a colony, revolutionaries in a colony. Each opens with three options - a cost in BC now, a kind of check (science, diplomacy, army, espionage) and, for the cruel ones, a mark on the reputation (every computer that knows the empire thinks it likelier to attack, and one at war with it remembers a plot). Three turns later the engine rolls 2d10 plus the empire's standing in that field (research, the contacts' relations, fleet strength, spies at home; -5 to +5) plus 2 for a leader with the matching skill against 12: success, a partial success (a plain failure) or a failure (an exposed one or a catastrophe), built from the classic primitives (a lost building, a comet's hits, research halved, BC, a colony breaking away to the neighbour its people lean to). Some outcomes start a follow-up crisis: the parasites return, the revolutionaries rise. Computer empires take the option with the best chance among those they can pay for, their character's kind first (aggressive and ruthless: army; honorable and pacifist: diplomacy; xenophobic: espionage; technologists: science).",
+      remarks: "False preserves classic behavior. Only computer empires meet crises until the interface step brings the choice to the human. The mark on the reputation needs diplomacy neighbour_model and diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["events crises = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/crises.h", symbol: "crises::enabled" },
+    },
+
+    crisis_chance: {
+      title: "Crisis chance",
+      description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",
+      remarks: "Effective only while events crises is true.",
+      examples: ["events crisis_chance = 10;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 3,
+      bind_root: { header: "game/crises.h", symbol: "crises::chance" },
+    },
+
     transport_ship_extended_range: {
       title: "Extended-range transport ships",
       description: "Equips transport ships with Extended Fuel Tanks.",
