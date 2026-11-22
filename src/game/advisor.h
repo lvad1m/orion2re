@@ -64,11 +64,13 @@ namespace advisor {
         DOCTRINE_PART_TRIBUTE = 128,   // VI: a losing empire buys peace with tribute and stops paying once clearly stronger
         DOCTRINE_PART_DIVIDE = 256,    // V: spies frame a rival for their thefts and sabotage (divide and rule)
         DOCTRINE_PART_ALL = 511,
-        // The default (61): readiness cost advised empires their expansion in 400-turn games
-        // against the original AI (README.md 10.4.4), so it stays opt-in; the third-party,
-        // tribute and divide parts stay opt-in until the bench has measured them.
+        // The default (189): readiness cost advised empires their expansion in 400-turn games
+        // against the original AI (README.md 10.4.4), so it stays opt-in, and so does the
+        // third-party part (10.4.5). Tribute is on since its bench (10.4.12: a bought peace holds
+        // longer and the payer survives more often); divide and rule stays opt-in, as framing
+        // redirected blame but changed nothing measurable.
         DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS & ~DOCTRINE_PART_THIRD_PARTY &
-            ~DOCTRINE_PART_TRIBUTE & ~DOCTRINE_PART_DIVIDE,
+            ~DOCTRINE_PART_DIVIDE,
     };
 
     // Parts of the phase strategy (README.md 10.7), one bit each in `phase_parts`.

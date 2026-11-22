@@ -510,8 +510,8 @@ DOCTEST_TEST_CASE("Readiness and the other doctrine parts follow doctrine_parts"
     advisor::active_players = 0xFF & ~(1 << 1);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
     advisor::active_players = 255;
-    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // 61: everything but readiness
-    DOCTEST_CHECK(advisor::DOCTRINE_PART_DEFAULT == 61);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // 189: all but readiness, third-party, divide
+    DOCTEST_CHECK(advisor::DOCTRINE_PART_DEFAULT == 189);
     DOCTEST_CHECK_FALSE(advisor::Readiness(1));
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
     advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL & ~advisor::DOCTRINE_PART_RAIDS;
@@ -661,7 +661,9 @@ DOCTEST_TEST_CASE("Byzantine rule VI: a losing empire buys peace with tribute an
     advisor::Review_Tributes();
     DOCTEST_CHECK(state.players[1].tribute_treaty[2] == 0);
 
-    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // off by default
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // on by default (README.md 10.4.12)
+    DOCTEST_CHECK(advisor::Tribute_Peace_Turns(2, 1) == advisor::TRIBUTE_PEACE_TURNS);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT & ~advisor::DOCTRINE_PART_TRIBUTE;
     DOCTEST_CHECK(advisor::Tribute_Peace_Turns(2, 1) == 0);
 }
 

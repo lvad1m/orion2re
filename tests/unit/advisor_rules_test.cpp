@@ -675,7 +675,7 @@ TEST_CASE("rules: 105 keeps the fleet while a neighbour is stronger (Byzantine r
     const bool doctrine = rules_doctrine;
     const int32_t parts = doctrine_parts;
     rules_doctrine = true;
-    doctrine_parts = DOCTRINE_PART_READINESS;  // off by default (61)
+    doctrine_parts = DOCTRINE_PART_READINESS;  // off by default (189)
     s_directive d;
     std::string note;
     s_empire_view v = Quiet_View_(PLAYER_PERSONALITY_AGGRESSIVE, PLAYER_OBJECTIVE_MILITARIST);
