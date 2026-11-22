@@ -28,6 +28,7 @@ namespace advisor {
         const int32_t stardate = world->Stardate();
         Fade_Seen_Ships(stardate);
         Check_Military_Reports(world);
+        Review_Tributes();
         int32_t player_count = world->Player_Count();
         if (player_count > MAX_PLAYERS) player_count = MAX_PLAYERS;
 

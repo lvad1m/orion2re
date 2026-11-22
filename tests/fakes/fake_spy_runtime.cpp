@@ -116,3 +116,11 @@ namespace MSG_ {
     void __cdecl Add_Msg(s_MSG, int16_t) {
     }
 }
+#include "game/advisor_apply.h"
+
+namespace advisor {
+    // The advisor is off in these tests: framing follows the original choice.
+    int16_t Frame_Choice(uint8_t, uint8_t, uint32_t, int16_t original) {
+        return original;
+    }
+} // namespace advisor

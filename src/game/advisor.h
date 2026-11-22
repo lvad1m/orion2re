@@ -44,7 +44,7 @@ namespace advisor {
     extern int32_t rules_period;             // turns a rules directive stays active (1..50)
     extern int32_t objective_min_turns;      // minimum turns between objective changes (1..100)
     extern int32_t spy_target_weight_percent;  // weight multiplier for the directive's spy target (100..1000)
-    extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..127)
+    extern int32_t doctrine_parts;           // e_doctrine_part bits active under rules_doctrine (0..511)
     extern bool rules_phases;                // phase strategy: a leader plays for victory (rule 406),
                                              // everyone resists an empire nearing a council win (407)
     extern int32_t phase_parts;              // e_phase_part bits active under rules_phases (0..63)
@@ -61,11 +61,14 @@ namespace advisor {
         DOCTRINE_PART_BUY_PEACE = 16,  // VI: peace early when losing a war
         DOCTRINE_PART_SPARE = 32,      // VII: peace with a beaten enemy that does not lead
         DOCTRINE_PART_THIRD_PARTY = 64,  // III-V, VII: other empires' wars (rule 405); spare only a needed counterweight
-        DOCTRINE_PART_ALL = 127,
+        DOCTRINE_PART_TRIBUTE = 128,   // VI: a losing empire buys peace with tribute and stops paying once clearly stronger
+        DOCTRINE_PART_DIVIDE = 256,    // V: spies frame a rival for their thefts and sabotage (divide and rule)
+        DOCTRINE_PART_ALL = 511,
         // The default (61): readiness cost advised empires their expansion in 400-turn games
-        // against the original AI (README.md 10.4.4), so it stays opt-in; the third-party part
-        // stays opt-in until the bench has measured it.
-        DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS & ~DOCTRINE_PART_THIRD_PARTY,
+        // against the original AI (README.md 10.4.4), so it stays opt-in; the third-party,
+        // tribute and divide parts stay opt-in until the bench has measured them.
+        DOCTRINE_PART_DEFAULT = DOCTRINE_PART_ALL & ~DOCTRINE_PART_READINESS & ~DOCTRINE_PART_THIRD_PARTY &
+            ~DOCTRINE_PART_TRIBUTE & ~DOCTRINE_PART_DIVIDE,
     };
 
     // Parts of the phase strategy (README.md 10.7), one bit each in `phase_parts`.

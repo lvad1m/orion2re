@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/advisor_apply.h"
 
 namespace spy {
     void __cdecl Compute_Spy_Bonuses(s_player* player, int16_t* defense_bonus_out, int16_t* attack_bonus_out) {
@@ -171,6 +172,7 @@ namespace spy {
      */
     bool __cdecl Frame_Another(int16_t player_idx_a, int16_t player_idx_b, int16_t* framed_player_idx, int32_t tech_app_id) {
         int32_t candidate_count = 0;
+        uint32_t candidate_mask = 0;  // bit i: player i may be framed (for the advisor's choice)
         uint8_t treaty_counts[8] = {0, 0, 0, 0, 0, 0, 0, 0};
         int8_t framed_candidates[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
 
@@ -197,6 +199,7 @@ namespace spy {
             }
 
             candidate_count++;
+            candidate_mask |= 1u << (i & 31);
 
             // Get the treaty level between the actor and the potential frame candidate
             uint8_t treaty_type = (uint8_t)MOX::player[player_idx_a].treaty[i];
@@ -225,6 +228,11 @@ namespace spy {
         } else if (framed_candidates[2] != -1) {
             selected_idx = framed_candidates[2];
         }
+
+        // Advisor (divide and rule): an advised empire frames a rival of its own choice; the draws
+        // above stay as they were.
+        selected_idx = (int8_t)advisor::Frame_Choice(static_cast<uint8_t>(player_idx_a), static_cast<uint8_t>(player_idx_b),
+            candidate_mask, selected_idx);
 
         if (selected_idx != -1) {
             *framed_player_idx = (int16_t)selected_idx;

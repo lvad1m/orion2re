@@ -8621,13 +8621,13 @@
 
     doctrine_parts: {
       title: "Parts of the Byzantine doctrine",
-      description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead, 64 other empires' wars (protect a weak victim of a dangerous attacker; join a war on, or attack, a weak neighbour when our rear is calm; with 32, spare a beaten enemy only while it is needed as a counterweight).",
-      remarks: "Effective only while advisor rules_doctrine is true. The default 61 leaves out readiness: in 400-turn games against the original AI it cost advised empires their expansion. Part 64 is off by default until measured. 127 follows the whole doctrine; 0 is the same as rules_doctrine false.",
+      description: "Selects which parts of the Byzantine doctrine the advisor follows, as a sum of bits: 1 peace with neighbours costly to fight, 2 readiness (a fleet sized to the strongest neighbour, no peace dividend while out-gunned), 4 raids on undefended colonies, 8 alliances (befriend our enemies' enemies, court our enemies' allies), 16 peace early when losing a war, 32 spare a beaten enemy that does not lead, 128 peace with tribute (a losing empire offers tribute, the winner makes peace sooner, and the payer stops once its fleet is 1.5 times the receiver's), 256 divide and rule (spies frame the main rival, or the victim's strongest neighbour, for their thefts and sabotage), 64 other empires' wars (protect a weak victim of a dangerous attacker; join a war on, or attack, a weak neighbour when our rear is calm; with 32, spare a beaten enemy only while it is needed as a counterweight).",
+      remarks: "Effective only while advisor rules_doctrine is true. The default 61 leaves out readiness: in 400-turn games against the original AI it cost advised empires their expansion. Parts 64, 128 and 256 are off by default until measured. 511 follows the whole doctrine; 0 is the same as rules_doctrine false.",
       examples: ["advisor doctrine_parts = 125;"],
       group: "gameplay",
       namespace: "advisor",
       type: "int32",
-      constraints: { min: 0, max: 127 },
+      constraints: { min: 0, max: 511 },
       default: 61,
       bind_root: {
         header: "game/advisor.h",

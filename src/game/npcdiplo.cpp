@@ -482,11 +482,15 @@ namespace npcdiplo {
                     threshold -= advisor::Peace_Eagerness_Turns(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
                     // Diplomacy memory: war losses shorten the lull needed before peace (0 otherwise).
                     threshold -= diplomemory::War_Weariness(i, j);
+                    // Advisor (Byzantine rule VI): tribute offered by the enemy buys peace sooner.
+                    threshold -= advisor::Tribute_Peace_Turns(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
 
                     if (threshold < (int)(uint8_t)p_i.time_since_last_attack[j]) {
                         int16_t surrender_to = NPC_Surrender_Check(i);
                         if (surrender_to == -1) {
                             diplomac::Declare_Peace(j, i);
+                            // Advisor (rule VI): the one that offered tribute starts paying it.
+                            advisor::After_Peace(static_cast<uint8_t>(i), static_cast<uint8_t>(j));
                         } else {
                             COLCALC::Surrender_Empire(i, surrender_to);
                             EVENTS::Event_Surrender((int8_t)i, surrender_to);

@@ -5,6 +5,7 @@
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
 #include "game/advisor_race.h"
+#include "game/diplomac.h"
 
 #include <algorithm>
 
@@ -297,6 +298,89 @@ namespace advisor {
         const s_directive* directive = Get_Directive(player);
         if (directive == nullptr || !Is_Active(directive, game::current.Stardate())) return 0;
         return directive->weights[WEIGHT_FLEET] >= LEVEL_MAX ? INVASION_TRANSPORTS : 0;
+    }
+
+    namespace {
+        bool Steered_Computer_Now_(uint8_t player) {
+            if (!enabled || player >= MAX_PLAYERS || player >= game::current.Player_Count()) return false;
+            if (((active_players >> player) & 1) == 0) return false;
+            const s_player& p = game::current.players[player];
+            return p.eliminated == 0 && p.objectives != PLAYER_OBJECTIVE_HUMAN;
+        }
+
+        // `offerer` offers `target` tribute for peace: rule VI with an active MAKE_PEACE directive.
+        bool Offers_Tribute_(uint8_t offerer, uint8_t target) {
+            if (!Doctrine(DOCTRINE_PART_TRIBUTE) || !Steered_Computer_Now_(offerer) || target >= MAX_PLAYERS) return false;
+            const s_directive* directive = Get_Directive(offerer);
+            return directive != nullptr && Is_Active(directive, game::current.Stardate()) &&
+                directive->posture == POSTURE_MAKE_PEACE && directive->main_rival == target;
+        }
+    } // namespace
+
+    int32_t Tribute_Peace_Turns(uint8_t evaluator, uint8_t offerer) {
+        return evaluator < MAX_PLAYERS && Offers_Tribute_(offerer, evaluator) ? TRIBUTE_PEACE_TURNS : 0;
+    }
+
+    void After_Peace(uint8_t a, uint8_t b) {
+        if (a >= MAX_PLAYERS || b >= MAX_PLAYERS || a == b) return;
+        uint8_t payer = MAX_PLAYERS;
+        uint8_t receiver = MAX_PLAYERS;
+        if (Offers_Tribute_(a, b)) {
+            payer = a;
+            receiver = b;
+        } else if (Offers_Tribute_(b, a)) {
+            payer = b;
+            receiver = a;
+        }
+        if (payer >= MAX_PLAYERS) return;
+        diplomac::Start_Tribute_Treaty(payer, receiver, TRIBUTE_PERCENT_UNITS);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "advisor: stardate %d, player %d buys peace with player %d by tribute",
+            (int)game::current.Stardate(), (int)payer, (int)receiver);
+    }
+
+    void Review_Tributes() {
+        if (!enabled || !Doctrine(DOCTRINE_PART_TRIBUTE) || game::current.players == nullptr) return;
+        if (game::current.Stardate() % std::max<int32_t>(1, rules_period) != 0) return;
+        const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
+        for (int32_t payer = 0; payer < players; ++payer) {
+            if (!Steered_Computer_Now_(static_cast<uint8_t>(payer))) continue;
+            for (int32_t receiver = 0; receiver < players; ++receiver) {
+                const s_player& p = game::current.players[payer];
+                if (receiver == payer || p.tribute_treaty[receiver] == 0) continue;
+                const int64_t ours = p.total_ship_strength[receiver];
+                const int64_t theirs = game::current.players[receiver].total_ship_strength[payer];
+                if (100 * ours >= TRIBUTE_STOP_PERCENT * std::max<int64_t>(1, theirs)) {
+                    diplomac::Break_Tribute(static_cast<int16_t>(payer), static_cast<int16_t>(receiver));
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "advisor: stardate %d, player %d stops its tribute to player %d",
+                        (int)game::current.Stardate(), payer, receiver);
+                }
+            }
+        }
+    }
+
+    int16_t Frame_Choice(uint8_t actor, uint8_t victim, uint32_t candidates, int16_t original) {
+        if (!Doctrine(DOCTRINE_PART_DIVIDE) || !Steered_Computer_Now_(actor) || victim >= MAX_PLAYERS) return original;
+        const s_directive* directive = Get_Directive(actor);
+        int16_t choice = -1;
+        if (directive != nullptr && Is_Active(directive, game::current.Stardate()) && directive->main_rival < MAX_PLAYERS &&
+            directive->main_rival != victim && ((candidates >> directive->main_rival) & 1) != 0) {
+            choice = directive->main_rival;
+        }
+        const int32_t players = std::min<int32_t>(game::current.Player_Count(), MAX_PLAYERS);
+        if (choice < 0) {
+            for (int32_t i = 0; i < players; ++i) {
+                if (((candidates >> i) & 1) == 0 || i == victim || i == actor) continue;
+                if (choice < 0 || game::current.players[i].total_ship_strength[victim] > game::current.players[choice].total_ship_strength[victim]) {
+                    choice = static_cast<int16_t>(i);
+                }
+            }
+        }
+        if (choice < 0) return original;
+        if (choice != original) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "advisor: stardate %d, player %d frames player %d at player %d",
+                (int)game::current.Stardate(), (int)actor, (int)choice, (int)victim);
+        }
+        return choice;
     }
 
     int32_t Council_Vote_Bias(uint8_t voter, uint8_t candidate) {

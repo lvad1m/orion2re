@@ -637,3 +637,54 @@ DOCTEST_TEST_CASE("race doctrine: stealthy races value raids three times") {
     DOCTEST_CHECK(advisor::Raid_Worthiness_Percent(1, true) == advisor::DOCTRINE_RAID_PERCENT);
     advisor::rules_race = race;
 }
+
+DOCTEST_TEST_CASE("Byzantine rule VI: a losing empire buys peace with tribute and stops once clearly stronger") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
+    advisor::s_directive directive = Directive_();
+    directive.posture = advisor::POSTURE_MAKE_PEACE;
+    directive.main_rival = 2;
+    advisor::Set_Directive(1, &directive);
+    DOCTEST_CHECK(advisor::Tribute_Peace_Turns(2, 1) == advisor::TRIBUTE_PEACE_TURNS);  // 2 makes peace sooner
+    DOCTEST_CHECK(advisor::Tribute_Peace_Turns(1, 2) == 0);
+    advisor::After_Peace(2, 1);  // either order
+    DOCTEST_CHECK(state.players[1].tribute_treaty[2] == advisor::TRIBUTE_PERCENT_UNITS);
+    DOCTEST_CHECK(state.players[2].tribute_treaty[1] == 0);
+
+    state.players[1].total_ship_strength[2] = 140;
+    state.players[2].total_ship_strength[1] = 100;
+    advisor::Review_Tributes();  // stardate 35000: a rules period
+    DOCTEST_CHECK(state.players[1].tribute_treaty[2] == advisor::TRIBUTE_PERCENT_UNITS);
+    state.players[1].total_ship_strength[2] = 150;
+    advisor::Review_Tributes();
+    DOCTEST_CHECK(state.players[1].tribute_treaty[2] == 0);
+
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;  // off by default
+    DOCTEST_CHECK(advisor::Tribute_Peace_Turns(2, 1) == 0);
+}
+
+DOCTEST_TEST_CASE("divide and rule: spies frame our main rival, or the victim's strongest neighbour") {
+    s_apply_scope scope;
+    test::s_game_state state;
+    Setup_World_(&state);
+    MOX::NUM_PLAYERS = 5;
+    state.players[4].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[3].eliminated = 0;
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_ALL;
+    advisor::s_directive directive = Directive_();
+    directive.main_rival = 3;
+    advisor::Set_Directive(1, &directive);
+    const uint32_t candidates = (1u << 3) | (1u << 4);
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 4) == 3);  // our main rival
+    directive.main_rival = advisor::NO_PLAYER;
+    advisor::Set_Directive(1, &directive);
+    state.players[3].total_ship_strength[2] = 100;
+    state.players[4].total_ship_strength[2] = 300;
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 4);  // the victim's strongest neighbour
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, 0, -1) == -1);         // nobody to frame
+    DOCTEST_CHECK(advisor::Frame_Choice(0, 2, candidates, 3) == 3);  // the human frames as the original does
+    advisor::doctrine_parts = advisor::DOCTRINE_PART_DEFAULT;
+    DOCTEST_CHECK(advisor::Frame_Choice(1, 2, candidates, 3) == 3);
+}

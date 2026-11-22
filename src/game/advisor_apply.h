@@ -117,6 +117,32 @@ namespace advisor {
     inline constexpr int32_t INVASION_TRANSPORTS = 4;
     int32_t Invasion_Transports(uint8_t player);
 
+    // Byzantine rule VI, peace with tribute (doctrine part 128). An advised computer empire offers
+    // tribute to `target` while its active directive seeks peace with it (posture MAKE_PEACE, main
+    // rival `target`: rule 102 with the buy-peace part).
+    // - Tribute_Peace_Turns: the turns `evaluator` takes off the lull it needs before making peace
+    //   with `offerer` (npcdiplo.cpp NPC_Peace_Negotiations) when `offerer` offers it tribute:
+    //   TRIBUTE_PEACE_TURNS, otherwise 0;
+    // - After_Peace: called when `a` and `b` made peace there; the one that offered tribute starts
+    //   paying it (diplomac::Start_Tribute_Treaty, TRIBUTE_PERCENT_UNITS x 5 % of its production);
+    // - Review_Tributes: once a turn from Run_Turn, every rules period: an advised empire paying
+    //   tribute stops (diplomac::Break_Tribute) once its fleet is TRIBUTE_STOP_PERCENT of the
+    //   receiver's - clearly stronger, so the war a broken tribute may bring holds no fear.
+    inline constexpr int32_t TRIBUTE_PEACE_TURNS = 20;
+    inline constexpr int16_t TRIBUTE_PERCENT_UNITS = 1;
+    inline constexpr int32_t TRIBUTE_STOP_PERCENT = 150;
+    int32_t Tribute_Peace_Turns(uint8_t evaluator, uint8_t offerer);
+    void After_Peace(uint8_t a, uint8_t b);
+    void Review_Tributes();
+
+    // Divide and rule (doctrine part 256; spy.cpp, spy_actions.cpp Frame_Another): when a spy of the
+    // advised computer empire `actor` frames someone for a theft or sabotage at `victim`, it frames
+    // its directive's main rival if that is a candidate, otherwise the candidate with the strongest
+    // fleet against the victim - the victim's anger falls on a rival of ours. `candidates` has bit i
+    // for every empire the original may frame; returns `original` when the part is off or no
+    // candidate suits.
+    int16_t Frame_Choice(uint8_t actor, uint8_t victim, uint32_t candidates, int16_t original);
+
     // Council vote (council.cpp Vote_Check) of the computer empire `voter` for `candidate`, outside
     // war and alliance: with the council-votes part of `rules_phases` on, the directive's attitude moves the vote score like
     // Attitude_Bias (an empire resisting a would-be winner votes against it); 0 otherwise.
