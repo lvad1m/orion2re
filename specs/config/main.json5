@@ -47,8 +47,8 @@
     },
     colonies_and_economy: {
       title: "Colonies and economy",
-      description: "Population, production, buildings, and economic rules.",
-      namespaces: ["colony", "economy"],
+      description: "Population, production, buildings, economic rules, and the loyalty of colonies and leaders.",
+      namespaces: ["colony", "economy", "loyalty"],
     },
     tactical_combat: {
       title: "Tactical combat",
@@ -5192,6 +5192,53 @@
       bind_root: {
         header: "game/resolutions.h",
         symbol: "resolutions::fund_percent",
+      },
+    },
+
+    colony_stability: {
+      title: "Colony stability",
+      description: "Works out each colony's stability every turn from the owner's war weariness, famine, taxes and deficit, peace, recent victories, growth, barracks, entertainment and the capitol, scaled by the government: dictatorships hold their people harder, democracies feel more. Negative stability lowers the colony's morale, and a colony deep in unrest for three turns may secede to the neighbour its people lean toward (their race, a democracy, peace).",
+      remarks: "False preserves classic behavior. War weariness counts only while diplomacy memory is true. The capitol never secedes. Kept in an optional save section that older builds skip.",
+      examples: ["loyalty colony_stability = true;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/stability.h",
+        symbol: "stability::enabled",
+      },
+    },
+
+    rebellion_threshold: {
+      title: "Stability of unrest",
+      description: "A colony whose stability is at or below this value is in unrest; after three such turns it may secede.",
+      remarks: "Effective only while loyalty colony_stability is true. Stability runs from -30 to 20.",
+      examples: ["loyalty rebellion_threshold = -15;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "int32",
+      constraints: { min: -30, max: 0 },
+      default: -12,
+      bind_root: {
+        header: "game/stability.h",
+        symbol: "stability::rebellion_threshold",
+      },
+    },
+
+    rebellion_chance: {
+      title: "Secession chance",
+      description: "Sets the chance per turn, in thousandths for each point of stability below the unrest threshold (plus one), that a colony long in unrest secedes; barracks halve it.",
+      remarks: "Effective only while loyalty colony_stability is true.",
+      examples: ["loyalty rebellion_chance = 10;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 20,
+      bind_root: {
+        header: "game/stability.h",
+        symbol: "stability::rebellion_chance",
       },
     },
 

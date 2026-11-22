@@ -272,6 +272,11 @@ namespace invasion {
     void __cdecl Check_All_Rebellions() {}
 }
 
+// Colony stability is not under test here.
+namespace stability {
+    void Turn() {}
+}
+
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}
 }

@@ -39,6 +39,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_EMBARGO = 0x47424D45;
     // 'RESO': council resolutions - bans and the Antaran defence fund (game/resolutions.h).
     inline constexpr uint32_t SECTION_TYPE_RESOLUTIONS = 0x4F534552;
+    // 'STAB': colony stability (game/stability.h).
+    inline constexpr uint32_t SECTION_TYPE_STABILITY = 0x42415453;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

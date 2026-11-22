@@ -16,6 +16,7 @@
 #include "game/embargo.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
+#include "game/stability.h"
 #include "game/shipstak.h"
 #include "game/struct.h"
 
@@ -148,6 +149,12 @@ namespace advisor {
                 if (world->colonies[i].owner == static_cast<int8_t>(player) && world->colonies[i].outpost_flag != 0) {
                     ++self->outposts;
                 }
+            }
+            for (int32_t i = 0; i < world->Colony_Count(); ++i) {
+                if (world->colonies[i].owner != static_cast<int8_t>(player) || world->colonies[i].outpost_flag != 0) continue;
+                const int32_t value = stability::Of(static_cast<int16_t>(i));
+                if (value < 0) ++self->unstable_colonies;
+                self->worst_stability = std::min(self->worst_stability, value);
             }
             for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
                 if (plr.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
@@ -372,6 +379,10 @@ namespace advisor {
                       static_cast<int>(self.industry),
                       static_cast<int>(self.research), static_cast<int>(self.income_bc),
                       static_cast<int>(self.treasury_bc), static_cast<int>(self.food_surplus));
+        if (self.unstable_colonies > 0) {
+            Append_Format(out, "Unrest: %d colonies unstable, the worst at stability %d (unrest lowers morale; deep unrest may end in secession).\n",
+                          static_cast<int>(self.unstable_colonies), static_cast<int>(self.worst_stability));
+        }
         Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars, "
                            "%d free planets and %d outpost sites in reach.\n",
                       static_cast<int>(self.ships), static_cast<int>(self.fleet_strength),

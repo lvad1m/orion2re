@@ -76,6 +76,9 @@ namespace advisor {
         int32_t outposts = 0;             // our colonies without population (included in `colonies`)
         int32_t techs_known = 0;          // researched technology applications
         s_race_leanings race;             // from our race's traits (advisor_race.h)
+        // Colony stability (stability.h; 0 with the flag off): settled colonies below zero, and the lowest.
+        int32_t unstable_colonies = 0;
+        int32_t worst_stability = 0;
     };
 
     struct s_view_contact {

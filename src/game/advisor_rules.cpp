@@ -859,8 +859,21 @@ namespace advisor {
             Append_Note_(&text, line);
         }
 
+        // Rule 110 (colony stability, stability.h; nothing to see with the flag off): a third of our
+        // settled colonies unstable while we are at war -> seek peace, unless another rule set the
+        // posture. Famine is rule 101's.
+        uint16_t stability_rule = 0;
+        const int32_t settled = std::max<int32_t>(1, self.colonies - self.outposts);
+        if (any_war && self.unstable_colonies > 0 && 3 * self.unstable_colonies >= settled && d.posture == POSTURE_KEEP) {
+            d.posture = POSTURE_MAKE_PEACE;
+            stability_rule = 110;
+            std::snprintf(line, sizeof(line), "rule 110 unrest: %d of %d colonies unstable (worst %d) while at war -> MAKE_PEACE",
+                self.unstable_colonies, settled, self.worst_stability);
+            Append_Note_(&text, line);
+        }
+
         if (objective_rule == 0 && spy_rule == 0 && expansion_rule == 0 && balance_rule == 0 && exploration_rule == 0 &&
-            doctrine_rule == 0 && phase_rule == 0) {
+            doctrine_rule == 0 && phase_rule == 0 && stability_rule == 0) {
             return false;
         }
 
@@ -874,6 +887,7 @@ namespace advisor {
             : phase_rule != 0           ? phase_rule
             : balance_rule != 0         ? balance_rule
             : doctrine_rule != 0        ? doctrine_rule
+            : stability_rule != 0       ? stability_rule
                                         : exploration_rule;
         *out = d;
         if (note != nullptr) {

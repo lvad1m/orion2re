@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/stability.h"
 
 #include "strbuild.h"
 
@@ -20,6 +21,8 @@ namespace COLCALC {
         const char* msg_barracks = "";
 
         int mixed_race_penalty = Mixed_Race_Morale_Penalty(colony);
+        // Colony stability (off by default): unrest lowers morale (stability.h).
+        const int unrest_penalty = stability::Morale_Effect(colony);
         colony->morale = morale_lookup_table[govt];
 
         if (gov_type != GOVERNMENT_UNIFICATION / 2) {
@@ -65,7 +68,7 @@ namespace COLCALC {
 
             colony->morale += mixed_race_penalty + leader_bonus + holo_simulator_bonus +
                 vr_network_bonus + pleasure_dome_bonus + psychophysics_bonus +
-                barracks_bonus + marine_barracks_bonus + no_capital_penalty;
+                barracks_bonus + marine_barracks_bonus + no_capital_penalty + unrest_penalty;
         }
 
         if (debug_out) {
@@ -109,6 +112,9 @@ namespace COLCALC {
 
             if (leader_bonus != 0)
                 STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", leader_bonus * 5, leader_bonus_msg);
+
+            if (unrest_penalty != 0)
+                STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", unrest_penalty * 5, "Unrest");
 
             STRBUILD::Sprintf(debug_out, "\r");
             STRBUILD::Sprintf(debug_out, "\t%+d%%\t%s\r", colony->morale * 5, total_morale_msg);

@@ -3,6 +3,7 @@
 #include "legacy_world.h"
 #include "game/advisor.h"
 #include "game/council_ai.h"
+#include "game/stability.h"
 
 #include "lua/lua_game.h"
 
@@ -80,6 +81,8 @@ namespace NEXTTURN {
         SHIPMOVE::Allocate_New_Ship_Slots();
         OFFICER::Check_For_Officer_Level();
         OFFICER::Decrement_Officer_ETA();
+        // Colony stability (off by default): worked out before the classic rebellion check.
+        stability::Turn();
         invasion::Check_All_Rebellions();
         INITSHIP::Repair_Ships_At_Colonies();
         COLONIZE::Allocate_New_Colony_Slots();

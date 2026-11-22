@@ -36,6 +36,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/pacts_config.cpp
     src/game/embargo_config.cpp
     src/game/resolutions_config.cpp
+    src/game/stability_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -984,6 +985,10 @@ orion2re_add_game_test(test_resolutions
     tests/unit/resolutions_test.cpp
 )
 
+orion2re_add_game_test(test_stability
+    tests/unit/stability_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1373,6 +1378,7 @@ orion2re_add_unit_test(test_savegame
         src/game/pacts_state.cpp
         src/game/embargo_state.cpp
         src/game/resolutions_state.cpp
+        src/game/stability_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

@@ -7,6 +7,7 @@
 #include "game/pacts.h"
 #include "game/resolutions.h"
 #include "game/rivalry.h"
+#include "game/stability.h"
 
 namespace SAVEGAME {
 
@@ -31,6 +32,10 @@ namespace SAVEGAME {
             return resolutions::Active() && !resolutions::Empty();
         }
 
+        bool Stability_Has_State_() {
+            return stability::enabled && !stability::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -43,6 +48,8 @@ namespace SAVEGAME {
             {SECTION_TYPE_RESOLUTIONS, 1, "council resolutions", Resolutions_Has_State_, resolutions::Save_Size,
                 resolutions::Write_Save, resolutions::Parse_Save, resolutions::Commit_Save, resolutions::Discard_Save,
                 resolutions::Clear},
+            {SECTION_TYPE_STABILITY, 1, "colony stability", Stability_Has_State_, stability::Save_Size, stability::Write_Save,
+                stability::Parse_Save, stability::Commit_Save, stability::Discard_Save, stability::Clear},
         };
     } // namespace
 
