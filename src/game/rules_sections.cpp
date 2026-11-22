@@ -2,6 +2,7 @@
 
 #include "game/rules_sections.h"
 
+#include "game/embargo.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
@@ -21,6 +22,10 @@ namespace SAVEGAME {
             return pacts::enabled && !pacts::Empty();
         }
 
+        bool Embargo_Has_State_() {
+            return embargo::enabled && !embargo::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -28,6 +33,8 @@ namespace SAVEGAME {
                 rivalry::Parse_Save, rivalry::Commit_Save, rivalry::Discard_Save, rivalry::Clear},
             {SECTION_TYPE_PACTS, 1, "defence pacts", Pacts_Has_State_, pacts::Save_Size, pacts::Write_Save,
                 pacts::Parse_Save, pacts::Commit_Save, pacts::Discard_Save, pacts::Clear},
+            {SECTION_TYPE_EMBARGO, 1, "embargoes", Embargo_Has_State_, embargo::Save_Size, embargo::Write_Save,
+                embargo::Parse_Save, embargo::Commit_Save, embargo::Discard_Save, embargo::Clear},
         };
     } // namespace
 

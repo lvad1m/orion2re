@@ -117,6 +117,9 @@ namespace advisor {
         uint8_t pact = 0;
         uint8_t we_guarantee = 0;
         uint8_t they_guarantee = 0;
+        // Embargo (embargo.h): 1 when we hold one on them / they hold one on us.
+        uint8_t our_embargo = 0;
+        uint8_t their_embargo = 0;
     };
 
     struct s_empire_view {

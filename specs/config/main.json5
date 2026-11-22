@@ -5005,6 +5005,148 @@
       },
     },
 
+    embargo: {
+      title: "Embargo",
+      description: "Lets empires put another under an embargo and others join it: the participants' trade and research treaties with the target end and none are signed while it lasts, and while more than half of the target's former trade partners hold it, the target loses part of its income every turn. Computer empires declare embargoes on empires they think ill of with a bad name - broken treaties, attacks without declaration, three wars or more - and join when it is cheap for them.",
+      remarks: "False preserves classic behavior. The target's anger at each participant needs diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy embargo = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::enabled",
+      },
+    },
+
+    council_resolutions: {
+      title: "Council resolutions",
+      description: "Lets the galactic council vote on resolutions after the vote on the leader: computer members propose an embargo, and one that wins more than half of all council votes binds every empire but its target.",
+      remarks: "Effective only while diplomacy embargo is true. For now the council votes on resolutions only in games without a human player (gameplay council_without_humans); games with a human get them with the council screen.",
+      examples: ["diplomacy council_resolutions = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::council_resolutions",
+      },
+    },
+
+    embargo_period: {
+      title: "Embargo review period",
+      description: "Sets how many turns pass between the computer empires' reviews in which they declare, join and lift embargoes.",
+      remarks: "Effective only while diplomacy embargo is true.",
+      examples: ["diplomacy embargo_period = 20;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 100 },
+      default: 10,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::period",
+      },
+    },
+
+    embargo_opinion: {
+      title: "Opinion of an embargo's participants",
+      description: "Sets the opinion modifier the target of an embargo holds toward each participant while the embargo lasts; afterwards it fades like other memories.",
+      remarks: "Effective only while diplomacy embargo and diplomacy opinion are true.",
+      examples: ["diplomacy embargo_opinion = -50;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -30,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::opinion_value",
+      },
+    },
+
+    embargo_penalty_percent: {
+      title: "Embargo income penalty",
+      description: "Sets the share of its income, in percent, the target of an embargo loses every turn while more than half of its former trade partners hold the embargo.",
+      remarks: "Effective only while diplomacy embargo is true.",
+      examples: ["diplomacy embargo_penalty_percent = 25;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 100 },
+      default: 15,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::penalty_percent",
+      },
+    },
+
+    embargo_min_turns: {
+      title: "Shortest embargo",
+      description: "Sets how many turns an embargo declared by an empire lasts at least before its initiator may lift it.",
+      remarks: "Effective only while diplomacy embargo is true.",
+      examples: ["diplomacy embargo_min_turns = 30;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 200 },
+      default: 20,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::min_turns",
+      },
+    },
+
+    embargo_council_turns: {
+      title: "Term of a council embargo",
+      description: "Sets how many turns an embargo the council resolved lasts.",
+      remarks: "Effective only while diplomacy embargo and diplomacy council_resolutions are true.",
+      examples: ["diplomacy embargo_council_turns = 80;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 400 },
+      default: 50,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::council_turns",
+      },
+    },
+
+    embargo_opinion_min: {
+      title: "Opinion that starts an embargo",
+      description: "A computer empire declares an embargo on an empire with a bad name only if its opinion of it is at or below this value.",
+      remarks: "Effective only while diplomacy embargo is true.",
+      examples: ["diplomacy embargo_opinion_min = -60;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -40,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::opinion_min",
+      },
+    },
+
+    embargo_join_opinion: {
+      title: "Opinion that joins an embargo",
+      description: "A computer empire joins an embargo, or votes for one at the council, only if its opinion of the target is at or below this value.",
+      remarks: "Effective only while diplomacy embargo is true. Joining also needs to be cheap: no trade treaty with the target, or an opinion of -50 or worse.",
+      examples: ["diplomacy embargo_join_opinion = -10;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -20,
+      bind_root: {
+        header: "game/embargo.h",
+        symbol: "embargo::join_opinion",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

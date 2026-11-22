@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
+#include "game/embargo.h"
 #include "game/pacts.h"
 
 namespace npcdiplo {
@@ -714,12 +715,12 @@ namespace npcdiplo {
                         plr_i.trade_modifier[j] + game_random::Random(100);
 
                     if (trade_score >= 111) {
-                        if (plr_i.research_treaty[j] == 0) {
+                        if (plr_i.research_treaty[j] == 0 && !embargo::Blocks_Treaty(static_cast<int16_t>(i), static_cast<int16_t>(j))) {
                             plr_i.research_treaty[j] = 1;
                             plr_j.research_treaty[i] = 1;
                         }
                     } else if (trade_score > 80) {
-                        if (plr_i.trade_treaty[j] == 0) {
+                        if (plr_i.trade_treaty[j] == 0 && !embargo::Blocks_Treaty(static_cast<int16_t>(i), static_cast<int16_t>(j))) {
                             plr_i.trade_treaty[j] = 1;
                             plr_j.trade_treaty[i] = 1;
                         }

@@ -13,6 +13,7 @@
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/opinion.h"
+#include "game/embargo.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
 #include "game/shipstak.h"
@@ -182,6 +183,8 @@ namespace advisor {
             contact->pact = pacts::Has_Pact(player, other) ? 1 : 0;
             contact->we_guarantee = pacts::Guarantees(player, other) ? 1 : 0;
             contact->they_guarantee = pacts::Guarantees(other, player) ? 1 : 0;
+            contact->our_embargo = embargo::Participates(player, other) ? 1 : 0;
+            contact->their_embargo = embargo::Participates(other, player) ? 1 : 0;
             static_assert(sizeof(contact->opinion) == opinion::REASON_COUNT, "one opinion slot per reason");
             for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
                 contact->opinion[r] = static_cast<int8_t>(opinion::Modifier(player, other, static_cast<opinion::e_reason>(r)));
@@ -413,6 +416,8 @@ namespace advisor {
             if (contact.pact != 0) out->append("   - defence pact with us: each goes to war with whoever attacks the other\n");
             if (contact.we_guarantee != 0) out->append("   - we guarantee their independence\n");
             if (contact.they_guarantee != 0) out->append("   - they guarantee our independence\n");
+            if (contact.our_embargo != 0) out->append("   - embargo: we hold one on them (no trade or research treaties)\n");
+            if (contact.their_embargo != 0) out->append("   - embargo: they hold one on us (no trade or research treaties)\n");
             Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
             Append_Tag(out, contact.treaty);
             out->push_back('\n');

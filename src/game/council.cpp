@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/council_ai.h"
 #include "game/opinion.h"
+#include "game/embargo.h"
 
 namespace council {
     const char lbx_00559a68[12] = "council.lbx";
@@ -415,6 +416,8 @@ namespace council {
             (int)MOX::stardate, (int)council_nominee_[0], (int)council_nominee_votes[0], (int)council_nominee_[1],
             (int)council_nominee_votes[1], (int)council_nominee_vote_total[0], (int)council_nominee_vote_total[1],
             (int)council_total_votes, (int)threshold, (int)winner);
+        // Council resolutions (off by default): with no leader elected, the council votes on an embargo.
+        if (winner < 0) embargo::Council_Resolution();
         return winner;
     }
 

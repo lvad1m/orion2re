@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/embargo.h"
 
 namespace TRADE {
     void __cdecl Process_Research_Agreement(s_player* player, int16_t other_player_idx) {
@@ -196,6 +197,8 @@ namespace TRADE {
     }
 
     void __cdecl Start_Trade_Agreement(s_player* player, int16_t other_player_idx) {
+        // Embargo (off by default): no trade treaty while one holds an embargo on the other.
+        if (embargo::Blocks_Treaty((int16_t)(player - MOX::player), other_player_idx)) return;
         int16_t base_goal = TRADE::Base_Trade_Agreement_Goal(player, other_player_idx);
         int16_t player_idx = (int16_t)(player - MOX::player);
         s_player* other_player = &MOX::player[other_player_idx];
@@ -213,6 +216,8 @@ namespace TRADE {
     }
 
     void __cdecl Start_Research_Agreement(s_player* player, int16_t other_player_idx) {
+        // Embargo (off by default): no research treaty while one holds an embargo on the other.
+        if (embargo::Blocks_Treaty((int16_t)(player - MOX::player), other_player_idx)) return;
         int16_t combined_points;
         int16_t player_idx;
         s_player* other_player;
