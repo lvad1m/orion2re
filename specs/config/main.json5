@@ -5455,7 +5455,7 @@
 
     caught_opinion: {
       title: "Opinion of a caught spy's master",
-      description: "Sets the opinion modifier an empire gets toward the empire whose spy it caught.",
+      description: "Sets the opinion modifier an empire gets toward the empire whose spy it caught. Repeated catches deepen it to -30 at most, like the memory of a spy's fate: MOO2 catches spies all the time, so a catch makes a grudge, not hatred.",
       remarks: "Effective only while spy counterintelligence and diplomacy opinion are true.",
       examples: ["spy caught_opinion = -25;"],
       group: "gameplay",

@@ -104,6 +104,15 @@ DOCTEST_TEST_CASE("opinion memories, broken treaties and lies are evidence; it f
     DOCTEST_CHECK(beliefs::Evidence(0, 2, beliefs::BELIEF_HONEST) == 0);
 }
 
+DOCTEST_TEST_CASE("a grudge at its limit is no new evidence") {
+    s_beliefs_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 0; i < 10; ++i) opinion::Add(0, 1, opinion::REASON_CAUGHT_SPYING, -15);  // -15, -30, then held
+    DOCTEST_CHECK(beliefs::Evidence(0, 1, beliefs::BELIEF_HOSTILE) == 2);
+    DOCTEST_CHECK(beliefs::Evidence(0, 1, beliefs::BELIEF_HONEST) == -2);
+}
+
 DOCTEST_TEST_CASE("disinformation through a turned spy, by the dice, exposed; seen through") {
     s_beliefs_scope scope;
     test::s_game_state state;

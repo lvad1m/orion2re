@@ -44,6 +44,14 @@ namespace opinion {
 
     // Largest size of one modifier; a repeated reason deepens it up to this.
     constexpr int32_t MODIFIER_LIMIT = 100;
+    // Routine incidents deepen only to a grudge: MOO2 catches spies all the time (about 220 catches a
+    // game of five empires), and at -15 a catch every reason "caught spying" and "decided the fate of
+    // a spy of ours" sat at -100 for nearly every pair by the late game in the big bench (22.11.2026),
+    // so every empire hated every other and the council could not elect anyone.
+    constexpr int32_t ROUTINE_LIMIT = 30;
+    // The largest size of a modifier of `reason`: ROUTINE_LIMIT for the routine spy incidents,
+    // MODIFIER_LIMIT otherwise.
+    int32_t Reason_Limit(e_reason reason);
 
     // Adds `value` to `holder`'s modifier `reason` toward `target` (a repeated reason deepens the
     // memory, up to MODIFIER_LIMIT either way). Nothing happens with the flag off, for a human

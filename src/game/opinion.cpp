@@ -40,14 +40,23 @@ namespace opinion {
         if (!enabled || value == 0 || reason >= REASON_COUNT || holder == target) return;
         if (!Holds_Opinions_(holder) || !Valid_(target) || MOX::player[target].eliminated != 0) return;
         int8_t& slot = table[holder][target][reason];
-        slot = static_cast<int8_t>(std::clamp<int32_t>(slot + value, -MODIFIER_LIMIT, MODIFIER_LIMIT));
-        beliefs::On_Opinion(holder, target, reason, value);  // the neighbour model (off by default)
+        const int32_t limit = Reason_Limit(reason);
+        const int8_t before = slot;
+        slot = static_cast<int8_t>(std::clamp<int32_t>(slot + value, -limit, limit));
+        // The neighbour model (off by default) learns from a memory that changed: a grudge at its
+        // limit is no new evidence.
+        if (slot != before) beliefs::On_Opinion(holder, target, reason, value);
     }
 
     void Set(int16_t holder, int16_t target, e_reason reason, int32_t value) {
         if (!enabled || reason >= REASON_COUNT || holder == target) return;
         if (!Holds_Opinions_(holder) || !Valid_(target) || MOX::player[target].eliminated != 0) return;
-        table[holder][target][reason] = static_cast<int8_t>(std::clamp<int32_t>(value, -MODIFIER_LIMIT, MODIFIER_LIMIT));
+        const int32_t limit = Reason_Limit(reason);
+        table[holder][target][reason] = static_cast<int8_t>(std::clamp<int32_t>(value, -limit, limit));
+    }
+
+    int32_t Reason_Limit(e_reason reason) {
+        return reason == REASON_CAUGHT_SPYING || reason == REASON_TREATED_OUR_SPY ? ROUTINE_LIMIT : MODIFIER_LIMIT;
     }
 
     int32_t Modifier(int16_t holder, int16_t target, e_reason reason) {

@@ -76,6 +76,22 @@ DOCTEST_TEST_CASE("a memory deepens, fades with the period and adds to the relat
     DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -69);
 }
 
+DOCTEST_TEST_CASE("routine spy incidents deepen only to a grudge; other memories to the full limit") {
+    s_opinion_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 0; i < 10; ++i) {
+        opinion::Add(1, 2, opinion::REASON_CAUGHT_SPYING, -15);
+        opinion::Add(1, 2, opinion::REASON_TREATED_OUR_SPY, -15);
+        opinion::Add(1, 2, opinion::REASON_SNEAK_ATTACK, -15);
+    }
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_CAUGHT_SPYING) == -opinion::ROUTINE_LIMIT);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == -opinion::ROUTINE_LIMIT);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -opinion::MODIFIER_LIMIT);
+    opinion::Set(1, 3, opinion::REASON_CAUGHT_SPYING, -90);
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_CAUGHT_SPYING) == -opinion::ROUTINE_LIMIT);
+}
+
 DOCTEST_TEST_CASE("off: no memories are kept and decisions read the classic relations") {
     s_opinion_scope scope;
     test::s_game_state state;
