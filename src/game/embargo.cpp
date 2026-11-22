@@ -215,25 +215,40 @@ namespace embargo {
         }
     }
 
-    void Council_Resolution() {
-        if (!enabled || !council_resolutions) return;
+    bool Council_Proposal(int16_t* proposer, int16_t* target, int32_t* support) {
+        if (!enabled || !council_resolutions) return false;
         int16_t best_target = -1;
         int16_t best_proposer = -1;
         int32_t best_support = -1;
         for (int16_t p = 0; p < Players_(); ++p) {
             const int16_t t = Candidate_(p, true);
             if (t < 0) continue;
-            int32_t support = 0;
+            int32_t votes_for = 0;
             for (int16_t v = 0; v < Players_(); ++v) {
-                if (Votes_For_(v, t, p)) support += council::Get_Num_Votes(static_cast<uint8_t>(v));
+                if (Votes_For_(v, t, p)) votes_for += council::Get_Num_Votes(static_cast<uint8_t>(v));
             }
-            if (support > best_support) {
+            if (votes_for > best_support) {
                 best_target = t;
                 best_proposer = p;
-                best_support = support;
+                best_support = votes_for;
             }
         }
-        if (best_target < 0) return;
+        if (best_target < 0) return false;
+        if (proposer != nullptr) *proposer = best_proposer;
+        if (target != nullptr) *target = best_target;
+        if (support != nullptr) *support = best_support;
+        return true;
+    }
+
+    void Council_Enact(int16_t proposer, int16_t target) {
+        Declare(proposer, target, true);
+    }
+
+    void Council_Resolution() {
+        int16_t best_target = -1;
+        int16_t best_proposer = -1;
+        int32_t best_support = -1;
+        if (!Council_Proposal(&best_proposer, &best_target, &best_support)) return;
         int32_t total = 0;
         for (int16_t v = 0; v < Players_(); ++v) {
             if (Alive_(v)) total += council::Get_Num_Votes(static_cast<uint8_t>(v));
@@ -242,7 +257,7 @@ namespace embargo {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
             "council: stardate %d, resolution: an embargo on player %d, proposed by player %d, %d of %d votes for, %s",
             (int)MOX::stardate, (int)best_target, (int)best_proposer, (int)best_support, (int)total, passed ? "passed" : "failed");
-        if (passed) Declare(best_proposer, best_target, true);
+        if (passed) Council_Enact(best_proposer, best_target);
     }
 
 } // namespace embargo

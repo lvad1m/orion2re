@@ -71,7 +71,11 @@ namespace embargo {
     // At a council meeting without humans, after the vote on the leader: the computer members
     // propose embargoes; the one with the most support is voted on (each member's council votes;
     // "for": those that would join and the proposer's allies; passes with more than half of all
-    // votes) and binds everyone but the target.
+    // votes) and binds everyone but the target. Council_Proposal finds that proposal (false when
+    // there is none) and Council_Enact makes a passed one binding; resolutions.h weighs it against
+    // the other resolutions, Council_Resolution votes on it alone.
+    bool Council_Proposal(int16_t* proposer, int16_t* target, int32_t* support);
+    void Council_Enact(int16_t proposer, int16_t target);
     void Council_Resolution();
 
     void Clear();

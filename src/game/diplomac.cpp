@@ -4,6 +4,7 @@
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
+#include "game/resolutions.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
 
@@ -826,6 +827,8 @@ namespace diplomac {
         pacts::End_Of_Turn();
         // Embargoes (off by default): opinions held, coalition penalty, reviews.
         embargo::End_Of_Turn();
+        // Council resolutions (off by default): the Antaran fund is paid, terms run out.
+        resolutions::End_Of_Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {

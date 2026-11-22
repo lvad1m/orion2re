@@ -75,6 +75,7 @@ namespace opinion {
             case REASON_RIVAL: return "declared us its rival";
             case REASON_DEFENDED_US: return "came to our defence";
             case REASON_ABANDONED_US: return "left us alone against an attacker";
+            case REASON_BROKE_BAN: return "broke a ban of the council";
             default: return "unknown";
         }
     }

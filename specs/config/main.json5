@@ -5147,6 +5147,54 @@
       },
     },
 
+    resolution_turns: {
+      title: "Term of a council ban or fund",
+      description: "Sets how many turns a council ban (on biological weapons or on destroying planets) or the Antaran defence fund lasts once the council has passed it.",
+      remarks: "Effective only while diplomacy embargo and diplomacy council_resolutions are true.",
+      examples: ["diplomacy resolution_turns = 150;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 1000 },
+      default: 100,
+      bind_root: {
+        header: "game/resolutions.h",
+        symbol: "resolutions::turns",
+      },
+    },
+
+    resolution_violation_opinion: {
+      title: "Opinion of a ban's violator",
+      description: "Sets the opinion modifier every computer empire gets toward an empire that breaks a council ban in force; the council also puts the violator under an embargo.",
+      remarks: "Effective only while diplomacy embargo and diplomacy council_resolutions are true; the opinion needs diplomacy opinion.",
+      examples: ["diplomacy resolution_violation_opinion = -60;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -40,
+      bind_root: {
+        header: "game/resolutions.h",
+        symbol: "resolutions::violation_opinion",
+      },
+    },
+
+    antaran_fund_percent: {
+      title: "Antaran defence fund payments",
+      description: "Sets the share of its income, in percent, each computer empire pays every turn into the Antaran defence fund while it exists; the victim of an Antaran attack receives half of the fund.",
+      remarks: "Effective only while diplomacy embargo and diplomacy council_resolutions are true. The human pays with the council screen.",
+      examples: ["diplomacy antaran_fund_percent = 5;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 50 },
+      default: 2,
+      bind_root: {
+        header: "game/resolutions.h",
+        symbol: "resolutions::fund_percent",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

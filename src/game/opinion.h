@@ -29,7 +29,7 @@ namespace opinion {
         REASON_RIVAL = 3,          // declared us its rival
         REASON_DEFENDED_US = 4,    // came to our defence under a pact or a guarantee
         REASON_ABANDONED_US = 5,   // left us alone against an attacker it had promised to stop
-        REASON_RESERVED_6 = 6,
+        REASON_BROKE_BAN = 6,      // broke a ban of the galactic council
         REASON_RESERVED_7 = 7,
         REASON_COUNT = 8,
     };

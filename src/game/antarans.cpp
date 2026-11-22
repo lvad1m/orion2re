@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/resolutions.h"
 
 namespace antarans {
     s_antaran_fleet_config fleet_config = {
@@ -377,7 +378,8 @@ namespace antarans {
     }
 
     bool __cdecl Deploy_Antaran_Ships() {
-        int16_t target_star = Get_Antaran_Target_Star(EVENTS::Get_Antaran_Victim());
+        const int16_t antaran_victim = EVENTS::Get_Antaran_Victim();
+        int16_t target_star = Get_Antaran_Target_Star(antaran_victim);
 
         snprintf(MOX::temp_string, sizeof(MOX::temp_string), "-< ships (by size)          : ");
         for (int i = 0; i < HULL_CLASS_COUNT; ++i) {
@@ -450,6 +452,8 @@ namespace antarans {
             ship_count++;
         }
 
+        // Council resolutions (off by default): the attack is remembered; the fund pays the victim.
+        resolutions::On_Antaran_Attack(antaran_victim);
         return true;
     }
 

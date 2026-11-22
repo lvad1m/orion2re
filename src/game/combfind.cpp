@@ -3,6 +3,7 @@
 #include "game/advisor_intel.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
+#include "game/resolutions.h"
 
 namespace COMBFIND {
 
@@ -2016,6 +2017,7 @@ namespace COMBFIND {
                             case 1: { // Stellar Converter
                                 int8_t old_n_pops = colony->n_pops;
                                 results->info.planet_destroyed_flag = 1;
+                                resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
                                 BOMB::Destroy_Colony(colony, 2);
                                 ERIC::Play_Planetary_Destruction_Flic();
                                 COMBFIND::current_star_has_player[colony_owner].colony_count--;
@@ -2191,6 +2193,7 @@ namespace COMBFIND {
                                 } while (!success && !done && (bio_hits + bomb_hits != 0));
                             } else if (has_stellar) {
                                 results->info.planet_destroyed_flag = 1;
+                                resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
                                 terminal_destroyed = 1;
                                 BOMB::Destroy_Colony(colony, 2);
                             } else {

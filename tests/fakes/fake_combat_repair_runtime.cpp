@@ -1,8 +1,15 @@
 #include "pch.h"
 
+#include "game/resolutions.h"
+
 namespace CMBTMIS {
     void Reset_Fighter_Pursuit_History() {}
 } // namespace CMBTMIS
+
+// Council resolutions are not under test here (Apply_Bio_Weapon_Penalty reports the use).
+namespace resolutions {
+    void On_Banned_Act(int16_t, e_ban) {}
+} // namespace resolutions
 
 void Legacy_Qsort(void* base, size_t count, size_t width, legacy_qsort_compare compare) {
     uint8_t* bytes = static_cast<uint8_t*>(base);
