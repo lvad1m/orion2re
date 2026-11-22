@@ -1,6 +1,13 @@
 #include "pch.h"
 
+#include "game/spy_ranks.h"
+
 #include <cstdarg>
+
+// Counter-agents and ranks are not under test here.
+namespace spy_ranks {
+    bool Is_Product(int16_t) { return false; }
+} // namespace spy_ranks
 
 namespace {
     s_colony colonies[MAX_COLONIES];

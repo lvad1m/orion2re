@@ -1,6 +1,15 @@
 #include "pch.h"
 
 #include "fake_colony_services.h"
+#include "game/spy_ranks.h"
+
+// Counter-agents and ranks are not under test here.
+namespace spy_ranks {
+    bool Is_Product(int16_t) { return false; }
+    int32_t Cost(int16_t) { return 0; }
+    bool Can_Build(const s_colony*, int16_t) { return false; }
+    bool On_Built(int16_t, int16_t) { return false; }
+} // namespace spy_ranks
 #include "lua/lua_game.h"
 
 namespace {

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/spy_ranks.h"
 #include "legacy_world.h"
 
 #include "build_queue.h"
@@ -54,6 +55,7 @@ namespace COLCALC {
         return COLBLDG::Colony_Production_Is_Ship(product) ||
             product == COLONY_PRODUCTION_FREIGHTERS ||
             product == COLONY_PRODUCTION_SPY ||
+            spy_ranks::Is_Product(product) ||
             product == COLONY_PRODUCTION_FARMER ||
             product == COLONY_PRODUCTION_WORKER ||
             product == COLONY_PRODUCTION_SCIENTIST;
@@ -2703,6 +2705,11 @@ namespace COLCALC {
             case COLONY_PRODUCTION_SPY:
                 return misc_costs.spy;
 
+            case spy_ranks::PRODUCT_COUNTER_AGENT:
+            case spy_ranks::PRODUCT_SABOTEUR:
+            case spy_ranks::PRODUCT_RESIDENT:
+                return spy_ranks::Cost(product_id);
+
             case COLONY_PRODUCTION_FREIGHTERS: {
                 int32_t cost = misc_costs.freighters;
                 const int8_t government =
@@ -3173,6 +3180,10 @@ namespace COLCALC {
                     case COLONY_PRODUCTION_SPY:
                         return MOX::player[owner].tech_applications[TECH_APP_SPY_NETWORK] ==
                             TECH_RESEARCH_STATUS_RESEARCHED;
+                    case spy_ranks::PRODUCT_COUNTER_AGENT:
+                    case spy_ranks::PRODUCT_SABOTEUR:
+                    case spy_ranks::PRODUCT_RESIDENT:
+                        return spy_ranks::Can_Build(colony, product) ? 1 : 0;
                     case COLONY_PRODUCTION_FREIGHTERS:
                         if (MOX::player[owner].tech_applications[TECH_APP_FREIGHTERS] == TECH_RESEARCH_STATUS_RESEARCHED) return 1;
                         return 0;
@@ -3789,6 +3800,16 @@ namespace COLCALC {
                                 if (BILL::Add_Their_Spy(static_cast<int16_t>(owner_player_idx), static_cast<int16_t>(owner_player_idx)) == 0) {
                                     player.bc += product_cost / 2;
                                     COLBLDG::Delete_Prod_From_Colony_Queue(colony_idx, COLONY_PRODUCTION_SPY);
+                                }
+                                break;
+
+                            case spy_ranks::PRODUCT_COUNTER_AGENT:
+                            case spy_ranks::PRODUCT_SABOTEUR:
+                            case spy_ranks::PRODUCT_RESIDENT:
+                                // As with a spy: what cannot be placed returns half its cost.
+                                if (!spy_ranks::On_Built(static_cast<int16_t>(colony_idx), static_cast<int16_t>(current_product))) {
+                                    player.bc += product_cost / 2;
+                                    COLBLDG::Delete_Prod_From_Colony_Queue(colony_idx, static_cast<int16_t>(current_product));
                                 }
                                 break;
 

@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/spy_ranks.h"
 
 namespace COLSUM {
     int16_t g_sort_index;
@@ -339,7 +340,8 @@ namespace COLSUM {
         if (production_id == COLONY_PRODUCTION_SCIENTIST ||
             production_id == COLONY_PRODUCTION_FARMER ||
             production_id == COLONY_PRODUCTION_WORKER ||
-            production_id == COLONY_PRODUCTION_SPY) {
+            production_id == COLONY_PRODUCTION_SPY ||
+            spy_ranks::Is_Product(production_id)) {
             return -1;
         }
 

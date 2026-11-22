@@ -10,6 +10,7 @@
 #include "game/resolutions.h"
 #include "game/rivalry.h"
 #include "game/spy_ops.h"
+#include "game/spy_ranks.h"
 #include "game/stability.h"
 
 namespace SAVEGAME {
@@ -51,6 +52,10 @@ namespace SAVEGAME {
             return spy_ops::operations != 0 && !spy_ops::Empty();
         }
 
+        bool Spy_Ranks_Has_State_() {
+            return (spy_ranks::counter_agents || spy_ranks::ranks) && !spy_ranks::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -71,6 +76,8 @@ namespace SAVEGAME {
                 espionage::Parse_Save, espionage::Commit_Save, espionage::Discard_Save, espionage::Clear},
             {SECTION_TYPE_SPY_OPS, 1, "spy operations", Spy_Ops_Has_State_, spy_ops::Save_Size, spy_ops::Write_Save,
                 spy_ops::Parse_Save, spy_ops::Commit_Save, spy_ops::Discard_Save, spy_ops::Clear},
+            {SECTION_TYPE_SPY_RANKS, 1, "counter-agents and spy ranks", Spy_Ranks_Has_State_, spy_ranks::Save_Size,
+                spy_ranks::Write_Save, spy_ranks::Parse_Save, spy_ranks::Commit_Save, spy_ranks::Discard_Save, spy_ranks::Clear},
         };
     } // namespace
 

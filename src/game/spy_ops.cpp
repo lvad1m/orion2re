@@ -16,6 +16,7 @@
 #include "game/random.h"
 #include "game/rivalry.h"
 #include "game/spy.h"
+#include "game/spy_ranks.h"
 #include "game/stability.h"
 
 #include <algorithm>
@@ -180,7 +181,13 @@ namespace spy_ops {
                     *briber = -1;
                     continue;
                 }
-                const int32_t chance = UNCOVER_PER_MILLE[espionage::Mode(owner)];
+                int32_t chance = UNCOVER_PER_MILLE[espionage::Mode(owner)];
+                // Counter-agents at the governor's colonies watch it.
+                for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                    if (MOX::colony[c].owner == owner && COLCALC::Colony_Officer(&MOX::colony[c]) == i) {
+                        chance += spy_ranks::Uncover_Bonus(c);
+                    }
+                }
                 if (static_cast<int32_t>(game_random::Random(1000)) <= chance) {
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ops: stardate %d, player %d uncovers its leader %d bribed by player %d",
                         (int)MOX::stardate, (int)owner, (int)i, (int)*briber);
@@ -220,7 +227,7 @@ namespace spy_ops {
         int16_t defense = 0;
         spy::Compute_Spy_Bonuses(&MOX::player[attacker], &offense, &defense);  // the first output is the offence
         const int32_t spies = BILL::Get_Their_Spy_Number(attacker, target);
-        return std::min<int32_t>(5, spies / 2) + offense / 10;
+        return std::min<int32_t>(5, spies / 2) + offense / 10 + spy_ranks::Resident_Bonus(attacker, target);
     }
 
     int32_t Difficulty(int16_t attacker, e_op op, int16_t target) {
@@ -273,13 +280,14 @@ namespace spy_ops {
         int16_t offense = 0;
         int16_t defense = 0;
         spy::Compute_Spy_Bonuses(&MOX::player[attacker], &offense, &defense);
-        const dice::s_modifier modifiers[2] = {{"spies", std::min<int32_t>(5, spies / 2)}, {"spy skill", offense / 10}};
+        const dice::s_modifier modifiers[3] = {{"spies", std::min<int32_t>(5, spies / 2)}, {"spy skill", offense / 10},
+            {"resident", spy_ranks::Resident_Bonus(attacker, target)}};
         const int32_t difficulty = Difficulty(attacker, op, target) + extra;
         const dice::s_check check = dice_values != nullptr
-            ? dice::Resolve_Check(static_cast<dice::e_roll_kind>(dice::roll_kind), dice_values, modifiers, 2, difficulty)
-            : dice::Roll_Check(modifiers, 2, difficulty);
+            ? dice::Resolve_Check(static_cast<dice::e_roll_kind>(dice::roll_kind), dice_values, modifiers, 3, difficulty)
+            : dice::Roll_Check(modifiers, 3, difficulty);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ops: stardate %d, player %d %s against player %d: %s",
-            (int)MOX::stardate, (int)attacker, NAMES[op], (int)target, dice::Describe_Check(NAMES[op], check, modifiers, 2).c_str());
+            (int)MOX::stardate, (int)attacker, NAMES[op], (int)target, dice::Describe_Check(NAMES[op], check, modifiers, 3).c_str());
 
         if (check.outcome >= dice::OUTCOME_SUCCESS) {
             switch (op) {

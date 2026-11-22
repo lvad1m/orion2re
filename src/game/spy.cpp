@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "game/espionage.h"
 #include "game/spy_ops.h"
+#include "game/spy_ranks.h"
 
 #include "game/advisor_apply.h"
 
@@ -53,6 +54,8 @@ namespace spy {
         espionage::Turn();
         // Spy operations (off by default): unrest fades, bribes, the computers' operations.
         spy_ops::Turn();
+        // Counter-agents and ranks (off by default): saboteurs strike; the computers buy agents.
+        spy_ranks::Turn();
     }
 
 
@@ -280,7 +283,8 @@ namespace spy {
     void __cdecl Resolve_Player_Spies(s_player* player) {
         int16_t player_idx = (int16_t)(player - MOX::player);
         int16_t def_spies = BILL::Get_Their_Spy_Number(player_idx, player_idx);
-        int32_t def_spies_bonus = spy::N_Spies_Bonus(def_spies);
+        // Counter-agents (off by default): those in the capitol stand half a defender each.
+        int32_t def_spies_bonus = spy::N_Spies_Bonus(static_cast<int16_t>(def_spies + spy_ranks::Capitol_Defenders(player_idx)));
         int32_t caught_spies = 0;
 
         for (int16_t other_plr_idx = 0; other_plr_idx < MOX::NUM_PLAYERS; other_plr_idx++) {
@@ -462,8 +466,12 @@ namespace spy {
             }
         }
 
+        // Counter-agents (off by default) may foil the sabotage at the colony it picked.
+        if (target_colony != -1 && spy_ranks::Foil_Sabotage(acting_player_idx, target_colony)) return;
+
         if (target_colony != -1) {
             ERICNET::Remove_Building(target_colony, (int16_t)target_building);
+            spy_ranks::Note_Sabotage(target_colony);
 
             int16_t planet_idx = MOX::colony[target_colony].planet;
             int32_t diplomacy_mode = (acting_player_idx == (int16_t)framed_player_idx) ? 3 : 4;

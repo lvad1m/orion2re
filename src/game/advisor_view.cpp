@@ -18,6 +18,7 @@
 #include "game/espionage.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
+#include "game/spy_ranks.h"
 #include "game/stability.h"
 #include "game/shipstak.h"
 #include "game/struct.h"
@@ -294,6 +295,8 @@ namespace advisor {
 
             // Intel network: our spies there report the whole empire, not only what we have seen.
             if (contact->our_spies > 0) {
+                // A resident there (spy ranks) makes our intelligence exact.
+                const e_confidence spy_confidence = spy_ranks::Residents(player, other) > 0 ? CONFIDENCE_HIGH : CONFIDENCE_MEDIUM;
                 int32_t colonies = 0;
                 for (int32_t i = 0; i < world->Colony_Count(); ++i) {
                     if (world->colonies[i].owner == static_cast<int8_t>(other)) {
@@ -314,18 +317,18 @@ namespace advisor {
                         }
                     }
                 }
-                Set_Fact(&contact->visible_combat_ships, combat, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->visible_combat_ships, combat, FACT_SPY, spy_confidence, now);
                 int32_t techs = 0;
                 for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
                     if (them.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
                         ++techs;
                     }
                 }
-                Set_Fact(&contact->known_colonies, colonies, FACT_SPY, CONFIDENCE_MEDIUM, now);
-                Set_Fact(&contact->visible_ships, ships, FACT_SPY, CONFIDENCE_MEDIUM, now);
-                Set_Fact(&contact->visible_fleet_strength, strength, FACT_SPY, CONFIDENCE_MEDIUM, now);
-                Set_Fact(&contact->techs_known, techs, FACT_SPY, CONFIDENCE_MEDIUM, now);
-                Set_Fact(&contact->population, them.total_pop, FACT_SPY, CONFIDENCE_MEDIUM, now);
+                Set_Fact(&contact->known_colonies, colonies, FACT_SPY, spy_confidence, now);
+                Set_Fact(&contact->visible_ships, ships, FACT_SPY, spy_confidence, now);
+                Set_Fact(&contact->visible_fleet_strength, strength, FACT_SPY, spy_confidence, now);
+                Set_Fact(&contact->techs_known, techs, FACT_SPY, spy_confidence, now);
+                Set_Fact(&contact->population, them.total_pop, FACT_SPY, spy_confidence, now);
             }
         }
 

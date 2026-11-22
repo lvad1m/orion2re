@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/spy_ranks.h"
 
 #include "build_queue.h"
 
@@ -920,6 +921,9 @@ namespace COLONY {
             case 0:
                 // Do nothing
                 break;
+            case spy_ranks::PRODUCT_COUNTER_AGENT:
+            case spy_ranks::PRODUCT_SABOTEUR:
+            case spy_ranks::PRODUCT_RESIDENT:
             case COLONY_PRODUCTION_SPY: {
                 uint16_t race = (uint16_t)(uint8_t)MOX::player[MOX::PLAYER_NUM].race;
                 s_animation_header* anim = COLONY::Spy_Anim(race);

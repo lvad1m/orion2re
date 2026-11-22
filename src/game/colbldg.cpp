@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/spy_ranks.h"
 
 #include "build_queue.h"
 #include "config/config_loader.h"
@@ -329,6 +330,10 @@ namespace COLBLDG {
         }
         if (COLCALC::Colony_Can_Build_Product(&colony, COLONY_PRODUCTION_SPY)) {
             military_indexes[n_military_indexes++] = COLONY_PRODUCTION_SPY;
+        }
+        // Counter-agents and ranks (off by default): the new spy products follow the spy.
+        for (int16_t product : {spy_ranks::PRODUCT_COUNTER_AGENT, spy_ranks::PRODUCT_SABOTEUR, spy_ranks::PRODUCT_RESIDENT}) {
+            if (COLCALC::Colony_Can_Build_Product(&colony, product)) military_indexes[n_military_indexes++] = product;
         }
     }
 
@@ -993,6 +998,19 @@ namespace COLBLDG {
                 Draw_Icon(COLONY::Spy_Anim(MOX::player[MOX::PLAYER_NUM].race));
                 break;
             }
+            case spy_ranks::PRODUCT_COUNTER_AGENT:
+            case spy_ranks::PRODUCT_SABOTEUR:
+            case spy_ranks::PRODUCT_RESIDENT: {
+                fonts::Set_Font_Style_Shadow_Down(4, &l_font_color_array);
+                fonts::Print(306, (y_line_count * 13 + 21), Selection_Name(item_id));
+                y_line_count += 2;
+                fonts::Set_Font_Style_Shadow_Down(3, &l_font_color_array);
+                Draw_Cost_And_Time_Info(COLONY::colony_handle, item_id, &y_line_count);
+                fonts::Set_Font_Style_Shadow_Down(3, &l_font_color_array);
+                BILL::_Print_Paragraph(209, 119, 248, const_cast<char*>(spy_ranks::Description(static_cast<int16_t>(item_id))), 3);
+                Draw_Icon(COLONY::Spy_Anim(MOX::player[MOX::PLAYER_NUM].race));
+                break;
+            }
             case COLONY_PRODUCTION_SCIENTIST: {
                 fonts::Set_Font_Style_Shadow_Down(4, &l_font_color_array);
                 BILL::Squeeze_Print(306, (y_line_count * 13 + 21), Selection_Name(item_id), 156);
@@ -1456,6 +1474,7 @@ namespace COLBLDG {
                     prod_idx == COLONY_PRODUCTION_FARMER ||
                     prod_idx == COLONY_PRODUCTION_WORKER ||
                     prod_idx == COLONY_PRODUCTION_SPY ||
+                    spy_ranks::Is_Product(prod_idx) ||
                     prod_idx == COLONY_PRODUCTION_HOUSING ||
                     prod_idx == COLONY_PRODUCTION_TRADE_GOODS ||
                     prod_idx == COLONY_PRODUCTION_REPEAT ||
@@ -1495,6 +1514,7 @@ namespace COLBLDG {
                         item_id == COLONY_PRODUCTION_FARMER ||
                         item_id == COLONY_PRODUCTION_WORKER ||
                         item_id == COLONY_PRODUCTION_SPY ||
+                        spy_ranks::Is_Product(item_id) ||
                         item_id == COLONY_PRODUCTION_HOUSING ||
                         item_id == COLONY_PRODUCTION_TRADE_GOODS ||
                         item_id == COLONY_PRODUCTION_REPEAT ||
@@ -2189,6 +2209,7 @@ namespace COLBLDG {
             product_id == COLONY_PRODUCTION_REPEAT ||
             product_id == COLONY_PRODUCTION_FREIGHTERS ||
             product_id == COLONY_PRODUCTION_SPY ||
+            spy_ranks::Is_Product(product_id) ||
             COLBLDG::Colony_Production_Is_Queued_Ship(product_id)) {
             add_to_queue = true;
         } else if (product_id == COLONY_PRODUCTION_SCIENTIST ||
@@ -2517,6 +2538,10 @@ namespace COLBLDG {
                 return ESTRINGS::E_Strings(0x1BD);
             case COLONY_PRODUCTION_SPY:
                 return ESTRINGS::E_Strings(0x1EC);
+            case spy_ranks::PRODUCT_COUNTER_AGENT:
+            case spy_ranks::PRODUCT_SABOTEUR:
+            case spy_ranks::PRODUCT_RESIDENT:
+                return const_cast<char*>(spy_ranks::Name(option_id));
             case COLONY_PRODUCTION_SCIENTIST:
                 return ESTRINGS::E_Strings(0x0B1);
             case COLONY_PRODUCTION_WORKER:

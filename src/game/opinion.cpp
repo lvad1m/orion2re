@@ -81,6 +81,7 @@ namespace opinion {
             case REASON_STIRRED_UNREST: return "stirred up unrest among our people";
             case REASON_KILLED_OUR_SCIENTIST: return "killed one of our scientists";
             case REASON_FRAMED_OUR_LEADER: return "framed one of our leaders";
+            case REASON_SABOTAGE: return "sent saboteurs against us";
             default: return "unknown";
         }
     }

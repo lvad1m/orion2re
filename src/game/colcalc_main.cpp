@@ -2,6 +2,7 @@
 #include "game/stability.h"
 #include "game/espionage.h"
 #include "game/spy_ops.h"
+#include "game/spy_ranks.h"
 
 #include "strbuild.h"
 
@@ -997,6 +998,8 @@ namespace COLCALC {
         for (int i = 0; i < MOX::NUM_PLAYERS; ++i) {
             plr->maintenance[3] += (int16_t)BILL::Get_Their_Spy_Number(player_idx, (int16_t)i);
         }
+        // Counter-agents and residents (off by default) cost their upkeep with the spies.
+        plr->maintenance[3] = static_cast<int16_t>(plr->maintenance[3] + spy_ranks::Upkeep(static_cast<int16_t>(player_idx)));
 
         plr->maintenance[4] = 0;
         for (int i = 0; i < MOX::NUM_PLAYERS; ++i) {

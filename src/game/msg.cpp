@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/spy_ranks.h"
 
 namespace MSG_ {
     namespace {
@@ -188,6 +189,12 @@ namespace MSG_ {
                                         break;
                                     case COLONY_PRODUCTION_SPY:
                                         snprintf(out_text, out_text_size, msg_colony_built_spy_fmt, planet_name);
+                                        break;
+                                    case spy_ranks::PRODUCT_COUNTER_AGENT:
+                                    case spy_ranks::PRODUCT_SABOTEUR:
+                                    case spy_ranks::PRODUCT_RESIDENT:
+                                        snprintf(out_text, out_text_size, "%s has trained a %s.", planet_name,
+                                            spy_ranks::Name(static_cast<int16_t>(build_id)));
                                         break;
                                     case COLONY_PRODUCTION_SCIENTIST:
                                         snprintf(out_text, out_text_size, msg_colony_built_android_scientist_fmt, planet_name);

@@ -35,7 +35,7 @@ namespace opinion {
         REASON_STIRRED_UNREST = 9,
         REASON_KILLED_OUR_SCIENTIST = 10,
         REASON_FRAMED_OUR_LEADER = 11,
-        REASON_RESERVED_12 = 12,
+        REASON_SABOTAGE = 12,      // its saboteur was caught at work against us
         REASON_RESERVED_13 = 13,
         REASON_RESERVED_14 = 14,
         REASON_RESERVED_15 = 15,
