@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/pacts.h"
 #include "legacy_ids.h"
 
 namespace DIP_SCRN {
@@ -268,6 +269,7 @@ namespace DIP_SCRN {
             }
 
             diplomac::Declare_War(sender_id, target_id);
+            pacts::On_Aggression(sender_id, target_id);
             diplomac::Adjust_Diplomat_Modifiers(sender_id, target_id);
         }
 
@@ -1752,6 +1754,7 @@ namespace DIP_SCRN {
                                 response_message = 0;
                                 old_response_message = 0;
                                 diplomac::Declare_War(talker_ambassador, listen_ambassador);
+                                pacts::On_Aggression(talker_ambassador, listen_ambassador);
                                 break;
                             }
                             case DIP_NET_MSG_SURRENDER: {

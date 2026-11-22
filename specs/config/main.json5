@@ -4910,6 +4910,101 @@
       },
     },
 
+    pacts: {
+      title: "Defence pacts and guarantees",
+      description: "Lets computer empires sign defence pacts against a common threat and guarantee the independence of a weaker neighbour they value. Whoever attacks a partner - by a declaration of war or an attack without one - faces a war with every partner and guarantor that is not too weary of war; one that stays out is remembered for it and the treaty ends.",
+      remarks: "False preserves classic behavior. For now only computer empires keep pacts and guarantees; the human gets them with the diplomacy screen. The memories of help and desertion need diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy pacts = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::enabled",
+      },
+    },
+
+    pacts_period: {
+      title: "Pact review period",
+      description: "Sets how many turns pass between the reviews in which pacts and guarantees whose terms are gone end and new ones are signed.",
+      remarks: "Effective only while diplomacy pacts is true. An attack on a partner is answered at once, not at the review.",
+      examples: ["diplomacy pacts_period = 20;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 100 },
+      default: 10,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::period",
+      },
+    },
+
+    pacts_opinion: {
+      title: "Opinion needed for a pact",
+      description: "Sets the opinion two computer empires need of each other to sign a defence pact, and a guarantor of the empire it guarantees.",
+      remarks: "Effective only while diplomacy pacts is true. A pact or guarantee ends when an opinion falls below zero.",
+      examples: ["diplomacy pacts_opinion = 40;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 100 },
+      default: 20,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::opinion_min",
+      },
+    },
+
+    pacts_defended_opinion: {
+      title: "Opinion for coming to our defence",
+      description: "Sets the opinion modifier a victim of aggression gets toward each partner or guarantor that went to war for it.",
+      remarks: "Effective only while diplomacy pacts and diplomacy opinion are true.",
+      examples: ["diplomacy pacts_defended_opinion = 40;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 100 },
+      default: 25,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::defended_opinion",
+      },
+    },
+
+    pacts_abandoned_opinion: {
+      title: "Opinion for desertion",
+      description: "Sets the opinion modifier a victim of aggression gets toward a partner or guarantor that stayed out of the war.",
+      remarks: "Effective only while diplomacy pacts and diplomacy opinion are true.",
+      examples: ["diplomacy pacts_abandoned_opinion = -60;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -40,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::abandoned_opinion",
+      },
+    },
+
+    pacts_guarantees_max: {
+      title: "Guarantees per empire",
+      description: "Sets how many empires one computer empire guarantees at most.",
+      remarks: "Effective only while diplomacy pacts is true.",
+      examples: ["diplomacy pacts_guarantees_max = 1;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 7 },
+      default: 2,
+      bind_root: {
+        header: "game/pacts.h",
+        symbol: "pacts::guarantees_max",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
 #include "game/rivalry.h"
 
 #include "legacy_world.h"
@@ -820,6 +821,8 @@ namespace diplomac {
         opinion::End_Of_Turn();
         // Rivalry (off by default): declared rivals stay remembered; rivals are reviewed.
         rivalry::End_Of_Turn();
+        // Defence pacts and guarantees (off by default): terms reviewed, new ones signed.
+        pacts::End_Of_Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -891,6 +894,7 @@ namespace diplomac {
 
         if (((attacker_strength * 4 + 4) * 25) / (target_strength + 1) > 66) {
             Declare_War(target_idx, attacker_idx);
+            pacts::On_Aggression(attacker_idx, target_idx);
             attacker.diplomacy_message[target_idx] = message_idx + 56;
         }
     }
@@ -2039,6 +2043,7 @@ namespace diplomac {
                     MOX::player[active_plr].diplomacy_proposal_war_player[other_plr] = (int8_t)target_idx;
 
                     Declare_War(p1_idx, target_idx);
+                    pacts::On_Aggression(p1_idx, target_idx);
                 }
             }
         }
@@ -2905,6 +2910,7 @@ namespace diplomac {
                 !diplomemory::Too_Weary_For_New_War(player_a)) {
                 *response_code = 0xA5;
                 Declare_War(player_a, player_b);
+                pacts::On_Aggression(player_a, player_b);
                 *accepted = 0;
             } else if (modifier < -50) {
                 MOX::player[player_a].threats[player_b]++;
@@ -2939,6 +2945,7 @@ namespace diplomac {
                 !diplomemory::Too_Weary_For_New_War(player_a)) {
                 *response_code = 0xA5;
                 Declare_War(player_a, player_b);
+                pacts::On_Aggression(player_a, player_b);
                 *accepted = 0;
             } else if (modifier < -75) {
                 MOX::player[player_a].threats[player_b]++;

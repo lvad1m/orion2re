@@ -113,6 +113,10 @@ namespace advisor {
         // Rivalry (rivalry.h): 1 when we declared them our rival / they declared us theirs.
         uint8_t our_rival = 0;
         uint8_t their_rival = 0;
+        // Defence pacts (pacts.h): 1 for a pact between us / our guarantee of them / theirs of us.
+        uint8_t pact = 0;
+        uint8_t we_guarantee = 0;
+        uint8_t they_guarantee = 0;
     };
 
     struct s_empire_view {

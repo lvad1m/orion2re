@@ -33,6 +33,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_OPINION = 0x4E49504F;
     // 'RIVL': declared rivals (game/rivalry.h).
     inline constexpr uint32_t SECTION_TYPE_RIVALRY = 0x4C564952;
+    // 'PACT': defence pacts and guarantees of independence (game/pacts.h).
+    inline constexpr uint32_t SECTION_TYPE_PACTS = 0x54434150;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

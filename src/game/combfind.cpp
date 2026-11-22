@@ -2,6 +2,7 @@
 #include "legacy_ids.h"
 #include "game/advisor_intel.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
 
 namespace COMBFIND {
 
@@ -1618,6 +1619,7 @@ namespace COMBFIND {
         if (attacker_idx >= 0 && attacker_idx < MAX_PLAYERS && defender_idx >= 0 && defender_idx < MAX_PLAYERS &&
             attacker_idx != defender_idx && MOX::player[defender_idx].treaty[attacker_idx] < 4) {
             opinion::On_Sneak_Attack(attacker_idx, defender_idx);
+            pacts::On_Aggression(attacker_idx, defender_idx);
         }
 
         if (attacker_idx < MAX_PLAYERS) {

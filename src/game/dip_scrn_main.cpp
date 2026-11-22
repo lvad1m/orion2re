@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/pacts.h"
 
 #include "legacy_world.h"
 
@@ -1316,6 +1317,7 @@ namespace DIP_SCRN {
                 case 0x39:
                 case 0x3a:
                     diplomac::Declare_War(MOX::PLAYER_NUM, current_ambassador);
+                    pacts::On_Aggression(MOX::PLAYER_NUM, current_ambassador);
                     break;
                 case 0x60:
                 case 0x6b:
@@ -1359,6 +1361,7 @@ namespace DIP_SCRN {
                         break;
                     case 0x56:
                         diplomac::Declare_War(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
+                        pacts::On_Aggression(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
                         response_message = 0x58;
                         Diplomacy_Display_Response();
                         break;
@@ -1376,10 +1379,12 @@ namespace DIP_SCRN {
                         break;
                     case 0x66:
                         diplomac::Declare_War(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
+                        pacts::On_Aggression(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
                         break;
                     case 0x67:
                         Npc_Give_Gift(current_ambassador, MOX::PLAYER_NUM);
                         diplomac::Declare_War(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
+                        pacts::On_Aggression(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
                         break;
                     case 0x68:
                         diplomac::Break_Treaties(MOX::PLAYER_NUM, MOX::player[current_ambassador].diplomacy_proposal_war_player[MOX::PLAYER_NUM]);
@@ -1432,6 +1437,7 @@ namespace DIP_SCRN {
                                 (uint8_t)MOX::player[current_ambassador].diplomacy_demand_rejection_message[MOX::PLAYER_NUM];
                         } else {
                             diplomac::Declare_War(current_ambassador, MOX::PLAYER_NUM);
+                            pacts::On_Aggression(current_ambassador, MOX::PLAYER_NUM);
                             response_message = 0xb3;
                             Diplomacy_Display_Response();
                         }

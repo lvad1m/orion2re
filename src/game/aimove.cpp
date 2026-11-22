@@ -2,6 +2,7 @@
 
 #include "game/advisor_apply.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
 #include "ai_compat.h"
 
 #include "legacy_world.h"
@@ -85,6 +86,7 @@ namespace AIMOVE {
                     // Opinion modifiers (off by default): the victim remembers the sneak attack.
                     opinion::On_Sneak_Attack(static_cast<int16_t>(*legacy_player), target_player);
                     diplomac::Declare_War(*legacy_player, target_player);
+                    pacts::On_Aggression(static_cast<int16_t>(*legacy_player), target_player);
                 }
             }
         }

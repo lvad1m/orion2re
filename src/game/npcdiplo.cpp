@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
 
 namespace npcdiplo {
     s_npcdiplo_tech target_tech[TECH_APP_COUNT];
@@ -347,6 +348,7 @@ namespace npcdiplo {
                         diplomac::Change_Relations(-10000, j, i, reason[j], 0, 0);
                     }
                     diplomac::Declare_War(i, j);
+                    pacts::On_Aggression(static_cast<int16_t>(i), static_cast<int16_t>(j));
                 }
             }
 
@@ -373,6 +375,7 @@ namespace npcdiplo {
                                 diplomac::Change_Relations(-10000, j, i, reason[j], 0, 0);
                             }
                             diplomac::Declare_War(i, j);
+                            pacts::On_Aggression(static_cast<int16_t>(i), static_cast<int16_t>(j));
                             break;
                         }
                     }
