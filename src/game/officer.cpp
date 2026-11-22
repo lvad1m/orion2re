@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/loyalty.h"
 #include "officer_roster.h"
 #include "string_overrides.h"
 
@@ -1124,6 +1125,8 @@ namespace OFFICER {
         // Calculate indices based on base pointers
         int32_t player_index = static_cast<int32_t>(player - MOX::player);
         int32_t leader_index = static_cast<int32_t>(leader - MOX::leaders);
+        // Leader loyalty (off by default): more experienced idle leaders are passed over.
+        loyalty::On_Assigned(static_cast<int16_t>(leader_index));
         int16_t star_index = (int16_t)(star - MOX::star);
 
         // Check if there's already an officer assigned to this star for the player
@@ -1152,6 +1155,8 @@ namespace OFFICER {
     void __cdecl Assign_Leader_To_Ship(s_player* player, s_leader_data* leader, s_ship_data* ship, int8_t eta) {
         int leader_idx = (int)(leader - MOX::leaders);
         int16_t ship_idx = (int16_t)(ship - MOX::ship);
+        // Leader loyalty (off by default): more experienced idle leaders are passed over.
+        loyalty::On_Assigned(static_cast<int16_t>(leader_idx));
 
         // If the ship already has an officer, clear that officer's assignment data.
         short current_officer_idx = ship->officer_index;

@@ -79,6 +79,10 @@ namespace advisor {
         // Colony stability (stability.h; 0 with the flag off): settled colonies below zero, and the lowest.
         int32_t unstable_colonies = 0;
         int32_t worst_stability = 0;
+        // Leader loyalty (loyalty.h; 0 leaders with the flag off): our tracked leaders, average and lowest.
+        int32_t loyal_leaders = 0;
+        int32_t average_loyalty = 0;
+        int32_t lowest_loyalty = 0;
     };
 
     struct s_view_contact {

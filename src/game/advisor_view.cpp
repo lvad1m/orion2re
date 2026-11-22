@@ -12,6 +12,7 @@
 #include "game/aipower.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
+#include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
 #include "game/pacts.h"
@@ -155,6 +156,20 @@ namespace advisor {
                 const int32_t value = stability::Of(static_cast<int16_t>(i));
                 if (value < 0) ++self->unstable_colonies;
                 self->worst_stability = std::min(self->worst_stability, value);
+            }
+            {
+                int32_t sum = 0;
+                for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                    const int32_t value = loyalty::Of(i);
+                    if (value == loyalty::UNTRACKED || world->leaders == nullptr ||
+                        world->leaders[i].player_index != static_cast<int8_t>(player)) {
+                        continue;
+                    }
+                    self->lowest_loyalty = self->loyal_leaders == 0 ? value : std::min(self->lowest_loyalty, value);
+                    sum += value;
+                    ++self->loyal_leaders;
+                }
+                if (self->loyal_leaders > 0) self->average_loyalty = sum / self->loyal_leaders;
             }
             for (int32_t i = 0; i < TECH_APP_COUNT; ++i) {
                 if (plr.tech_applications[i] == TECH_RESEARCH_STATUS_RESEARCHED) {
@@ -382,6 +397,11 @@ namespace advisor {
         if (self.unstable_colonies > 0) {
             Append_Format(out, "Unrest: %d colonies unstable, the worst at stability %d (unrest lowers morale; deep unrest may end in secession).\n",
                           static_cast<int>(self.unstable_colonies), static_cast<int>(self.worst_stability));
+        }
+        if (self.loyal_leaders > 0) {
+            Append_Format(out, "Leaders: %d, loyalty %d on average, the lowest %d (of 100).\n",
+                          static_cast<int>(self.loyal_leaders), static_cast<int>(self.average_loyalty),
+                          static_cast<int>(self.lowest_loyalty));
         }
         Append_Format(out, "Fleet: %d ships, strength %d. Command points: %d of %d used. Explored: %d of %d stars, "
                            "%d free planets and %d outpost sites in reach.\n",

@@ -3,6 +3,7 @@
 #include "legacy_world.h"
 #include "game/advisor.h"
 #include "game/council_ai.h"
+#include "game/loyalty.h"
 #include "game/stability.h"
 
 #include "lua/lua_game.h"
@@ -83,6 +84,8 @@ namespace NEXTTURN {
         OFFICER::Decrement_Officer_ETA();
         // Colony stability (off by default): worked out before the classic rebellion check.
         stability::Turn();
+        // Leader loyalty (off by default): service, promotions, idleness and the empire's mood.
+        loyalty::Turn();
         invasion::Check_All_Rebellions();
         INITSHIP::Repair_Ships_At_Colonies();
         COLONIZE::Allocate_New_Colony_Slots();

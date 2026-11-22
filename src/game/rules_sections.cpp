@@ -3,6 +3,7 @@
 #include "game/rules_sections.h"
 
 #include "game/embargo.h"
+#include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
 #include "game/resolutions.h"
@@ -36,6 +37,10 @@ namespace SAVEGAME {
             return stability::enabled && !stability::Empty();
         }
 
+        bool Loyalty_Has_State_() {
+            return loyalty::enabled && !loyalty::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -50,6 +55,8 @@ namespace SAVEGAME {
                 resolutions::Clear},
             {SECTION_TYPE_STABILITY, 1, "colony stability", Stability_Has_State_, stability::Save_Size, stability::Write_Save,
                 stability::Parse_Save, stability::Commit_Save, stability::Discard_Save, stability::Clear},
+            {SECTION_TYPE_LOYALTY, 1, "leader loyalty", Loyalty_Has_State_, loyalty::Save_Size, loyalty::Write_Save,
+                loyalty::Parse_Save, loyalty::Commit_Save, loyalty::Discard_Save, loyalty::Clear},
         };
     } // namespace
 

@@ -3,6 +3,7 @@
 #include "game/advisor_intel.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
+#include "game/loyalty.h"
 #include "game/stability.h"
 #include "game/resolutions.h"
 
@@ -1495,6 +1496,8 @@ namespace COMBFIND {
         short combat_status = Russ_Combat(plr2_idx, &ships[plr2_ship_offset], plr2_ship_count, plr1_idx, &ships[plr1_ship_offset], plr1_ship_count, star_idx, colony_idx, is_sneak_attack, result);
         // Colony stability (off by default): a won attack is a victory for the attacker's people.
         if (combat_status == 1) stability::Note_Victory(plr2_idx);
+        // Leader loyalty (off by default): the captains at this star win or lose with the battle.
+        if (combat_status == 1) loyalty::On_Battle(star_idx, plr2_idx, plr1_idx);
         result->player_info.combat_result = (int8_t)combat_status;
 
         colony_idx = Target_Planet_To_Colony(planet_idx);

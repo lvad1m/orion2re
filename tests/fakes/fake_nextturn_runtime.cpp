@@ -272,8 +272,11 @@ namespace invasion {
     void __cdecl Check_All_Rebellions() {}
 }
 
-// Colony stability is not under test here.
+// Colony stability and leader loyalty are not under test here.
 namespace stability {
+    void Turn() {}
+}
+namespace loyalty {
     void Turn() {}
 }
 

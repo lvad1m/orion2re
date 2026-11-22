@@ -5242,6 +5242,37 @@
       },
     },
 
+    leaders: {
+      title: "Leader loyalty",
+      description: "Gives every leader an empire holds a loyalty of 0 to 100, 50 on entering its service. Loyalty grows with service, promotions, won battles and contented colonies, and falls with long idleness in reserve, lost battles, discontented or war-weary colonies, and being passed over for a post.",
+      remarks: "False preserves classic behavior. For now loyalty only builds up and is shown to the advisor; bribing leaders and false accusations use it once espionage operations exist. Kept in an optional save section that older builds skip.",
+      examples: ["loyalty leaders = true;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/loyalty.h",
+        symbol: "loyalty::enabled",
+      },
+    },
+
+    period: {
+      title: "Leader loyalty period",
+      description: "Sets how many turns pass between the steps in which service, idleness, the empire's mood and war weariness move a leader's loyalty by one.",
+      remarks: "Effective only while loyalty leaders is true. Promotions, battles and being passed over count at once.",
+      examples: ["loyalty period = 10;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "int32",
+      constraints: { min: 1, max: 50 },
+      default: 5,
+      bind_root: {
+        header: "game/loyalty.h",
+        symbol: "loyalty::period",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",
