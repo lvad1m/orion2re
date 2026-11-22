@@ -157,7 +157,9 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
     DOCTEST_CHECK(options.oracle_seed == 1);
     DOCTEST_CHECK(options.oracle_difficulty == -1);
     DOCTEST_CHECK_FALSE(options.oracle_tactical);
-    DOCTEST_REQUIRE(Parse_({"-oracle-record=a", "-oracle-seed=17", "-oracle-difficulty=3", "-oracle-tactical"}, '-', &options, &error));
+    DOCTEST_CHECK(options.oracle_players == -1);
+    DOCTEST_REQUIRE(Parse_({"-oracle-record=a", "-oracle-seed=17", "-oracle-difficulty=3", "-oracle-tactical", "-oracle-players=8"}, '-', &options, &error));
+    DOCTEST_CHECK(options.oracle_players == 8);
     DOCTEST_CHECK(options.oracle_seed == 17);
     DOCTEST_CHECK(options.oracle_difficulty == 3);
     DOCTEST_CHECK(options.oracle_tactical);
@@ -170,7 +172,8 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
              {"-oracle-record=a", "-oracle-turns=1x"}, {"-oracle-record=a", "-oracle-turns=-1"},
              {"-oracle-seed=5"}, {"-oracle-replay=a", "-oracle-difficulty=2"}, {"-oracle-replay=a", "-oracle-tactical"},
              {"-oracle-record=a", "-oracle-seed=0"}, {"-oracle-record=a", "-oracle-seed=2147483648"},
-             {"-oracle-record=a", "-oracle-difficulty=5"}, {"-oracle-record=a", "-oracle-difficulty=-1"}}) {
+             {"-oracle-record=a", "-oracle-difficulty=5"}, {"-oracle-record=a", "-oracle-difficulty=-1"},
+             {"-oracle-record=a", "-oracle-players=1"}, {"-oracle-record=a", "-oracle-players=9"}, {"-oracle-replay=a", "-oracle-players=5"}}) {
         DOCTEST_CHECK_FALSE(Parse_(arguments, '-', &options, &error));
         DOCTEST_CHECK_FALSE(error.empty());
     }
@@ -181,5 +184,6 @@ DOCTEST_TEST_CASE("oracle switches are debug-only and validate conflicting modes
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-seed=1"}, '-', &options, &error));
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-difficulty=1"}, '-', &options, &error));
     DOCTEST_CHECK_FALSE(Parse_({"-oracle-tactical"}, '-', &options, &error));
+    DOCTEST_CHECK_FALSE(Parse_({"-oracle-players=5"}, '-', &options, &error));
 #endif
 }

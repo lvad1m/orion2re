@@ -24,6 +24,7 @@ param(
     [int] $Turns = 100,
     [string] $Exe = "orion2re.exe",
     [switch] $Tactical,
+    [int] $Players = 0,
     [switch] $Visible,
     [System.Collections.IDictionary] $Variants = $null
 )
@@ -128,6 +129,7 @@ foreach ($difficulty in $Difficulties) {
             $arguments = @("/config", $configName, "/oracle-record", "`"$history`"", "/oracle-turns", "$Turns",
                 "/oracle-seed", "$seed", "/oracle-difficulty", "$difficulty")
             if ($Tactical) { $arguments += "/oracle-tactical" }
+            if ($Players -gt 0) { $arguments += @("/oracle-players", "$Players") }
             if ($Visible) {
                 $process = Start-Process $exePath -ArgumentList $arguments -WorkingDirectory $GameDir `
                     -RedirectStandardOutput (Join-Path $OutDir "$tag.out") -RedirectStandardError (Join-Path $OutDir "$tag.err") `

@@ -19,6 +19,7 @@ namespace startup {
         int32_t oracle_difficulty = -1;  // 0..4 for oracle-record; -1 keeps the configured difficulty
         bool oracle_tactical = false;    // oracle-record with tactical-combat settings (AI ship designs for
                                          // tactical combat; battles between computer players stay strategic)
+        int32_t oracle_players = -1;     // 2..8 empires for oracle-record; -1 keeps the configured number
     };
 
     bool Parse_Startup_Options(int argc, const char* const* argv, s_startup_options* options, std::string* error, char prefix = command_line::OPTION_PREFIX);

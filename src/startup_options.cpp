@@ -22,6 +22,7 @@ namespace startup {
             {"oracle-seed", true},
             {"oracle-difficulty", true},
             {"oracle-tactical", false},
+            {"oracle-players", true},
 #endif
         };
         std::vector<command_line::s_option> parsed;
@@ -85,6 +86,16 @@ namespace startup {
                 case 9:
                     options->oracle_tactical = true;
                     break;
+                case 10: {
+                    const char* begin = option.value.data();
+                    const char* end = begin + option.value.size();
+                    const auto result = std::from_chars(begin, end, options->oracle_players);
+                    if (result.ec != std::errc() || result.ptr != end || options->oracle_players < 2 || options->oracle_players > 8) {
+                        *error = "oracle-players expects 2 to 8 empires";
+                        return false;
+                    }
+                    break;
+                }
             }
         }
         if ((!options->oracle_record.empty() && !options->oracle_replay.empty()) ||
@@ -97,9 +108,10 @@ namespace startup {
                 *error = "oracle-turns requires oracle-record; replay uses the recorded turn count";
                 return false;
             }
-            if ((option.definition_index == 7 || option.definition_index == 8 || option.definition_index == 9) &&
+            if ((option.definition_index == 7 || option.definition_index == 8 || option.definition_index == 9 ||
+                    option.definition_index == 10) &&
                 options->oracle_record.empty()) {
-                *error = "oracle-seed, oracle-difficulty and oracle-tactical require oracle-record; replay uses the recorded game";
+                *error = "oracle-seed, oracle-difficulty, oracle-tactical and oracle-players require oracle-record; replay uses the recorded game";
                 return false;
             }
         }

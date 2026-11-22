@@ -22,6 +22,7 @@ namespace turn_oracle {
         uint32_t record_seed = 1;
         int32_t record_difficulty = -1;
         bool record_tactical = false;
+        int32_t record_players = -1;
         int exit_status = EXIT_FAILURE;
 
         bool Capture_(const std::filesystem::path& path, std::string* error) {
@@ -78,6 +79,9 @@ namespace turn_oracle {
                 MOX::cmd_line_seed = record_seed;
                 if (record_difficulty >= GAME_DIFFICULTY_TUTOR && record_difficulty < GAME_DIFFICULTY_COUNT) {
                     MOX::settings.game_difficulty = static_cast<int8_t>(record_difficulty);
+                }
+                if (record_players >= 2 && record_players <= MAX_PLAYERS) {
+                    MOX::settings.number_of_players = static_cast<int8_t>(record_players);
                 }
                 if (!INITGAME::Init_New_Game(MOX::settings.game_difficulty, MOX::settings.galaxy_size, MOX::settings.galaxy_age, MOX::settings.number_of_players, 1, MOX::settings.starting_civilization_level)) {
                     *error = "oracle new-game initialization failed";
@@ -151,6 +155,7 @@ namespace turn_oracle {
         record_seed = options->oracle_seed;
         record_difficulty = options->oracle_difficulty;
         record_tactical = options->oracle_tactical;
+        record_players = options->oracle_players;
         std::error_code code;
         const std::string& directory = recording ? options->oracle_record : options->oracle_replay;
         history_directory = std::filesystem::absolute(std::filesystem::path(std::u8string(directory.begin(), directory.end())), code).lexically_normal();
