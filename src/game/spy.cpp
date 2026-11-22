@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/espionage.h"
+#include "game/spy_ops.h"
 
 #include "game/advisor_apply.h"
 
@@ -50,6 +51,8 @@ namespace spy {
 
         // Spy network core (off by default): network points, free spies, counterintelligence.
         espionage::Turn();
+        // Spy operations (off by default): unrest fades, bribes, the computers' operations.
+        spy_ops::Turn();
     }
 
 

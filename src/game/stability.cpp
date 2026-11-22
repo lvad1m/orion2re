@@ -7,6 +7,7 @@
 #include "game/msg.h"
 #include "game/pop.h"
 #include "game/random.h"
+#include "game/spy_ops.h"
 
 #include <algorithm>
 
@@ -62,6 +63,7 @@ namespace stability {
         negative += std::clamp<int32_t>(p.food_shortage_duration, 0, 10);
         negative += p.tax_rate / 10;
         if (p.surplus_bc < 0) negative += 5;
+        negative += spy_ops::Unrest(colony);  // stirred up by enemy spies (tier 3)
 
         int32_t positive = 0;
         if (!at_war) positive += 3;
