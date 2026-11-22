@@ -4689,6 +4689,30 @@
       },
     },
 
+    combat_log: {
+      title: "Battle dice log",
+      description: "Writes every beam shot and every fighter bomb of a battle to the log as the original rolled it: the weapon, the ships, the d100, the attacker's hit chance, the roll needed and the damage within the weapon's range - for the battle journal of the interface step. The battle itself is unchanged.",
+      remarks: "False writes nothing. The rolls are the original's; nothing is rolled for the log.",
+      examples: ["dice combat_log = true;"],
+      group: "gameplay",
+      namespace: "dice",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/combat_dice.h", symbol: "combat_dice::combat_log" },
+    },
+
+    combat_crits: {
+      title: "Critical hits",
+      description: "A natural 96-100 on a beam shot that hits a ship (the original's critical, which only gave the most damage) also knocks out one system of the struck ship for the rest of the turn, at random: its shields drop to zero (they recharge as usual), its drive has no movement left, or its computer readies no more weapons.",
+      remarks: "False preserves classic behavior. Changes the balance of battles: a variant of the big bench first (mechanics.md 3.6.4).",
+      examples: ["dice combat_crits = true;"],
+      group: "gameplay",
+      namespace: "dice",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/combat_dice.h", symbol: "combat_dice::combat_crits" },
+    },
+
     memory: {
       title: "Diplomatic memory",
       description: "Lets trust heal after a betrayal and grow while treaties hold, fades the grievance of broken treaties, and makes empires weary of wars that cost them ships and population: war-weary computer empires make peace sooner and accept peace offers more readily.",

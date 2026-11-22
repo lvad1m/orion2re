@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/combat_dice.h"
 
 #include "lua/lua_game.h"
 
@@ -885,6 +886,7 @@ namespace CMBTFIRE {
                 }
 
                 Apply_Ship_Damage(target_unit_idx, &damage, &internal_damage, damage_modifier, damage_special_flags, weapon_flags, 0, 0, 0);
+                combat_dice::Log_Ordnance_Hit(source_unit_idx, target_unit_idx, weapon_id, roll, damage);
 
                 *total_damage += damage;
                 *total_internal_damage += internal_damage;
@@ -1317,11 +1319,13 @@ namespace CMBTFIRE {
         }
 
         int16_t shield_hit_y = 0;
+        bool critical_hit = false;  // dice combat_crits (off by default): applied after the volley
 
         for (int16_t loop_counter = 0; loop_counter < total_shots; ++loop_counter) {
             if (continue_firing == 0) break;
 
             int64_t roll = game_random::Random(100);
+            const int32_t natural_roll = static_cast<int32_t>(roll);  // dice: the roll as the original made it
             if ((weapon_flags_00 & WEAPON_NATURAL_FLAG_ALWAYS_HITS) != 0) {
                 roll = 100;
             }
@@ -1340,7 +1344,10 @@ namespace CMBTFIRE {
                 }
             }
 
-            if (roll < range_modifier) continue;
+            if (roll < range_modifier) {
+                combat_dice::Log_Beam_Shot(source, target, weapon_id, natural_roll, hit_chance, range_modifier, 0, min_damage, max_damage);
+                continue;
+            }
 
             int64_t current_damage_calc = min_damage;
             if (damage_variance > 0) {
@@ -1354,6 +1361,8 @@ namespace CMBTFIRE {
                 current_damage_calc = max_damage;
             }
             int16_t current_damage = (int16_t)current_damage_calc;
+            combat_dice::Log_Beam_Shot(source, target, weapon_id, natural_roll, hit_chance, range_modifier, current_damage, min_damage, max_damage);
+            if (natural_roll > 95 && target != 0) critical_hit = true;
 
             if (weapon_flags == 0) {
                 if (target == 0) {
@@ -1402,6 +1411,7 @@ namespace CMBTFIRE {
             }
         }
 
+        if (critical_hit) combat_dice::On_Critical_Hit(source, target);
         return (int16_t)return_flags;
     }
 

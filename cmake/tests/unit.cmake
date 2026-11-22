@@ -45,6 +45,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/beliefs_config.cpp
     src/game/world_events_config.cpp
     src/game/crises_config.cpp
+    src/game/combat_dice_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1029,6 +1030,10 @@ orion2re_add_game_test(test_crises
     tests/unit/crises_test.cpp
 )
 
+orion2re_add_game_test(test_combat_dice
+    tests/unit/combat_dice_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1319,6 +1324,7 @@ orion2re_add_unit_test(test_cmbtfire
     FAKE_SOURCES
         tests/fakes/fake_lua_game_runtime.cpp
         tests/fakes/fake_stasis_runtime.cpp
+        tests/fakes/fake_combat_dice.cpp
 )
 
 orion2re_add_unit_test(test_cmbtspec
