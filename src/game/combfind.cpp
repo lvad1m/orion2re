@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "legacy_ids.h"
 #include "game/advisor_intel.h"
+#include "game/opinion.h"
 
 namespace COMBFIND {
 
@@ -1611,6 +1612,13 @@ namespace COMBFIND {
 
         // Intel memory (advisor rules_seen_ships): both sides see the other's warships.
         advisor::Observe_Battle(attacker_ships, attacker_count, defender_ships, defender_count);
+
+        // Opinion modifiers (diplomacy opinion, off by default): a battle between empires not at
+        // war is an attack without a declaration of war, and the defender remembers it.
+        if (attacker_idx >= 0 && attacker_idx < MAX_PLAYERS && defender_idx >= 0 && defender_idx < MAX_PLAYERS &&
+            attacker_idx != defender_idx && MOX::player[defender_idx].treaty[attacker_idx] < 4) {
+            opinion::On_Sneak_Attack(attacker_idx, defender_idx);
+        }
 
         if (attacker_idx < MAX_PLAYERS) {
             REPORT::something_interesting_happened[attacker_idx] = 1;

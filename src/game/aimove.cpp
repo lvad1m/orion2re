@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/advisor_apply.h"
+#include "game/opinion.h"
 #include "ai_compat.h"
 
 #include "legacy_world.h"
@@ -80,7 +81,11 @@ namespace AIMOVE {
             int16_t star_idx = world->planets[p_ai->sneak_attack_planet].star_index;
             if (ai->stars[legacy_world::Star_Id(star_idx)].enroute_strengths[i_ai][target_player][1] != 0) {
                 const auto legacy_player = legacy_world::Index(ctx->player_idx);
-                if (legacy_player) diplomac::Declare_War(*legacy_player, target_player);
+                if (legacy_player) {
+                    // Opinion modifiers (off by default): the victim remembers the sneak attack.
+                    opinion::On_Sneak_Attack(static_cast<int16_t>(*legacy_player), target_player);
+                    diplomac::Declare_War(*legacy_player, target_player);
+                }
             }
         }
     }

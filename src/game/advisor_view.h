@@ -107,6 +107,9 @@ namespace advisor {
         // Military report (advisor_reports.h): the fighting power they claim near our colonies,
         // times the share of it we believe; source FACT_DIPLOMACY when they sent one this turn.
         s_fact reported_power;
+        // Opinion modifiers (opinion.h): why we feel as we do about them, by opinion::e_reason;
+        // all zero with the flag off.
+        int8_t opinion[8] = {};
     };
 
     struct s_empire_view {

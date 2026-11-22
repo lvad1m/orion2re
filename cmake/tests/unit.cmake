@@ -31,6 +31,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/council_ai_config.cpp
     src/game/dice_config.cpp
     src/game/diplomacy_memory_config.cpp
+    src/game/opinion_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -959,6 +960,10 @@ orion2re_add_game_test(test_diplomacy_memory
     tests/unit/diplomacy_memory_test.cpp
 )
 
+orion2re_add_game_test(test_opinion
+    tests/unit/opinion_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1342,6 +1347,8 @@ orion2re_add_unit_test(test_savegame
         src/config/generated/config.cpp
         src/game/savegame.cpp
         src/game/save_sections.cpp
+        src/game/rules_sections.cpp
+        src/game/opinion.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

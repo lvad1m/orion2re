@@ -7,6 +7,7 @@
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
 #include "game/advisor_intel.h"
+#include "game/rules_sections.h"
 #include "game/save_sections.h"
 #include "lua/lua_game.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1815,9 +1816,20 @@ namespace SAVEGAME {
         const bool write_intel = write_advisor && !advisor::Seen_Memory_Empty();
         const uint32_t intel_size =
             write_intel ? static_cast<uint32_t>(advisor::Seen_Save_Size()) : 0;
-        const uint32_t section_count = 2 + (write_advisor ? 1 : 0) + (write_intel ? 1 : 0);
+        // Extended-rules sections (game/rules_sections.h), each only while its mechanic holds
+        // state; they come right after the Lua section.
+        uint32_t rules_count = 0;
+        const s_rules_section* rules = Rules_Sections(&rules_count);
+        uint32_t rules_written = 0;
+        uint32_t rules_size = 0;
+        for (uint32_t i = 0; i < rules_count; ++i) {
+            if (!rules[i].has_state()) continue;
+            ++rules_written;
+            rules_size += rules[i].size();
+        }
+        const uint32_t section_count = 2 + rules_written + (write_advisor ? 1 : 0) + (write_intel ? 1 : 0);
         const uint32_t payload_size =
-            config_snapshot_size + lua_snapshot_size + advisor_size + intel_size;
+            config_snapshot_size + lua_snapshot_size + rules_size + advisor_size + intel_size;
         const uint32_t extension_size = Extension_Size(payload_size, section_count);
         writer->Write_Uint32(VERSIONED_HEADER);
         writer->Write_Bytes(description, sizeof(s_metadata::description));
@@ -1845,6 +1857,11 @@ namespace SAVEGAME {
             SECTION_FLAG_REQUIRED,
             lua_snapshot_size);
         orion2re::lua::Write_Lua_Save_Snapshot(writer, &lua_snapshot);
+        for (uint32_t i = 0; i < rules_count; ++i) {
+            if (!rules[i].has_state()) continue;
+            Write_Section_Header(writer, rules[i].type, rules[i].version, 0, rules[i].size());
+            rules[i].write(writer);
+        }
         if (write_intel) {
             Write_Section_Header(writer,
                 SECTION_TYPE_ADVISOR_INTEL,
@@ -1899,7 +1916,12 @@ namespace SAVEGAME {
                 &ignored_settings,
                 &ignored_seed);
         };
+        uint32_t rules_count = 0;
+        const s_rules_section* rules = Rules_Sections(&rules_count);
+        bool found_rules[MAX_EXTENSION_SECTIONS] = {};
         const auto fail_after_native_read = [&]() {
+            // Parsed extended-rules state is dropped; the current game keeps its own.
+            for (uint32_t i = 0; i < rules_count; ++i) rules[i].discard();
             if (queued_network_lua_state) {
                 orion2re::lua::Clear_Queued_Lua_Network_Load_State();
             }
@@ -1945,6 +1967,31 @@ namespace SAVEGAME {
                  section_index < section_count;
                  ++section_index) {
                 const s_section_view& section = sections[section_index];
+                const s_rules_section* rules_section = Find_Rules_Section(section.type);
+                if (rules_section != nullptr) {
+                    const uint32_t rules_index = static_cast<uint32_t>(rules_section - rules);
+                    if (section.version != rules_section->version) {
+                        if ((section.flags & SECTION_FLAG_REQUIRED) != 0) {
+                            if (error_text != nullptr) {
+                                *error_text = "unsupported required save section version";
+                            }
+                            return fail_after_native_read();
+                        }
+                        continue;
+                    }
+                    SERIAL::Reader_ rules_reader(section.data, section.size, "invalid save extension section payload", true);
+                    std::string rules_error;
+                    if (rules_index >= MAX_EXTENSION_SECTIONS || found_rules[rules_index] ||
+                        !rules_section->parse(&rules_reader, &rules_error) || rules_reader.Remaining() != 0) {
+                        if (error_text != nullptr) {
+                            *error_text = std::string("Error loading ") + rules_section->name + ": " +
+                                (rules_error.empty() ? std::string("duplicate or malformed section") : rules_error);
+                        }
+                        return fail_after_native_read();
+                    }
+                    found_rules[rules_index] = true;
+                    continue;
+                }
                 if (section.type == SECTION_TYPE_ADVISOR) {
                     if (section.version != ADVISOR_SECTION_VERSION) {
                         if ((section.flags & SECTION_FLAG_REQUIRED) != 0) {
@@ -2110,6 +2157,15 @@ namespace SAVEGAME {
             }
         }
         if (loaded_seen) advisor::Commit_Seen_Save(loaded_seen.get());
+        // Extended rules: the sections found become current; a mechanic without a section in
+        // this save starts empty.
+        for (uint32_t i = 0; i < rules_count; ++i) {
+            if (i < MAX_EXTENSION_SECTIONS && found_rules[i]) {
+                rules[i].commit();
+            } else {
+                rules[i].clear();
+            }
+        }
         free(prior_state);
         return true;
     }

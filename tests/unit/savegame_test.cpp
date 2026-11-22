@@ -7,6 +7,8 @@
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
 #include "game/advisor_intel.h"
+#include "game/opinion.h"
+#include "game/rules_sections.h"
 #include "game/savegame.h"
 #include "game/save_sections.h"
 #include "lua/lua_game_ship_identity.h"
@@ -1809,6 +1811,76 @@ DOCTEST_TEST_CASE("intel memory gets its own optional section only when it is no
     DOCTEST_REQUIRE(Read_Advisor_Save_(save));
     DOCTEST_CHECK(advisor::Seen_Memory_Empty());
     DOCTEST_CHECK(advisor::Get_Directive(2)->source == advisor::SOURCE_DEBUG);
+}
+
+DOCTEST_TEST_CASE("opinion modifiers get their own optional section; a failed load keeps the current ones") {
+    s_advisor_save_scope scope;
+    const bool old_opinion = opinion::enabled;
+    auto state = std::make_unique<State_>();
+    Prepare_Advisor_Save_State_(*state);
+    advisor::enabled = false;
+    opinion::Clear();
+    opinion::enabled = true;
+    // The filled state's player count is kept (its ships and colonies have owners up to it).
+    DOCTEST_REQUIRE(MOX::NUM_PLAYERS >= 4);
+    for (int i = 0; i < 4; ++i) {
+        MOX::player[i].objectives = PLAYER_OBJECTIVE_MILITARIST;
+        MOX::player[i].eliminated = 0;
+    }
+
+    s_advisor_save empty_memory;
+    Write_Advisor_Save_(&empty_memory);
+    DOCTEST_CHECK(Extension_Section_Count_(empty_memory) == 2);
+
+    opinion::Add(1, 2, opinion::REASON_SNEAK_ATTACK, -40);
+    opinion::Add(3, 1, opinion::REASON_HELPED_IN_WAR, 25);
+    s_advisor_save save;
+    Write_Advisor_Save_(&save);
+    DOCTEST_CHECK(Extension_Section_Count_(save) == 3);
+    DOCTEST_CHECK(save.size == empty_memory.size + SAVEGAME::SECTION_HEADER_SIZE + opinion::Save_Size());
+    // With the advisor off the opinion section is the last one.
+    uint8_t* header = save.bytes.get() + save.size - opinion::Save_Size() - SAVEGAME::SECTION_HEADER_SIZE;
+    uint32_t type = 0;
+    memcpy(&type, header, sizeof(type));
+    DOCTEST_REQUIRE(type == SAVEGAME::SECTION_TYPE_OPINION);
+
+    opinion::Clear();
+    {
+        SERIAL::Reader_ reader(save.bytes.get(), save.size, "test save underflow");
+        SAVEGAME::s_metadata metadata = {};
+        s_settings settings = {};
+        uint32_t seed = 0;
+        std::string error;
+        const bool loaded = SAVEGAME::Read_Game(&reader, &metadata, &settings, &seed, &error);
+        DOCTEST_INFO("load error: ", error);
+        DOCTEST_REQUIRE(loaded);
+    }
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -40);
+    DOCTEST_CHECK(opinion::Modifier(3, 1, opinion::REASON_HELPED_IN_WAR) == 25);
+
+    // A corrupt payload fails the load, and the current game keeps its memories.
+    header[SAVEGAME::SECTION_HEADER_SIZE + sizeof(uint16_t)] = 0x7F;
+    DOCTEST_CHECK_FALSE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -40);
+    header[SAVEGAME::SECTION_HEADER_SIZE + sizeof(uint16_t)] = 0;
+
+    // An unknown section version is skipped, and a save without the section leaves none behind.
+    const uint16_t unknown_version = 2;
+    memcpy(header + 4, &unknown_version, sizeof(unknown_version));
+    DOCTEST_REQUIRE(Read_Advisor_Save_(save));
+    DOCTEST_CHECK(opinion::Empty());
+    opinion::Add(1, 2, opinion::REASON_SNEAK_ATTACK, -40);
+    DOCTEST_REQUIRE(Read_Advisor_Save_(empty_memory));
+    DOCTEST_CHECK(opinion::Empty());
+
+    // With the flag off nothing is written, even with memories left over.
+    opinion::Add(1, 2, opinion::REASON_SNEAK_ATTACK, -40);
+    opinion::enabled = false;
+    s_advisor_save off;
+    Write_Advisor_Save_(&off);
+    DOCTEST_CHECK(Extension_Section_Count_(off) == 2);
+    opinion::Clear();
+    opinion::enabled = old_opinion;
 }
 
 DOCTEST_TEST_CASE("corrupt advisor payload fails the load and leaves the store empty") {

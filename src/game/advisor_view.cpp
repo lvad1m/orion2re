@@ -12,6 +12,7 @@
 #include "game/aipower.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
+#include "game/opinion.h"
 #include "game/shipstak.h"
 #include "game/struct.h"
 
@@ -174,6 +175,10 @@ namespace advisor {
             contact->personality = them.personality;
 
             Set_Fact(&contact->relations, me.relations[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+            static_assert(sizeof(contact->opinion) == opinion::REASON_COUNT, "one opinion slot per reason");
+            for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
+                contact->opinion[r] = static_cast<int8_t>(opinion::Modifier(player, other, static_cast<opinion::e_reason>(r)));
+            }
             Set_Fact(&contact->treaty, me.treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
             Set_Fact(&contact->trade_treaty, me.trade_treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
             Set_Fact(&contact->research_treaty, me.research_treaty[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
@@ -386,6 +391,16 @@ namespace advisor {
                           contact.race_name, static_cast<int>(contact.player), contact.leader_name,
                           Personality_Name(contact.personality));
             Append_Fact_Line(out, "relations", contact.relations);
+            {
+                bool any = false;
+                for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
+                    if (contact.opinion[r] == 0) continue;
+                    Append_Format(out, any ? "; %s %+d" : "   - why we feel so: %s %+d",
+                                  opinion::Reason_Name(static_cast<opinion::e_reason>(r)), static_cast<int>(contact.opinion[r]));
+                    any = true;
+                }
+                if (any) out->append(" [memory, fading]\n");
+            }
             Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
             Append_Tag(out, contact.treaty);
             out->push_back('\n');

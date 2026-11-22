@@ -2,6 +2,7 @@
 #include "string_overrides.h"
 #include "game/advisor_apply.h"
 #include "game/council_ai.h"
+#include "game/opinion.h"
 
 namespace council {
     const char lbx_00559a68[12] = "council.lbx";
@@ -826,7 +827,7 @@ namespace council {
                 ((MOX::player[voter_idx].trust_worthiness[candidate_idx] -
                      MOX::player[voter_idx].diplomacy_proposal_rejection[candidate_idx] * 10) *
                     2) +
-                MOX::player[voter_idx].relations[candidate_idx];
+                opinion::Relations(voter_idx, candidate_idx);
 
             /* If the voter is allied with the opposing candidate, increase the score requirement. */
             if (MOX::player[voter_idx].treaty[opponent_idx] >= 4 /* TREATY_ALLIANCE */) {

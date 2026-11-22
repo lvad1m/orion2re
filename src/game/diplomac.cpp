@@ -2,6 +2,7 @@
 
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
+#include "game/opinion.h"
 
 #include "legacy_world.h"
 
@@ -260,7 +261,7 @@ namespace diplomac {
     int16_t __cdecl Sneak_Attack_Evaluations(int16_t player_idx, int16_t target_idx, int16_t* out_eval_threshold, int16_t* out_message_id, int16_t* out_unused) {
         (void)out_unused;
 
-        int8_t rel = MOX::player[player_idx].relations[target_idx];
+        int8_t rel = static_cast<int8_t>(opinion::Relations(player_idx, target_idx));
         int8_t rel_divisor = (rel < 50) ? 10 : 5;
 
         int16_t msg_id = 67 /* 0x43 */;
@@ -812,6 +813,8 @@ namespace diplomac {
 
         // Diplomacy memory (off by default): trust heals and grows, grievances fade.
         diplomemory::End_Of_Turn();
+        // Opinion modifiers (off by default): each memory fades.
+        opinion::End_Of_Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1151,6 +1154,9 @@ namespace diplomac {
 
             p1->peace_duration[target_idx] = 0;
             p2->peace_duration[player_idx] = 0;
+
+            // Opinion modifiers (off by default): the enemies of each side remember the help.
+            opinion::On_War_Started(player_idx, target_idx);
         }
     }
 
@@ -1619,7 +1625,7 @@ namespace diplomac {
                 if (MOX::player[player_idx].reward_attack_player[other_player_idx] != -1) {
                     MOX::player[player_idx].reward_attack_player[other_player_idx] = -1;
                     MOX::player[player_idx].diplomacy_message[other_player_idx] = ']';
-                } else if (game_random::Random(100) + MOX::player[player_idx].relations[other_player_idx] >= 75 /* 0x4B */) {
+                } else if (game_random::Random(100) + opinion::Relations(player_idx, other_player_idx) >= 75 /* 0x4B */) {
                     MOX::player[player_idx].diplomacy_message[other_player_idx] = '^';
                 } else {
                     int16_t demands = 0;
@@ -1683,7 +1689,7 @@ namespace diplomac {
                 plr->council_threat = -1;
             }
 
-            if (plr->relations[target_player] < 0) {
+            if (opinion::Relations(current_player, target_player) < 0) {
                 adj_severity -= (int16_t)plr->relations[target_player];
             }
 
@@ -1896,12 +1902,12 @@ namespace diplomac {
                 } else if (roll <= 9) {
                     if (player.treaty[target_idx] == 0) choice = 2;
                 } else if (roll <= 12) {
-                    if (player.relations[target_idx] >= 0 && player.trade_treaty[target_idx] == 0) choice = 1;
+                    if (opinion::Relations(player_idx, target_idx) >= 0 && player.trade_treaty[target_idx] == 0) choice = 1;
                 } else if (roll <= 15) {
-                    if (player.relations[target_idx] >= 0 && player.research_treaty[target_idx] == 0) choice = 4;
+                    if (opinion::Relations(player_idx, target_idx) >= 0 && player.research_treaty[target_idx] == 0) choice = 4;
                 } else if (roll <= 18) {
                     if (player.treaty[target_idx] == 1) choice = 3;
-                } else if (player.treaty[target_idx] != 2 && game_random::Random(3) == 1 && player.relations[target_idx] >= 0) {
+                } else if (player.treaty[target_idx] != 2 && game_random::Random(3) == 1 && opinion::Relations(player_idx, target_idx) >= 0) {
                     choice = 6;
                 }
             }
@@ -1966,7 +1972,7 @@ namespace diplomac {
             for (int16_t i = 0; i < (int16_t)MOX::NUM_PLAYERS; ++i) {
                 if (i != player_idx && i != target_idx) {
                     if (player.contact[i] == 1 && MOX::player[target_idx].contact[i] == 1 &&
-                        MOX::player[target_idx].treaty[i] < 4 && player.relations[i] <= -50 &&
+                        MOX::player[target_idx].treaty[i] < 4 && opinion::Relations(player_idx, i) <= -50 &&
                         MOX::player[i].ship_war_losses[player_idx] < player.ship_war_losses[i] &&
                         player.personality != PLAYER_PERSONALITY_XENOPHOBIC && player.time_since_last_attack[i] >= 20 &&
                         player.ship_war_losses[i] > 0) {
@@ -2054,25 +2060,25 @@ namespace diplomac {
                 // Objectives 100 is typically used for specific internal logic (e.g., Orion)
                 if (MOX::player[p1].objectives != PLAYER_OBJECTIVE_HUMAN || MOX::player[p2].objectives != PLAYER_OBJECTIVE_HUMAN) {
                     if (game_random::Random(2) == 1) {
-                        if (MOX::player[p1].relations[p2] < -50 && MOX::player[p1].peace_duration[p2] > 0) {
+                        if (opinion::Relations(p1, p2) < -50 && MOX::player[p1].peace_duration[p2] > 0) {
                             Change_Relations(1, p1, p2, 0, 0, 0);
                         }
                     }
 
                     if (MOX::player[p1].treaty[p2] == 1 /* Peace */) {
-                        if ((int16_t)game_random::Random(100) <= (100 - MOX::player[p1].relations[p2])) {
+                        if ((int16_t)game_random::Random(100) <= (100 - opinion::Relations(p1, p2))) {
                             Change_Relations(game_random::Random(3), p1, p2, 0, 0, 0);
                         }
                     }
 
                     if (MOX::player[p1].trade_treaty[p2] == 1) {
-                        if ((int16_t)game_random::Random(100) <= (100 - MOX::player[p1].relations[p2])) {
+                        if ((int16_t)game_random::Random(100) <= (100 - opinion::Relations(p1, p2))) {
                             Change_Relations(game_random::Random(3), p1, p2, 12 /* TRADE_TREATY */, 0, 0);
                         }
                     }
 
                     if (MOX::player[p1].research_treaty[p2] == 1) {
-                        if ((int16_t)game_random::Random(100) <= (100 - MOX::player[p1].relations[p2])) {
+                        if ((int16_t)game_random::Random(100) <= (100 - opinion::Relations(p1, p2))) {
                             Change_Relations(game_random::Random(3), p1, p2, 13 /* RESEARCH_TREATY */, 0, 0);
                         }
                     }
@@ -2082,13 +2088,13 @@ namespace diplomac {
                     }
 
                     if (MOX::player[p1].tribute_treaty[p2] == 1) {
-                        if ((int16_t)game_random::Random(100) <= (100 - MOX::player[p1].relations[p2])) {
+                        if ((int16_t)game_random::Random(100) <= (100 - opinion::Relations(p1, p2))) {
                             Change_Relations(game_random::Random(3), p1, p2, 14 /* TRIBUTE */, 0, 0);
                         }
                     }
 
                     if (MOX::player[p1].tribute_treaty[p2] == 2) {
-                        if ((int16_t)game_random::Random(100) <= (100 - MOX::player[p1].relations[p2])) {
+                        if ((int16_t)game_random::Random(100) <= (100 - opinion::Relations(p1, p2))) {
                             Change_Relations(game_random::Random(8), p1, p2, 14 /* TRIBUTE */, 0, 0);
                         }
                     }
@@ -3203,7 +3209,7 @@ namespace diplomac {
             }
             case 2: {
                 result = Diplomacy_Test(player_idx, target_idx, MOX::player[player_idx].broken_treaties_modifier[target_idx] + 0x7D, 0);
-                if (MOX::player[player_idx].relations[target_idx] < 50) {
+                if (opinion::Relations(player_idx, target_idx) < 50) {
                     result = 0;
                 }
                 demand_category = 4;
@@ -3278,7 +3284,7 @@ namespace diplomac {
                         ((fleet_cmp - 100) / 2) - war_loss_cmp) -
                     MOX::player[player_idx].broken_treaties_modifier[target_idx] -
                     MOX::player[player_idx].trust_worthiness[target_idx] +
-                    MOX::player[player_idx].relations[target_idx];
+                    opinion::Relations(player_idx, target_idx);
 
                 result = Diplomacy_Test(
                     player_idx, target_idx, test_val, alternate_diplomacy != 0 ? 3 : 0);
@@ -3472,7 +3478,7 @@ namespace diplomac {
 
     int16_t __cdecl Diplomacy_Test(int16_t evaluator_idx, int16_t proposer_idx, int16_t difficulty_mod, int16_t treaty_type) {
         int16_t score = (int16_t)MOX::player[evaluator_idx].broken_treaties_modifier[proposer_idx] +
-            (int16_t)MOX::player[evaluator_idx].relations[proposer_idx] +
+            (int16_t)opinion::Relations(evaluator_idx, proposer_idx) +
             (int16_t)MOX::player[evaluator_idx].trust_worthiness[proposer_idx];
 
         int16_t modifier;

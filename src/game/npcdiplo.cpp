@@ -2,6 +2,7 @@
 
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
+#include "game/opinion.h"
 
 namespace npcdiplo {
     s_npcdiplo_tech target_tech[TECH_APP_COUNT];
@@ -204,7 +205,7 @@ namespace npcdiplo {
                         decision[j] == 0) {
                         if (diplomac::Fleet_Strength_Comparison(i, j) >= 100 && (int)MOX::stardate % MOX::NUM_PLAYERS == j) {
                             int diff = MOX::settings.game_difficulty;
-                            int threshold = (-5 - p_source.relations[j]) / (diff * 2 + 1);
+                            int threshold = (-5 - opinion::Relations(static_cast<int16_t>(i), static_cast<int16_t>(j))) / (diff * 2 + 1);
                             if ((int16_t)game_random::Random(100) <= threshold) {
                                 decision[j] = 1;
                                 reason[j] = 68 /* OPPORTUNISTIC_ATTACK */;
@@ -392,7 +393,7 @@ namespace npcdiplo {
 
                         s_player* p2 = &MOX::player[p2_idx];
                         if (p2->objectives != PLAYER_OBJECTIVE_HUMAN && p2->traits[TRAIT_REPULSIVE] == 0 && p1->contact[p2_idx] != 0) {
-                            if ((int16_t)game_random::Random(100) < (int)p1->relations[p2_idx] + 50) {
+                            if ((int16_t)game_random::Random(100) < (int)opinion::Relations(p1_idx, p2_idx) + 50) {
                                 if ((int16_t)game_random::Random(4) <= (int)MOX::settings.game_difficulty) {
                                     int16_t best_tech_for_p1 = -1;
                                     uint32_t max_val_for_p1 = 0;
@@ -651,7 +652,7 @@ namespace npcdiplo {
                 if (plr_i.contact[j] != 1) continue;
 
                 if (plr_i.treaty[j] < 4 && plr_i.treaty_modifier[j] > -30) {
-                    int32_t score_base = (int32_t)plr_i.relations[j] + (int32_t)plr_i.broken_treaties_modifier[j];
+                    int32_t score_base = (int32_t)opinion::Relations(i, j) + (int32_t)plr_i.broken_treaties_modifier[j];
 
                     if (plr_i.treaty[j] == 1 /* TREATY_PEACE */) score_base += 20;
                     if (plr_i.treaty[j] == 2 /* TREATY_NON_AGGRESSION */) score_base += 40;
@@ -870,7 +871,7 @@ namespace npcdiplo {
     int16_t __cdecl Get_Tech_Exchange_Reaction(int16_t player_idx, int16_t target_idx, int16_t reaction_bonus_flag) {
         int32_t rand_val = game_random::Random(150);
 
-        int32_t reaction = MOX::player[player_idx].diplomacy_proposal_rejection[target_idx] * 20 + COLCALC::Best_Leader_Diplomat_Bonus(player_idx) + (GAME_DIFFICULTY_HARD - MOX::settings.game_difficulty) * 50 + MOX::player[player_idx].broken_treaties_modifier[target_idx] + MOX::player[player_idx].relations[target_idx];
+        int32_t reaction = MOX::player[player_idx].diplomacy_proposal_rejection[target_idx] * 20 + COLCALC::Best_Leader_Diplomat_Bonus(player_idx) + (GAME_DIFFICULTY_HARD - MOX::settings.game_difficulty) * 50 + MOX::player[player_idx].broken_treaties_modifier[target_idx] + opinion::Relations(player_idx, target_idx);
 
         if (MOX::player[player_idx].traits[TRAIT_CHARISMATIC] != 0) {
             reaction += 50;

@@ -4752,6 +4752,69 @@
       },
     },
 
+    opinion: {
+      title: "Opinion modifiers",
+      description: "Lets computer empires remember why they like or dislike another empire - a sneak attack, help in their war - with each memory fading over time. Their treaty answers, war plans, demands and council votes read the classic relations plus these memories.",
+      remarks: "False preserves classic behavior: decisions read the classic relations only. The memories are kept in an optional save section that older builds skip.",
+      examples: ["diplomacy opinion = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/opinion.h",
+        symbol: "opinion::enabled",
+      },
+    },
+
+    opinion_decay_period: {
+      title: "Opinion fading period",
+      description: "Sets how many turns pass before each opinion modifier moves one point toward zero.",
+      remarks: "Effective only while diplomacy opinion is true. With 2, a sneak attack of -40 is forgotten after 80 turns.",
+      examples: ["diplomacy opinion_decay_period = 4;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 50 },
+      default: 2,
+      bind_root: {
+        header: "game/opinion.h",
+        symbol: "opinion::decay_period",
+      },
+    },
+
+    opinion_sneak_attack: {
+      title: "Opinion after a sneak attack",
+      description: "Sets the opinion modifier a computer empire gets toward an empire that attacked it without declaring war.",
+      remarks: "Effective only while diplomacy opinion is true. A repeated sneak attack deepens the memory, up to -100.",
+      examples: ["diplomacy opinion_sneak_attack = -60;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -40,
+      bind_root: {
+        header: "game/opinion.h",
+        symbol: "opinion::sneak_attack",
+      },
+    },
+
+    opinion_helped_in_war: {
+      title: "Opinion for help in a war",
+      description: "Sets the opinion modifier a computer empire at war gets toward an empire that goes to war with its enemy.",
+      remarks: "Effective only while diplomacy opinion is true.",
+      examples: ["diplomacy opinion_helped_in_war = 15;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 0, max: 100 },
+      default: 25,
+      bind_root: {
+        header: "game/opinion.h",
+        symbol: "opinion::helped_in_war",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

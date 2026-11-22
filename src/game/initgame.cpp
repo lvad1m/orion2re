@@ -2,6 +2,7 @@
 
 #include "legacy_world.h"
 #include "game/advisor.h"
+#include "game/rules_sections.h"
 #include "string_overrides.h"
 
 #include "lua/lua_game.h"
@@ -138,6 +139,7 @@ namespace INITGAME {
         }
         AIDATA::Reset(&AIDATA::state);
         advisor::Reset();
+        SAVEGAME::Clear_Rules_State();  // extended rules start empty (game/rules_sections.h)
         game::current = legacy_world::World();
         orion2re::lua::game::Reset_Semantic_State();
         const bool random_player_count =
