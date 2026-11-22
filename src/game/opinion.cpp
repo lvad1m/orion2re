@@ -42,6 +42,12 @@ namespace opinion {
         slot = static_cast<int8_t>(std::clamp<int32_t>(slot + value, -MODIFIER_LIMIT, MODIFIER_LIMIT));
     }
 
+    void Set(int16_t holder, int16_t target, e_reason reason, int32_t value) {
+        if (!enabled || reason >= REASON_COUNT || holder == target) return;
+        if (!Holds_Opinions_(holder) || !Valid_(target) || MOX::player[target].eliminated != 0) return;
+        table[holder][target][reason] = static_cast<int8_t>(std::clamp<int32_t>(value, -MODIFIER_LIMIT, MODIFIER_LIMIT));
+    }
+
     int32_t Modifier(int16_t holder, int16_t target, e_reason reason) {
         if (!Valid_(holder) || !Valid_(target) || reason >= REASON_COUNT) return 0;
         return table[holder][target][reason];

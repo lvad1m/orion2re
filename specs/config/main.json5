@@ -4831,6 +4831,85 @@
       },
     },
 
+    rivalry: {
+      title: "Rivalry",
+      description: "Lets empires formally declare another their rival. While a rivalry holds, the rival remembers it in its opinion of the declarer, and the declarer weighs war on its rival more boldly. Computer empires declare and drop rivals by rules: an advised empire takes its main rival when it is hostile to it; others take the contact in range they think worst of, if bad enough.",
+      remarks: "False preserves classic behavior. The opinion penalty needs diplomacy opinion. Rivalries are kept in an optional save section that older builds skip.",
+      examples: ["diplomacy rivalry = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: {
+        header: "game/rivalry.h",
+        symbol: "rivalry::enabled",
+      },
+    },
+
+    rivalry_period: {
+      title: "Rivalry review period",
+      description: "Sets how many turns pass between the computer empires' reviews of their rivalries.",
+      remarks: "Effective only while diplomacy rivalry is true.",
+      examples: ["diplomacy rivalry_period = 20;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 1, max: 100 },
+      default: 10,
+      bind_root: {
+        header: "game/rivalry.h",
+        symbol: "rivalry::period",
+      },
+    },
+
+    rivalry_opinion: {
+      title: "Opinion of a declared rival",
+      description: "Sets the opinion modifier a rival holds toward the empire that declared it a rival, while the rivalry lasts; afterwards it fades like other memories.",
+      remarks: "Effective only while diplomacy rivalry and diplomacy opinion are true.",
+      examples: ["diplomacy rivalry_opinion = -30;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -20,
+      bind_root: {
+        header: "game/rivalry.h",
+        symbol: "rivalry::opinion_value",
+      },
+    },
+
+    rivalry_strength_percent: {
+      title: "Boldness against a rival",
+      description: "Sets, in percent, how an empire counts its fleet against its declared rival when it weighs war.",
+      remarks: "Effective only while diplomacy rivalry is true. 100 keeps the classic comparison.",
+      examples: ["diplomacy rivalry_strength_percent = 125;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: 100, max: 200 },
+      default: 110,
+      bind_root: {
+        header: "game/rivalry.h",
+        symbol: "rivalry::strength_percent",
+      },
+    },
+
+    rivalry_hatred: {
+      title: "Opinion that makes a rival",
+      description: "A computer empire without an advisor declares as its rival the contact in range it thinks worst of, if its opinion of it is at or below this value.",
+      remarks: "Effective only while diplomacy rivalry is true. With diplomacy opinion, the opinion includes the remembered reasons.",
+      examples: ["diplomacy rivalry_hatred = -70;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "int32",
+      constraints: { min: -100, max: 0 },
+      default: -50,
+      bind_root: {
+        header: "game/rivalry.h",
+        symbol: "rivalry::hatred",
+      },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

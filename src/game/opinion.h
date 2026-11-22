@@ -43,6 +43,11 @@ namespace opinion {
     // holder == target.
     void Add(int16_t holder, int16_t target, e_reason reason, int32_t value);
 
+    // Sets the modifier to `value` (within MODIFIER_LIMIT), for a memory that holds while its
+    // cause lasts (a declared rivalry, an embargo): its mechanic sets it every turn, and once the
+    // cause ends it fades like any other. Same conditions as Add.
+    void Set(int16_t holder, int16_t target, e_reason reason, int32_t value);
+
     // The modifier `reason` of `holder` toward `target`, 0 when there is none.
     int32_t Modifier(int16_t holder, int16_t target, e_reason reason);
 

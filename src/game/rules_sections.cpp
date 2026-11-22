@@ -3,6 +3,7 @@
 #include "game/rules_sections.h"
 
 #include "game/opinion.h"
+#include "game/rivalry.h"
 
 namespace SAVEGAME {
 
@@ -11,9 +12,15 @@ namespace SAVEGAME {
             return opinion::enabled && !opinion::Empty();
         }
 
+        bool Rivalry_Has_State_() {
+            return rivalry::enabled && !rivalry::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
+            {SECTION_TYPE_RIVALRY, 1, "rivalries", Rivalry_Has_State_, rivalry::Save_Size, rivalry::Write_Save,
+                rivalry::Parse_Save, rivalry::Commit_Save, rivalry::Discard_Save, rivalry::Clear},
         };
     } // namespace
 

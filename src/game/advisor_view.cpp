@@ -13,6 +13,7 @@
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/opinion.h"
+#include "game/rivalry.h"
 #include "game/shipstak.h"
 #include "game/struct.h"
 
@@ -175,6 +176,8 @@ namespace advisor {
             contact->personality = them.personality;
 
             Set_Fact(&contact->relations, me.relations[other], FACT_DIPLOMACY, CONFIDENCE_HIGH, now);
+            contact->our_rival = rivalry::Rival_Of(player) == other ? 1 : 0;
+            contact->their_rival = rivalry::Rival_Of(other) == player ? 1 : 0;
             static_assert(sizeof(contact->opinion) == opinion::REASON_COUNT, "one opinion slot per reason");
             for (int32_t r = 0; r < opinion::REASON_COUNT; ++r) {
                 contact->opinion[r] = static_cast<int8_t>(opinion::Modifier(player, other, static_cast<opinion::e_reason>(r)));
@@ -401,6 +404,8 @@ namespace advisor {
                 }
                 if (any) out->append(" [memory, fading]\n");
             }
+            if (contact.our_rival != 0) out->append("   - rivalry: we declared them our rival\n");
+            if (contact.their_rival != 0) out->append("   - rivalry: they declared us their rival\n");
             Append_Format(out, "   - treaty %s", Treaty_Name(contact.treaty.value));
             Append_Tag(out, contact.treaty);
             out->push_back('\n');

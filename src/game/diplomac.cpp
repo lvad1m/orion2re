@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
+#include "game/rivalry.h"
 
 #include "legacy_world.h"
 
@@ -817,6 +818,8 @@ namespace diplomac {
         diplomemory::End_Of_Turn();
         // Opinion modifiers (off by default): each memory fades.
         opinion::End_Of_Turn();
+        // Rivalry (off by default): declared rivals stay remembered; rivals are reviewed.
+        rivalry::End_Of_Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1176,6 +1179,8 @@ namespace diplomac {
         // Advisor (rule 408): in a joint war on a would-be winner the coalition's strength counts.
         result = static_cast<int32_t>(static_cast<int64_t>(result) *
             advisor::Coalition_Percent(static_cast<uint8_t>(player_idx_1), static_cast<uint8_t>(player_idx_2)) / 100);
+        // Rivalry (off by default): an empire weighs war on its declared rival more boldly.
+        result = static_cast<int32_t>(static_cast<int64_t>(result) * rivalry::Strength_Percent(player_idx_1, player_idx_2) / 100);
 
         if (result > 800) {
             result = 800;
