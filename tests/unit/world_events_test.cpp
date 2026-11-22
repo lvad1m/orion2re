@@ -140,6 +140,102 @@ DOCTEST_TEST_CASE("bankruptcy: the scale grows in debt, sells a building at 75, 
     DOCTEST_CHECK(world_events::Find(world_events::KIND_BANKRUPTCY, 0)->value == 75);
 }
 
+DOCTEST_TEST_CASE("a mutiny lowers morale and stability for 10 turns; never at the capital") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_MUTINY, 0));
+    DOCTEST_CHECK(world_events::Unrest(1) == world_events::MUTINY_UNREST);
+    DOCTEST_CHECK(world_events::Unrest(0) == 0);
+    DOCTEST_CHECK(world_events::Morale_Bonus(&state.colonies[1]) == world_events::MUTINY_MORALE);
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_MUTINY, 0));  // colony 1 already
+    MOX::stardate = 35001 + world_events::MODIFIER_TURNS;
+    DOCTEST_CHECK(world_events::Unrest(1) == 0);
+}
+
+DOCTEST_TEST_CASE("a warm place: experience now, the leader keeps its post for 20 turns") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_WARM_PLACE, 0));  // no governor
+    s_leader_data& leader = state.leaders[3];
+    leader.player_index = 0;
+    leader.type = 1;    // colony leader
+    leader.status = 1;  // assigned
+    leader.xp = 10;
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_WARM_PLACE, 0));
+    DOCTEST_CHECK(leader.xp == 10 + world_events::WARM_PLACE_EXPERIENCE);
+    DOCTEST_CHECK(world_events::Leader_Locked(3));
+    DOCTEST_CHECK_FALSE(world_events::Leader_Locked(2));
+    MOX::stardate = 35001 + world_events::WARM_PLACE_TURNS;
+    DOCTEST_CHECK_FALSE(world_events::Leader_Locked(3));
+}
+
+DOCTEST_TEST_CASE("an epidemic: research cures it, the antidote ends it, it spreads to the nearest colony") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 2;
+    state.planets[0].star_index = 0;
+    state.planets[1].star_index = 1;
+    state.colonies[1].production[ECON_RESEARCH] = 30;
+    state.colonies[1].n_pops = 2;
+    // Only colony 1 can fall ill: colony 0 is not populated for this test.
+    state.colonies[0].n_pops = 0;
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_EPIDEMIC, 0));
+    DOCTEST_CHECK(world_events::Epidemic(1));
+    const world_events::s_entry* entry = world_events::Find(world_events::KIND_EPIDEMIC, 0);
+    DOCTEST_REQUIRE(entry != nullptr);
+    DOCTEST_CHECK(entry->value == world_events::EPIDEMIC_CURE_BASE + 20);
+    world_events::Turn();  // 70 - 30
+    world_events::Turn();  // 40 - 30
+    DOCTEST_CHECK(world_events::Epidemic(1));
+    world_events::Turn();  // cured
+    DOCTEST_CHECK_FALSE(world_events::Epidemic(1));
+    state.players[0].tech_applications[TECH_APP_UNIVERSAL_ANTIDOTE] = TECH_RESEARCH_STATUS_RESEARCHED;
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_EPIDEMIC, 0));
+    state.players[0].tech_applications[TECH_APP_UNIVERSAL_ANTIDOTE] = 0;
+    // Spreading: colony 1 ill, colony 0 healthy and populated: it catches it.
+    state.colonies[0].n_pops = 8;
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_EPIDEMIC, 0));
+    const int16_t ill = world_events::Epidemic(1) ? 1 : 0;
+    DOCTEST_REQUIRE(world_events::Spread_Epidemic(ill));
+    DOCTEST_CHECK((world_events::Epidemic(0) && world_events::Epidemic(1)));
+    DOCTEST_CHECK_FALSE(world_events::Spread_Epidemic(ill));  // no healthy colony left
+}
+
+DOCTEST_TEST_CASE("bounties: computers at war put a price on the enemy; pirates raid it, then sell protection") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].treaty[1] = state.players[1].treaty[0] = 4;
+    state.players[0].bc = 2000;
+    state.players[1].bc = 500;
+    state.players[1].n_freighters = 5;
+    MOX::stardate = 35002;
+    world_events::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 1800);
+    DOCTEST_CHECK(state.players[1].bc == 450);
+    DOCTEST_REQUIRE(world_events::Find(world_events::KIND_BOUNTY, 1) != nullptr);
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_BOUNTY, 1)->value == 200);
+    DOCTEST_REQUIRE(world_events::Find(world_events::KIND_BOUNTY, 0) != nullptr);
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_BOUNTY, 0)->value == 50);
+    MOX::stardate = 35007;
+    world_events::Turn();
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_BOUNTY, 1) == nullptr);  // the highest price is raided
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_BOUNTY, 0) != nullptr);  // 50 is too little
+    DOCTEST_CHECK(state.players[1].n_freighters == 3);
+    DOCTEST_REQUIRE(world_events::Find(world_events::KIND_PROTECTION, 1) != nullptr);
+    const int32_t before = state.players[1].bc;
+    MOX::stardate = 35008;
+    world_events::Turn();
+    DOCTEST_CHECK(state.players[1].bc == before - world_events::PROTECTION_FEE);
+    state.players[1].bc = 5;  // cannot pay: the raids return
+    MOX::stardate = 35009;
+    world_events::Turn();
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_PROTECTION, 1) == nullptr);
+}
+
 DOCTEST_TEST_CASE("off: nothing starts, nothing is kept") {
     s_events_scope scope;
     test::s_game_state state;

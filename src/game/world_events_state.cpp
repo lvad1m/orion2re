@@ -30,8 +30,9 @@ namespace world_events {
 
         bool Known_Kind_(uint8_t kind) {
             return kind == KIND_NONE || kind == KIND_GOLDEN_AGE || kind == KIND_TOURIST_BOOM || kind == KIND_ORE_RUSH ||
-                kind == KIND_AMBASSADOR_KILLED || kind == KIND_DISCOVERER || kind == KIND_ANCIENT_WRECK ||
-                kind == KIND_RACE_EVENT || kind == KIND_BANKRUPTCY;
+                kind == KIND_GHOST_SHIP || kind == KIND_AMBASSADOR_KILLED || kind == KIND_DISCOVERER ||
+                kind == KIND_ANCIENT_WRECK || kind == KIND_MUTINY || kind == KIND_WARM_PLACE || kind == KIND_EPIDEMIC ||
+                kind == KIND_RACE_EVENT || kind == KIND_BANKRUPTCY || kind == KIND_BOUNTY || kind == KIND_PROTECTION;
         }
     } // namespace
 
@@ -73,10 +74,39 @@ namespace world_events {
 
     int32_t Morale_Bonus(const s_colony* colony) {
         if (!enabled || colony == nullptr) return 0;
+        const int16_t index = static_cast<int16_t>(colony - MOX::colony);
+        int32_t bonus = 0;
         for (const s_entry& e : entries) {
-            if (Race_Modifier_(e, colony->owner, RACE_DUEL_OF_HONOUR)) return 1;
+            if (Race_Modifier_(e, colony->owner, RACE_DUEL_OF_HONOUR)) bonus = 1;
+        }
+        for (const s_entry& e : entries) {
+            if (Live_(e) && e.kind == KIND_MUTINY && e.target == index) return bonus + MUTINY_MORALE;
+        }
+        return bonus;
+    }
+
+    bool Epidemic(int16_t colony) {
+        if (!enabled || colony < 0) return false;
+        for (const s_entry& e : entries) {
+            if (Live_(e) && e.kind == KIND_EPIDEMIC && e.target == colony) return true;
+        }
+        return false;
+    }
+
+    int32_t Unrest(int16_t colony) {
+        if (!enabled || colony < 0) return 0;
+        for (const s_entry& e : entries) {
+            if (Live_(e) && e.kind == KIND_MUTINY && e.target == colony) return MUTINY_UNREST;
         }
         return 0;
+    }
+
+    bool Leader_Locked(int16_t leader) {
+        if (!enabled || leader < 0) return false;
+        for (const s_entry& e : entries) {
+            if (Live_(e) && e.kind == KIND_WARM_PLACE && e.target == leader) return true;
+        }
+        return false;
     }
 
     int32_t Food2_Bonus(const s_colony* colony) {

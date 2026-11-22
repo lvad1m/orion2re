@@ -8,6 +8,7 @@
 #include "game/pop.h"
 #include "game/random.h"
 #include "game/spy_ops.h"
+#include "game/world_events.h"
 
 #include <algorithm>
 
@@ -64,6 +65,7 @@ namespace stability {
         negative += p.tax_rate / 10;
         if (p.surplus_bc < 0) negative += 5;
         negative += spy_ops::Unrest(colony);  // stirred up by enemy spies (tier 3)
+        negative += world_events::Unrest(colony);  // a mutiny (new events, tier 5)
 
         int32_t positive = 0;
         if (!at_war) positive += 3;

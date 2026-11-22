@@ -12,11 +12,12 @@ namespace SERIAL {
 
 // New events, first wave (docs/LocalLLM/events-catalog.md sections 2, 4.1 and 6; mechanics.md
 // 3.2.4; README.md 10.9, tier 5A): an event table of its own without the classic one slot per event
-// type, temporary modifiers of the galaxy and of empires, a bankruptcy situation with a progress
-// scale, and single events built from the classic primitives - galaxy events (golden age, tourist
-// boom, ore rush), empire events (an ambassador killed, a discoverer, an ancient wreck) and one rare
-// event for each of the 13 stock races. Off by default; with the flag off nothing here draws from
-// game_random and no state is kept.
+// type, temporary modifiers of the galaxy and of empires, situations with a progress scale
+// (bankruptcy, a spreading epidemic, pirates' bounties and protection), and single events built from
+// the classic primitives - galaxy events (golden age, tourist boom, ore rush, a ghost ship, a
+// territorial beast), empire events (an ambassador killed, a discoverer, an ancient wreck, a colony
+// mutiny, a warm place for a leader, an outbreak) and one rare event for each of the 13 stock races.
+// Off by default; with the flag off nothing here draws from game_random and no state is kept.
 namespace world_events {
 
     extern bool enabled;           // events new_events
@@ -29,14 +30,23 @@ namespace world_events {
         KIND_GOLDEN_AGE = 1,         // each empire gets 20 % of its positive surplus as BC every turn
         KIND_TOURIST_BOOM = 2,       // each empire gets 5 BC a turn for every trade treaty
         KIND_ORE_RUSH = 3,           // one-off: three planets get two mineral classes richer
+        KIND_GHOST_SHIP = 4,         // target: the star it haunts; value: returns left; started: when it
+                                     // was last destroyed (0 while it is about)
+        KIND_TERRITORIAL_BEAST = 5,  // one-off: a monster settles at an empty star and stays there
         // One-off empire events.
         KIND_AMBASSADOR_KILLED = 10, // player: the host; target: the ambassador's empire
         KIND_DISCOVERER = 11,        // the stars near a colony of the empire become known
         KIND_ANCIENT_WRECK = 12,     // a technology application another empire knows
+        KIND_MUTINY = 13,            // target: the colony; morale and stability fall for MODIFIER_TURNS
+        KIND_WARM_PLACE = 14,        // target: the leader; experience now, no new post for WARM_PLACE_TURNS
+        KIND_EPIDEMIC = 15,          // target: the colony; value: cure points left (its research cures it)
         // Race events: player; value = e_race_event; modifiers last MODIFIER_TURNS.
         KIND_RACE_EVENT = 20,
         // Situation: bankruptcy, value = the scale 0..100.
         KIND_BANKRUPTCY = 30,
+        // Pirates (events-catalog.md 3.6): a price on an empire's head, protection money.
+        KIND_BOUNTY = 31,            // player: the empire with a price on its head; value: BC offered
+        KIND_PROTECTION = 32,        // player: the empire paying the pirates; value: the fee a turn
     };
 
     enum e_race_event : uint8_t {
@@ -67,6 +77,21 @@ namespace world_events {
     constexpr int32_t BANKRUPTCY_RECOVERY = 5;          // a turn out of debt
     constexpr int32_t BANKRUPTCY_EMERGENCY = 75;        // a building of the capital is sold
     constexpr int32_t GREAT_HUNT_EXPERIENCE = 50;
+    constexpr int32_t GHOST_RETURNS = 3;                // a ghost ship comes back this often
+    constexpr int32_t GHOST_RETURN_TURNS = 10;
+    constexpr int32_t MUTINY_MORALE = -2;
+    constexpr int32_t MUTINY_UNREST = 20;               // stability points (stability.h)
+    constexpr int32_t WARM_PLACE_TURNS = 20;
+    constexpr int32_t WARM_PLACE_EXPERIENCE = 50;
+    constexpr int32_t EPIDEMIC_SPREAD_PERCENT = 10;     // a turn, to the owner's nearest healthy colony
+    constexpr int32_t EPIDEMIC_TURNS = 30;
+    constexpr int32_t EPIDEMIC_CURE_BASE = 50;          // cure points, plus 10 a population unit
+    constexpr int32_t BOUNTY_PAYER_MIN_BC = 100;
+    constexpr int32_t BOUNTY_PERCENT = 10;              // of the payer's treasury, at least BOUNTY_MIN
+    constexpr int32_t BOUNTY_MIN = 20;
+    constexpr int32_t BOUNTY_RAID_MIN = 100;            // pirates strike for a price this high
+    constexpr int32_t PROTECTION_FEE = 10;              // BC a turn
+    constexpr int32_t PROTECTION_TURNS = 10;
 
     struct s_entry {
         uint8_t kind = KIND_NONE;
@@ -90,6 +115,9 @@ namespace world_events {
     int32_t Morale_Bonus(const s_colony* colony);  // colcalc_main.cpp Colony_Morale (morale points)
     int32_t Food2_Bonus(const s_colony* colony);   // colcalc.cpp Colony_Food2_Per_Farmer (half food)
     bool Population_Boom(int16_t colony);          // colcalc.cpp, as the classic population boom
+    bool Epidemic(int16_t colony);                 // colcalc.cpp, as the classic plague
+    int32_t Unrest(int16_t colony);                // stability.cpp: a mutiny (stability points)
+    bool Leader_Locked(int16_t leader);            // officer.cpp: a warm place keeps the leader at its post
 
     // Once a turn after the classic events (nextturn.cpp): modifiers pay or run out, the bankruptcy
     // scale moves, and new events may start.
@@ -98,6 +126,9 @@ namespace world_events {
     bool Start_Galaxy_Event(e_kind kind);
     bool Start_Empire_Event(e_kind kind, int16_t player);
     bool Start_Race_Event(int16_t player, e_race_event event);
+    // An infected colony passes the epidemic to its owner's nearest healthy colony (Turn rolls
+    // EPIDEMIC_SPREAD_PERCENT first); false when there is none.
+    bool Spread_Epidemic(int16_t from);
 
     void Clear();
     bool Empty();

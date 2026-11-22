@@ -810,7 +810,8 @@ namespace COLCALC {
 
         bool pop_boom = static_cast<bool>(EVENTS::Event_Check_Population_Boom(colony_idx)) ||
             world_events::Population_Boom(colony_idx);  // a clutch (new events, off by default)
-        bool plague = static_cast<bool>(EVENTS::Event_Check_Plague(colony_idx));
+        bool plague = static_cast<bool>(EVENTS::Event_Check_Plague(colony_idx)) ||
+            world_events::Epidemic(colony_idx);  // an epidemic (new events, off by default)
 
         int food_pool = (colony->imports[ECON_FOOD] + colony->production[ECON_FOOD]) * 2;
         int industry_pool = colony->production[ECON_INDUSTRY] * 2;

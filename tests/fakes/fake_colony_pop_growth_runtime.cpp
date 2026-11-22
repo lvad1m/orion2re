@@ -16,6 +16,7 @@ namespace spy_ranks {
 namespace world_events {
     int32_t Food2_Bonus(const s_colony*) { return 0; }
     bool Population_Boom(int16_t) { return false; }
+    bool Epidemic(int16_t) { return false; }
 } // namespace world_events
 #include "lua/lua_game.h"
 

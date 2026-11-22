@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/world_events.h"
 #include "game/loyalty.h"
 #include "officer_roster.h"
 #include "string_overrides.h"
@@ -1125,6 +1126,8 @@ namespace OFFICER {
         // Calculate indices based on base pointers
         int32_t player_index = static_cast<int32_t>(player - MOX::player);
         int32_t leader_index = static_cast<int32_t>(leader - MOX::leaders);
+        // New events (off by default): a leader in a warm place keeps its post.
+        if (world_events::Leader_Locked(static_cast<int16_t>(leader_index))) return;
         // Leader loyalty (off by default): more experienced idle leaders are passed over.
         loyalty::On_Assigned(static_cast<int16_t>(leader_index));
         int16_t star_index = (int16_t)(star - MOX::star);
