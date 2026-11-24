@@ -12,6 +12,7 @@
 #include "game/aipower.h"
 #include "game/beliefs.h"
 #include "game/covenants.h"
+#include "game/hostages.h"
 #include "game/reputation.h"
 #include "game/vassals.h"
 #include "game/harold.h"
@@ -217,6 +218,8 @@ namespace advisor {
             contact->titles = reputation::Titles(static_cast<int16_t>(other));
             contact->our_overlord = vassals::Is_Vassal_Of(static_cast<int16_t>(player), static_cast<int16_t>(other)) ? 1 : 0;
             contact->our_vassal = vassals::Is_Vassal_Of(static_cast<int16_t>(other), static_cast<int16_t>(player)) ? 1 : 0;
+            contact->holds_ours = static_cast<uint8_t>(hostages::Count_Held(static_cast<int16_t>(player), static_cast<int16_t>(other)));
+            contact->we_hold = static_cast<uint8_t>(hostages::Count_Held(static_cast<int16_t>(other), static_cast<int16_t>(player)));
             contact->married = covenants::Spouse(static_cast<int16_t>(player)) == static_cast<int16_t>(other) ? 1 : 0;
             for (int32_t t = 0; t < MAX_PLAYERS && covenants::secret_clauses; ++t) {
                 if (covenants::Find_Clause(static_cast<int16_t>(player), static_cast<int16_t>(other), static_cast<int16_t>(t)) >= 0 ||
@@ -486,6 +489,8 @@ namespace advisor {
             if (contact.our_overlord != 0) out->append("   - our overlord: we pay tribute, it defends us\n");
             if (contact.our_vassal != 0) out->append("   - our vassal: it pays tribute, we defend it\n");
             if (contact.married != 0) out->append("   - we are bound by marriage\n");
+            if (contact.holds_ours != 0) Append_Format(out, "   - holds %d of our leaders\n", static_cast<int>(contact.holds_ours));
+            if (contact.we_hold != 0) Append_Format(out, "   - we hold %d of its leaders\n", static_cast<int>(contact.we_hold));
             if (contact.clause_against >= 0) {
                 Append_Format(out, "   - we have a secret clause with it against %s (player %d)\n", contact.clause_against_name,
                               static_cast<int>(contact.clause_against));

@@ -144,6 +144,9 @@ namespace advisor {
         uint8_t married = 0;
         int8_t clause_against = -1;
         char clause_against_name[VIEW_NAME_LENGTH] = {};
+        // Hostages and prisoners (hostages.h): how many leaders of ours they hold / of theirs we hold.
+        uint8_t holds_ours = 0;
+        uint8_t we_hold = 0;
     };
 
     struct s_empire_view {

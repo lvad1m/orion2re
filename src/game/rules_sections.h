@@ -67,6 +67,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_COUNTERSPY = 0x59505343;
     // 'CVNT': secret clauses and marriages (game/covenants.h).
     inline constexpr uint32_t SECTION_TYPE_COVENANTS = 0x544E5643;
+    // 'HOST': hostages and captured leaders (game/hostages.h).
+    inline constexpr uint32_t SECTION_TYPE_HOSTAGES = 0x54534F48;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

@@ -4,6 +4,7 @@
 #include "game/beliefs.h"
 #include "game/reputation.h"
 #include "game/covenants.h"
+#include "game/hostages.h"
 #include "game/vassals.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
@@ -839,6 +840,8 @@ namespace diplomac {
         vassals::Turn();
         // Secret clauses and marriages (off by default): spies learn clauses, clauses and marriages made and kept.
         covenants::Turn();
+        // Hostages and prisoners (off by default): hostages come home, prisoners escape, are ransomed or exchanged.
+        hostages::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1112,6 +1115,7 @@ namespace diplomac {
 
             int16_t dur2 = personality_peace_duration[pers2];
             MOX::player[p2].peace_duration[p1] += (int8_t)(dur2 * 2);
+            hostages::On_Alliance(p1, p2);  // the weaker gives a hostage (off by default)
         }
     }
 
@@ -1456,6 +1460,7 @@ namespace diplomac {
         beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
         reputation::On_Treaty_Broken(p1_idx, p2_idx, current_treaty);  // stains and titles (off by default)
         covenants::On_Treaty_Broken(p1_idx, p2_idx);  // a marriage between them ends (off by default)
+        hostages::On_Treaty_Broken(p1_idx, p2_idx);  // the holder decides the fate of a hostage (off by default)
 
         p2->last_broken_treaty[p1_idx] = p2->treaty[p1_idx];
         p2->threats[p1_idx]++;

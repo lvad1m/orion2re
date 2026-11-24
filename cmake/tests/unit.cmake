@@ -51,6 +51,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/secrets_config.cpp
     src/game/counterspy_config.cpp
     src/game/covenants_config.cpp
+    src/game/hostages_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1059,6 +1060,10 @@ orion2re_add_game_test(test_covenants
     tests/unit/covenants_test.cpp
 )
 
+orion2re_add_game_test(test_hostages
+    tests/unit/hostages_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1464,6 +1469,7 @@ orion2re_add_unit_test(test_savegame
         src/game/secrets_state.cpp
         src/game/counterspy_state.cpp
         src/game/covenants_state.cpp
+        src/game/hostages_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

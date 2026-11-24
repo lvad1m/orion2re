@@ -2,6 +2,7 @@
 
 #include "doctest/doctest.h"
 #include "game/officer_roster.h"
+#include "game/hostages.h"
 #include "game/spy_ops.h"
 
 namespace {
@@ -327,3 +328,8 @@ namespace spy_ops {
     int16_t Inside_Man_Troops(const s_colony*, int16_t, int16_t troops) { return troops; }
     bool Inside_Man_Spend(s_colony*, int16_t) { return false; }
 } // namespace spy_ops
+
+// Hostages are not under test here.
+namespace hostages {
+    bool On_Colony_Invaded(const s_colony*, int16_t) { return false; }
+} // namespace hostages

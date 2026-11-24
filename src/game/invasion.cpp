@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/spy_ops.h"
+#include "game/hostages.h"
 
 namespace invasion {
 
@@ -491,6 +492,9 @@ namespace invasion {
     void __cdecl Change_Colony_Ownership(s_colony* colony, uint32_t new_owner_idx, s_battle_results_info* results) {
         int8_t old_owner_idx = colony->owner;
         int16_t colony_idx = (int16_t)(colony - MOX::colony);
+
+        // Prisoners (off by default): an invasion (not a hand-over, which passes no results) captures the governor.
+        if (results != nullptr) hostages::On_Colony_Invaded(colony, static_cast<int16_t>(new_owner_idx));
 
         // Increase war losses for the old owner against the new owner
         MOX::player[old_owner_idx].colony_war_losses[new_owner_idx] += 10;
