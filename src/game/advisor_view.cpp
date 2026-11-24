@@ -21,6 +21,7 @@
 #include "game/wanderers.h"
 #include "game/incidents.h"
 #include "game/overtures.h"
+#include "game/pirate_world.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -530,6 +531,39 @@ namespace advisor {
                 } else {
                     Append_Format(out, "Event: player %d paid player %d for an offensive against player %d (judged at stardate %d).\n",
                         static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.ends));
+                }
+            }
+        }
+        if (pirate_world::enabled) {
+            const pirate_world::s_state* ps = pirate_world::State();
+            for (int32_t i = 0; i < ps->count; ++i) {
+                const pirate_world::s_record& r = ps->record[i];
+                switch (r.kind) {
+                    case pirate_world::KIND_LAIR:
+                        if (((MOX::star[r.target].visited >> self.player) & 1) == 0) break;
+                        Append_Format(out, "Event: a pirate lair at star %d, strength %d%s.\n", static_cast<int>(r.target), static_cast<int>(r.value),
+                            r.value >= pirate_world::HAVEN_STRENGTH ? " (a haven)" : "");
+                        break;
+                    case pirate_world::KIND_SLAVERS:
+                        if (r.player != self.player) break;
+                        Append_Format(out, "Event: slavers prey on your colony at star %d (until stardate %d).\n", static_cast<int>(r.target),
+                            static_cast<int>(r.ends));
+                        break;
+                    case pirate_world::KIND_PRIVATEERS:
+                        if (r.player != self.player && r.other != self.player) break;
+                        Append_Format(out, "Event: privateers licensed by player %d hunt the ships of player %d (until stardate %d).\n",
+                            static_cast<int>(r.player), static_cast<int>(r.other), static_cast<int>(r.ends));
+                        break;
+                    case pirate_world::KIND_SYNDICATE:
+                        if (r.player != self.player) break;
+                        Append_Format(out, "Event: a base of the syndicate under your %s (until stardate %d).\n",
+                            r.option == 2 ? "control" : "watch", static_cast<int>(r.ends));
+                        break;
+                    case pirate_world::KIND_LICENCE:
+                        if (r.player != self.player) break;
+                        Append_Format(out, "Event: a flag of convenience spares you the raids of the lairs (until stardate %d).\n", static_cast<int>(r.ends));
+                        break;
+                    default: break;
                 }
             }
         }

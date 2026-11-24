@@ -10951,6 +10951,18 @@
       bind_root: { header: "game/overtures.h", symbol: "overtures::enabled" },
     },
 
+    pirate_world: {
+      title: "Pirate world: tribute, privateers, slavers, lairs, havens",
+      description: "Adds seven pirate events. Each turn the galaxy has a 0.8 percent chance of a new pirate lair in a neutral star (at most three; a star with a pirate cache first), and each empire a 0.5 percent chance of an event of its own (at most one new event a turn in the galaxy). Raiders with tribute: pay 15 percent of the treasury (at least 30 BC), haggle (half the price, the raiders agree half the time) or refuse (a classic pirate raid); a rival at war may outbid a paid tribute. Privateers: a computer at war escrows 100 BC for 20 turns and the pirates sink its enemy's cheapest lone ship for 25 BC each. Slavers: roaming raiders of strength 8 take a person from the nearest weakly defended colony (no ship in orbit) and move on; warships wear them down; a computer that is not honorable or pacifist may buy the captive and is remembered badly. Secret base of the syndicate: arrest it (50 BC), study it (8 BC a turn for 15 turns) or seize it (4 BC a turn and a raid on a rival every 5 turns). Repentant smuggler: jail him (20 BC), grant an amnesty (a crackdown on the lairs and 60 BC, but a new lair appears in a quarter of the cases) or use him as a guide (120 BC and a new lair). Lairs grow while left alone and are razed by warships (the empire with most ships there takes the loot); a lair of strength 20 is a haven that offers defectors, a flag of convenience (no lair raids for 20 turns) or a black market of technologies. A computer picks by personality, a human takes the first, safest option until the interface step; humans never hire privateers. The advisor view lists the active pirate events that touch the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events pirate_world = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/pirate_world.h", symbol: "pirate_world::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

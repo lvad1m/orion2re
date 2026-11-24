@@ -79,6 +79,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_INCIDENTS = 0x44434E49;
     // 'OVTR': overtures - peacekeepers and paid offensives (game/overtures.h).
     inline constexpr uint32_t SECTION_TYPE_OVERTURES = 0x5254564F;
+    // 'PIRW': the pirate world - lairs, slavers, privateers, bases, flags of convenience (game/pirate_world.h).
+    inline constexpr uint32_t SECTION_TYPE_PIRATE_WORLD = 0x57524950;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);
