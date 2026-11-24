@@ -7,6 +7,7 @@
 #include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/serialization.h"
+#include "game/techdata.h"
 #include "game/world_events.h"
 
 #include <memory>
@@ -148,6 +149,7 @@ DOCTEST_TEST_CASE("a mutiny lowers morale and stability for 10 turns; never at t
     s_events_scope scope;
     test::s_game_state state;
     Setup_(&state);
+    state.players[1].eliminated = 1;  // nobody to lead the rebels: the unrest alone
     DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_MUTINY, 0));
     DOCTEST_CHECK(world_events::Unrest(1) == world_events::MUTINY_UNREST);
     DOCTEST_CHECK(world_events::Unrest(0) == 0);
@@ -555,4 +557,163 @@ DOCTEST_TEST_CASE("the new modifier kinds round-trip in the v2 payload") {
     DOCTEST_CHECK((world_events::Star_Dark(0) || world_events::Star_Dark(1)));
 }
 
+}
+
+DOCTEST_TEST_CASE("discoverer: the first empire to explore a star is paid once per planet; nothing for stars known at load") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 4;
+    MOX::planet_count = 3;
+    state.planets[0].star_index = 1;
+    state.planets[1].star_index = 1;
+    state.planets[2].star_index = 2;
+    state.planets[2].planet_special = 5;
+    state.stars[0].visited = 0x1;  // home star, known from the start
+    world_events::Turn();  // the baseline: nothing is paid
+    DOCTEST_CHECK(world_events::Explored_Valid());
+    DOCTEST_CHECK(world_events::Star_Explored(0));
+    DOCTEST_CHECK(state.players[0].bc == 0);
+    state.stars[1].visited = 0x2 | 0x1;  // both arrive: the lower bit wins
+    state.stars[2].visited = 0x2;
+    world_events::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 2 * world_events::DISCOVERER_BC);
+    DOCTEST_CHECK(state.players[1].bc == world_events::DISCOVERER_SPECIAL_BC);
+    world_events::Turn();  // once only
+    DOCTEST_CHECK(state.players[0].bc == 2 * world_events::DISCOVERER_BC);
+    DOCTEST_CHECK(state.players[1].bc == world_events::DISCOVERER_SPECIAL_BC);
+    state.stars[3].system_special = 3;
+    state.planets[3].star_index = 3;
+    MOX::planet_count = 4;
+    state.stars[3].visited = 0x2;
+    world_events::Turn();
+    DOCTEST_CHECK(state.players[1].bc == 2 * world_events::DISCOVERER_SPECIAL_BC);
+    world_events::enabled = false;
+    state.stars[1].visited = 0;
+    world_events::Clear();
+    world_events::Turn();
+    DOCTEST_CHECK(world_events::Empty());
+}
+
+DOCTEST_TEST_CASE("an old save pays no discoverer bonus for the stars already visited") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 2;
+    MOX::planet_count = 1;
+    state.planets[0].star_index = 1;
+    state.stars[1].visited = 0x1;
+    const uint32_t v2_size = 2 + world_events::MAX_ENTRIES * 17;
+    auto v2 = std::make_unique<uint8_t[]>(v2_size);
+    SERIAL::Writer_ writer(v2.get(), v2_size, "test overflow");
+    writer.Write_Uint16(2);
+    for (int32_t i = 0; i < world_events::MAX_ENTRIES; ++i) {
+        writer.Write_Uint8(i == 0 ? world_events::KIND_GOLDEN_AGE : world_events::KIND_NONE);
+        writer.Write_Int8(-1);
+        writer.Write_Int16(-1);
+        writer.Write_Int32(35001);
+        writer.Write_Int32(0);
+        writer.Write_Int16(0);
+        writer.Write_Int8(-1);
+        writer.Write_Int16(0);
+    }
+    DOCTEST_REQUIRE(writer.Length() == v2_size);
+    SERIAL::Reader_ reader(v2.get(), v2_size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(world_events::Parse_Save(&reader, &error));
+    world_events::Commit_Save();
+    DOCTEST_CHECK_FALSE(world_events::Explored_Valid());
+    world_events::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 0);
+    DOCTEST_CHECK(world_events::Star_Explored(1));
+}
+
+DOCTEST_TEST_CASE("the events payload v3 round-trips the explored stars") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 3;
+    state.stars[2].visited = 0x1;
+    world_events::Turn();
+    DOCTEST_REQUIRE(world_events::Star_Explored(2));
+    DOCTEST_CHECK_FALSE(world_events::Empty());  // the section is written for the explored stars alone
+    const uint32_t size = world_events::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    world_events::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    world_events::Clear();
+    DOCTEST_CHECK_FALSE(world_events::Star_Explored(2));
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(world_events::Parse_Save(&reader, &error));
+    world_events::Commit_Save();
+    DOCTEST_CHECK(world_events::Explored_Valid());
+    DOCTEST_CHECK(world_events::Star_Explored(2));
+    DOCTEST_CHECK_FALSE(world_events::Star_Explored(1));
+}
+
+DOCTEST_TEST_CASE("ancient wreck: 1 to 10 unknown weapon or shield applications, the cheapest first, nothing already known") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;  // a human's designs only refresh their equipment
+    const auto is_weapon_or_shield = [](int32_t app) {
+        for (int32_t i = 0; i < WEAPON_COUNT; ++i) {
+            if (TECHDATA::weapons[i].tech_app_id == app) return true;
+        }
+        for (int32_t i = 0; i < SHIELD_COUNT; ++i) {
+            if (TECHDATA::shields[i].tech_app_id == app) return true;
+        }
+        return false;
+    };
+    int32_t pool = 0;
+    int32_t known = -1;
+    for (int32_t a = 1; a < TECH_APP_COUNT; ++a) {
+        if (!is_weapon_or_shield(a) || !COLCALC::Player_May_Get_Tech_App(&state.players[0], a)) continue;
+        ++pool;
+        if (known < 0) known = a;
+    }
+    DOCTEST_REQUIRE(pool > 10);
+    state.players[0].tech_applications[known] = TECH_RESEARCH_STATUS_RESEARCHED;
+    for (int round = 0; round < 8; ++round) {
+        DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_ANCIENT_WRECK, 0));
+        int32_t got = 0;
+        for (int32_t a = 1; a < TECH_APP_COUNT; ++a) {
+            if (state.players[0].tech_applications[a] != TECH_RESEARCH_STATUS_RESEARCHED) continue;
+            DOCTEST_CHECK(is_weapon_or_shield(a));
+            ++got;
+        }
+        DOCTEST_CHECK(got >= 2);  // the known one and at least one new
+        for (int32_t a = 1; a < TECH_APP_COUNT; ++a) state.players[0].tech_applications[a] = 0;
+        state.players[0].tech_applications[known] = TECH_RESEARCH_STATUS_RESEARCHED;
+    }
+    // One wreck gives at most ten.
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_ANCIENT_WRECK, 0));
+    int32_t added = 0;
+    for (int32_t a = 1; a < TECH_APP_COUNT; ++a) added += state.players[0].tech_applications[a] == TECH_RESEARCH_STATUS_RESEARCHED ? 1 : 0;
+    DOCTEST_CHECK(added - 1 <= world_events::WRECK_MAX_APPS);
+    world_events::enabled = false;
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_ANCIENT_WRECK, 0));
+}
+
+DOCTEST_TEST_CASE("a mutiny puts the colony through the engine's rebellion; the rebels may take it") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    int32_t taken = 0;
+    for (int round = 0; round < 60 && taken == 0; ++round) {
+        state.colonies[1].owner = 0;
+        state.colonies[1].military[0] = 0;
+        state.colonies[1].military[1] = 0;
+        world_events::Clear();
+        DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_MUTINY, 0));
+        if (state.colonies[1].owner == 1) {
+            ++taken;
+            DOCTEST_CHECK(world_events::Unrest(1) == 0);  // the unrest left with the old owner
+        } else {
+            DOCTEST_CHECK(world_events::Unrest(1) == world_events::MUTINY_UNREST);
+        }
+    }
+    DOCTEST_CHECK(taken > 0);
 }

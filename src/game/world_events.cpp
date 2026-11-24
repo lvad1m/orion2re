@@ -8,6 +8,7 @@
 #include "game/diplomac.h"
 #include "game/events.h"
 #include "game/intrigue.h"
+#include "game/invasion.h"
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
@@ -27,7 +28,6 @@ namespace world_events {
 
     namespace {
         constexpr int8_t TREATY_FIRST_WAR = 4;
-        constexpr int32_t DISCOVER_STARS = 6;
         constexpr int32_t PROPHECY_STARS = 8;
         constexpr int16_t GHOST_TYPE = NONPLAYER_SHIP_TYPE_EEL;
         constexpr int16_t BEAST_TYPE = NONPLAYER_SHIP_TYPE_HYDRA;
@@ -492,6 +492,89 @@ namespace world_events {
                 }
             }
         }
+
+        // The mutiny is the engine's own rebellion (invasion.cpp Check_Rebellion) with the chance forced: a
+        // colony of the empire has no conquered rebels, so the rebel side is another empire (one in contact
+        // first) with up to a colony's population in rebels; the ground fight, the messages and, when the
+        // rebels win, the change of owner (Change_Colony_Ownership) and the garrison are the classic ones.
+        // Closest equivalent: Check_Rebellion itself rolls its chance from conquered pops only.
+        bool Mutiny_Rebellion_(int16_t colony_index) {
+            s_colony* colony = &MOX::colony[colony_index];
+            const int16_t owner = colony->owner;
+            int16_t rebels[MAX_PLAYERS];
+            int32_t n = 0;
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o != owner && Alive_(o) && MOX::player[owner].contact[o] != 0) rebels[n++] = o;
+            }
+            if (n == 0) {
+                for (int16_t o = 0; o < Players_(); ++o) {
+                    if (o != owner && Alive_(o)) rebels[n++] = o;
+                }
+            }
+            if (n == 0) return false;  // nobody to take the colony: only the unrest
+            const int16_t rebel_player = rebels[Pick_(n)];
+            const int32_t rebel_count = static_cast<int32_t>(game_random::Random(colony->n_pops));
+            s_invasion_side_info rebel_side;
+            s_invasion_side_info defender_side;
+            invasion::Get_Rebellion_Info(rebel_player, static_cast<int16_t>(rebel_count), colony, &rebel_side, &defender_side);
+            invasion::Resolve_Ground_Combat(&rebel_side, &defender_side);
+
+            s_MSG msg = {};
+            msg.msg_type = MSG_TYPE_COLONY;
+            msg.u.colony.planet_idx = colony->planet;
+            msg.u.colony.subtype = MSG_COLONY_SUBTYPE_REBELLION;
+            msg.u.colony.c.rebels.owner_player = static_cast<int8_t>(rebel_player);
+            msg.u.colony.c.rebels.rebels = static_cast<int8_t>(rebel_count);
+            msg.u.colony.c.rebels.lost = static_cast<int8_t>(rebel_count - rebel_side.unit_counts[3]);
+            MSG_::Add_Msg(msg, owner);
+            MSG_::Add_Msg(msg, rebel_player);
+
+            if (rebel_side.current_troop_type_idx < 4) {
+                invasion::Change_Colony_Ownership(colony, rebel_side.player_id, 0);
+                invasion::Resolve_Rebellion_Troops(rebel_side);
+                colony->just_produced = COLONY_PRODUCTION_JUST_LIBERATED;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: the rebels of colony %d (%d) take it for player %d",
+                    (int)MOX::stardate, (int)owner, (int)colony_index, (int)rebel_count, (int)rebel_player);
+                return true;
+            } else {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: the rebels of colony %d (%d) are crushed",
+                    (int)MOX::stardate, (int)owner, (int)colony_index, (int)rebel_count);
+            }
+            return false;
+        }
+
+        // Discoverers (events-catalog 3.8): the first empire to explore a star is paid for each of its planets.
+        // "First" without engine hooks: the stars somebody explored are kept in the state; the first Turn
+        // only takes the stars visited so far (a new game, an old save) without paying.
+        void Discoverers_() {
+            const uint8_t empires = static_cast<uint8_t>((1u << Players_()) - 1u);
+            const bool baseline = !Explored_Valid();
+            for (int16_t s = 0; s < MOX::NUM_STARS && s < MAX_STARS; ++s) {
+                if (Star_Explored(s)) continue;
+                const uint8_t visited = static_cast<uint8_t>(MOX::star[s].visited & empires);
+                if (visited == 0) continue;
+                Mark_Explored(s);
+                if (baseline) continue;
+                int16_t finder = -1;
+                for (int16_t p = 0; p < Players_() && finder < 0; ++p) {  // the lower bit wins a tie
+                    if (((visited >> p) & 1) != 0 && Alive_(p)) finder = p;
+                }
+                if (finder < 0) continue;
+                int32_t bonus = 0;
+                for (int16_t pl = 0; pl < MOX::planet_count; ++pl) {
+                    const s_planet_data& planet = MOX::planet[pl];
+                    if (planet.star_index != s) continue;
+                    const bool special = MOX::star[s].system_special != SYSTEM_SPECIAL_NO_SPECIAL ||
+                        planet.planet_special != SYSTEM_SPECIAL_NO_SPECIAL;
+                    bonus += special ? DISCOVERER_SPECIAL_BC : DISCOVERER_BC;
+                }
+                if (bonus == 0) continue;
+                MOX::player[finder].bc += bonus;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: discoverer of star %d, %d BC",
+                    (int)MOX::stardate, (int)finder, (int)s, (int)bonus);
+            }
+            Mark_Explored_Valid();
+        }
     } // namespace
 
     bool Start_Galaxy_Event(e_kind kind) {
@@ -583,34 +666,36 @@ namespace world_events {
                 }
                 return true;
             }
-            case KIND_DISCOVERER: {
-                int16_t colonies[MAX_COLONIES];
-                int32_t n = 0;
-                for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
-                    if (MOX::colony[c].owner == player) colonies[n++] = c;
-                }
-                if (n == 0) return false;
-                const int32_t found = Reveal_Near_(player, Star_Of_Colony_(colonies[Pick_(n)]), DISCOVER_STARS);
-                if (found == 0) return false;
-                Log_("a discoverer maps the stars near one of its colonies", player);
-                return true;
-            }
+            case KIND_DISCOVERER: return false;  // retired: a rule now (Discoverers_ in Turn)
             case KIND_ANCIENT_WRECK: {
-                int16_t apps[TECH_APP_COUNT];
+                // Unknown weapon and shield applications, the cheapest (by field cost) first: a windfall, not a
+                // leap to the end of the tree.
+                int16_t apps[static_cast<int>(WEAPON_COUNT) + static_cast<int>(SHIELD_COUNT)];
                 int32_t n = 0;
                 s_player* me = &MOX::player[player];
-                for (int16_t a = 0; a < TECH_APP_COUNT; ++a) {
-                    if (me->tech_applications[a] == TECH_RESEARCH_STATUS_RESEARCHED || !COLCALC::Player_May_Get_Tech_App(me, a)) continue;
-                    for (int16_t o = 0; o < Players_(); ++o) {
-                        if (o != player && Alive_(o) && MOX::player[o].tech_applications[a] == TECH_RESEARCH_STATUS_RESEARCHED) {
-                            apps[n++] = a;
-                            break;
-                        }
+                const auto add = [&](int32_t app) {
+                    if (app <= TECH_APP_NO_TECH || app >= TECH_APP_COUNT) return;
+                    if (me->tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED || !COLCALC::Player_May_Get_Tech_App(me, app)) return;
+                    for (int32_t i = 0; i < n; ++i) {
+                        if (apps[i] == app) return;
                     }
-                }
+                    apps[n++] = static_cast<int16_t>(app);
+                };
+                for (int32_t i = 0; i < WEAPON_COUNT; ++i) add(TECHDATA::weapons[i].tech_app_id);
+                for (int32_t i = 0; i < SHIELD_COUNT; ++i) add(TECHDATA::shields[i].tech_app_id);
                 if (n == 0) return false;
-                COLCALC::Player_Gets_Tech_App(me, apps[Pick_(n)]);
-                Log_("an ancient wreck yields a technology", player);
+                const auto cost = [](int16_t app) {
+                    const int16_t field = TECHDATA::technology_applications[app].tech_field_id;
+                    return field >= 0 && field < TECH_FIELD_COUNT ? static_cast<int64_t>(TECHDATA::technology_fields[field].cost) : INT64_MAX;
+                };
+                std::stable_sort(apps, apps + n, [&](int16_t a, int16_t b) { return cost(a) < cost(b) || (cost(a) == cost(b) && a < b); });
+                const int32_t count = std::min<int32_t>(n, 1 + Pick_(WRECK_MAX_APPS));
+                for (int32_t i = 0; i < count; ++i) {
+                    COLCALC::Player_Gets_Tech_App(me, apps[i]);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: an ancient wreck yields application %d",
+                        (int)MOX::stardate, (int)player, (int)apps[i]);
+                }
+                Log_("an ancient wreck yields weapon and shield technologies", player);
                 return true;
             }
             case KIND_MUTINY: {
@@ -619,7 +704,7 @@ namespace world_events {
                 for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
                     const s_colony& colony = MOX::colony[c];
                     if (colony.owner == player && colony.n_pops > 0 && colony.buildings[BUILDING_CAPITOL] == 0 &&
-                        Find_Slot_(KIND_MUTINY, player, c) == nullptr) {
+                        colony.occupation_policy != 4 && Find_Slot_(KIND_MUTINY, player, c) == nullptr) {
                         colonies[n++] = c;
                     }
                 }
@@ -631,9 +716,12 @@ namespace world_events {
                 entry.started = MOX::stardate;
                 entry.ends = MOX::stardate + MODIFIER_TURNS;
                 if (!Add(entry)) return false;
-                COLCALC::Colony_Calculation(entry.target);
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: colony %d mutinies",
                     (int)MOX::stardate, (int)player, (int)entry.target);
+                if (Mutiny_Rebellion_(entry.target)) {  // lost to the rebels: the unrest goes with the old owner
+                    if (s_entry* slot = Find_Slot_(KIND_MUTINY, player, entry.target)) *slot = s_entry{};
+                }
+                COLCALC::Colony_Calculation(entry.target);
                 return true;
             }
             case KIND_WARM_PLACE: {
@@ -880,6 +968,7 @@ namespace world_events {
         Bounties_();
         Protection_();
         Flares_();
+        Discoverers_();
         // Expired entries free their slots.
         for (int32_t i = 0; i < MAX_ENTRIES; ++i) {
             s_entry& e = Entry_Slots()[i];
@@ -908,9 +997,9 @@ namespace world_events {
                 Start_Race_Event(p, static_cast<e_race_event>(race));
                 continue;
             }
-            static const e_kind EMPIRE[7] = {KIND_AMBASSADOR_KILLED, KIND_DISCOVERER, KIND_ANCIENT_WRECK, KIND_MUTINY,
+            static const e_kind EMPIRE[6] = {KIND_AMBASSADOR_KILLED, KIND_ANCIENT_WRECK, KIND_MUTINY,
                 KIND_WARM_PLACE, KIND_EPIDEMIC, KIND_COMET_ORE};
-            Start_Empire_Event(EMPIRE[Pick_(7)], p);
+            Start_Empire_Event(EMPIRE[Pick_(6)], p);
         }
     }
 

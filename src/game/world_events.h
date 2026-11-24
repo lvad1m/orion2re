@@ -41,9 +41,11 @@ namespace world_events {
         KIND_SENSOR_FAILURE = 9,     // galaxy: every empire's scanner range halved
         // One-off empire events.
         KIND_AMBASSADOR_KILLED = 10, // player: the host; target: the ambassador's empire
-        KIND_DISCOVERER = 11,        // the stars near a colony of the empire become known
-        KIND_ANCIENT_WRECK = 12,     // a technology application another empire knows
-        KIND_MUTINY = 13,            // target: the colony; morale and stability fall for MODIFIER_TURNS
+        KIND_DISCOVERER = 11,        // retired (wave 3: now a rule in Turn, see Discoverers_); the number stays
+                                     // reserved and readable in saves, no event of it starts
+        KIND_ANCIENT_WRECK = 12,     // 1..10 weapon or shield applications the empire does not know
+        KIND_MUTINY = 13,            // target: the colony; the colony revolts (engine rebellion); morale and
+                                     // stability fall for MODIFIER_TURNS
         KIND_WARM_PLACE = 14,        // target: the leader; experience now, no new post for WARM_PLACE_TURNS
         KIND_EPIDEMIC = 15,          // target: the colony; value: cure points left (its research cures it)
         KIND_COMET_ORE = 16,         // one-off: a comet hits a colony and leaves a richer deposit
@@ -100,6 +102,9 @@ namespace world_events {
     constexpr int32_t GREAT_HUNT_EXPERIENCE = 50;
     constexpr int32_t GHOST_RETURNS = 3;                // a ghost ship comes back this often
     constexpr int32_t GHOST_RETURN_TURNS = 10;
+    constexpr int32_t DISCOVERER_BC = 10;               // per planet of the first-explored star
+    constexpr int32_t DISCOVERER_SPECIAL_BC = 25;       // per planet when the star or the planet has a special
+    constexpr int32_t WRECK_MAX_APPS = 10;              // 1..10 applications
     constexpr int32_t MUTINY_MORALE = -2;
     constexpr int32_t MUTINY_UNREST = 20;               // stability points (stability.h)
     constexpr int32_t WARM_PLACE_TURNS = 20;
@@ -184,8 +189,18 @@ namespace world_events {
     void Clear();
     bool Empty();
 
+    // Discoverers (wave 3): the stars somebody has already explored. Not valid (false) until the first
+    // Turn with new_events on, which takes every star visited by anyone as explored (so an old save
+    // pays nothing retroactively); saved in payload v3.
+    bool Explored_Valid();
+    bool Star_Explored(int16_t star);
+    void Mark_Explored(int16_t star);
+    void Mark_Explored_Valid();
+
     // Save section 'EVTS' (game/rules_sections.h): payload version 1, then MAX_ENTRIES entries of
-    // kind (uint8), player (int8), target (int16), started and ends (int32), value (int16).
+    // kind (uint8), player (int8), target (int16), started and ends (int32), value (int16); v2 adds
+    // hirer (int8) and extra (int16) to each entry; v3 adds after the entries the explored flag (uint8)
+    // and the explored-stars bitmap (BITMAP(MAX_STARS) bytes).
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
