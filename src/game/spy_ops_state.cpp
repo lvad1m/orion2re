@@ -11,13 +11,16 @@
 namespace spy_ops {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
-        constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + MAX_COLONIES + MAX_LEADERS * 2;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
+        constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_COLONIES + MAX_LEADERS * 2;
+        constexpr uint32_t SAVE_SIZE = SAVE_SIZE_V1 + MAX_COLONIES * 2;
 
         struct s_tables {
             uint8_t unrest[MAX_COLONIES] = {};
             int8_t bribed_by[MAX_LEADERS];
             uint8_t immune[MAX_LEADERS] = {};
+            uint8_t stall[MAX_COLONIES] = {};
+            uint8_t famine[MAX_COLONIES] = {};
             s_tables() {
                 std::fill(std::begin(bribed_by), std::end(bribed_by), static_cast<int8_t>(-1));
             }
@@ -39,6 +42,14 @@ namespace spy_ops {
             case OP_FRAME_LEADER: return cost_frame_leader;
             case OP_DATA: return cost_data;
             case OP_FALSE_FLAG: return cost_false_flag;
+            case OP_ASSASSINATION:
+            case OP_POISON_FEAST: return cost_assassination;
+            case OP_SABOTAGE_SHIPYARD:
+            case OP_SABOTAGE_RESEARCH:
+            case OP_SABOTAGE_FOOD:
+            case OP_SABOTAGE_TRADE:
+            case OP_STRIKE:
+            case OP_POISON_WATER: return cost_sabotage;
             default: return 0;
         }
     }
@@ -53,6 +64,26 @@ namespace spy_ops {
 
     uint8_t* Immune_Slot(int16_t leader) {
         return leader >= 0 && leader < MAX_LEADERS ? &tables.immune[leader] : nullptr;
+    }
+
+    uint8_t* Stall_Slot(int16_t colony) {
+        return colony >= 0 && colony < MAX_COLONIES ? &tables.stall[colony] : nullptr;
+    }
+
+    uint8_t* Famine_Slot(int16_t colony) {
+        return colony >= 0 && colony < MAX_COLONIES ? &tables.famine[colony] : nullptr;
+    }
+
+    bool Stalled(int16_t colony) {
+        const uint8_t* slot = Stall_Slot(colony);
+        return slot != nullptr && *slot > 0;
+    }
+
+    int32_t Food2_Penalty(const s_colony* colony) {
+        if (!Enabled(OP_SABOTAGE_FOOD) || colony == nullptr) return 0;
+        const int32_t index = colony - MOX::colony;
+        if (index < 0 || index >= MAX_COLONIES) return 0;
+        return tables.famine[index] > 0 ? FAMINE_FOOD2 : 0;
     }
 
     int32_t Unrest(int16_t colony) {
@@ -72,6 +103,8 @@ namespace spy_ops {
 
     bool Empty() {
         return std::all_of(std::begin(tables.unrest), std::end(tables.unrest), [](uint8_t v) { return v == 0; }) &&
+            std::all_of(std::begin(tables.stall), std::end(tables.stall), [](uint8_t v) { return v == 0; }) &&
+            std::all_of(std::begin(tables.famine), std::end(tables.famine), [](uint8_t v) { return v == 0; }) &&
             std::all_of(std::begin(tables.bribed_by), std::end(tables.bribed_by), [](int8_t v) { return v == -1; }) &&
             std::all_of(std::begin(tables.immune), std::end(tables.immune), [](uint8_t v) { return v == 0; });
     }
@@ -85,6 +118,8 @@ namespace spy_ops {
         for (uint8_t v : tables.unrest) writer->Write_Uint8(v);
         for (int8_t v : tables.bribed_by) writer->Write_Int8(v);
         for (uint8_t v : tables.immune) writer->Write_Uint8(v);
+        for (uint8_t v : tables.stall) writer->Write_Uint8(v);
+        for (uint8_t v : tables.famine) writer->Write_Uint8(v);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -94,8 +129,10 @@ namespace spy_ops {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("spy operations save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported spy operations payload version");
-        if (reader->Remaining() != SAVE_SIZE - sizeof(uint16_t)) return fail("spy operations save has the wrong size");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported spy operations payload version");
+        const uint32_t size = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE;
+        if (reader->Remaining() != size - sizeof(uint16_t)) return fail("spy operations save has the wrong size");
         pending = s_tables{};
         for (uint8_t& v : pending.unrest) {
             v = reader->Read_Uint8();
@@ -108,6 +145,16 @@ namespace spy_ops {
         for (uint8_t& v : pending.immune) {
             v = reader->Read_Uint8();
             if (v > 1) return fail("spy operations save has an out-of-range immunity");
+        }
+        if (version >= 2) {
+            for (uint8_t& v : pending.stall) {
+                v = reader->Read_Uint8();
+                if (v > SABOTAGE_TURNS) return fail("spy operations save has an out-of-range stall");
+            }
+            for (uint8_t& v : pending.famine) {
+                v = reader->Read_Uint8();
+                if (v > SABOTAGE_TURNS) return fail("spy operations save has an out-of-range famine");
+            }
         }
         if (reader->Failed()) return fail("spy operations save is truncated");
         has_pending = true;

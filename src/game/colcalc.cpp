@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/world_events.h"
+#include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 #include "legacy_world.h"
 
@@ -595,6 +596,9 @@ namespace COLCALC {
 
         // New events (off by default): a warm current feeds the ocean worlds.
         food_total = static_cast<int16_t>(food_total + world_events::Food2_Bonus(colony));
+        // Sabotage of food (off by default): a famine in the colony.
+        const int32_t famine = spy_ops::Food2_Penalty(colony);
+        if (famine != 0) food_total = static_cast<int16_t>(std::max<int32_t>(0, food_total + famine));
         return food_total;
     }
 

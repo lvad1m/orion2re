@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "fake_colony_services.h"
+#include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 #include "game/world_events.h"
 
@@ -11,6 +12,11 @@ namespace spy_ranks {
     bool Can_Build(const s_colony*, int16_t) { return false; }
     bool On_Built(int16_t, int16_t) { return false; }
 } // namespace spy_ranks
+
+// Spy operations are not under test here.
+namespace spy_ops {
+    int32_t Food2_Penalty(const s_colony*) { return 0; }
+} // namespace spy_ops
 
 // New events are not under test here.
 namespace world_events {

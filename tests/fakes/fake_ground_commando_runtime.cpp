@@ -2,6 +2,7 @@
 
 #include "doctest/doctest.h"
 #include "game/officer_roster.h"
+#include "game/spy_ops.h"
 
 namespace {
     s_leader_data leaders[MAX_LEADERS];
@@ -320,3 +321,9 @@ namespace COLBLDG {
     void __cdecl Clear_Colony_Queue(int16_t) {
     }
 } // namespace COLBLDG
+
+// Spy operations are not under test here.
+namespace spy_ops {
+    int16_t Inside_Man_Troops(const s_colony*, int16_t, int16_t troops) { return troops; }
+    bool Inside_Man_Spend(s_colony*, int16_t) { return false; }
+} // namespace spy_ops

@@ -6,6 +6,8 @@
 #include "game/advisor_directive.h"
 #include "game/advisor_intel.h"
 #include "game/bill.h"
+#include "game/bomb.h"
+#include "game/colbldg.h"
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/espionage.h"
@@ -37,7 +39,9 @@ namespace spy_ops {
         constexpr int32_t EXPOSED_OPINION = -25;
         constexpr int32_t BRIBE_MIN_CHANCE = 25;  // percent: the computers bribe when the dice give at least this
         static const char* const NAMES[OP_COUNT] = {"stirs up unrest", "kills a scientist", "bribes a leader",
-            "frames a leader", "collects data", "runs a false-flag operation"};
+            "frames a leader", "collects data", "runs a false-flag operation", "assassinates a leader",
+            "poisons a leader at a feast", "sabotages a shipyard", "sabotages research", "starves a colony",
+            "sabotages trade", "strikes a colony", "poisons a colony's water"};
 
         int16_t Players_() {
             return static_cast<int16_t>(std::min<int32_t>(MOX::NUM_PLAYERS, MAX_PLAYERS));
@@ -117,12 +121,80 @@ namespace spy_ops {
             return false;
         }
 
+        // The target's highest-level assigned leader that is not a scientist (assassination, poison).
+        int16_t Assassination_Subject_(int16_t target) {
+            int16_t best = -1;
+            for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                const s_leader_data& l = MOX::leaders[i];
+                if (!Holds_(l, target) || l.status != STATUS_ASSIGNED) continue;
+                if ((l.special_skills & LEADER_COLONY_SKILL_SCIENCE_LEADER) != 0 || (l.general_skills & LEADER_GENERAL_SKILL_RESEARCHER) != 0) continue;
+                if (best < 0 || OFFICER::Owned_Officer_Level(i) > OFFICER::Owned_Officer_Level(best)) best = i;
+            }
+            return best;
+        }
+
+        // Treaty-level access to the target's table: non-aggression or alliance, or a trade treaty.
+        bool Feast_Allowed_(int16_t a, int16_t t) {
+            const int8_t treaty = MOX::player[a].treaty[t];
+            return (treaty >= 1 && treaty < TREATY_FIRST_WAR) || MOX::player[a].trade_treaty[t] > 0;
+        }
+
+        bool Real_Colony_(const s_colony& c, int16_t owner) {
+            return c.owner == owner && c.outpost_flag == 0;
+        }
+
+        // The target's ship-building colony with the most production spent.
+        int16_t Shipyard_Colony_(int16_t target) {
+            int16_t best = -1;
+            for (int16_t i = 0; i < MOX::NUM_COLONIES && i < MAX_COLONIES; ++i) {
+                const s_colony& c = MOX::colony[i];
+                if (!Real_Colony_(c, target) || c.production_spent <= 0 || !COLBLDG::Colony_Production_Is_Ship(c.producing[0])) continue;
+                if (best < 0 || c.production_spent > MOX::colony[best].production_spent) best = i;
+            }
+            return best;
+        }
+
+        // The most populous colony; `capital_ok` false skips the capitol and `min_pops` skips small ones.
+        int16_t Populous_Colony_(int16_t target, bool capital_ok, int32_t min_pops) {
+            int16_t best = -1;
+            for (int16_t i = 0; i < MOX::NUM_COLONIES && i < MAX_COLONIES; ++i) {
+                const s_colony& c = MOX::colony[i];
+                if (!Real_Colony_(c, target) || (!capital_ok && c.buildings[BUILDING_CAPITOL] != 0) || c.n_pops < min_pops) continue;
+                if (best < 0 || c.n_pops > MOX::colony[best].n_pops) best = i;
+            }
+            return best;
+        }
+
+        // The target's colony with the most industry.
+        int16_t Strike_Colony_(int16_t target) {
+            int16_t best = -1;
+            for (int16_t i = 0; i < MOX::NUM_COLONIES && i < MAX_COLONIES; ++i) {
+                const s_colony& c = MOX::colony[i];
+                if (!Real_Colony_(c, target) || c.production[ECON_INDUSTRY] <= 0) continue;
+                if (best < 0 || c.production[ECON_INDUSTRY] > MOX::colony[best].production[ECON_INDUSTRY]) best = i;
+            }
+            return best;
+        }
+
+        int32_t Freighters_Lost_(int16_t target) {
+            const int32_t n = MOX::player[target].n_freighters;
+            return n <= 0 ? 0 : std::min<int32_t>(n, std::max<int32_t>(2, n / 4));
+        }
+
         opinion::e_reason Reason_(e_op op) {
             switch (op) {
                 case OP_UNREST: return opinion::REASON_STIRRED_UNREST;
                 case OP_KILL_SCIENTIST: return opinion::REASON_KILLED_OUR_SCIENTIST;
                 case OP_BRIBERY: return opinion::REASON_BRIBED_OUR_LEADER;
                 case OP_FRAME_LEADER: return opinion::REASON_FRAMED_OUR_LEADER;
+                case OP_ASSASSINATION:
+                case OP_POISON_FEAST: return opinion::REASON_TRIED_TO_KILL_OUR_LEADER;
+                case OP_SABOTAGE_SHIPYARD:
+                case OP_SABOTAGE_RESEARCH:
+                case OP_SABOTAGE_FOOD:
+                case OP_SABOTAGE_TRADE:
+                case OP_STRIKE:
+                case OP_POISON_WATER: return opinion::REASON_SABOTAGE;
                 default: return opinion::REASON_CAUGHT_SPYING;
             }
         }
@@ -149,11 +221,30 @@ namespace spy_ops {
         e_op Choose_(int16_t a, int16_t t, int16_t* third) {
             if (espionage::Points(a, t) <= 0) return OP_COUNT;
             const auto ready = [&](e_op op) { return Enabled(op) && espionage::Points(a, t) >= Cost(op); };
-            if (MOX::player[a].treaty[t] >= TREATY_FIRST_WAR) {
+            const bool at_war = MOX::player[a].treaty[t] >= TREATY_FIRST_WAR;
+            const int32_t personality = MOX::player[a].personality;
+            const bool ruthless = personality == PLAYER_PERSONALITY_RUTHLESS;
+            const bool dark = ruthless || personality == PLAYER_PERSONALITY_XENOPHOBIC;
+            if (at_war) {
                 if (ready(OP_KILL_SCIENTIST) && Scientist_(t) >= 0) return OP_KILL_SCIENTIST;
+                // Wave 2 (off unless their bits are set).
+                if (dark && ready(OP_ASSASSINATION) && Assassination_Subject_(t) >= 0) return OP_ASSASSINATION;
+                if (ruthless && ready(OP_POISON_WATER) && Populous_Colony_(t, false, POISON_WATER_MIN_POPS) >= 0) return OP_POISON_WATER;
+                if (ready(OP_SABOTAGE_SHIPYARD) && Shipyard_Colony_(t) >= 0) return OP_SABOTAGE_SHIPYARD;
+                if (ready(OP_SABOTAGE_RESEARCH) && MOX::player[t].research_accumulated > MOX::player[a].research_accumulated &&
+                    MOX::player[t].research_accumulated >= 2) {
+                    return OP_SABOTAGE_RESEARCH;
+                }
+                if (ready(OP_SABOTAGE_FOOD) && Populous_Colony_(t, true, 0) >= 0) return OP_SABOTAGE_FOOD;
+                if (ready(OP_STRIKE) && Strike_Colony_(t) >= 0) return OP_STRIKE;
+                if (ready(OP_SABOTAGE_TRADE) && Freighters_Lost_(t) > 0) return OP_SABOTAGE_TRADE;
                 const bool democracy = MOX::player[t].traits[TRAIT_CURRENT_GOVERNMENT] / 2 == GOVERNMENT_DEMOCRACY / 2;
                 if (ready(OP_UNREST) && (democracy || Unstable_(t)) && Unrest_Colony_(t) >= 0) return OP_UNREST;
                 return ready(OP_DATA) ? OP_DATA : OP_COUNT;
+            }
+            if (dark && opinion::Relations(a, t) <= -50) {
+                if (ready(OP_POISON_FEAST) && Feast_Allowed_(a, t) && Assassination_Subject_(t) >= 0) return OP_POISON_FEAST;
+                if (ready(OP_ASSASSINATION) && Assassination_Subject_(t) >= 0) return OP_ASSASSINATION;
             }
             if (Is_Main_Rival_(a, t)) {
                 const int16_t bribe = Bribe_Candidate_(t);
@@ -169,6 +260,9 @@ namespace spy_ops {
                     *third = Scapegoat_(a, t);
                     if (*third >= 0) return OP_FALSE_FLAG;
                 }
+                if (ready(OP_SABOTAGE_FOOD) && Populous_Colony_(t, true, 0) >= 0) return OP_SABOTAGE_FOOD;
+                if (ready(OP_STRIKE) && Strike_Colony_(t) >= 0) return OP_STRIKE;
+                if (ready(OP_SABOTAGE_TRADE) && Freighters_Lost_(t) > 0) return OP_SABOTAGE_TRADE;
             }
             return ready(OP_DATA) ? OP_DATA : OP_COUNT;
         }
@@ -245,6 +339,11 @@ namespace spy_ops {
             case OP_KILL_SCIENTIST: value += 2; break;
             case OP_DATA: value -= 2; break;
             case OP_FALSE_FLAG: value += 2; break;
+            case OP_ASSASSINATION: value += ASSASSINATION_DIFFICULTY; break;
+            case OP_SABOTAGE_SHIPYARD:
+            case OP_SABOTAGE_RESEARCH:
+            case OP_SABOTAGE_FOOD: value += 1; break;
+            case OP_POISON_WATER: value += 2; break;
             case OP_FRAME_LEADER:  // paranoia makes framing easier
                 value -= mode == espionage::MODE_WITCH_HUNT ? 4 : mode == espionage::MODE_HEIGHTENED ? 2 : 0;
                 break;
@@ -275,6 +374,14 @@ namespace spy_ops {
             case OP_FRAME_LEADER: subject = Frame_Candidate_(target); break;
             case OP_DATA: subject = target; break;
             case OP_FALSE_FLAG: subject = Alive_(third) && third != attacker && third != target ? third : -1; break;
+            case OP_ASSASSINATION: subject = Assassination_Subject_(target); break;
+            case OP_POISON_FEAST: subject = Feast_Allowed_(attacker, target) ? Assassination_Subject_(target) : -1; break;
+            case OP_SABOTAGE_SHIPYARD: subject = Shipyard_Colony_(target); break;
+            case OP_SABOTAGE_RESEARCH: subject = MOX::player[target].research_accumulated >= 2 ? target : -1; break;
+            case OP_SABOTAGE_FOOD: subject = Populous_Colony_(target, true, 0); break;
+            case OP_SABOTAGE_TRADE: subject = Freighters_Lost_(target) > 0 ? target : -1; break;
+            case OP_STRIKE: subject = Strike_Colony_(target); break;
+            case OP_POISON_WATER: subject = Populous_Colony_(target, false, POISON_WATER_MIN_POPS); break;
             default: break;
         }
         if (subject < 0) return RESULT_NOT_POSSIBLE;
@@ -295,15 +402,44 @@ namespace spy_ops {
         if (check.outcome >= dice::OUTCOME_SUCCESS) {
             // Stains and titles (off by default): harm counts toward the corsair; a scientist killed
             // without a brilliant success leaves traces - a kingslayer.
-            if (op == OP_UNREST || op == OP_KILL_SCIENTIST || op == OP_FALSE_FLAG || op == OP_FRAME_LEADER) reputation::Note_Deed(attacker);
-            if (op == OP_KILL_SCIENTIST && check.outcome == dice::OUTCOME_SUCCESS) reputation::On_Leader_Killed(attacker);
+            if (op != OP_BRIBERY && op != OP_DATA) reputation::Note_Deed(attacker);
+            if ((op == OP_KILL_SCIENTIST || op == OP_ASSASSINATION || op == OP_POISON_FEAST) && check.outcome == dice::OUTCOME_SUCCESS) {
+                reputation::On_Leader_Killed(attacker);
+            }
             switch (op) {
                 case OP_UNREST: {
                     uint8_t* unrest = Unrest_Slot(subject);
                     *unrest = static_cast<uint8_t>(std::min<int32_t>(UNREST_MAX, *unrest + UNREST_PER_OPERATION));
                     break;
                 }
-                case OP_KILL_SCIENTIST: OFFICER::Kill_Officer(subject); break;
+                case OP_KILL_SCIENTIST:
+                case OP_ASSASSINATION:
+                case OP_POISON_FEAST: OFFICER::Kill_Officer(subject); break;
+                case OP_SABOTAGE_SHIPYARD:
+                    MOX::colony[subject].production_spent = 0;
+                    *Stall_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS);
+                    break;
+                case OP_STRIKE: *Stall_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS); break;
+                case OP_SABOTAGE_RESEARCH: MOX::player[subject].research_accumulated -= MOX::player[subject].research_accumulated / 2; break;
+                case OP_SABOTAGE_FOOD:
+                    *Famine_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS);
+                    COLCALC::Colony_Calculation(subject);
+                    break;
+                case OP_SABOTAGE_TRADE:
+                    MOX::player[subject].n_freighters = static_cast<int16_t>(MOX::player[subject].n_freighters - Freighters_Lost_(subject));
+                    break;
+                case OP_POISON_WATER: {
+                    s_combat_bomb_result result;
+                    memset(&result, 0, sizeof(result));
+                    result.attacker_idx = -1;
+                    result.colony_idx = subject;
+                    result.is_planetary_hit = 1;
+                    result.is_bio_weapon = 1;
+                    result.bio_hits_remaining = static_cast<int16_t>(POISON_WATER_BIO_HITS);
+                    BOMB::Apply_Bomb_Hits(&result);
+                    COLCALC::Colony_Calculation(subject);
+                    break;
+                }
                 case OP_BRIBERY: *Bribed_Slot(subject) = static_cast<int8_t>(attacker); break;
                 case OP_FRAME_LEADER: OFFICER::Deassign_Officer(subject); break;
                 case OP_DATA:
@@ -324,6 +460,8 @@ namespace spy_ops {
         opinion::Add(target, attacker, Reason_(op), EXPOSED_OPINION);
         espionage::On_Spy_Caught(target, attacker);
         if (op == OP_FRAME_LEADER) *Immune_Slot(subject) = 1;
+        if (op == OP_POISON_FEAST || op == OP_POISON_WATER) reputation::On_Atrocity(attacker);
+        if (op == OP_POISON_FEAST) opinion::Add(target, attacker, opinion::REASON_TRIED_TO_KILL_OUR_LEADER, EXPOSED_OPINION);
         return RESULT_EXPOSED;
     }
 
@@ -333,11 +471,38 @@ namespace spy_ops {
         return officer >= 0 && Bribed_By(static_cast<int16_t>(officer)) >= 0 ? BRIBED_GOVERNOR_MORALE : 0;
     }
 
+    int16_t Inside_Man_Troops(const s_colony* colony, int16_t invader, int16_t troops) {
+        if (!inside_man || colony == nullptr || colony->planet < 0 || !Enabled(OP_BRIBERY)) return troops;
+        const int officer = COLCALC::Colony_Officer(const_cast<s_colony*>(colony));
+        if (officer < 0 || Bribed_By(static_cast<int16_t>(officer)) != invader) return troops;
+        return static_cast<int16_t>(troops * INSIDE_MAN_NUMERATOR / INSIDE_MAN_DENOMINATOR);
+    }
+
+    bool Inside_Man_Spend(s_colony* colony, int16_t invader) {
+        if (Inside_Man_Troops(colony, invader, 2) == 2) return false;  // not the briber's man
+        const int officer = COLCALC::Colony_Officer(colony);
+        *Bribed_Slot(static_cast<int16_t>(officer)) = -1;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ops: stardate %d, player %d's bribed governor %d opens the gates of colony %d to player %d",
+            (int)MOX::stardate, (int)colony->owner, officer, (int)(colony - MOX::colony), (int)invader);
+        OFFICER::Deassign_Officer(static_cast<int16_t>(officer));
+        return true;
+    }
+
     void Turn() {
         if (operations == 0) return;
         for (int16_t c = 0; c < MAX_COLONIES; ++c) {
             uint8_t* unrest = Unrest_Slot(c);
             if (*unrest > 0) --*unrest;
+            uint8_t* famine = Famine_Slot(c);
+            if (*famine > 0) --*famine;
+            uint8_t* stall = Stall_Slot(c);
+            if (*stall > 0) {
+                --*stall;
+                if (c < MOX::NUM_COLONIES) {
+                    s_colony& colony = MOX::colony[c];
+                    colony.production_spent = static_cast<int16_t>(std::max<int32_t>(0, colony.production_spent - colony.production[ECON_INDUSTRY]));
+                }
+            }
         }
         if (Enabled(OP_BRIBERY)) Uncover_Or_Hand_Over_();
         if (!espionage::network || MOX::stardate % AI_PERIOD != 0) return;

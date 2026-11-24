@@ -5,12 +5,15 @@
 #include "game/advisor.h"
 #include "game/advisor_intel.h"
 #include "game/dice.h"
+#include "game/colbldg.h"
 #include "game/espionage.h"
 #include "game/opinion.h"
+#include "game/reputation.h"
 #include "game/serialization.h"
 #include "game/spy_ops.h"
 #include "game/stability.h"
 
+#include <algorithm>
 #include <memory>
 
 namespace {
@@ -48,6 +51,14 @@ namespace {
 
     const int32_t TRIUMPH[2] = {10, 10};
     const int32_t CATASTROPHE[2] = {1, 1};
+    const int32_t ALL_OPS = 16383;
+
+    // Dice for a plain success (not brilliant, not a triumph) of `op` against player 2 by player 1.
+    void Plain_Success_(spy_ops::e_op op, int32_t* dice) {
+        const int32_t natural = std::clamp(spy_ops::Difficulty(1, op, 2) - spy_ops::Bonus(1, 2), 3, 19);
+        dice[0] = natural / 2;
+        dice[1] = natural - natural / 2;
+    }
 
     // Three computer empires; player 1 has 4 spies and 30 network points at player 2, whose colony 0
     // is not its capitol. Stardate 35001 (no computer turn).
@@ -217,6 +228,286 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     buffer[2] = 200;  // colony 0's unrest over the maximum
     SERIAL::Reader_ bad(buffer.get(), spy_ops::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(spy_ops::Parse_Save(&bad, &error));
+}
+
+// ---- wave 2: assassination, poison at a feast, sabotage, inside man ----
+
+DOCTEST_TEST_CASE("assassination kills the best non-scientist leader; plain success leaves traces; exposure is an incident") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> titles{reputation::enabled};
+    reputation::Clear();
+    reputation::enabled = true;
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    Leader_(&state, 5, 2, 1).special_skills = LEADER_COLONY_SKILL_SCIENCE_LEADER;
+    state.leaders[5].xp = 3000;
+    Leader_(&state, 6, 2, 1).xp = 0;
+    Leader_(&state, 7, 2, 1).xp = 1000;
+    DOCTEST_CHECK(spy_ops::Difficulty(1, spy_ops::OP_ASSASSINATION, 2) == spy_ops::Difficulty(1, spy_ops::OP_UNREST, 2) + 3);
+
+    int32_t plain[2];
+    Plain_Success_(spy_ops::OP_ASSASSINATION, plain);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_ASSASSINATION, 2, -1, plain) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.leaders[7].status == -2);
+    DOCTEST_CHECK(state.leaders[5].status == 1);  // the scientist is not the target
+    DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_KINGSLAYER));
+    DOCTEST_CHECK(espionage::Points(1, 2) == 160);
+
+    reputation::Clear();
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_ASSASSINATION, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.leaders[6].status == -2);
+    DOCTEST_CHECK_FALSE(reputation::Has(1, reputation::TITLE_KINGSLAYER));  // brilliant: no traces
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_ASSASSINATION, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // only the scientist is left
+
+    state.leaders[7].status = 1;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_ASSASSINATION, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK((state.players[1].spies[2] & 0x3F) == 3);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -25);
+    DOCTEST_CHECK_FALSE(reputation::Has(1, reputation::TITLE_ATROCITIES));
+}
+
+DOCTEST_TEST_CASE("poison at a feast needs a treaty; an exposed poisoning is an atrocity") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> titles{reputation::enabled};
+    reputation::Clear();
+    reputation::enabled = true;
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    Leader_(&state, 7, 2, 1).xp = 1000;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_FEAST, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // no talks
+    state.players[1].treaty[2] = 4;  // war
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_FEAST, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);
+    state.players[1].treaty[2] = 0;
+    state.players[1].trade_treaty[2] = 1;  // a trade treaty gives access too
+    DOCTEST_CHECK(spy_ops::Difficulty(1, spy_ops::OP_POISON_FEAST, 2) == spy_ops::Difficulty(1, spy_ops::OP_UNREST, 2));
+
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_FEAST, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_ATROCITIES));
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -50);
+    DOCTEST_CHECK(state.leaders[7].status == 1);
+
+    state.players[1].trade_treaty[2] = 0;
+    state.players[1].treaty[2] = 2;
+    int32_t plain[2];
+    Plain_Success_(spy_ops::OP_POISON_FEAST, plain);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_FEAST, 2, -1, plain) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.leaders[7].status == -2);
+    DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_KINGSLAYER));
+}
+
+DOCTEST_TEST_CASE("sabotaging a shipyard wipes the progress and stalls the colony for five turns") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    s_colony& c = state.colonies[0];
+    c.production[ECON_INDUSTRY] = 30;
+    c.production_spent = 100;
+    c.producing[0] = BUILDING_NO_BUILDING + 1;  // a building, not a ship
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_SHIPYARD, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);
+    c.producing[0] = COLBLDG::Colony_Production_From_Ship_Design_Index(0);
+    DOCTEST_CHECK(spy_ops::Difficulty(1, spy_ops::OP_SABOTAGE_SHIPYARD, 2) == spy_ops::Difficulty(1, spy_ops::OP_UNREST, 2) + 1);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_SHIPYARD, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(c.production_spent == 0);
+    DOCTEST_CHECK(spy_ops::Stalled(0));
+    DOCTEST_CHECK(espionage::Points(1, 2) == 175);
+
+    c.production_spent = 100;
+    spy_ops::Turn();
+    DOCTEST_CHECK(c.production_spent == 70);  // the turn's industry is lost
+    for (int i = 0; i < 4; ++i) spy_ops::Turn();
+    DOCTEST_CHECK(c.production_spent == 0);   // clamped
+    DOCTEST_CHECK_FALSE(spy_ops::Stalled(0));
+    c.production_spent = 100;
+    spy_ops::Turn();
+    DOCTEST_CHECK(c.production_spent == 100);  // the stall is over
+
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_SHIPYARD, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_SABOTAGE) == -25);
+}
+
+DOCTEST_TEST_CASE("sabotaged research loses half; a strike stalls without wiping; sabotaged trade loses freighters") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    state.players[2].research_accumulated = 100;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_RESEARCH, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.players[2].research_accumulated == 50);
+
+    s_colony& c = state.colonies[0];
+    c.production_spent = 40;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_STRIKE, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // no industry
+    c.production[ECON_INDUSTRY] = 10;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_STRIKE, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(c.production_spent == 40);
+    DOCTEST_CHECK(spy_ops::Stalled(0));
+
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_TRADE, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // none to lose
+    state.players[2].n_freighters = 20;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_TRADE, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.players[2].n_freighters == 15);
+    state.players[2].n_freighters = 4;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_TRADE, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.players[2].n_freighters == 2);  // at least two
+}
+
+DOCTEST_TEST_CASE("a famine lasts five turns and lowers the food per farmer") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == 0);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_FOOD, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == spy_ops::FAMINE_FOOD2);
+    for (int i = 0; i < 4; ++i) spy_ops::Turn();
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == spy_ops::FAMINE_FOOD2);
+    spy_ops::Turn();
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == 0);
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(nullptr) == 0);
+}
+
+DOCTEST_TEST_CASE("poisoned water kills population; exposure is an atrocity") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> titles{reputation::enabled};
+    reputation::Clear();
+    reputation::enabled = true;
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    state.colonies[0].buildings[BUILDING_CAPITOL] = 1;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_WATER, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // only the capital
+    state.colonies[0].buildings[BUILDING_CAPITOL] = 0;
+    DOCTEST_CHECK(spy_ops::Difficulty(1, spy_ops::OP_POISON_WATER, 2) == spy_ops::Difficulty(1, spy_ops::OP_UNREST, 2) + 2);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_WATER, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_ATROCITIES));
+    DOCTEST_CHECK(state.colonies[0].n_pops == 5);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_WATER, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(state.colonies[0].n_pops == 5 - spy_ops::POISON_WATER_BIO_HITS);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_WATER, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);  // three still count
+    DOCTEST_CHECK(state.colonies[0].n_pops == 1);
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_WATER, 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);  // never wiped out
+}
+
+DOCTEST_TEST_CASE("inside man: the briber's invasion meets half the troops and spends the bribe") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> flag{spy_ops::inside_man};
+    spy_ops::inside_man = true;
+    Leader_(&state, 6, 2, 1).type = 1;
+    state.colonies[0].planet = 0;
+    state.planets[0].star_index = 0;
+    state.stars[0].officer_index[2] = 6;
+    *spy_ops::Bribed_Slot(6) = 1;
+    s_colony* colony = &state.colonies[0];
+    DOCTEST_CHECK(spy_ops::Inside_Man_Troops(colony, 1, 10) == 5);
+    DOCTEST_CHECK(spy_ops::Inside_Man_Troops(colony, 0, 10) == 10);  // not the briber
+    DOCTEST_CHECK_FALSE(spy_ops::Inside_Man_Spend(colony, 0));
+    DOCTEST_CHECK(spy_ops::Bribed_By(6) == 1);
+    spy_ops::inside_man = false;
+    DOCTEST_CHECK(spy_ops::Inside_Man_Troops(colony, 1, 10) == 10);
+    spy_ops::inside_man = true;
+    DOCTEST_CHECK(spy_ops::Inside_Man_Spend(colony, 1));
+    DOCTEST_CHECK(spy_ops::Bribed_By(6) == -1);
+    DOCTEST_CHECK(state.leaders[6].status != 1);  // no longer at the post
+    DOCTEST_CHECK(spy_ops::Inside_Man_Troops(colony, 1, 10) == 10);  // the bribe is spent
+    spy_ops::operations = 63 & ~4;  // without bribery nothing is bribed
+    DOCTEST_CHECK(spy_ops::Inside_Man_Troops(colony, 1, 10) == 10);
+}
+
+DOCTEST_TEST_CASE("the v2 payload round-trips the stall and famine timers; a v1 payload still loads") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 200;
+    state.colonies[0].production[ECON_INDUSTRY] = 10;
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_STRIKE, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_FOOD, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    const uint32_t size = spy_ops::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    spy_ops::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    DOCTEST_CHECK(buffer[0] == 2);
+    spy_ops::Clear();
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(spy_ops::Parse_Save(&reader, &error));
+    spy_ops::Commit_Save();
+    DOCTEST_CHECK(spy_ops::Stalled(0));
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == spy_ops::FAMINE_FOOD2);
+    DOCTEST_CHECK(spy_ops::Unrest(0) == spy_ops::UNREST_PER_OPERATION);
+
+    // A version 1 payload is the same without the two trailing colony tables.
+    const uint32_t v1_size = size - 2 * MAX_COLONIES;
+    auto old = std::make_unique<uint8_t[]>(v1_size);
+    std::copy(buffer.get(), buffer.get() + v1_size, old.get());
+    old[0] = 1;
+    old[1] = 0;
+    spy_ops::Clear();
+    SERIAL::Reader_ old_reader(old.get(), v1_size, "test underflow", true);
+    DOCTEST_REQUIRE(spy_ops::Parse_Save(&old_reader, &error));
+    spy_ops::Commit_Save();
+    DOCTEST_CHECK(spy_ops::Unrest(0) == spy_ops::UNREST_PER_OPERATION);
+    DOCTEST_CHECK_FALSE(spy_ops::Stalled(0));
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == 0);
+
+    buffer[2 + MAX_COLONIES + MAX_LEADERS * 2] = 9;  // colony 0's stall over the maximum
+    spy_ops::Clear();
+    SERIAL::Reader_ bad(buffer.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(spy_ops::Parse_Save(&bad, &error));
+}
+
+DOCTEST_TEST_CASE("with the new bits off nothing new happens") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);  // operations = 63: the six classic bits only
+    espionage::State()->points[1][2] = 200;
+    Leader_(&state, 7, 2, 1).xp = 1000;
+    state.players[1].treaty[2] = 2;
+    state.colonies[0].production[ECON_INDUSTRY] = 10;
+    state.players[2].research_accumulated = 100;
+    state.players[2].n_freighters = 20;
+    for (int op = spy_ops::OP_ASSASSINATION; op < spy_ops::OP_COUNT; ++op) {
+        DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, static_cast<spy_ops::e_op>(op), 2, -1, TRIUMPH) == spy_ops::RESULT_NOT_POSSIBLE);
+    }
+    DOCTEST_CHECK(espionage::Points(1, 2) == 200);
+    DOCTEST_CHECK(state.leaders[7].status == 1);
+    DOCTEST_CHECK(state.players[2].research_accumulated == 100);
+    DOCTEST_CHECK(spy_ops::Food2_Penalty(&state.colonies[0]) == 0);
+    DOCTEST_CHECK(spy_ops::Empty());
+    // The computers use only the enabled operations.
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    MOX::stardate = 35010;
+    spy_ops::operations = 0;
+    spy_ops::Turn();
+    DOCTEST_CHECK(espionage::Points(1, 2) == 200);
+}
+
+DOCTEST_TEST_CASE("a ruthless computer at war chooses an assassination") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = 64;
+    espionage::State()->points[1][2] = 100;
+    Leader_(&state, 7, 2, 1).xp = 1000;
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    MOX::stardate = 35010;
+    spy_ops::Turn();
+    DOCTEST_CHECK(espionage::Points(1, 2) == 60);  // 40 spent, whatever the dice said
 }
 
 }

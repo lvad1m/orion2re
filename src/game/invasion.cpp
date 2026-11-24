@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/spy_ops.h"
+
 namespace invasion {
 
     void __cdecl Compute_Player_Ground_Combat_Bonuses(int player_idx, s_invasion_player_bonuses* bonuses, int8_t is_defender) {
@@ -809,6 +811,15 @@ namespace invasion {
         s_colony* colony = &MOX::colony[colony_id];
 
         invasion::Get_Invasion_Info(ship_list, n_ships, colony, &local_attacker, &local_defender);
+
+        // Inside man (off by default): the briber's governor opens the gates, the defenders count half.
+        if (spy_ops::Inside_Man_Troops(colony, local_attacker.player_id, 2) != 2) {
+            for (int16_t i = 0; i < 3; ++i) {
+                local_defender.unit_counts[i] = spy_ops::Inside_Man_Troops(colony, local_attacker.player_id, local_defender.unit_counts[i]);
+            }
+            spy_ops::Inside_Man_Spend(colony, local_attacker.player_id);
+            invasion::Find_Troops(&local_defender);
+        }
 
         battle_results->attacker_invasion = local_attacker;
         battle_results->defender_invasion = local_defender;

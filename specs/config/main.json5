@@ -5507,13 +5507,13 @@
 
     operations: {
       title: "Spy operations",
-      description: "Selects the spy operations empires may run, as a sum of bits: 1 stir up unrest in a colony, 2 kill a scientist, 4 bribe a leader, 8 frame an honest leader, 16 collect data on the fleet, 32 a false-flag sabotage in a third empire's name. Each spends network points and is a dice check of the spies' skill against the target's defence and counterintelligence; an exposed operation costs a spy and is a diplomatic incident. Computer empires choose operations by war and rivalry.",
+      description: "Selects the spy operations empires may run, as a sum of bits: 1 stir up unrest in a colony, 2 kill a scientist, 4 bribe a leader, 8 frame an honest leader, 16 collect data on the fleet, 32 a false-flag sabotage in a third empire's name, 64 assassinate a leader, 128 poison a leader at a feast (needs a treaty), 256 sabotage a shipyard, 512 sabotage research, 1024 a famine in a colony, 2048 sabotage trade (freighters lost), 4096 a strike in a colony, 8192 poison a colony's water (an atrocity). Each spends network points and is a dice check of the spies' skill against the target's defence and counterintelligence; an exposed operation costs a spy and is a diplomatic incident. Computer empires choose operations by war and rivalry.",
       remarks: "0 preserves classic behavior. Needs spy network. The human runs operations with the espionage screen. Kept in an optional save section that older builds skip.",
       examples: ["spy operations = 63;"],
       group: "gameplay",
       namespace: "spy",
       type: "int32",
-      constraints: { min: 0, max: 63 },
+      constraints: { min: 0, max: 16383 },
       default: 0,
       bind_root: {
         header: "game/spy_ops.h",
@@ -5796,6 +5796,44 @@
       type: "bool",
       default: false,
       bind_root: { header: "game/world_events.h", symbol: "world_events::hired_pirates" },
+    },
+
+    op_cost_assassination: {
+      title: "Cost of an assassination",
+      description: "Sets the network points an assassination or a poisoning at a feast spends.",
+      remarks: "Effective only while spy operations includes 64 or 128.",
+      examples: ["spy op_cost_assassination = 50;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 40,
+      bind_root: { header: "game/spy_ops.h", symbol: "spy_ops::cost_assassination" },
+    },
+
+    op_cost_sabotage: {
+      title: "Cost of a sabotage",
+      description: "Sets the network points each of the sabotage operations spends: shipyard, research, food, trade, a strike and poisoned water.",
+      remarks: "Effective only while spy operations includes 256 to 8192.",
+      examples: ["spy op_cost_sabotage = 30;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 1000 },
+      default: 25,
+      bind_root: { header: "game/spy_ops.h", symbol: "spy_ops::cost_sabotage" },
+    },
+
+    inside_man: {
+      title: "Inside man",
+      description: "A governor bribed by an invader opens the gates when that empire invades the colony: the defending ground troops count half, the bribe is spent and the governor leaves the post. The capital counts too.",
+      remarks: "False preserves classic behavior. Needs spy operations to include 4 (bribery).",
+      examples: ["spy inside_man = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/spy_ops.h", symbol: "spy_ops::inside_man" },
     },
 
     disable_scan: {

@@ -13,5 +13,8 @@ namespace spy_ops {
     int32_t cost_frame_leader = 15;
     int32_t cost_data = 5;
     int32_t cost_false_flag = 15;
+    int32_t cost_assassination = 40;
+    int32_t cost_sabotage = 25;
+    bool inside_man = false;
 
 } // namespace spy_ops
