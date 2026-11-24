@@ -10939,6 +10939,18 @@
       bind_root: { header: "game/incidents.h", symbol: "incidents::enabled" },
     },
 
+    overtures: {
+      title: "Overtures: hand, leak, peacekeepers, paid offensives",
+      description: "Adds four diplomatic events. Each turn an empire has a 0.6 percent chance to meet one (at most one new event a turn in the galaxy). An outstretched hand: scientists of all races offer help for a smaller fleet; accepting scraps the three cheapest ships for two technology applications, bargaining scraps one ship for one application and 40 BC, seizing the delegation yields 80 BC but every empire in contact remembers it. A leaked discovery: an application an empire in contact lacks is about to leak; shared (up to three empires get it and remember a service), sold (the richest one pays 100 BC) or suppressed (30 BC). Peacekeepers: a third computer power in good standing with two warring computer empires presses them for 8 turns, a chance of peace each turn that grows with their war weariness; when the turns pass the patrols strike each side (one cheapest ship lost, a bad opinion of the mediator). A paid offensive: a computer at war pays an ally that likes it 5, 10 or 20 percent of its treasury to fight the common enemy (the ally declares war, or, already at war, only takes the money); after 12 turns the ally still at war is remembered well, one that made peace on the money broke its word. A computer picks by personality, a human takes the first, safest option until the interface step; humans are never driven by the peacekeepers or the paid offensive. The advisor view lists the running peacekeepers and paid offensives that touch the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events overtures = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/overtures.h", symbol: "overtures::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

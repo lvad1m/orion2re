@@ -20,6 +20,7 @@
 #include "game/projects.h"
 #include "game/wanderers.h"
 #include "game/incidents.h"
+#include "game/overtures.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -516,6 +517,20 @@ namespace advisor {
                 }
                 Append_Format(out, "Event: %s (colony %d, leader %d, until stardate %d).\n", what, static_cast<int>(r.target),
                     static_cast<int>(r.other), static_cast<int>(r.ends));
+            }
+        }
+        if (overtures::enabled) {
+            const overtures::s_state* os = overtures::State();
+            for (int32_t i = 0; i < os->count; ++i) {
+                const overtures::s_record& r = os->record[i];
+                if (r.player != self.player && r.target != self.player && r.other != self.player) continue;
+                if (r.kind == overtures::KIND_PEACEKEEPERS) {
+                    Append_Format(out, "Event: peacekeepers of player %d press players %d and %d to peace (until stardate %d).\n",
+                        static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.ends));
+                } else {
+                    Append_Format(out, "Event: player %d paid player %d for an offensive against player %d (judged at stardate %d).\n",
+                        static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.ends));
+                }
             }
         }
         if (self.loyal_leaders > 0) {

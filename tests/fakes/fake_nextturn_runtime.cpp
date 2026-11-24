@@ -294,6 +294,9 @@ namespace wanderers {
 namespace incidents {
     void Turn() {}
 }
+namespace overtures {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}

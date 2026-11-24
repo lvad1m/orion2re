@@ -20,6 +20,7 @@
 #include "game/projects.h"
 #include "game/wanderers.h"
 #include "game/incidents.h"
+#include "game/overtures.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -127,6 +128,10 @@ namespace SAVEGAME {
             return incidents::enabled && !incidents::Empty();
         }
 
+        bool Overtures_Has_State_() {
+            return overtures::enabled && !overtures::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -179,6 +184,8 @@ namespace SAVEGAME {
                 wanderers::Parse_Save, wanderers::Commit_Save, wanderers::Discard_Save, wanderers::Clear},
             {SECTION_TYPE_INCIDENTS, 1, "incidents", Incidents_Has_State_, incidents::Save_Size, incidents::Write_Save,
                 incidents::Parse_Save, incidents::Commit_Save, incidents::Discard_Save, incidents::Clear},
+            {SECTION_TYPE_OVERTURES, 1, "overtures", Overtures_Has_State_, overtures::Save_Size, overtures::Write_Save,
+                overtures::Parse_Save, overtures::Commit_Save, overtures::Discard_Save, overtures::Clear},
         };
     } // namespace
 
