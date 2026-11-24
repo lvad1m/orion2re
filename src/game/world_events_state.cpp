@@ -35,7 +35,24 @@ namespace world_events {
                 kind == KIND_GHOST_SHIP || kind == KIND_AMBASSADOR_KILLED || kind == KIND_DISCOVERER ||
                 kind == KIND_ANCIENT_WRECK || kind == KIND_MUTINY || kind == KIND_WARM_PLACE || kind == KIND_EPIDEMIC ||
                 kind == KIND_RACE_EVENT || kind == KIND_BANKRUPTCY || kind == KIND_BOUNTY || kind == KIND_PROTECTION ||
-                kind == KIND_HIRED_PIRATES;
+                kind == KIND_HIRED_PIRATES || kind == KIND_TERRITORIAL_BEAST || kind == KIND_STAR_FLARE ||
+                kind == KIND_SYSTEM_EMP || kind == KIND_GALACTIC_SLOWDOWN || kind == KIND_SENSOR_FAILURE ||
+                kind == KIND_COMET_ORE;
+        }
+
+        bool Star_Has_(e_kind kind, int16_t star) {
+            if (star < 0) return false;
+            for (const s_entry& e : entries) {
+                if (Live_(e) && e.kind == kind && e.target == star) return true;
+            }
+            return false;
+        }
+
+        bool Galaxy_Has_(e_kind kind) {
+            for (const s_entry& e : entries) {
+                if (Live_(e) && e.kind == kind) return true;
+            }
+            return false;
         }
     } // namespace
 
@@ -82,6 +99,24 @@ namespace world_events {
             if (Race_Modifier_(e, player, RACE_FAIR_WIND)) return 1;
         }
         return 0;
+    }
+
+    bool Star_Grounded(int16_t star) {
+        return enabled && (Star_Has_(KIND_STAR_FLARE, star) || Star_Has_(KIND_SYSTEM_EMP, star));
+    }
+
+    bool Star_Dark(int16_t star) {
+        return enabled && Star_Has_(KIND_SYSTEM_EMP, star);
+    }
+
+    int32_t Scaled_Speed(int32_t speed) {
+        if (!enabled || !Galaxy_Has_(KIND_GALACTIC_SLOWDOWN)) return speed;
+        return std::max<int32_t>(1, speed * SLOWDOWN_NUMERATOR / SLOWDOWN_DENOMINATOR);
+    }
+
+    int32_t Scanner_Range(int32_t range) {
+        if (!enabled || !Galaxy_Has_(KIND_SENSOR_FAILURE)) return range;
+        return range / 2;
     }
 
     int32_t Morale_Bonus(const s_colony* colony) {

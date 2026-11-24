@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/world_events.h"
 
 namespace SHIPSTAK {
     void __cdecl Delete_Ship_Node(int16_t stack_idx, int16_t prev_node_idx, int16_t node_idx) {
@@ -126,6 +127,7 @@ namespace SHIPSTAK {
         if ((int8_t)MOX::player[observer].tech_applications[TECH_APP_SENSORS] == TECH_RESEARCH_STATUS_RESEARCHED) {
             scan_range = scan_bonus.sensors;
         }
+        scan_range = world_events::Scanner_Range(scan_range);  // a sensor failure (new events, off by default)
 
         int32_t best_detection = -300;
 

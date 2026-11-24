@@ -377,6 +377,44 @@ namespace world_events {
             }
         }
 
+        // A random star with a colony and no entry of `kind` yet; -1 when there is none.
+        int16_t Colony_Star_Without_(e_kind kind) {
+            int16_t stars[MAX_COLONIES];
+            int32_t n = 0;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const s_colony& colony = MOX::colony[c];
+                if (colony.owner < 0 || colony.planet < 0) continue;
+                const int16_t star = Star_Of_Colony_(c);
+                if (star < 0 || Find_Slot_(kind, -1, star) != nullptr) continue;
+                bool seen = false;
+                for (int32_t i = 0; i < n && !seen; ++i) seen = stars[i] == star;
+                if (!seen) stars[n++] = star;
+            }
+            return n == 0 ? -1 : stars[Pick_(n)];
+        }
+
+        bool Galaxy_Modifier_Active_() {
+            return Find(KIND_GOLDEN_AGE, -1) != nullptr || Find(KIND_TOURIST_BOOM, -1) != nullptr ||
+                Find(KIND_GALACTIC_SLOWDOWN, -1) != nullptr || Find(KIND_SENSOR_FAILURE, -1) != nullptr;
+        }
+
+        // Every turn: a flare burns the turn's industry of the colonies at its star (as a strike does).
+        void Flares_() {
+            for (int32_t i = 0; i < MAX_ENTRIES; ++i) {
+                const s_entry& e = Entry_Slots()[i];
+                if (e.kind != KIND_STAR_FLARE || e.target < 0 || (e.ends != 0 && e.ends <= MOX::stardate)) continue;
+                for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                    s_colony& colony = MOX::colony[c];
+                    if (colony.owner < 0 || colony.planet < 0 || Star_Of_Colony_(c) != e.target) continue;
+                    colony.production_spent = static_cast<int16_t>(std::max<int32_t>(0, colony.production_spent - colony.production[ECON_INDUSTRY]));
+                }
+            }
+        }
+
+        void Log_Star_(const char* what, int16_t star) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, the galaxy: %s at star %d", (int)MOX::stardate, what, (int)star);
+        }
+
         // Every turn: the galaxy modifiers pay; Klackon workers speed the capital's build.
         void Pay_Modifiers_() {
             const s_entry* golden = Find(KIND_GOLDEN_AGE, -1);
@@ -464,11 +502,33 @@ namespace world_events {
         switch (kind) {
             case KIND_GOLDEN_AGE:
             case KIND_TOURIST_BOOM:
-                if (Find(KIND_GOLDEN_AGE, -1) != nullptr || Find(KIND_TOURIST_BOOM, -1) != nullptr) return false;
+                if (Galaxy_Modifier_Active_()) return false;
                 entry.ends = MOX::stardate + GALAXY_MODIFIER_TURNS;
                 if (!Add(entry)) return false;
                 Log_(kind == KIND_GOLDEN_AGE ? "a golden age begins" : "a tourist boom begins", -1);
                 return true;
+            case KIND_GALACTIC_SLOWDOWN:
+            case KIND_SENSOR_FAILURE: {
+                if (Galaxy_Modifier_Active_()) return false;
+                const bool slow = kind == KIND_GALACTIC_SLOWDOWN;
+                entry.ends = MOX::stardate + (slow ? SLOWDOWN_MIN_TURNS + Pick_(SLOWDOWN_SPAN_TURNS + 1)
+                                                   : SENSOR_MIN_TURNS + Pick_(SENSOR_SPAN_TURNS + 1));
+                if (!Add(entry)) return false;
+                Log_(slow ? "a galactic slowdown begins: every ship is a quarter slower" : "a sensor failure begins: scanner range is halved", -1);
+                return true;
+            }
+            case KIND_STAR_FLARE:
+            case KIND_SYSTEM_EMP: {
+                const int16_t star = Colony_Star_Without_(kind);
+                if (star < 0) return false;
+                const bool flare = kind == KIND_STAR_FLARE;
+                entry.target = star;
+                entry.ends = MOX::stardate + (flare ? FLARE_MIN_TURNS + Pick_(FLARE_SPAN_TURNS + 1)
+                                                    : EMP_MIN_TURNS + Pick_(EMP_SPAN_TURNS + 1));
+                if (!Add(entry)) return false;
+                Log_Star_(flare ? "a star flare begins: no building, no ship leaves" : "a system EMP begins: its colonies are dark, its ships stand", star);
+                return true;
+            }
             case KIND_ORE_RUSH: {
                 if (MOX::planet_count <= 0) return false;
                 for (int i = 0; i < 3; ++i) Richer_Planet_(static_cast<int16_t>(Pick_(MOX::planet_count)), 2);
@@ -607,6 +667,23 @@ namespace world_events {
                     if (MOX::colony[c].owner == player && MOX::colony[c].n_pops > 0 && !Infected_(c)) colonies[n++] = c;
                 }
                 return n > 0 && Start_Epidemic_(colonies[Pick_(n)]);
+            }
+            case KIND_COMET_ORE: {
+                // The classic comet strikes a colony without warning and leaves a richer deposit.
+                int16_t colonies[MAX_COLONIES];
+                int32_t n = 0;
+                for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                    const s_colony& colony = MOX::colony[c];
+                    if (colony.owner == player && colony.n_pops > 0 && colony.planet >= 0) colonies[n++] = c;
+                }
+                if (n == 0) return false;
+                const int16_t target = colonies[Pick_(n)];
+                const int16_t planet = MOX::colony[target].planet;
+                EVENTS::Allocate_Comet_Hit(target);
+                if (MOX::colony[target].owner == player) Richer_Planet_(planet, 1);  // the hit may have wiped the colony out
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: a comet strikes colony %d and leaves ore",
+                    (int)MOX::stardate, (int)player, (int)target);
+                return true;
             }
             default: return false;
         }
@@ -802,15 +879,25 @@ namespace world_events {
         Ghosts_();
         Bounties_();
         Protection_();
+        Flares_();
         // Expired entries free their slots.
         for (int32_t i = 0; i < MAX_ENTRIES; ++i) {
             s_entry& e = Entry_Slots()[i];
-            if (e.kind != KIND_NONE && e.ends != 0 && e.ends <= MOX::stardate) e = s_entry{};
+            if (e.kind != KIND_NONE && e.ends != 0 && e.ends <= MOX::stardate) {
+                switch (e.kind) {
+                    case KIND_STAR_FLARE: Log_Star_("a star flare ends", e.target); break;
+                    case KIND_SYSTEM_EMP: Log_Star_("a system EMP ends", e.target); break;
+                    case KIND_GALACTIC_SLOWDOWN: Log_("the galactic slowdown ends", -1); break;
+                    case KIND_SENSOR_FAILURE: Log_("the sensor failure ends", -1); break;
+                    default: break;
+                }
+                e = s_entry{};
+            }
         }
         if (galaxy_chance > 0 && static_cast<int32_t>(game_random::Random(1000)) <= galaxy_chance) {
-            static const e_kind GALAXY[5] = {KIND_GOLDEN_AGE, KIND_TOURIST_BOOM, KIND_ORE_RUSH, KIND_GHOST_SHIP,
-                KIND_TERRITORIAL_BEAST};
-            Start_Galaxy_Event(GALAXY[Pick_(5)]);
+            static const e_kind GALAXY[9] = {KIND_GOLDEN_AGE, KIND_TOURIST_BOOM, KIND_ORE_RUSH, KIND_GHOST_SHIP,
+                KIND_TERRITORIAL_BEAST, KIND_STAR_FLARE, KIND_SYSTEM_EMP, KIND_GALACTIC_SLOWDOWN, KIND_SENSOR_FAILURE};
+            Start_Galaxy_Event(GALAXY[Pick_(9)]);
         }
         if (empire_chance <= 0) return;
         for (int16_t p = 0; p < Players_(); ++p) {
@@ -821,9 +908,9 @@ namespace world_events {
                 Start_Race_Event(p, static_cast<e_race_event>(race));
                 continue;
             }
-            static const e_kind EMPIRE[6] = {KIND_AMBASSADOR_KILLED, KIND_DISCOVERER, KIND_ANCIENT_WRECK, KIND_MUTINY,
-                KIND_WARM_PLACE, KIND_EPIDEMIC};
-            Start_Empire_Event(EMPIRE[Pick_(6)], p);
+            static const e_kind EMPIRE[7] = {KIND_AMBASSADOR_KILLED, KIND_DISCOVERER, KIND_ANCIENT_WRECK, KIND_MUTINY,
+                KIND_WARM_PLACE, KIND_EPIDEMIC, KIND_COMET_ORE};
+            Start_Empire_Event(EMPIRE[Pick_(7)], p);
         }
     }
 

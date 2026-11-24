@@ -230,6 +230,12 @@ namespace INITSHIP {
     }
 }
 
+namespace world_events {
+    bool Star_Grounded(int16_t) {
+        return false;
+    }
+}
+
 namespace MSG_ {
     void __cdecl Add_Msg(s_MSG message, int16_t player) {
         TEST_SHIPMOVE::messages.push_back(message);

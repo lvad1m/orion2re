@@ -1020,6 +1020,12 @@ namespace COLCALC {
         }
     }
 
+    // A system EMP (new events, off by default): the star's colonies produce nothing.
+    static bool Colony_Dark_(const s_colony* colony) {
+        if (colony->planet < 0) return false;
+        return world_events::Star_Dark(MOX::planet[colony->planet].star_index);
+    }
+
     void __cdecl Colony_BC_Production(s_colony* colony, STRBUILD::s_builder* debug_buf) {
         if (colony->n_pops == 0) {
             colony->production[ECON_BC] = 0;
@@ -1027,7 +1033,7 @@ namespace COLCALC {
         }
 
         int16_t colony_idx = (int16_t)(colony - MOX::colony);
-        if (EVENTS::Event_Check_Space_Anomaly(colony_idx) != 0) {
+        if (EVENTS::Event_Check_Space_Anomaly(colony_idx) != 0 || Colony_Dark_(colony)) {
             colony->production[ECON_BC] = 0;
             if (debug_buf) {
                 STRBUILD::Copy(debug_buf, anomaly_msg);
@@ -1193,7 +1199,7 @@ namespace COLCALC {
         }
 
         int16_t colony_idx = (int16_t)(colony - MOX::colony);
-        if (EVENTS::Event_Check_Space_Anomaly(colony_idx) != 0) {
+        if (EVENTS::Event_Check_Space_Anomaly(colony_idx) != 0 || Colony_Dark_(colony)) {
             colony->production[ECON_RESEARCH] = 0;
             if (debug_out != nullptr) {
                 STRBUILD::Copy(debug_out, anomaly_msg);
@@ -1437,7 +1443,7 @@ namespace COLCALC {
         }
 
         int16_t colony_idx = (int16_t)(colony - MOX::colony);
-        if (EVENTS::Event_Check_Space_Anomaly(colony_idx)) {
+        if (EVENTS::Event_Check_Space_Anomaly(colony_idx) || Colony_Dark_(colony)) {
             colony->production[ECON_INDUSTRY] = 0;
             colony->pollution = 0;
             colony->imports[ECON_FOOD] = 0;

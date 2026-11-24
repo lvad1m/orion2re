@@ -425,6 +425,7 @@ namespace INITSHIP {
                 speed += td_ftl_bonus;
             }
             speed = static_cast<int16_t>(speed + world_events::Speed_Bonus(player_idx));  // a fair wind (off by default)
+            speed = static_cast<int16_t>(world_events::Scaled_Speed(speed));  // a galactic slowdown (off by default)
         }
 
         return speed;

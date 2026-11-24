@@ -436,4 +436,123 @@ DOCTEST_TEST_CASE("the events payload v2 keeps the hirer; a v1 payload still loa
     DOCTEST_CHECK(world_events::Find(world_events::KIND_HIRED_PIRATES, 0) == nullptr);
 }
 
+DOCTEST_TEST_CASE("star flare: no ship leaves the star and the colonies there lose the turn's industry; it ends") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 3;
+    state.planets[0].star_index = 0;
+    state.planets[1].star_index = 1;
+    state.colonies[0].production[ECON_INDUSTRY] = 10;
+    state.colonies[0].production_spent = 25;
+    state.colonies[1].production[ECON_INDUSTRY] = 10;
+    state.colonies[1].production_spent = 25;
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_STAR_FLARE));
+    const world_events::s_entry* flare = nullptr;
+    int32_t count = 0;
+    const world_events::s_entry* all = world_events::Entries(&count);
+    for (int32_t i = 0; i < count; ++i) {
+        if (all[i].kind == world_events::KIND_STAR_FLARE) flare = &all[i];
+    }
+    DOCTEST_REQUIRE(flare != nullptr);
+    const int16_t star = flare->target;
+    DOCTEST_REQUIRE((star == 0 || star == 1));
+    const int32_t turns = flare->ends - flare->started;
+    DOCTEST_CHECK(turns >= world_events::FLARE_MIN_TURNS);
+    DOCTEST_CHECK(turns <= world_events::FLARE_MIN_TURNS + world_events::FLARE_SPAN_TURNS);
+    DOCTEST_CHECK(world_events::Star_Grounded(star));
+    DOCTEST_CHECK_FALSE(world_events::Star_Grounded(2));
+    DOCTEST_CHECK_FALSE(world_events::Star_Dark(star));  // a flare does not black out the colony
+    world_events::Turn();
+    DOCTEST_CHECK(state.colonies[star].production_spent == 15);
+    DOCTEST_CHECK(state.colonies[1 - star].production_spent == 25);
+    DOCTEST_CHECK(world_events::Start_Galaxy_Event(world_events::KIND_STAR_FLARE));  // the other star
+    DOCTEST_CHECK_FALSE(world_events::Start_Galaxy_Event(world_events::KIND_STAR_FLARE));  // at most one flare a star
+    MOX::stardate = 35001 + world_events::FLARE_MIN_TURNS + world_events::FLARE_SPAN_TURNS;
+    world_events::Turn();
+    DOCTEST_CHECK_FALSE(world_events::Star_Grounded(star));
+}
+
+DOCTEST_TEST_CASE("system EMP: the star is dark and grounded, then it ends") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 3;
+    state.planets[0].star_index = 0;
+    state.planets[1].star_index = 0;
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_SYSTEM_EMP));
+    DOCTEST_CHECK(world_events::Star_Dark(0));
+    DOCTEST_CHECK(world_events::Star_Grounded(0));
+    DOCTEST_CHECK_FALSE(world_events::Star_Dark(1));
+    DOCTEST_CHECK_FALSE(world_events::Start_Galaxy_Event(world_events::KIND_SYSTEM_EMP));  // only star 0 has colonies
+    MOX::stardate = 35001 + world_events::EMP_MIN_TURNS + world_events::EMP_SPAN_TURNS;
+    world_events::Turn();
+    DOCTEST_CHECK_FALSE(world_events::Star_Dark(0));
+    DOCTEST_CHECK_FALSE(world_events::Star_Grounded(0));
+}
+
+DOCTEST_TEST_CASE("galactic slowdown cuts ship speed by a quarter, sensor failure halves scanner range; one at a time; neutral when off") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_CHECK(world_events::Scaled_Speed(8) == 8);
+    DOCTEST_CHECK(world_events::Scanner_Range(9) == 9);
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_GALACTIC_SLOWDOWN));
+    DOCTEST_CHECK_FALSE(world_events::Start_Galaxy_Event(world_events::KIND_SENSOR_FAILURE));
+    DOCTEST_CHECK_FALSE(world_events::Start_Galaxy_Event(world_events::KIND_GOLDEN_AGE));
+    DOCTEST_CHECK(world_events::Scaled_Speed(8) == 6);
+    DOCTEST_CHECK(world_events::Scaled_Speed(1) == 1);
+    DOCTEST_CHECK(world_events::Scanner_Range(9) == 9);
+    world_events::enabled = false;
+    DOCTEST_CHECK(world_events::Scaled_Speed(8) == 8);
+    world_events::enabled = true;
+    MOX::stardate = 35001 + world_events::SLOWDOWN_MIN_TURNS + world_events::SLOWDOWN_SPAN_TURNS;
+    world_events::Turn();
+    DOCTEST_CHECK(world_events::Scaled_Speed(8) == 8);
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_SENSOR_FAILURE));
+    DOCTEST_CHECK(world_events::Scanner_Range(9) == 4);
+    DOCTEST_CHECK(world_events::Scaled_Speed(8) == 8);
+    MOX::stardate += world_events::SENSOR_MIN_TURNS + world_events::SENSOR_SPAN_TURNS;
+    world_events::Turn();
+    DOCTEST_CHECK(world_events::Scanner_Range(9) == 9);
+}
+
+DOCTEST_TEST_CASE("a comet strikes a colony of the empire and leaves a richer deposit") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    const int32_t before = state.planets[0].mineral_class + state.planets[1].mineral_class;
+    DOCTEST_REQUIRE(world_events::Start_Empire_Event(world_events::KIND_COMET_ORE, 0));
+    DOCTEST_CHECK(state.planets[0].mineral_class + state.planets[1].mineral_class == before + 1);
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_COMET_ORE, 1));  // no colony
+    world_events::enabled = false;
+    DOCTEST_CHECK_FALSE(world_events::Start_Empire_Event(world_events::KIND_COMET_ORE, 0));
+}
+
+DOCTEST_TEST_CASE("the new modifier kinds round-trip in the v2 payload") {
+    s_events_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_STARS = 3;
+    state.planets[0].star_index = 0;
+    state.planets[1].star_index = 1;
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_STAR_FLARE));
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_SYSTEM_EMP));
+    DOCTEST_REQUIRE(world_events::Start_Galaxy_Event(world_events::KIND_GALACTIC_SLOWDOWN));
+    const uint32_t size = world_events::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    world_events::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    world_events::Clear();
+    DOCTEST_CHECK(world_events::Empty());
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(world_events::Parse_Save(&reader, &error));
+    world_events::Commit_Save();
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_GALACTIC_SLOWDOWN, -1) != nullptr);
+    DOCTEST_CHECK((world_events::Star_Grounded(0) || world_events::Star_Grounded(1)));
+    DOCTEST_CHECK((world_events::Star_Dark(0) || world_events::Star_Dark(1)));
+}
+
 }

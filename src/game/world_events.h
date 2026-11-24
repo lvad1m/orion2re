@@ -34,6 +34,11 @@ namespace world_events {
         KIND_GHOST_SHIP = 4,         // target: the star it haunts; value: returns left; started: when it
                                      // was last destroyed (0 while it is about)
         KIND_TERRITORIAL_BEAST = 5,  // one-off: a monster settles at an empty star and stays there
+        // Wave 3 modifiers (events-catalog.md 3.1).
+        KIND_STAR_FLARE = 6,         // target: the star; no building there, no ship leaves it
+        KIND_SYSTEM_EMP = 7,         // target: the star; the colonies there produce nothing, ships stand
+        KIND_GALACTIC_SLOWDOWN = 8,  // galaxy: every empire's ship speed -25 %
+        KIND_SENSOR_FAILURE = 9,     // galaxy: every empire's scanner range halved
         // One-off empire events.
         KIND_AMBASSADOR_KILLED = 10, // player: the host; target: the ambassador's empire
         KIND_DISCOVERER = 11,        // the stars near a colony of the empire become known
@@ -41,6 +46,7 @@ namespace world_events {
         KIND_MUTINY = 13,            // target: the colony; morale and stability fall for MODIFIER_TURNS
         KIND_WARM_PLACE = 14,        // target: the leader; experience now, no new post for WARM_PLACE_TURNS
         KIND_EPIDEMIC = 15,          // target: the colony; value: cure points left (its research cures it)
+        KIND_COMET_ORE = 16,         // one-off: a comet hits a colony and leaves a richer deposit
         // Race events: player; value = e_race_event; modifiers last MODIFIER_TURNS.
         KIND_RACE_EVENT = 20,
         // Situation: bankruptcy, value = the scale 0..100.
@@ -74,6 +80,17 @@ namespace world_events {
     constexpr int32_t MODIFIER_TURNS = 10;
     constexpr int32_t GALAXY_MODIFIER_TURNS = 15;
     constexpr int32_t GOLDEN_AGE_PERCENT = 20;
+    // Wave 3 modifiers: durations are MIN + a draw 0..SPAN.
+    constexpr int32_t FLARE_MIN_TURNS = 5;
+    constexpr int32_t FLARE_SPAN_TURNS = 5;
+    constexpr int32_t EMP_MIN_TURNS = 2;
+    constexpr int32_t EMP_SPAN_TURNS = 3;
+    constexpr int32_t SLOWDOWN_MIN_TURNS = 10;
+    constexpr int32_t SLOWDOWN_SPAN_TURNS = 10;
+    constexpr int32_t SENSOR_MIN_TURNS = 5;
+    constexpr int32_t SENSOR_SPAN_TURNS = 5;
+    constexpr int32_t SLOWDOWN_NUMERATOR = 3;           // ship speed * 3 / 4
+    constexpr int32_t SLOWDOWN_DENOMINATOR = 4;
     constexpr int32_t TOURIST_BC_PER_TREATY = 5;
     constexpr int32_t AMBASSADOR_RELATIONS = -30;
     constexpr int32_t AMBASSADOR_WAR_RELATIONS = -50;   // the ambassador's empire this hostile declares war
@@ -134,6 +151,11 @@ namespace world_events {
     bool Epidemic(int16_t colony);                 // colcalc.cpp, as the classic plague
     int32_t Unrest(int16_t colony);                // stability.cpp: a mutiny (stability points)
     bool Leader_Locked(int16_t leader);            // officer.cpp: a warm place keeps the leader at its post
+    // Wave 3 (all neutral with the flag off): shipmove.cpp - no ship may leave a flared or EMP'd star.
+    bool Star_Grounded(int16_t star);
+    bool Star_Dark(int16_t star);                  // colcalc_main.cpp: an EMP - industry, research and taxes zero
+    int32_t Scaled_Speed(int32_t speed);           // initship.cpp Calc_Player_FTL_Speed: the galactic slowdown
+    int32_t Scanner_Range(int32_t range);          // shipstak.cpp Best_Detection_At: the sensor failure
 
     // Hired pirates (spy hired_pirates; mechanics.md 3.2.1). `hirer` pays RAID_PRICE for a classic
     // pirate raid on `target`, or ARM_PRICE..ARM_PRICE_MAX to arm pirates at the star of one of

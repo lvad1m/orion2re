@@ -15,6 +15,7 @@
 #include "game/hostages.h"
 #include "game/reputation.h"
 #include "game/vassals.h"
+#include "game/world_events.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -431,6 +432,33 @@ namespace advisor {
         if (self.unstable_colonies > 0) {
             Append_Format(out, "Unrest: %d colonies unstable, the worst at stability %d (unrest lowers morale; deep unrest may end in secession).\n",
                           static_cast<int>(self.unstable_colonies), static_cast<int>(self.worst_stability));
+        }
+        if (world_events::enabled) {
+            // Active new-event modifiers that touch the viewer: the galaxy's and its own stars'.
+            int32_t entry_count = 0;
+            const world_events::s_entry* entries = world_events::Entries(&entry_count);
+            for (int32_t i = 0; i < entry_count; ++i) {
+                const world_events::s_entry& e = entries[i];
+                if (e.kind == world_events::KIND_NONE || (e.ends != 0 && e.ends <= self.stardate)) continue;
+                const bool star_entry = e.kind == world_events::KIND_STAR_FLARE || e.kind == world_events::KIND_SYSTEM_EMP;
+                if (star_entry && (e.target < 0 || e.target >= MAX_STARS || ((MOX::star[e.target].has_colony >> self.player) & 1) == 0)) continue;
+                const char* what = nullptr;
+                switch (e.kind) {
+                    case world_events::KIND_STAR_FLARE: what = "a star flare at star %d: no building, no ship leaves"; break;
+                    case world_events::KIND_SYSTEM_EMP: what = "a system EMP at star %d: colonies dark, ships stand"; break;
+                    case world_events::KIND_GALACTIC_SLOWDOWN: what = "galactic slowdown: every ship is a quarter slower"; break;
+                    case world_events::KIND_SENSOR_FAILURE: what = "sensor failure: scanner range is halved"; break;
+                    default: break;
+                }
+                if (what == nullptr) continue;
+                Append_Format(out, "Event: ");
+                if (star_entry) {
+                    Append_Format(out, what, static_cast<int>(e.target));
+                } else {
+                    Append_Format(out, "%s", what);
+                }
+                Append_Format(out, " (until stardate %d).\n", static_cast<int>(e.ends));
+            }
         }
         if (self.loyal_leaders > 0) {
             Append_Format(out, "Leaders: %d, loyalty %d on average, the lowest %d (of 100).\n",

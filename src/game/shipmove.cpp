@@ -3,6 +3,7 @@
 #include "legacy_ids.h"
 
 #include "lua/lua_game_ship_identity.h"
+#include "game/world_events.h"
 
 namespace SHIPS {
     void __cdecl Clear_Auto_Colonization_Flag(s_ship_data* ship) {
@@ -924,6 +925,11 @@ namespace SHIPMOVE {
         }
 
         std::memset(move_info, 0, sizeof(*move_info));
+
+        // A star flare or an EMP (new events, off by default): no ship leaves the star.
+        if (first->status == 0 && first->location >= 0 && first->location < MAX_STARS && world_events::Star_Grounded(first->location)) {
+            return;
+        }
 
         if (MOX::NUM_STARS != target_star_idx && player_idx < MAX_PLAYERS) {
             if (MOX::player[player_idx].traits[TRAIT_TRANS_DIMENSIONAL] == 0) {
