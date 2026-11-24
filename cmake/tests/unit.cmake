@@ -52,6 +52,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/counterspy_config.cpp
     src/game/covenants_config.cpp
     src/game/hostages_config.cpp
+    src/game/ambition_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1062,6 +1063,10 @@ orion2re_add_game_test(test_covenants
 
 orion2re_add_game_test(test_hostages
     tests/unit/hostages_test.cpp
+)
+
+orion2re_add_game_test(test_ambition
+    tests/unit/ambition_test.cpp
 )
 
 orion2re_add_game_test(test_dice

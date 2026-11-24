@@ -1,0 +1,54 @@
+#pragma once
+
+#include <cstdint>
+
+// The ambitious governor and council bribery (docs/LocalLLM/mechanics.md 3.5.6 and 3.5.3; README.md
+// 10.9, the A and B scope).
+// - An ambitious governor: a restless, capable governor of a computer empire (loyalty 20 or less, level 3
+//   or more, not at the capital's star) may defect every PERIOD turns. It goes with its colonies to a
+//   neighbouring computer empire, or, with no neighbour in contact, deserts to the hire list.
+// - Council bribery: a computer nominee with spare money buys the votes of the computer voters that do not
+//   hate it, or spends a secret it holds about a voter to blackmail the vote; the other nominee, if it has
+//   spies in the briber, may learn of it. The bribes live for one vote only (nothing is saved).
+// Both flags off by default; with them off nothing here draws from game_random and nothing is kept.
+namespace ambition {
+
+    extern bool ambitious_governors;  // loyalty ambitious_governors (needs loyalty leaders)
+    extern bool council_bribery;      // diplomacy council_bribery
+
+    // Programming choices (README.md 10.9: tuned on the big bench).
+    constexpr int32_t PERIOD = 10;                 // governors are looked at on stardate % PERIOD == PHASE
+    constexpr int32_t PHASE = 7;
+    constexpr int32_t MAX_LOYALTY = 20;            // a governor this restless or worse may defect
+    constexpr int32_t MIN_LEVEL = 3;
+    constexpr int32_t DEFECT_PERCENT = 20;
+    constexpr int32_t DISLIKE_RELATIONS = -20;     // a neighbour thought of this badly is preferred as a target
+    constexpr int32_t DEFECTION_OPINION = -20;     // REASON_PLOTTED_AGAINST_US, the old owner toward the new one
+    constexpr int32_t MIN_BC_TO_BRIBE = 200;       // a nominee needs this much to start buying votes
+    constexpr int32_t BRIBE_PRICE = 25;            // BC to each bought voter
+    constexpr int32_t BRIBE_RESERVE = 100;         // the briber keeps this many BC
+    constexpr int32_t BRIBE_MIN_RELATIONS = -30;   // only voters thinking of the nominee at least this well are bought
+    constexpr int32_t BRIBE_BIAS = 100;
+    constexpr int32_t BLACKMAIL_BIAS = 150;
+    constexpr int32_t EXPOSURE_PERCENT = 30;
+    constexpr int32_t EXPOSURE_OPINION = -20;      // REASON_PLOTTED_AGAINST_US, the other nominee toward the briber
+
+    // The governor `leader` defects (ambitious_governors on, a computer owner, the conditions above hold) when
+    // `roll` (0-99) is under DEFECT_PERCENT. True when it left.
+    bool Try_Defect(int16_t leader, int32_t roll);
+    // Whether `leader` is a governor that may defect at all (flag, owner, loyalty, level, post, not the capital).
+    bool Is_Restless(int16_t leader);
+    // The computer empire `leader`'s owner would defect to, -1 when none.
+    int16_t Pick_Neighbour(int16_t leader);
+
+    // Once a turn (diplomac.cpp End_Of_Turn_Diplomacy_Adjustments): on PHASE, restless governors roll.
+    void Turn();
+
+    // Council: the two nominees are fixed, the votes are about to be cast (council.cpp Council_Votes).
+    void Before_Council_Vote(int16_t nominee0, int16_t nominee1);
+    // Added to a voter's score for a candidate in Vote_Check (0 with the flag off or nothing bought).
+    int32_t Council_Vote_Bias(int16_t voter, int16_t candidate);
+    // The vote is over: the bribes are forgotten.
+    void After_Council_Vote();
+
+} // namespace ambition

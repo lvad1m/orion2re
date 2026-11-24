@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "string_overrides.h"
 #include "game/advisor_apply.h"
+#include "game/ambition.h"
 #include "game/council_ai.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
@@ -381,6 +382,7 @@ namespace council {
         diplodef::COUNCIL_FLAG = 1;
         council_nominee_vote_total[0] = 0;
         council_nominee_vote_total[1] = 0;
+        ambition::Before_Council_Vote(council_nominee_[0], council_nominee_[1]);  // council bribery (off by default)
         for (int16_t i = 0; i < (int16_t)council_total_members; ++i) {
             const uint8_t member_id = council_members[i];
             const int8_t choice = Member_Choice_(member_id);
@@ -402,6 +404,7 @@ namespace council {
             council_voter = (int8_t)council_nominee_[n];
             Apply_Council_Vote_((int8_t)(council_nominee_votes[n] >= 1 ? n + 1 : 0), council_nominee_[n]);
         }
+        ambition::After_Council_Vote();
 
         // The two-thirds rule of Council_Finished_Voting; the elected nominee wins as if the
         // ruling were accepted (Council_Accept_Ruling).
@@ -466,6 +469,7 @@ namespace council {
     }
 
     void __cdecl Council_Votes() {
+        ambition::Before_Council_Vote(council_nominee_[0], council_nominee_[1]);  // council bribery (off by default)
         if (council_total_members != 0) {
             for (int i = 0; i < (int)council_total_members; ++i) {
                 uint8_t member_id = council_members[i];
@@ -518,6 +522,7 @@ namespace council {
             Council_Vote_Result((int8_t)vote_choice, council_nominee_[1]);
         }
 
+        ambition::After_Council_Vote();
         Council_Player_Vote();
     }
 
@@ -881,6 +886,8 @@ namespace council {
             vote_score = static_cast<int16_t>(vote_score + advisor::Council_Vote_Bias(static_cast<uint8_t>(voter_idx), static_cast<uint8_t>(candidate_idx)));
             // Intrigues (off by default): a favour owed to the candidate is paid with the vote.
             vote_score = static_cast<int16_t>(vote_score + intrigue::Council_Vote_Bias(voter_idx, candidate_idx));
+            // Council bribery (off by default): bought and blackmailed votes.
+            vote_score = static_cast<int16_t>(vote_score + ambition::Council_Vote_Bias(voter_idx, candidate_idx));
 
             if (MOX::player[candidate_idx].objectives == PLAYER_OBJECTIVE_HUMAN) {
                 if (MOX::settings.game_difficulty > GAME_DIFFICULTY_AVERAGE) {

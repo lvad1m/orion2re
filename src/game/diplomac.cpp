@@ -4,6 +4,7 @@
 #include "game/beliefs.h"
 #include "game/reputation.h"
 #include "game/covenants.h"
+#include "game/ambition.h"
 #include "game/hostages.h"
 #include "game/vassals.h"
 #include "game/diplomacy_memory.h"
@@ -842,6 +843,8 @@ namespace diplomac {
         covenants::Turn();
         // Hostages and prisoners (off by default): hostages come home, prisoners escape, are ransomed or exchanged.
         hostages::Turn();
+        // Ambitious governors (off by default): a restless governor defects with its colonies or deserts.
+        ambition::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
