@@ -5910,7 +5910,7 @@
 
     mole_hunt: {
       title: "Mole hunt",
-      description: "Every 10 turns a computer empire that suspects a mole - a secret of it sold, made public or revealed within 20 turns (a caught spy is an outsider, not a mole), or heightened or witch-hunt counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check against 12 (+3 for a spy master among its leaders, +3 for a telepath, and its counter-agents). A bribed leader is uncovered (the bribe ends, the leader is dismissed, the briber is remembered, -25). When the check fails on an innocent leader, it is jailed (dismissed, loyalty -20) and the other leaders lose a little loyalty.",
+      description: "Every 10 turns a computer empire that suspects a mole - a secret of it sold, made public or revealed, or a hostile operation it can see succeeded against it (a technology stolen, a building destroyed, unrest, a leader killed, sabotage), within 20 turns (a caught spy is an outsider, not a mole), or heightened or witch-hunt counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check against 12 (+3 for a spy master among its leaders, +3 for a telepath, and its counter-agents). A bribed leader is uncovered (the bribe ends, the leader is dismissed, the briber is remembered, -25). When the check fails on an innocent leader, it is jailed (dismissed, loyalty -20) and the other leaders lose a little loyalty.",
       remarks: "False preserves classic behavior. Computer empires only. Kept in an optional save section that older builds skip.",
       examples: ["spy mole_hunt = true;"],
       group: "gameplay",
@@ -10901,6 +10901,30 @@
       type: "bool",
       default: false,
       bind_root: { header: "game/news.h", symbol: "news::intelligence" },
+    },
+
+    projects: {
+      title: "Research projects",
+      description: "Adds research projects: an empire studies an object for some turns, then the engine rolls 2d10 plus its best scientist's level (a leader with the science skill) plus one for every 40 points of research output (at most 3) against a difficulty. Each turn an empire has 1.2 percent chance to meet one, at most one new project a turn and three at a time for an empire. An anomaly at a star the empire has explored is studied for 5 turns against 12: a success gives 100 research points, a brilliant one a technology application it does not know (the cheapest), an exposed failure or a catastrophe ruins an experiment and costs 10 percent of the accumulated research. An excavation of 1 to 6 chapters of 4 turns each starts at a star with ancient artifacts where the empire has a colony; every chapter is a check against 11: a success completes it (a brilliant one two), a failure does not, and an exposed failure or a catastrophe wakes a guardian monster at the star, which stops the work until it is destroyed; three failed chapters abandon the dig. The last chapter yields a relic, a technology application the empire does not know (research points when none is left). A star gets one project in all. The advisor's view shows the empire's own projects.",
+      remarks: "False preserves classic behavior. Humans and computers alike take part, a study needs no choice. Kept in an optional save section that older builds skip.",
+      examples: ["events projects = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/projects.h", symbol: "projects::enabled" },
+    },
+
+    wanderers: {
+      title: "Wanderers: storms and traders",
+      description: "Adds objects that move from star to star along a route. A space storm (0.6 percent a turn, at most two) forms at a random star and drifts toward a colony in nearest-neighbour hops, one every 2 turns; each colony where it arrives has a 40 percent chance to take an earthquake's hit (population or buildings), and no ship leaves the star where it is, nor the star it left 3 turns ago (as at a flared star). It dissolves at the end of its route. A wandering trader (0.4 percent a turn, one at a time) visits up to five colony stars, a stop every 4 turns; each computer empire with a colony there buys the cheapest technology application it does not know for half the cost of its field (40 to 400 BC) if it keeps 150 BC afterwards. A human empire buys nothing until the interface step. The advisor's view shows a storm or a trader at, or heading for, a star where the empire has a colony.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events wanderers = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/wanderers.h", symbol: "wanderers::enabled" },
     },
 
     crisis_chance: {

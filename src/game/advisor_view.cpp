@@ -17,6 +17,8 @@
 #include "game/reputation.h"
 #include "game/vassals.h"
 #include "game/world_events.h"
+#include "game/projects.h"
+#include "game/wanderers.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -467,6 +469,33 @@ namespace advisor {
                     Append_Format(out, "%s", what);
                 }
                 Append_Format(out, " (until stardate %d).\n", static_cast<int>(e.ends));
+            }
+        }
+        if (projects::enabled) {
+            const projects::s_state* ps = projects::State();
+            for (int32_t i = 0; i < ps->count; ++i) {
+                const projects::s_project& p = ps->project[i];
+                if (p.player != self.player) continue;
+                Append_Format(out, "Project: %s at star %d, stage %d of %d, a check in %d turns.\n",
+                    p.kind == projects::KIND_ANOMALY ? "studying an anomaly" : "excavating an ancient site", static_cast<int>(p.star),
+                    static_cast<int>(p.stage) + 1, static_cast<int>(p.chapters), static_cast<int>(p.turns) - static_cast<int>(p.elapsed));
+            }
+        }
+        if (wanderers::enabled) {
+            // Storms and traders at, or heading for, a star where the viewer has a colony.
+            const wanderers::s_state* ws = wanderers::State();
+            for (int32_t i = 0; i < ws->count; ++i) {
+                const wanderers::s_wanderer& w = ws->wanderer[i];
+                const int16_t next = w.step + 1 < w.length ? w.route[w.step + 1] : static_cast<int16_t>(-1);
+                const auto mine = [&](int16_t star) { return star >= 0 && star < MAX_STARS && ((MOX::star[star].has_colony >> self.player) & 1) != 0; };
+                if (!mine(w.star) && !mine(next)) continue;
+                if (w.kind == wanderers::KIND_STORM) {
+                    Append_Format(out, "Event: a space storm at star %d, heading for star %d: no ship leaves it, colonies there may be hit.\n",
+                        static_cast<int>(w.star), static_cast<int>(next));
+                } else {
+                    Append_Format(out, "Event: a wandering trader at star %d, next stop star %d, sells technologies for BC.\n",
+                        static_cast<int>(w.star), static_cast<int>(next));
+                }
             }
         }
         if (self.loyal_leaders > 0) {

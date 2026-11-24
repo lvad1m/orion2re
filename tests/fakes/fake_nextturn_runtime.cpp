@@ -285,6 +285,12 @@ namespace world_events {
 namespace crises {
     void Turn() {}
 }
+namespace projects {
+    void Turn() {}
+}
+namespace wanderers {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}

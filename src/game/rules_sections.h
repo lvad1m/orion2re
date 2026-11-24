@@ -71,6 +71,10 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_HOSTAGES = 0x54534F48;
     // 'NEWS': the news ring and the last ranking (game/news.h).
     inline constexpr uint32_t SECTION_TYPE_NEWS = 0x5357454E;
+    // 'PROJ': research projects (game/projects.h).
+    inline constexpr uint32_t SECTION_TYPE_PROJECTS = 0x4A4F5250;
+    // 'WAND': wanderers - storms and traders (game/wanderers.h).
+    inline constexpr uint32_t SECTION_TYPE_WANDERERS = 0x444E4157;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

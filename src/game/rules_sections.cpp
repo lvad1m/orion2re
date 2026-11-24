@@ -17,6 +17,8 @@
 #include "game/covenants.h"
 #include "game/hostages.h"
 #include "game/news.h"
+#include "game/projects.h"
+#include "game/wanderers.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -112,6 +114,14 @@ namespace SAVEGAME {
             return (news::enabled || news::intelligence) && !news::Empty();
         }
 
+        bool Projects_Has_State_() {
+            return projects::enabled && !projects::Empty();
+        }
+
+        bool Wanderers_Has_State_() {
+            return wanderers::enabled && !wanderers::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -158,6 +168,10 @@ namespace SAVEGAME {
                 hostages::Parse_Save, hostages::Commit_Save, hostages::Discard_Save, hostages::Clear},
             {SECTION_TYPE_NEWS, 1, "news", News_Has_State_, news::Save_Size, news::Write_Save, news::Parse_Save,
                 news::Commit_Save, news::Discard_Save, news::Clear},
+            {SECTION_TYPE_PROJECTS, 1, "projects", Projects_Has_State_, projects::Save_Size, projects::Write_Save,
+                projects::Parse_Save, projects::Commit_Save, projects::Discard_Save, projects::Clear},
+            {SECTION_TYPE_WANDERERS, 1, "wanderers", Wanderers_Has_State_, wanderers::Save_Size, wanderers::Write_Save,
+                wanderers::Parse_Save, wanderers::Commit_Save, wanderers::Discard_Save, wanderers::Clear},
         };
     } // namespace
 
