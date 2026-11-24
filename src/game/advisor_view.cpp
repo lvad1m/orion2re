@@ -22,6 +22,7 @@
 #include "game/incidents.h"
 #include "game/overtures.h"
 #include "game/pirate_world.h"
+#include "game/beasts.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -562,6 +563,33 @@ namespace advisor {
                     case pirate_world::KIND_LICENCE:
                         if (r.player != self.player) break;
                         Append_Format(out, "Event: a flag of convenience spares you the raids of the lairs (until stardate %d).\n", static_cast<int>(r.ends));
+                        break;
+                    default: break;
+                }
+            }
+        }
+        if (beasts::enabled) {
+            const beasts::s_state* bs = beasts::State();
+            for (int32_t i = 0; i < bs->count; ++i) {
+                const beasts::s_record& r = bs->record[i];
+                switch (r.kind) {
+                    case beasts::KIND_HARVESTERS:
+                        if (((MOX::star[r.target].visited >> self.player) & 1) == 0 && ((MOX::star[r.target].has_colony >> self.player) & 1) == 0) break;
+                        Append_Format(out, "Event: self-replicating harvesters at star %d, strength %d.\n", static_cast<int>(r.target), static_cast<int>(r.value));
+                        break;
+                    case beasts::KIND_AMBUSH:
+                        if (r.option != 1 || r.player != self.player) break;
+                        Append_Format(out, "Event: a predator in the asteroid belt at star %d has swallowed your ship %d; bring a second ship or it is lost in %d turns.\n",
+                            static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.value));
+                        break;
+                    case beasts::KIND_HIJACK:
+                        Append_Format(out, "Event: a stolen flagship of player %d roams as a monster at star %d (until stardate %d).\n",
+                            static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.ends));
+                        break;
+                    case beasts::KIND_WORMHOLE:
+                        if (r.player != self.player) break;
+                        Append_Format(out, "Event: an unstable wormhole at star %d leads to star %d, used %d times (until stardate %d).\n",
+                            static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.value), static_cast<int>(r.ends));
                         break;
                     default: break;
                 }

@@ -10963,6 +10963,18 @@
       bind_root: { header: "game/pirate_world.h", symbol: "pirate_world::enabled" },
     },
 
+    beasts: {
+      title: "Beasts: harvesters, belt ambush, stolen flagship, wormholes",
+      description: "Adds four monster events. Each turn the galaxy has a 0.3 percent chance of self-replicating harvesters at a colony star (they strip 25 BC from each colony there every 3 turns, grow, split in two after 20 turns, up to three at once; warships at the star wear them down and the strongest fleet salvages 80 BC) and a 0.4 percent chance of a predator in an asteroid belt away from colonies (each turn it may swallow the lone ship of an empire; the owner has 3 turns to bring a second ship or move away, else the ship is lost); each empire has a 0.5 percent chance of a stolen flagship (a computer's most expensive idle ship is scrapped and a monster of its own sits at the star; whoever destroys it is rewarded, otherwise after 30 turns a hydra is unleashed) or an unstable wormhole (a computer with a ship at the entrance may send it through to an unvisited star: the guardians sink it with a chance that grows with every use, otherwise it brings a reward and charts the exit; bold personalities try it more often; it collapses after 4 uses or 40 turns). Humans take no choice in these events; they never receive wormholes and their flagships are never stolen. The advisor view lists the active beast events that touch the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events beasts = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/beasts.h", symbol: "beasts::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

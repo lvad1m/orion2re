@@ -22,6 +22,7 @@
 #include "game/incidents.h"
 #include "game/overtures.h"
 #include "game/pirate_world.h"
+#include "game/beasts.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -137,6 +138,10 @@ namespace SAVEGAME {
             return pirate_world::enabled && !pirate_world::Empty();
         }
 
+        bool Beasts_Has_State_() {
+            return beasts::enabled && !beasts::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -193,6 +198,8 @@ namespace SAVEGAME {
                 overtures::Parse_Save, overtures::Commit_Save, overtures::Discard_Save, overtures::Clear},
             {SECTION_TYPE_PIRATE_WORLD, 1, "pirate world", Pirate_World_Has_State_, pirate_world::Save_Size, pirate_world::Write_Save,
                 pirate_world::Parse_Save, pirate_world::Commit_Save, pirate_world::Discard_Save, pirate_world::Clear},
+            {SECTION_TYPE_BEASTS, 1, "beasts", Beasts_Has_State_, beasts::Save_Size, beasts::Write_Save,
+                beasts::Parse_Save, beasts::Commit_Save, beasts::Discard_Save, beasts::Clear},
         };
     } // namespace
 

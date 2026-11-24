@@ -300,6 +300,9 @@ namespace overtures {
 namespace pirate_world {
     void Turn() {}
 }
+namespace beasts {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}
