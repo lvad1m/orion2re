@@ -10,5 +10,6 @@ namespace opinion {
     int32_t decay_period = 2;
     int32_t sneak_attack = -40;
     int32_t helped_in_war = 25;
+    bool slow_grudges = false;
 
 } // namespace opinion

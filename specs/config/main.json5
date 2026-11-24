@@ -4855,6 +4855,30 @@
       },
     },
 
+    titles: {
+      title: "Stains and titles",
+      description: "Every empire sees an empire's deeds as a reputation. Stains: an oathbreaker (broke an alliance, or two treaties within 50 turns; 100 turns), a kingslayer (its spies killed a leader of another empire and left traces; 100 turns), the North remembers (biological weapons, a destroyed planet or poisoned water; 300 turns, and every empire that knows it keeps a memory of -40 that fades eight times slower). Titles: keeps its word (no broken treaty in 100 turns and two treaties held 30 turns), peacemaker (two peaces made in 100 turns), and by style the one leader of the galaxy in each - trade prince (most trade treaties, at least 3), warlord (a fleet half again as strong as any other), corsair (most raids and sabotage in 50 turns, at least 3). Computer empires react in their relations: an oathbreaker -20 (-30 for honorable ones), a kingslayer -15, the North remembers -10 (-20 for honorable and pacifist), a corsair -10, a warlord -5 (not for aggressive and ruthless), keeps its word +10 (+15 honorable), peacemaker +10 (+15 pacifist), trade prince +5. A broken treaty also leaves the victim a memory of -30. The advisor's view shows the titles.",
+      remarks: "False preserves classic behavior. Needs diplomacy opinion for the relations to change. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy titles = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/reputation.h", symbol: "reputation::enabled" },
+    },
+
+    slow_grudges: {
+      title: "Slow grudges",
+      description: "Bad memories of computer empires fade half as fast as good ones (one point every second fading step instead of every step): a bad reputation passes slower than a good one grows. Atrocities (biological weapons, a destroyed planet, poisoned water) always fade eight times slower than other memories.",
+      remarks: "False keeps every memory fading at the same pace (the atrocity rule holds either way). Effective only while diplomacy opinion is true.",
+      examples: ["diplomacy slow_grudges = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/opinion.h", symbol: "opinion::slow_grudges" },
+    },
+
     rivalry: {
       title: "Rivalry",
       description: "Lets empires formally declare another their rival. While a rivalry holds, the rival remembers it in its opinion of the declarer, and the declarer weighs war on its rival more boldly. Computer empires declare and drop rivals by rules: an advised empire takes its main rival when it is hostile to it; others take the contact in range they think worst of, if bad enough.",

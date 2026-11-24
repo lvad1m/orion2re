@@ -2,6 +2,7 @@
 
 #include "game/advisor_apply.h"
 #include "game/beliefs.h"
+#include "game/reputation.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
@@ -830,6 +831,8 @@ namespace diplomac {
         embargo::End_Of_Turn();
         // Council resolutions (off by default): the Antaran fund is paid, terms run out.
         resolutions::End_Of_Turn();
+        // Stains and titles (off by default): peaces noted, stains run out, titles reviewed.
+        reputation::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1445,6 +1448,7 @@ namespace diplomac {
 
         uint8_t current_treaty = p1->treaty[p2_idx];
         beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
+        reputation::On_Treaty_Broken(p1_idx, p2_idx, current_treaty);  // stains and titles (off by default)
 
         p2->last_broken_treaty[p1_idx] = p2->treaty[p1_idx];
         p2->threats[p1_idx]++;

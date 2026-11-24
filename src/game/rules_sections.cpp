@@ -10,6 +10,7 @@
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
+#include "game/reputation.h"
 #include "game/resolutions.h"
 #include "game/rivalry.h"
 #include "game/spy_ops.h"
@@ -76,6 +77,10 @@ namespace SAVEGAME {
             return crises::enabled && !crises::Empty();
         }
 
+        bool Reputation_Has_State_() {
+            return reputation::enabled && !reputation::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -107,6 +112,9 @@ namespace SAVEGAME {
                 world_events::Clear},
             {SECTION_TYPE_CRISES, 1, "crises", Crises_Has_State_, crises::Save_Size, crises::Write_Save,
                 crises::Parse_Save, crises::Commit_Save, crises::Discard_Save, crises::Clear},
+            {SECTION_TYPE_REPUTATION, 1, "stains and titles", Reputation_Has_State_, reputation::Save_Size,
+                reputation::Write_Save, reputation::Parse_Save, reputation::Commit_Save, reputation::Discard_Save,
+                reputation::Clear},
         };
     } // namespace
 

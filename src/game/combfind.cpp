@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/reputation.h"
 #include "legacy_ids.h"
 #include "game/advisor_intel.h"
 #include "game/opinion.h"
@@ -2024,6 +2025,7 @@ namespace COMBFIND {
                                 int8_t old_n_pops = colony->n_pops;
                                 results->info.planet_destroyed_flag = 1;
                                 resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
+                                reputation::On_Atrocity(attacker_id);  // "the North remembers" (off by default)
                                 BOMB::Destroy_Colony(colony, 2);
                                 ERIC::Play_Planetary_Destruction_Flic();
                                 COMBFIND::current_star_has_player[colony_owner].colony_count--;
@@ -2200,6 +2202,7 @@ namespace COMBFIND {
                             } else if (has_stellar) {
                                 results->info.planet_destroyed_flag = 1;
                                 resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
+                                reputation::On_Atrocity(attacker_id);  // "the North remembers" (off by default)
                                 terminal_destroyed = 1;
                                 BOMB::Destroy_Colony(colony, 2);
                             } else {

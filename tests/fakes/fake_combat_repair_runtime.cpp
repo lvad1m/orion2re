@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "game/reputation.h"
 #include "game/resolutions.h"
 
 namespace CMBTMIS {
@@ -10,6 +11,11 @@ namespace CMBTMIS {
 namespace resolutions {
     void On_Banned_Act(int16_t, e_ban) {}
 } // namespace resolutions
+
+// Stains and titles are not under test here.
+namespace reputation {
+    void On_Atrocity(int16_t) {}
+} // namespace reputation
 
 void Legacy_Qsort(void* base, size_t count, size_t width, legacy_qsort_compare compare) {
     uint8_t* bytes = static_cast<uint8_t*>(base);

@@ -113,6 +113,27 @@ namespace beliefs {
                 Observe(holder, target, BELIEF_HONEST, -1);
                 break;
             case opinion::REASON_TREATED_OUR_SPY: Observe(holder, target, BELIEF_HOSTILE, value < 0 ? 1 : -1); break;
+            case opinion::REASON_KILLED_OUR_DIPLOMAT:
+            case opinion::REASON_TRIED_TO_KILL_OUR_LEADER: Observe(holder, target, BELIEF_HOSTILE, 2); break;
+            case opinion::REASON_ATROCITY:
+                Observe(holder, target, BELIEF_HOSTILE, 2);
+                Observe(holder, target, BELIEF_FAITHFUL, -1);
+                break;
+            case opinion::REASON_BROKE_ITS_WORD:
+            case opinion::REASON_HARMED_A_HOSTAGE: Observe(holder, target, BELIEF_FAITHFUL, -2); break;
+            case opinion::REASON_BETRAYED_A_SECRET_PACT: Observe(holder, target, BELIEF_FAITHFUL, -3); break;
+            case opinion::REASON_BLACKMAILED_US:
+            case opinion::REASON_RAIDED_US:
+                Observe(holder, target, BELIEF_HOSTILE, 1);
+                Observe(holder, target, BELIEF_HONEST, -1);
+                break;
+            case opinion::REASON_EXPOSED_US: Observe(holder, target, BELIEF_HOSTILE, 1); break;
+            case opinion::REASON_SMEARED_US: Observe(holder, target, BELIEF_HONEST, -2); break;
+            case opinion::REASON_FAMILY_TIES:
+                Observe(holder, target, BELIEF_HOSTILE, -2);
+                Observe(holder, target, BELIEF_FAITHFUL, 1);
+                break;
+            case opinion::REASON_OVERLORD: Observe(holder, target, BELIEF_HOSTILE, value < 0 ? 1 : -1); break;
             default: break;
         }
     }

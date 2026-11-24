@@ -15,6 +15,7 @@
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/rivalry.h"
 #include "game/spy.h"
 #include "game/spy_ranks.h"
@@ -292,6 +293,10 @@ namespace spy_ops {
             (int)MOX::stardate, (int)attacker, NAMES[op], (int)target, dice::Describe_Check(NAMES[op], check, modifiers, 3).c_str());
 
         if (check.outcome >= dice::OUTCOME_SUCCESS) {
+            // Stains and titles (off by default): harm counts toward the corsair; a scientist killed
+            // without a brilliant success leaves traces - a kingslayer.
+            if (op == OP_UNREST || op == OP_KILL_SCIENTIST || op == OP_FALSE_FLAG || op == OP_FRAME_LEADER) reputation::Note_Deed(attacker);
+            if (op == OP_KILL_SCIENTIST && check.outcome == dice::OUTCOME_SUCCESS) reputation::On_Leader_Killed(attacker);
             switch (op) {
                 case OP_UNREST: {
                     uint8_t* unrest = Unrest_Slot(subject);

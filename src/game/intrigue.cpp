@@ -13,6 +13,7 @@
 #include "game/opinion.h"
 #include "game/pacts.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/rivalry.h"
 #include "game/spy.h"
 #include "game/spy_ops.h"
@@ -393,6 +394,7 @@ namespace intrigue {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "intrigue: stardate %d, player %d pays %d BC to player %d to attack player %d",
             (int)MOX::stardate, (int)payer, (int)payment, (int)hired, (int)enemy);
         diplomac::Declare_War(hired, enemy);
+        reputation::Note_Deed(payer);  // stains and titles (off by default)
         if (Spies_(enemy, payer) > 0 || Spies_(enemy, hired) > 0) {
             opinion::Add(enemy, payer, opinion::REASON_PLOTTED_AGAINST_US, PLOTTED_OPINION);
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "intrigue: stardate %d, player %d learns that player %d paid for the war",

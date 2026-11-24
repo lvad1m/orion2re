@@ -20,6 +20,7 @@ namespace opinion {
     extern int32_t decay_period;       // diplomacy opinion_decay_period: turns per point a modifier fades
     extern int32_t sneak_attack;       // diplomacy opinion_sneak_attack: the victim's opinion of the attacker
     extern int32_t helped_in_war;      // diplomacy opinion_helped_in_war: for going to war with our enemy
+    extern bool slow_grudges;          // diplomacy slow_grudges: bad memories fade half as fast as good ones
 
     // Why an empire feels as it does about another. Values are stable: they are saved.
     enum e_reason : uint8_t {
@@ -39,8 +40,32 @@ namespace opinion {
         REASON_DID_US_A_SERVICE = 13,   // warned us of an attack, paid a favour it owed (intrigue.h)
         REASON_PLOTTED_AGAINST_US = 14, // planned an attack, paid for a war or forged a letter against us
         REASON_TREATED_OUR_SPY = 15,    // executed (-) or sent home (+) a spy of ours
-        REASON_COUNT = 16,
+        // Reasons of the A and B scope (README.md 10.9, 24.11.2026); payload version 3.
+        REASON_KILLED_OUR_DIPLOMAT = 16,  // an attack on a diplomat: worse than a fleet skirmish (events 3.12)
+        REASON_ATROCITY = 17,             // biological weapons, a destroyed planet, poisoned water: "the North remembers"
+        REASON_BROKE_ITS_WORD = 18,       // broke a treaty with us (an oathbreaker, mechanics 3.5.6)
+        REASON_BLACKMAILED_US = 19,       // used a secret of ours against us (mechanics 3.5.2)
+        REASON_EXPOSED_US = 20,           // made a secret of ours public
+        REASON_SMEARED_US = 21,           // its smear campaign against us was uncovered (mechanics 3.2)
+        REASON_RAIDED_US = 22,            // paid raiders or pirates to strike us: worse than nothing, milder than a skirmish
+        REASON_TRIED_TO_KILL_OUR_LEADER = 23,  // an assassination attempt (mechanics 3.2.2)
+        REASON_BETRAYED_A_SECRET_PACT = 24,    // broke a secret treaty with us (mechanics 3.5.3)
+        REASON_HARMED_A_HOSTAGE = 25,     // a hostage of ours came to harm
+        REASON_FAMILY_TIES = 26,          // a dynastic marriage or a hostage kept well (+)
+        REASON_OVERLORD = 27,             // our overlord: protection for tribute (+) or a harsh one (-)
+        REASON_RESERVED_28 = 28,
+        REASON_RESERVED_29 = 29,
+        REASON_RESERVED_30 = 30,
+        REASON_RESERVED_31 = 31,
+        REASON_COUNT = 32,
     };
+
+    // Graded incidents (events-catalog 3.12): an attack on a diplomat is worse than a fleet skirmish
+    // (diplomacy opinion_sneak_attack, -40), a skirmish worse than a raid.
+    constexpr int32_t DIPLOMAT_KILLED_OPINION = -50;
+    constexpr int32_t RAIDED_OPINION = -20;
+    // "The North remembers": an atrocity fades eight times slower than other memories.
+    constexpr int32_t ATROCITY_FADE_STEPS = 8;
 
     // Largest size of one modifier; a repeated reason deepens it up to this.
     constexpr int32_t MODIFIER_LIMIT = 100;
@@ -92,7 +117,7 @@ namespace opinion {
     bool Empty();
 
     // Save section 'OPIN' (game/rules_sections.h): payload version 2, then MAX_PLAYERS x
-    // MAX_PLAYERS x REASON_COUNT (16) int8 values; version 1 (8 reasons per pair) still loads, the
+    // MAX_PLAYERS x REASON_COUNT (32) int8 values; versions 1 (8 reasons per pair) and 2 (16) still load, the
     // newer reasons empty. Parse reads into a pending copy that Commit makes current once the
     // whole load has succeeded.
     uint32_t Save_Size();

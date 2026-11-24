@@ -3,6 +3,7 @@
 #include "game/opinion.h"
 
 #include "game/beliefs.h"
+#include "game/reputation.h"
 #include "game/serialization.h"
 
 #include <algorithm>
@@ -12,7 +13,7 @@
 namespace opinion {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 16 reasons per pair (version 1: 8)
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 3;  // 32 reasons per pair (version 1: 8, version 2: 16)
         constexpr uint32_t TABLE_SIZE = MAX_PLAYERS * MAX_PLAYERS * REASON_COUNT;
         constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + TABLE_SIZE;
         // Treaty states 4 and above are war (advisor_view.cpp Treaty_Name).
@@ -75,7 +76,8 @@ namespace opinion {
         if (holder < 0 || holder >= MAX_PLAYERS || target < 0 || target >= MAX_PLAYERS) return 0;
         const int32_t classic = MOX::player[holder].relations[target];
         if (!enabled) return classic;
-        return std::clamp<int32_t>(classic + Sum(holder, target), -100, 100);
+        // Stains and titles (diplomacy titles, off by default) add to what the holder feels.
+        return std::clamp<int32_t>(classic + Sum(holder, target) + reputation::Relations_Bias(holder, target), -100, 100);
     }
 
     const char* Reason_Name(e_reason reason) {
@@ -96,20 +98,36 @@ namespace opinion {
             case REASON_DID_US_A_SERVICE: return "did us a service";
             case REASON_PLOTTED_AGAINST_US: return "plotted against us";
             case REASON_TREATED_OUR_SPY: return "decided the fate of a spy of ours";
+            case REASON_KILLED_OUR_DIPLOMAT: return "killed one of our diplomats";
+            case REASON_ATROCITY: return "committed an atrocity";
+            case REASON_BROKE_ITS_WORD: return "broke its word to us";
+            case REASON_BLACKMAILED_US: return "blackmailed us";
+            case REASON_EXPOSED_US: return "made our secret public";
+            case REASON_SMEARED_US: return "smeared us";
+            case REASON_RAIDED_US: return "paid raiders to strike us";
+            case REASON_TRIED_TO_KILL_OUR_LEADER: return "tried to kill one of our leaders";
+            case REASON_BETRAYED_A_SECRET_PACT: return "betrayed a secret pact";
+            case REASON_HARMED_A_HOSTAGE: return "harmed a hostage of ours";
+            case REASON_FAMILY_TIES: return "family ties";
+            case REASON_OVERLORD: return "our overlord";
             default: return "unknown";
         }
     }
 
     void End_Of_Turn() {
         if (!enabled || decay_period < 1 || MOX::stardate % decay_period != 0) return;
+        // Fading steps: every memory a point a step; an atrocity only every ATROCITY_FADE_STEPS steps;
+        // with slow_grudges a bad memory only every second step (events-catalog 3.12: bad reputation
+        // passes slower than good grows).
+        const int32_t step = MOX::stardate / decay_period;
         for (auto& row : table) {
             for (auto& reasons : row) {
-                for (int8_t& value : reasons) {
-                    if (value > 0) {
-                        --value;
-                    } else if (value < 0) {
-                        ++value;
-                    }
+                for (int32_t r = 0; r < REASON_COUNT; ++r) {
+                    int8_t& value = reasons[r];
+                    if (value == 0) continue;
+                    if (r == REASON_ATROCITY && step % ATROCITY_FADE_STEPS != 0) continue;
+                    if (value < 0 && slow_grudges && step % 2 != 0) continue;
+                    value = static_cast<int8_t>(value > 0 ? value - 1 : value + 1);
                 }
             }
         }
@@ -165,9 +183,9 @@ namespace opinion {
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("opinion save is truncated");
         const uint16_t version = reader->Read_Uint16();
-        if (version != SAVE_PAYLOAD_VERSION && version != 1) return fail("unsupported opinion payload version");
-        // Version 1 held 8 reasons per pair; the newer reasons start empty.
-        const uint32_t reasons_saved = version == 1 ? 8 : REASON_COUNT;
+        if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported opinion payload version");
+        // Version 1 held 8 reasons per pair, version 2 held 16; the newer reasons start empty.
+        const uint32_t reasons_saved = version == 1 ? 8 : version == 2 ? 16 : REASON_COUNT;
         if (reader->Remaining() != MAX_PLAYERS * MAX_PLAYERS * reasons_saved) return fail("opinion save has the wrong size");
         std::memset(pending, 0, sizeof(pending));
         for (auto& row : pending) {

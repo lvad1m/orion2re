@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/reputation.h"
 #include "game/resolutions.h"
 
 namespace {
@@ -738,6 +739,7 @@ namespace COMBINIT {
     void __cdecl Apply_Bio_Weapon_Penalty(int16_t player_idx, int16_t star_idx, int16_t colony_pop_lost) {
         // Council resolutions (off by default): the use is remembered, and punished under a ban.
         resolutions::On_Banned_Act(player_idx, resolutions::BAN_BIO_WEAPONS);
+        reputation::On_Atrocity(player_idx);  // "the North remembers" (off by default)
         if (player_idx < MAX_PLAYERS) {
             for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
                 if (MOX::player[i].objectives != PLAYER_OBJECTIVE_HUMAN && i != player_idx) {

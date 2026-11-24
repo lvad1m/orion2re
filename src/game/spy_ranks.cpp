@@ -8,6 +8,7 @@
 #include "game/espionage.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/rivalry.h"
 #include "game/spy.h"
 
@@ -102,6 +103,7 @@ namespace spy_ranks {
                         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ranks: stardate %d, a saboteur of player %d strikes player %d",
                             (int)MOX::stardate, (int)owner, (int)target);
                         spy::Destroy_Random_Building(owner, target, owner);
+                        reputation::Note_Deed(owner);  // stains and titles (off by default)
                     } else if (static_cast<int32_t>(game_random::Random(100)) <= CATCH_FOILED_PERCENT) {
                         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ranks: stardate %d, player %d catches a saboteur of player %d",
                             (int)MOX::stardate, (int)target, (int)owner);

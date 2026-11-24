@@ -9,6 +9,8 @@
 
 #include <cstring>
 #include <memory>
+#include <string>
+#include <vector>
 
 namespace {
     struct s_opinion_scope {
@@ -218,4 +220,43 @@ DOCTEST_TEST_CASE("a version 1 payload (8 reasons per pair) still loads, the new
     DOCTEST_CHECK(opinion::Save_Size() == sizeof(uint16_t) + MAX_PLAYERS * MAX_PLAYERS * opinion::REASON_COUNT);
 }
 
+}
+
+DOCTEST_TEST_CASE("a version 2 payload (16 reasons per pair) still loads, the newer reasons empty") {
+    s_opinion_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    const uint32_t size = sizeof(uint16_t) + MAX_PLAYERS * MAX_PLAYERS * 16;
+    std::vector<uint8_t> buffer(size, 0);
+    buffer[0] = 2;  // version 2, little endian
+    buffer[2 + (1 * MAX_PLAYERS + 2) * 16 + opinion::REASON_TREATED_OUR_SPY] = static_cast<uint8_t>(-12);
+    SERIAL::Reader_ reader(buffer.data(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(opinion::Parse_Save(&reader, &error));
+    opinion::Commit_Save();
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == -12);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_KILLED_OUR_DIPLOMAT) == 0);
+}
+
+DOCTEST_TEST_CASE("slow grudges fade half as fast; an atrocity fades eight times slower") {
+    s_opinion_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    const bool saved = opinion::slow_grudges;
+    const int32_t period = opinion::decay_period;
+    opinion::decay_period = 1;
+    opinion::slow_grudges = true;
+    opinion::Add(1, 2, opinion::REASON_SNEAK_ATTACK, -40);
+    opinion::Add(1, 2, opinion::REASON_HELPED_IN_WAR, 25);
+    opinion::Add(1, 3, opinion::REASON_ATROCITY, -60);
+    for (int i = 0; i < 16; ++i) {
+        MOX::stardate = 35000 + i;
+        opinion::End_Of_Turn();
+    }
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_HELPED_IN_WAR) == 25 - 16);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_SNEAK_ATTACK) == -40 + 8);
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_ATROCITY) == -60 + 2);
+    DOCTEST_CHECK(std::string(opinion::Reason_Name(opinion::REASON_KILLED_OUR_DIPLOMAT)) != "unknown");
+    opinion::slow_grudges = saved;
+    opinion::decay_period = period;
 }

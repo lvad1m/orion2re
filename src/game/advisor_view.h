@@ -116,7 +116,7 @@ namespace advisor {
         s_fact reported_power;
         // Opinion modifiers (opinion.h): why we feel as we do about them, by opinion::e_reason;
         // all zero with the flag off.
-        int8_t opinion[16] = {};
+        int8_t opinion[32] = {};
         // Rivalry (rivalry.h): 1 when we declared them our rival / they declared us theirs.
         uint8_t our_rival = 0;
         uint8_t their_rival = 0;
@@ -134,6 +134,8 @@ namespace advisor {
         uint8_t belief_hostile = 0;
         uint8_t belief_faithful = 0;
         uint8_t belief_honest = 0;
+        // Stains and titles (reputation.h): bit reputation::e_title for each title they hold.
+        uint32_t titles = 0;
     };
 
     struct s_empire_view {

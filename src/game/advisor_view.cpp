@@ -11,6 +11,7 @@
 #include "game/advisor_reports.h"
 #include "game/aipower.h"
 #include "game/beliefs.h"
+#include "game/reputation.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -211,6 +212,7 @@ namespace advisor {
             contact->our_embargo = embargo::Participates(player, other) ? 1 : 0;
             contact->their_embargo = embargo::Participates(other, player) ? 1 : 0;
             contact->network_points = static_cast<int16_t>(espionage::Points(player, other));
+            contact->titles = reputation::Titles(static_cast<int16_t>(other));
             if (beliefs::neighbour_model) {
                 contact->belief_hostile = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_HOSTILE));
                 contact->belief_faithful = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_FAITHFUL));
@@ -467,6 +469,17 @@ namespace advisor {
             if (contact.their_embargo != 0) out->append("   - embargo: they hold one on us (no trade or research treaties)\n");
             if (contact.network_points > 0) {
                 Append_Format(out, "   - our spy network there: %d points\n", static_cast<int>(contact.network_points));
+            }
+            if (contact.titles != 0) {
+                out->append("   - known as:");
+                bool first = true;
+                for (int32_t t = 0; t < reputation::TITLE_COUNT; ++t) {
+                    if (((contact.titles >> t) & 1) == 0) continue;
+                    out->append(first ? " " : ", ");
+                    out->append(reputation::Title_Name(static_cast<reputation::e_title>(t)));
+                    first = false;
+                }
+                out->push_back('\n');
             }
             if (contact.belief_hostile != 0 || contact.belief_faithful != 0 || contact.belief_honest != 0) {
                 Append_Format(out, "   - we think they will attack us: %d %%, keep their treaties: %d %%, tell the truth: %d %%\n",

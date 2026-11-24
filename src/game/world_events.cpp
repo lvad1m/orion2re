@@ -10,6 +10,7 @@
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/ships.h"
 #include "game/techdata.h"
 
@@ -247,6 +248,7 @@ namespace world_events {
                             if (bounty == nullptr) break;
                         }
                         MOX::player[payer].bc -= amount;
+                        reputation::Note_Deed(payer);  // stains and titles (off by default)
                         bounty->value = static_cast<int16_t>(std::min<int32_t>(30000, bounty->value + amount));
                         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d puts %d BC on the head of player %d",
                             (int)MOX::stardate, (int)payer, (int)amount, (int)target);
@@ -426,6 +428,8 @@ namespace world_events {
                 const int16_t envoy = contacts[Pick_(n)];
                 diplomac::Change_Relations(AMBASSADOR_RELATIONS, player, envoy, 0, 0, 0);
                 diplomac::Change_Relations(AMBASSADOR_RELATIONS, envoy, player, 0, 0, 0);
+                // Graded incidents (events-catalog 3.12): a killed diplomat is remembered worse than a skirmish.
+                opinion::Add(envoy, player, opinion::REASON_KILLED_OUR_DIPLOMAT, opinion::DIPLOMAT_KILLED_OPINION);
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: the ambassador of player %d is killed",
                     (int)MOX::stardate, (int)player, (int)envoy);
                 const bool computer = MOX::player[envoy].objectives != PLAYER_OBJECTIVE_HUMAN;

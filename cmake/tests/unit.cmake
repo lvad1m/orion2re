@@ -46,6 +46,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/world_events_config.cpp
     src/game/crises_config.cpp
     src/game/combat_dice_config.cpp
+    src/game/reputation_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1034,6 +1035,10 @@ orion2re_add_game_test(test_combat_dice
     tests/unit/combat_dice_test.cpp
 )
 
+orion2re_add_game_test(test_reputation
+    tests/unit/reputation_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1434,6 +1439,7 @@ orion2re_add_unit_test(test_savegame
         src/game/beliefs_state.cpp
         src/game/world_events_state.cpp
         src/game/crises_state.cpp
+        src/game/reputation_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp
