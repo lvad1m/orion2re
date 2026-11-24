@@ -2,11 +2,15 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "game/dice.h"
+#include "game/events.h"
 #include "game/intrigue.h"
+#include "game/opinion.h"
 #include "game/serialization.h"
 #include "game/world_events.h"
 
 #include <memory>
+#include <string>
 
 namespace {
     struct s_events_scope {
@@ -268,6 +272,168 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     SERIAL::Reader_ bad(buffer.get(), world_events::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(world_events::Parse_Save(&bad, &error));
     DOCTEST_CHECK(world_events::Speed_Bonus(0) == 1);
+}
+
+namespace {
+    // Hired pirates work without the other new events.
+    struct s_pirates_scope : s_events_scope {
+        test::s_saved_value<bool> hired{world_events::hired_pirates};
+        test::s_saved_value<bool> opinion_enabled{opinion::enabled};
+        test::s_saved_value<uint8_t> roll_kind{dice::roll_kind};
+
+        s_pirates_scope() {
+            opinion::Clear();
+            world_events::enabled = false;
+            world_events::hired_pirates = true;
+            opinion::enabled = true;
+            dice::roll_kind = dice::ROLL_TWO_D10;
+        }
+        ~s_pirates_scope() {
+            opinion::Clear();
+        }
+    };
+
+    const int32_t PIRATE_TRIUMPH[2] = {10, 10};
+    const int32_t PIRATE_CATASTROPHE[2] = {1, 1};
+
+    // Player 0's colonies sit at stars 1 (8 people) and 2 (4 people); player 1 has spies there. (The
+    // fixture's empty ship records all sit at star 0 and would count as warships there.)
+    void Pirate_Setup_(test::s_game_state* state) {
+        Setup_(state);
+        MOX::NUM_STARS = 3;
+        state->planets[0].star_index = 1;
+        state->planets[1].star_index = 2;
+        state->stars[1].has_colony = 0x1;
+        state->stars[2].has_colony = 0x1;
+        state->players[1].bc = 1000;
+        state->players[1].spies[0] = 2;
+        state->players[0].bc = 1000;
+        state->players[0].n_freighters = 10;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("one processing: pirates at a star take a freighter from each empire there; a raid stops at zero") {
+    s_pirates_scope scope;
+    test::s_game_state state;
+    Pirate_Setup_(&state);
+    state.stars[1].has_colony = 0x3;
+    state.players[1].n_freighters = 0;
+    int16_t strength = 40;
+    DOCTEST_CHECK(EVENTS::Pirates_At_Star_Turn(1, &strength, 40));  // full strength: a sure strike; no warships
+    DOCTEST_CHECK(state.players[0].n_freighters == 9);
+    DOCTEST_CHECK(state.players[1].n_freighters == 0);
+    DOCTEST_CHECK(strength == 40);
+    state.players[1].bc = 30;
+    EVENTS::Pirate_Raid_Loss(1, 50);
+    DOCTEST_CHECK(state.players[1].bc == 0);
+}
+
+DOCTEST_TEST_CASE("hired pirates: a paid raid costs the target; an exposed hire is remembered") {
+    s_pirates_scope scope;
+    test::s_game_state state;
+    Pirate_Setup_(&state);
+    state.players[1].spies[0] = 0;
+    DOCTEST_CHECK(world_events::Hire_Pirates_With_Dice(1, 0, world_events::HIRE_RAID, PIRATE_TRIUMPH) == world_events::HIRE_NOT_POSSIBLE);
+    DOCTEST_CHECK(state.players[1].bc == 1000);  // no spies, no known pirate cache: nothing paid
+    state.stars[2].system_special = SYSTEM_SPECIAL_PIRATE_CACHE;
+    state.stars[2].visited = 0x2;  // a known cache is enough
+    DOCTEST_REQUIRE(world_events::Hire_Pirates_With_Dice(1, 0, world_events::HIRE_RAID, PIRATE_TRIUMPH) == world_events::HIRE_DONE);
+    DOCTEST_CHECK(state.players[1].bc == 1000 - world_events::RAID_PRICE);
+    DOCTEST_CHECK(state.players[0].bc < 1000);
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_RAIDED_US) == 0);
+    state.players[1].spies[0] = 2;
+    DOCTEST_CHECK(world_events::Hire_Pirates_With_Dice(1, 0, world_events::HIRE_RAID, PIRATE_CATASTROPHE) == world_events::HIRE_EXPOSED);
+    DOCTEST_CHECK(state.players[1].spies[0] == 1);
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_RAIDED_US) == opinion::RAIDED_OPINION);
+}
+
+DOCTEST_TEST_CASE("hired pirates: armed pirates sit at the target's biggest colony, harass its trade, leave in time") {
+    s_pirates_scope scope;
+    test::s_game_state state;
+    Pirate_Setup_(&state);
+    DOCTEST_REQUIRE(world_events::Hire_Pirates_With_Dice(1, 0, world_events::HIRE_ARM, PIRATE_TRIUMPH) == world_events::HIRE_DONE);
+    DOCTEST_CHECK(state.players[1].bc == 1000 - 1000 * world_events::ARM_PERCENT / 100);
+    const world_events::s_entry* pirates = world_events::Find(world_events::KIND_HIRED_PIRATES, 0);
+    DOCTEST_REQUIRE(pirates != nullptr);
+    DOCTEST_CHECK(pirates->target == 1);
+    DOCTEST_CHECK(pirates->hirer == 1);
+    DOCTEST_CHECK(pirates->value == pirates->extra);
+    DOCTEST_CHECK(pirates->value >= 100);  // the classic strength and half the price
+    DOCTEST_CHECK(world_events::Pirates_Harass(0));
+    DOCTEST_CHECK_FALSE(world_events::Pirates_Harass(1));
+    DOCTEST_CHECK(EVENTS::Event_Check_Pirate_Activity(0) == 1);  // trade.cpp halves the treaties' goal
+    world_events::Turn();  // full strength: a sure strike
+    DOCTEST_CHECK(state.players[0].n_freighters == 9);
+    MOX::stardate += world_events::HIRED_PIRATE_TURNS;
+    world_events::Turn();
+    int32_t count = 0;
+    const world_events::s_entry* entries = world_events::Entries(&count);
+    for (int32_t i = 0; i < count; ++i) DOCTEST_CHECK(entries[i].kind != world_events::KIND_HIRED_PIRATES);
+    DOCTEST_CHECK_FALSE(world_events::Pirates_Harass(0));
+}
+
+DOCTEST_TEST_CASE("hired pirates off: nothing is hired, nothing harasses") {
+    s_pirates_scope scope;
+    test::s_game_state state;
+    Pirate_Setup_(&state);
+    world_events::hired_pirates = false;
+    DOCTEST_CHECK(world_events::Hire_Pirates_With_Dice(1, 0, world_events::HIRE_ARM, PIRATE_TRIUMPH) == world_events::HIRE_NOT_POSSIBLE);
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+    DOCTEST_CHECK_FALSE(world_events::Pirates_Harass(0));
+    DOCTEST_CHECK(EVENTS::Event_Check_Pirate_Activity(0) == 0);
+}
+
+DOCTEST_TEST_CASE("the events payload v2 keeps the hirer; a v1 payload still loads") {
+    s_pirates_scope scope;
+    test::s_game_state state;
+    Pirate_Setup_(&state);
+    world_events::s_entry entry;
+    entry.kind = world_events::KIND_HIRED_PIRATES;
+    entry.player = 0;
+    entry.target = 1;
+    entry.started = 35001;
+    entry.ends = 35031;
+    entry.value = 50;
+    entry.extra = 60;
+    entry.hirer = 1;
+    DOCTEST_REQUIRE(world_events::Add(entry));
+    const uint32_t size = world_events::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    world_events::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    world_events::Clear();
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(world_events::Parse_Save(&reader, &error));
+    world_events::Commit_Save();
+    const world_events::s_entry* back = world_events::Find(world_events::KIND_HIRED_PIRATES, 0);
+    DOCTEST_REQUIRE(back != nullptr);
+    DOCTEST_CHECK(back->hirer == 1);
+    DOCTEST_CHECK(back->extra == 60);
+
+    // Version 1: 14 bytes an entry, no hirer; a golden age in the first slot.
+    const uint32_t v1_size = 2 + world_events::MAX_ENTRIES * 14;
+    auto v1 = std::make_unique<uint8_t[]>(v1_size);
+    SERIAL::Writer_ old_writer(v1.get(), v1_size, "test overflow");
+    old_writer.Write_Uint16(1);
+    for (int32_t i = 0; i < world_events::MAX_ENTRIES; ++i) {
+        old_writer.Write_Uint8(i == 0 ? world_events::KIND_GOLDEN_AGE : world_events::KIND_NONE);
+        old_writer.Write_Int8(-1);
+        old_writer.Write_Int16(-1);
+        old_writer.Write_Int32(35001);
+        old_writer.Write_Int32(0);
+        old_writer.Write_Int16(0);
+    }
+    DOCTEST_REQUIRE(old_writer.Length() == v1_size);
+    SERIAL::Reader_ old_reader(v1.get(), v1_size, "test underflow", true);
+    DOCTEST_REQUIRE(world_events::Parse_Save(&old_reader, &error));
+    world_events::Commit_Save();
+    world_events::enabled = true;  // a golden age is one of the other new events
+    const world_events::s_entry* golden = world_events::Find(world_events::KIND_GOLDEN_AGE, -1);
+    DOCTEST_REQUIRE(golden != nullptr);
+    DOCTEST_CHECK(golden->hirer == -1);
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_HIRED_PIRATES, 0) == nullptr);
 }
 
 }

@@ -4,6 +4,7 @@
 
 #include "game/bill.h"
 #include "game/colcalc.h"
+#include "game/dice.h"
 #include "game/diplomac.h"
 #include "game/events.h"
 #include "game/intrigue.h"
@@ -11,6 +12,9 @@
 #include "game/opinion.h"
 #include "game/random.h"
 #include "game/reputation.h"
+#include "game/spy.h"
+#include "game/spy_ops.h"
+#include "game/spy_ranks.h"
 #include "game/ships.h"
 #include "game/techdata.h"
 
@@ -99,10 +103,7 @@ namespace world_events {
         }
 
         void Richer_Planet_(int16_t planet, int32_t classes) {
-            const int32_t richer = std::min<int32_t>(MINERAL_RESOURCE_ULTRA_RICH, MOX::planet[planet].mineral_class + classes);
-            MOX::planet[planet].mineral_class = static_cast<int8_t>(richer);
-            const int16_t colony = MOX::planet[planet].colony_index;
-            if (colony != -1) COLCALC::Colony_Calculation(colony);
+            EVENTS::Enrich_Planet(planet, static_cast<int16_t>(classes));  // as the classic mineral deposit
         }
 
         // A star without colonies and without monsters, at random; -1 when there is none.
@@ -219,8 +220,9 @@ namespace world_events {
 
         void Raid_(int16_t target, const char* why) {
             s_player& p = MOX::player[target];
-            const int32_t loss = std::min<int32_t>(std::max<int32_t>(p.bc, 0), EVENTS::Pirate_Raid_Amount(p.bc));
-            p.bc -= loss;
+            // As the classic raid; an empire in debt has nothing to lose (and no debt is paid off).
+            const int16_t loss = p.bc > 0 ? EVENTS::Pirate_Raid_Amount(p.bc) : 0;
+            if (loss > 0) EVENTS::Pirate_Raid_Loss(target, loss);
             p.n_freighters = static_cast<int16_t>(std::max<int32_t>(0, p.n_freighters - 2));
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: pirates raid it (%s), %d BC lost",
                 (int)MOX::stardate, (int)target, why, (int)loss);
@@ -292,6 +294,86 @@ namespace world_events {
                 const int16_t target = e.player;
                 e = s_entry{};
                 Raid_(target, "it stopped paying for protection");
+            }
+        }
+
+        // Hired pirates (mechanics.md 3.2.1) -------------------------------------------------------
+
+        bool Knows_Pirate_Cache_(int16_t player) {
+            for (int16_t s = 0; s < MOX::NUM_STARS && s < MAX_STARS; ++s) {
+                const s_star_data& star = MOX::star[s];
+                if (star.system_special == SYSTEM_SPECIAL_PIRATE_CACHE && ((star.visited >> player) & 1) != 0) return true;
+            }
+            return false;
+        }
+
+        bool Pirates_At_(int16_t star) {
+            for (int32_t i = 0; i < MAX_ENTRIES; ++i) {
+                const s_entry& e = Entry_Slots()[i];
+                if (e.kind == KIND_HIRED_PIRATES && e.target == star) return true;
+            }
+            return false;
+        }
+
+        // The star of `target`'s most populous colony where the hirer has no colony and no event sits.
+        int16_t Pirate_Star_(int16_t hirer, int16_t target) {
+            int16_t best = -1;
+            int32_t best_pops = -1;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const s_colony& colony = MOX::colony[c];
+                if (colony.owner != target || colony.outpost_flag != 0 || colony.planet < 0) continue;
+                const int16_t star = MOX::planet[colony.planet].star_index;
+                if (star < 0 || ((MOX::star[star].has_colony >> hirer) & 1) != 0) continue;
+                if (EVENTS::Star_Has_Event(star) != -1 || Pirates_At_(star)) continue;
+                if (colony.n_pops > best_pops) {
+                    best = star;
+                    best_pops = colony.n_pops;
+                }
+            }
+            return best;
+        }
+
+        // Every turn: hired pirates prey on their star as the classic pirate activity does.
+        void Hired_Pirates_Turn_() {
+            for (int32_t i = 0; i < MAX_ENTRIES; ++i) {
+                s_entry& e = Entry_Slots()[i];
+                if (e.kind != KIND_HIRED_PIRATES) continue;
+                if (e.target < 0 || (e.ends != 0 && e.ends <= MOX::stardate)) {
+                    Log_("the hired pirates leave", e.player);
+                    e = s_entry{};
+                    continue;
+                }
+                if (!EVENTS::Pirates_At_Star_Turn(e.target, &e.value, static_cast<int16_t>(std::max<int32_t>(1, e.extra)))) {
+                    Log_("the hired pirates are driven off", e.player);
+                    e = s_entry{};
+                }
+            }
+        }
+
+        // Every HIRE_PERIOD turns a computer pays pirates against its worst enemy: the fierce arm
+        // them, the others pay for a raid.
+        void Hire_All_() {
+            for (int16_t hirer = 0; hirer < Players_(); ++hirer) {
+                const s_player& p = MOX::player[hirer];
+                if (!Alive_(hirer) || p.objectives == PLAYER_OBJECTIVE_HUMAN || p.bc < HIRE_MIN_BC + RAID_PRICE) continue;
+                int16_t best = -1;
+                int32_t worst = INT_MAX;
+                for (int16_t t = 0; t < Players_(); ++t) {
+                    if (t == hirer || !Alive_(t) || p.contact[t] == 0) continue;
+                    const bool war = p.treaty[t] >= TREATY_FIRST_WAR;
+                    int32_t score = opinion::Relations(hirer, t);
+                    if (!war && score > HIRE_RELATIONS) continue;
+                    if (war) score -= 200;
+                    if (score < worst) {
+                        worst = score;
+                        best = t;
+                    }
+                }
+                if (best < 0) continue;
+                const bool fierce = p.personality == PLAYER_PERSONALITY_AGGRESSIVE || p.personality == PLAYER_PERSONALITY_RUTHLESS ||
+                    p.personality == PLAYER_PERSONALITY_XENOPHOBIC;
+                if (fierce && p.bc >= HIRE_MIN_BC + ARM_PRICE && Hire_Pirates(hirer, best, HIRE_ARM) != HIRE_NOT_POSSIBLE) continue;
+                Hire_Pirates(hirer, best, HIRE_RAID);
             }
         }
 
@@ -640,7 +722,79 @@ namespace world_events {
         return true;
     }
 
+    e_hire_result Hire_Pirates(int16_t hirer, int16_t target, e_hire how) {
+        return Hire_Pirates_With_Dice(hirer, target, how, nullptr);
+    }
+
+    e_hire_result Hire_Pirates_With_Dice(int16_t hirer, int16_t target, e_hire how, const int32_t* dice_values) {
+        if (!hired_pirates || !Alive_(hirer) || !Alive_(target) || hirer == target) return HIRE_NOT_POSSIBLE;
+        const int32_t spies = BILL::Get_Their_Spy_Number(hirer, target);
+        if (spies == 0 && !Knows_Pirate_Cache_(hirer)) return HIRE_NOT_POSSIBLE;
+        s_player& payer = MOX::player[hirer];
+        int16_t star = -1;
+        int32_t price = RAID_PRICE;
+        if (how == HIRE_ARM) {
+            star = Pirate_Star_(hirer, target);
+            if (star < 0) return HIRE_NOT_POSSIBLE;
+            int32_t free_slots = 0;
+            for (int32_t i = 0; i < MAX_ENTRIES; ++i) free_slots += Entry_Slots()[i].kind == KIND_NONE ? 1 : 0;
+            if (free_slots == 0) return HIRE_NOT_POSSIBLE;
+            price = std::clamp<int32_t>(payer.bc * ARM_PERCENT / 100, ARM_PRICE, ARM_PRICE_MAX);
+        } else if (MOX::player[target].bc < RAID_MIN_BC) {
+            return HIRE_NOT_POSSIBLE;
+        }
+        if (payer.bc < price) return HIRE_NOT_POSSIBLE;
+        payer.bc -= price;
+
+        int16_t offense = 0;
+        int16_t defense = 0;
+        spy::Compute_Spy_Bonuses(&payer, &offense, &defense);
+        const dice::s_modifier modifiers[3] = {{"spies", std::min<int32_t>(5, spies / 2)}, {"spy skill", offense / 10},
+            {"resident", spy_ranks::Resident_Bonus(hirer, target)}};
+        const int32_t difficulty = spy_ops::Difficulty(hirer, spy_ops::OP_DATA, target);
+        const dice::s_check check = dice_values != nullptr
+            ? dice::Resolve_Check(static_cast<dice::e_roll_kind>(dice::roll_kind), dice_values, modifiers, 3, difficulty)
+            : dice::Roll_Check(modifiers, 3, difficulty);
+        const char* what = how == HIRE_ARM ? "arms pirates" : "pays for a pirate raid";
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d %s against player %d (%d BC): %s",
+            (int)MOX::stardate, (int)hirer, what, (int)target, (int)price, dice::Describe_Check(what, check, modifiers, 3).c_str());
+
+        if (check.outcome >= dice::OUTCOME_SUCCESS) {
+            reputation::Note_Deed(hirer);  // stains and titles (off by default): toward the corsair
+            if (how == HIRE_RAID) {
+                const int16_t loss = EVENTS::Pirate_Raid_Amount(MOX::player[target].bc);
+                EVENTS::Pirate_Raid_Loss(target, loss);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: hired pirates raid it, %d BC lost",
+                    (int)MOX::stardate, (int)target, (int)loss);
+                return HIRE_DONE;
+            }
+            const int32_t strength = std::clamp<int32_t>(EVENTS::Event_Pirate_Activity_Strength(star) + price / 2, 1, 30000);
+            s_entry entry;
+            entry.kind = KIND_HIRED_PIRATES;
+            entry.player = static_cast<int8_t>(target);
+            entry.target = star;
+            entry.started = MOX::stardate;
+            entry.ends = MOX::stardate + HIRED_PIRATE_TURNS;
+            entry.value = static_cast<int16_t>(strength);
+            entry.extra = static_cast<int16_t>(strength);
+            entry.hirer = static_cast<int8_t>(hirer);
+            Add(entry);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "world_events: stardate %d, player %d: hired pirates (strength %d) sit at star %d",
+                (int)MOX::stardate, (int)target, (int)strength, (int)star);
+            return HIRE_DONE;
+        }
+        if (check.outcome != dice::OUTCOME_EXPOSED && check.outcome != dice::OUTCOME_CATASTROPHE) return HIRE_FAILED;
+        if (spies > 0) BILL::Set_Their_Spy_Number(hirer, target, static_cast<uint8_t>(spies - 1));
+        opinion::Add(target, hirer, opinion::REASON_RAIDED_US, opinion::RAIDED_OPINION);
+        return HIRE_EXPOSED;
+    }
+
     void Turn() {
+        // Hired pirates (spy hired_pirates) work with or without the other new events.
+        if (hired_pirates) {
+            Hired_Pirates_Turn_();
+            if (MOX::stardate % HIRE_PERIOD == 4) Hire_All_();
+        }
         if (!enabled) return;
         Pay_Modifiers_();
         Bankruptcy_();

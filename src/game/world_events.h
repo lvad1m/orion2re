@@ -23,6 +23,7 @@ namespace world_events {
     extern bool enabled;           // events new_events
     extern int32_t galaxy_chance;  // events galaxy_event_chance: per mille a turn
     extern int32_t empire_chance;  // events empire_event_chance: per mille a turn for each empire
+    extern bool hired_pirates;     // spy hired_pirates (mechanics.md 3.2.1); works without new_events
 
     enum e_kind : uint8_t {
         KIND_NONE = 0,
@@ -47,6 +48,9 @@ namespace world_events {
         // Pirates (events-catalog.md 3.6): a price on an empire's head, protection money.
         KIND_BOUNTY = 31,            // player: the empire with a price on its head; value: BC offered
         KIND_PROTECTION = 32,        // player: the empire paying the pirates; value: the fee a turn
+        // Hired pirates (mechanics.md 3.2.1): player: the empire harassed; target: the star; value:
+        // strength left; extra: the strength paid for; hirer: who paid.
+        KIND_HIRED_PIRATES = 33,
     };
 
     enum e_race_event : uint8_t {
@@ -92,6 +96,16 @@ namespace world_events {
     constexpr int32_t BOUNTY_RAID_MIN = 100;            // pirates strike for a price this high
     constexpr int32_t PROTECTION_FEE = 10;              // BC a turn
     constexpr int32_t PROTECTION_TURNS = 10;
+    // Hired pirates (spy hired_pirates).
+    constexpr int32_t HIRE_PERIOD = 10;                 // computers hire when stardate % 10 == 4
+    constexpr int32_t HIRE_MIN_BC = 150;                // a computer keeps this much after paying
+    constexpr int32_t HIRE_RELATIONS = -30;             // or at war
+    constexpr int32_t RAID_PRICE = 50;
+    constexpr int32_t RAID_MIN_BC = 100;                // as the classic raid: a poorer target is not worth it
+    constexpr int32_t ARM_PERCENT = 20;                 // of the hirer's treasury, ARM_PRICE..ARM_PRICE_MAX
+    constexpr int32_t ARM_PRICE = 100;
+    constexpr int32_t ARM_PRICE_MAX = 300;
+    constexpr int32_t HIRED_PIRATE_TURNS = 30;
 
     struct s_entry {
         uint8_t kind = KIND_NONE;
@@ -100,6 +114,8 @@ namespace world_events {
         int32_t started = 0;
         int32_t ends = 0;           // the stardate it ends; 0 for a situation (until resolved)
         int16_t value = 0;
+        int8_t hirer = -1;          // hired pirates: who paid (payload v2)
+        int16_t extra = 0;          // hired pirates: the strength paid for (payload v2)
     };
 
     // Active entries (for the tests and the advisor's view).
@@ -118,6 +134,19 @@ namespace world_events {
     bool Epidemic(int16_t colony);                 // colcalc.cpp, as the classic plague
     int32_t Unrest(int16_t colony);                // stability.cpp: a mutiny (stability points)
     bool Leader_Locked(int16_t leader);            // officer.cpp: a warm place keeps the leader at its post
+
+    // Hired pirates (spy hired_pirates; mechanics.md 3.2.1). `hirer` pays RAID_PRICE for a classic
+    // pirate raid on `target`, or ARM_PRICE..ARM_PRICE_MAX to arm pirates at the star of one of
+    // `target`'s colonies (the classic pirate activity, stronger for the money, until warships
+    // drive them off or HIRED_PIRATE_TURNS pass). Needs spies in `target` or a known pirate cache. A
+    // dice check (as a spy's data gathering) decides: success - the pirates strike; failure - they
+    // keep the money; exposed - the target learns who paid (raided us, -20) and a spy is caught.
+    enum e_hire : uint8_t { HIRE_RAID = 0, HIRE_ARM = 1 };
+    enum e_hire_result : uint8_t { HIRE_NOT_POSSIBLE = 0, HIRE_FAILED = 1, HIRE_EXPOSED = 2, HIRE_DONE = 3 };
+    e_hire_result Hire_Pirates(int16_t hirer, int16_t target, e_hire how);
+    e_hire_result Hire_Pirates_With_Dice(int16_t hirer, int16_t target, e_hire how, const int32_t* dice_values);
+    // True while hired pirates sit at a star where `player` has a colony (EVENTS::Event_Check_Pirate_Activity).
+    bool Pirates_Harass(int16_t player);
 
     // Once a turn after the classic events (nextturn.cpp): modifiers pay or run out, the bankruptcy
     // scale moves, and new events may start.

@@ -99,6 +99,19 @@ namespace EVENTS {
     /** Calculates a Pirate Raid loss from the selected player's treasury. */
     int16_t __cdecl Pirate_Raid_Amount(int32_t bc);
 
+    // One processing for the classic table and the new events list (docs/LocalLLM/mechanics.md 3.2.4):
+    // the classic EVENT_PIRATE_ACTIVITY and EVENT_PIRATE_RAID and hired pirates (world_events.h) call
+    // the same functions.
+    // Pirates at a star for one turn: with a chance of strength / max_strength every empire with a
+    // colony there loses a freighter, and warships at the star wear the pirates down by their size.
+    // Returns false once the pirates are gone (strength 0 or less).
+    bool __cdecl Pirates_At_Star_Turn(int16_t star_idx, int16_t* strength, int16_t max_strength);
+    // A pirate raid takes `amount` BC from the player, never below zero.
+    void __cdecl Pirate_Raid_Loss(int16_t player_idx, int16_t amount);
+    // A planet becomes `classes` mineral classes richer, at most ultra rich, and its colony is
+    // recalculated (EVENT_MINERAL_DEPOSIT with 2; the new ore rush and plate shift).
+    void __cdecl Enrich_Planet(int16_t planet_idx, int16_t classes);
+
     /** Calculates the total research required to prevent a Supernova. */
     int16_t __cdecl Supernova_Research_Requirement(int16_t star_idx,
         int16_t turn_count);

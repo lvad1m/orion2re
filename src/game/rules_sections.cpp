@@ -72,7 +72,7 @@ namespace SAVEGAME {
         }
 
         bool World_Events_Has_State_() {
-            return world_events::enabled && !world_events::Empty();
+            return (world_events::enabled || world_events::hired_pirates) && !world_events::Empty();
         }
 
         bool Crises_Has_State_() {

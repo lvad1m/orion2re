@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "string_overrides.h"
+#include "game/world_events.h"
 
 namespace EVENTS {
     namespace {
@@ -159,6 +160,11 @@ namespace EVENTS {
             if ((star->has_colony >> (player_idx & 0x1F)) & 1) {
                 return 1;
             }
+        }
+
+        // Hired pirates at a star of the player (off by default).
+        if (world_events::Pirates_Harass(player_idx)) {
+            return 1;
         }
 
         return 0;
@@ -326,6 +332,37 @@ namespace EVENTS {
         return (int16_t)amount;
     }
 
+    bool __cdecl Pirates_At_Star_Turn(int16_t star_idx, int16_t* strength, int16_t max_strength) {
+        if ((int32_t)game_random::Random(100) <= (int)*strength * 100 / (int)max_strength) {
+            for (int16_t j = 0; j < MOX::NUM_PLAYERS; ++j) {
+                if ((MOX::star[star_idx].has_colony >> j) & 1) {
+                    if (MOX::player[j].n_freighters > 0) {
+                        MOX::player[j].n_freighters--;
+                    }
+                }
+            }
+        }
+        *strength -= Ship_Size_Points_At_Star(star_idx);
+        return *strength > 0;
+    }
+
+    void __cdecl Pirate_Raid_Loss(int16_t player_idx, int16_t amount) {
+        MOX::player[player_idx].bc -= (int)amount;
+        if (MOX::player[player_idx].bc < 0) {
+            MOX::player[player_idx].bc = 0;
+        }
+    }
+
+    void __cdecl Enrich_Planet(int16_t planet_idx, int16_t classes) {
+        int8_t mineral = MOX::planet[planet_idx].mineral_class + classes;
+        if (mineral >= MINERAL_RESOURCE_ULTRA_RICH) mineral = MINERAL_RESOURCE_ULTRA_RICH;
+        MOX::planet[planet_idx].mineral_class = mineral;
+        int16_t colony_idx = MOX::planet[planet_idx].colony_index;
+        if (colony_idx != -1) {
+            COLCALC::Colony_Calculation(colony_idx);
+        }
+    }
+
     int16_t __cdecl Supernova_Research_Requirement(int16_t star_idx,
         int16_t turn_count) {
         const uint16_t research_per_turn = (uint16_t)(supernova.minimum_research_per_turn +
@@ -477,41 +514,21 @@ namespace EVENTS {
                     break;
                 }
 
-                case EVENT_MINERAL_DEPOSIT: {
-                    int8_t mineral = MOX::planet[event_data[i].target_id].mineral_class + 2;
-                    if (mineral >= MINERAL_RESOURCE_ULTRA_RICH) mineral = MINERAL_RESOURCE_ULTRA_RICH;
-                    MOX::planet[event_data[i].target_id].mineral_class = mineral;
-                    int16_t colony_idx = MOX::planet[event_data[i].target_id].colony_index;
-                    if (colony_idx != -1) {
-                        COLCALC::Colony_Calculation(colony_idx);
-                    }
+                case EVENT_MINERAL_DEPOSIT:
+                    Enrich_Planet(event_data[i].target_id, 2);
                     event_data[i].status = 5;
                     break;
-                }
 
                 case EVENT_PIRATE_ACTIVITY:
                     if (event_data[i].status != 6) {
-                        if ((int32_t)game_random::Random(100) <= (int)event_data[i].amount * 100 / (int)event_data[i].max_amount) {
-                            for (int16_t j = 0; j < MOX::NUM_PLAYERS; ++j) {
-                                if ((MOX::star[event_data[i].target_id].has_colony >> j) & 1) {
-                                    if (MOX::player[j].n_freighters > 0) {
-                                        MOX::player[j].n_freighters--;
-                                    }
-                                }
-                            }
-                        }
-                        event_data[i].amount -= Ship_Size_Points_At_Star(event_data[i].target_id);
-                        if (event_data[i].amount <= 0) {
+                        if (!Pirates_At_Star_Turn(event_data[i].target_id, &event_data[i].amount, event_data[i].max_amount)) {
                             event_data[i].status = 5;
                         }
                     }
                     break;
 
                 case EVENT_PIRATE_RAID:
-                    MOX::player[event_data[i].player_idx].bc -= (int)event_data[i].amount;
-                    if (MOX::player[event_data[i].player_idx].bc < 0) {
-                        MOX::player[event_data[i].player_idx].bc = 0;
-                    }
+                    Pirate_Raid_Loss(event_data[i].player_idx, event_data[i].amount);
                     event_data[i].status = 5;
                     break;
 

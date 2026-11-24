@@ -8,6 +8,7 @@ namespace world_events {
 
     bool enabled = false;
     int32_t galaxy_chance = 15;
+    bool hired_pirates = false;
     int32_t empire_chance = 4;
 
 } // namespace world_events

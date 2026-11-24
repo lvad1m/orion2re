@@ -12,8 +12,10 @@
 namespace world_events {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
-        constexpr uint32_t ENTRY_SIZE = 1 + 1 + 2 + 4 + 4 + 2;
+        // Version 2 (hired pirates) adds the hirer and an extra value; version 1 still loads.
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
+        constexpr uint32_t ENTRY_SIZE_V1 = 1 + 1 + 2 + 4 + 4 + 2;
+        constexpr uint32_t ENTRY_SIZE = ENTRY_SIZE_V1 + 1 + 2;
         constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + MAX_ENTRIES * ENTRY_SIZE;
 
         s_entry entries[MAX_ENTRIES];
@@ -32,12 +34,22 @@ namespace world_events {
             return kind == KIND_NONE || kind == KIND_GOLDEN_AGE || kind == KIND_TOURIST_BOOM || kind == KIND_ORE_RUSH ||
                 kind == KIND_GHOST_SHIP || kind == KIND_AMBASSADOR_KILLED || kind == KIND_DISCOVERER ||
                 kind == KIND_ANCIENT_WRECK || kind == KIND_MUTINY || kind == KIND_WARM_PLACE || kind == KIND_EPIDEMIC ||
-                kind == KIND_RACE_EVENT || kind == KIND_BANKRUPTCY || kind == KIND_BOUNTY || kind == KIND_PROTECTION;
+                kind == KIND_RACE_EVENT || kind == KIND_BANKRUPTCY || kind == KIND_BOUNTY || kind == KIND_PROTECTION ||
+                kind == KIND_HIRED_PIRATES;
         }
     } // namespace
 
     s_entry* Entry_Slots() {
         return entries;
+    }
+
+    bool Pirates_Harass(int16_t player) {
+        if (!hired_pirates || player < 0 || player >= MAX_PLAYERS) return false;
+        for (const s_entry& e : entries) {
+            if (!Live_(e) || e.kind != KIND_HIRED_PIRATES || e.target < 0 || e.target >= MAX_STARS) continue;
+            if (((MOX::star[e.target].has_colony >> player) & 1) != 0) return true;
+        }
+        return false;
     }
 
     const s_entry* Entries(int32_t* count) {
@@ -46,7 +58,7 @@ namespace world_events {
     }
 
     const s_entry* Find(e_kind kind, int16_t player, int32_t race_event) {
-        if (!enabled) return nullptr;
+        if (!enabled && !(hired_pirates && kind == KIND_HIRED_PIRATES)) return nullptr;
         for (const s_entry& e : entries) {
             if (!Live_(e) || e.kind != kind || e.player != player) continue;
             if (kind == KIND_RACE_EVENT && race_event >= 0 && e.value != race_event) continue;
@@ -148,6 +160,8 @@ namespace world_events {
             writer->Write_Int32(e.started);
             writer->Write_Int32(e.ends);
             writer->Write_Int16(e.value);
+            writer->Write_Int8(e.hirer);
+            writer->Write_Int16(e.extra);
         }
     }
 
@@ -158,8 +172,9 @@ namespace world_events {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("events save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported events payload version");
-        if (reader->Remaining() != SAVE_SIZE - sizeof(uint16_t)) return fail("events save has the wrong size");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported events payload version");
+        if (reader->Remaining() != MAX_ENTRIES * (version == 1 ? ENTRY_SIZE_V1 : ENTRY_SIZE)) return fail("events save has the wrong size");
         for (s_entry& e : pending) {
             e.kind = reader->Read_Uint8();
             e.player = reader->Read_Int8();
@@ -167,7 +182,14 @@ namespace world_events {
             e.started = reader->Read_Int32();
             e.ends = reader->Read_Int32();
             e.value = reader->Read_Int16();
+            e.hirer = -1;
+            e.extra = 0;
+            if (version >= 2) {
+                e.hirer = reader->Read_Int8();
+                e.extra = reader->Read_Int16();
+            }
             if (!Known_Kind_(e.kind)) return fail("events save has an unknown event");
+            if (e.hirer < -1 || e.hirer >= MAX_PLAYERS) return fail("events save has an out-of-range hirer");
             if (e.player < -1 || e.player >= MAX_PLAYERS) return fail("events save has an out-of-range player");
             if (e.started < 0 || e.ends < 0) return fail("events save has a bad stardate");
         }

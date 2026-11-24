@@ -396,3 +396,10 @@ namespace RUSS {
         return 0;
     }
 }
+
+// events.cpp asks whether hired pirates harass a player (world_events_state.cpp); none here.
+namespace world_events {
+    bool Pirates_Harass(int16_t) {
+        return false;
+    }
+}
