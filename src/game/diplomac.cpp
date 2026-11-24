@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/beliefs.h"
 #include "game/reputation.h"
+#include "game/covenants.h"
 #include "game/vassals.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
@@ -836,6 +837,8 @@ namespace diplomac {
         reputation::Turn();
         // Vassals (off by default): vassalages reviewed, endangered weak empires seek an overlord.
         vassals::Turn();
+        // Secret clauses and marriages (off by default): spies learn clauses, clauses and marriages made and kept.
+        covenants::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1452,6 +1455,7 @@ namespace diplomac {
         uint8_t current_treaty = p1->treaty[p2_idx];
         beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
         reputation::On_Treaty_Broken(p1_idx, p2_idx, current_treaty);  // stains and titles (off by default)
+        covenants::On_Treaty_Broken(p1_idx, p2_idx);  // a marriage between them ends (off by default)
 
         p2->last_broken_treaty[p1_idx] = p2->treaty[p1_idx];
         p2->threats[p1_idx]++;

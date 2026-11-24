@@ -139,6 +139,11 @@ namespace advisor {
         // Vassals (vassals.h): 1 when they are our overlord / our vassal.
         uint8_t our_overlord = 0;
         uint8_t our_vassal = 0;
+        // Covenants (covenants.h): 1 when we are bound to them by marriage; the empire a secret clause
+        // we share with them is aimed at (-1 none) and its name.
+        uint8_t married = 0;
+        int8_t clause_against = -1;
+        char clause_against_name[VIEW_NAME_LENGTH] = {};
     };
 
     struct s_empire_view {

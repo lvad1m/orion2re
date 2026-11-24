@@ -11,6 +11,7 @@
 #include "game/advisor_reports.h"
 #include "game/aipower.h"
 #include "game/beliefs.h"
+#include "game/covenants.h"
 #include "game/reputation.h"
 #include "game/vassals.h"
 #include "game/harold.h"
@@ -216,6 +217,15 @@ namespace advisor {
             contact->titles = reputation::Titles(static_cast<int16_t>(other));
             contact->our_overlord = vassals::Is_Vassal_Of(static_cast<int16_t>(player), static_cast<int16_t>(other)) ? 1 : 0;
             contact->our_vassal = vassals::Is_Vassal_Of(static_cast<int16_t>(other), static_cast<int16_t>(player)) ? 1 : 0;
+            contact->married = covenants::Spouse(static_cast<int16_t>(player)) == static_cast<int16_t>(other) ? 1 : 0;
+            for (int32_t t = 0; t < MAX_PLAYERS && covenants::secret_clauses; ++t) {
+                if (covenants::Find_Clause(static_cast<int16_t>(player), static_cast<int16_t>(other), static_cast<int16_t>(t)) >= 0 ||
+                    covenants::Find_Clause(static_cast<int16_t>(other), static_cast<int16_t>(player), static_cast<int16_t>(t)) >= 0) {
+                    contact->clause_against = static_cast<int8_t>(t);
+                    Copy_Name(contact->clause_against_name, world->players[t].race_name, sizeof(world->players[t].race_name));
+                    break;
+                }
+            }
             if (beliefs::neighbour_model) {
                 contact->belief_hostile = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_HOSTILE));
                 contact->belief_faithful = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_FAITHFUL));
@@ -475,6 +485,11 @@ namespace advisor {
             }
             if (contact.our_overlord != 0) out->append("   - our overlord: we pay tribute, it defends us\n");
             if (contact.our_vassal != 0) out->append("   - our vassal: it pays tribute, we defend it\n");
+            if (contact.married != 0) out->append("   - we are bound by marriage\n");
+            if (contact.clause_against >= 0) {
+                Append_Format(out, "   - we have a secret clause with it against %s (player %d)\n", contact.clause_against_name,
+                              static_cast<int>(contact.clause_against));
+            }
             if (contact.titles != 0) {
                 out->append("   - known as:");
                 bool first = true;

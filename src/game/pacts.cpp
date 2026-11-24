@@ -5,6 +5,7 @@
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
 #include "game/beliefs.h"
+#include "game/covenants.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 #include "game/intrigue.h"
@@ -136,6 +137,7 @@ namespace pacts {
 
     void On_Aggression(int16_t aggressor, int16_t victim) {
         vassals::On_Aggression(aggressor, victim);  // an overlord defends its vassal (off by default)
+        covenants::On_Aggression(aggressor, victim);  // secret clauses answer, a marriage breaks (off by default)
         if (!enabled || responding || !Alive_(aggressor) || !Alive_(victim) || aggressor == victim) return;
         responding = true;
         for (int16_t p = 0; p < MOX::NUM_PLAYERS && p < MAX_PLAYERS; ++p) {

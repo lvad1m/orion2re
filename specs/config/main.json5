@@ -4867,6 +4867,30 @@
       bind_root: { header: "game/vassals.h", symbol: "vassals::enabled" },
     },
 
+    secret_clauses: {
+      title: "Secret clauses",
+      description: "Every 10 turns two computer empires in contact, not at war and not allied, where the first thinks of the second at +20 or better and both think of a third at -20 or worse, may sign a pair of secret clauses against that third empire (at most 32 clauses, each lasting 50 turns): each promises to go to war with the third if it attacks the other. When the third attacks, the guarantor declares war on it and the protected side remembers it kindly (+15); a guarantor too weary of war or allied with the aggressor fails, and the protected side remembers the betrayal (-30) and the clause ends. A clause is revealed when it is called on, or by the aggressor's spies in either party (20 per mille a turn for each spy, at most 5): the aggressor then remembers both parties as plotting against it (-30). A revealed clause stays in force. The advisor's view shows the clauses an empire is party to.",
+      remarks: "False preserves classic behavior. For now only computer empires. Needs diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy secret_clauses = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/covenants.h", symbol: "covenants::secret_clauses" },
+    },
+
+    marriages: {
+      title: "Dynastic marriages",
+      description: "Every 10 turns two computer empires at peace with a treaty between them (any non-war treaty or a trade treaty), each thinking of the other at +30 or better, may marry (half the candidate pairs; one marriage per empire per review). Both remember family ties (+25), set back to at least +25 at every review while the marriage lasts. A war or a broken treaty between them ends it: the wronged side remembers the breaker as having broken its word (-60), every other computer empire that knows the breaker hears bad rumours about it (-10), and the family ties of both are cleared. The advisor's view shows the marriage.",
+      remarks: "False preserves classic behavior. For now only computer empires. Needs diplomacy opinion. Kept in an optional save section that older builds skip.",
+      examples: ["diplomacy marriages = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/covenants.h", symbol: "covenants::marriages" },
+    },
+
     titles: {
       title: "Stains and titles",
       description: "Every empire sees an empire's deeds as a reputation. Stains: an oathbreaker (broke an alliance, or two treaties within 50 turns; 100 turns), a kingslayer (its spies killed a leader of another empire and left traces; 100 turns), the North remembers (biological weapons, a destroyed planet or poisoned water; 300 turns, and every empire that knows it keeps a memory of -40 that fades eight times slower). Titles: keeps its word (no broken treaty in 100 turns and two treaties held 30 turns), peacemaker (two peaces made in 100 turns), and by style the one leader of the galaxy in each - trade prince (most trade treaties, at least 3), warlord (a fleet half again as strong as any other), corsair (most raids and sabotage in 50 turns, at least 3). Computer empires react in their relations: an oathbreaker -20 (-30 for honorable ones), a kingslayer -15, the North remembers -10 (-20 for honorable and pacifist), a corsair -10, a warlord -5 (not for aggressive and ruthless), keeps its word +10 (+15 honorable), peacemaker +10 (+15 pacifist), trade prince +5. A broken treaty also leaves the victim a memory of -30. The advisor's view shows the titles.",

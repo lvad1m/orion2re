@@ -14,6 +14,7 @@
 #include "game/resolutions.h"
 #include "game/rivalry.h"
 #include "game/counterspy.h"
+#include "game/covenants.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -97,6 +98,10 @@ namespace SAVEGAME {
                 !counterspy::Empty();
         }
 
+        bool Covenants_Has_State_() {
+            return (covenants::secret_clauses || covenants::marriages) && !covenants::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -137,6 +142,8 @@ namespace SAVEGAME {
                 secrets::Parse_Save, secrets::Commit_Save, secrets::Discard_Save, secrets::Clear},
             {SECTION_TYPE_COUNTERSPY, 1, "counterspy", Counterspy_Has_State_, counterspy::Save_Size, counterspy::Write_Save,
                 counterspy::Parse_Save, counterspy::Commit_Save, counterspy::Discard_Save, counterspy::Clear},
+            {SECTION_TYPE_COVENANTS, 1, "covenants", Covenants_Has_State_, covenants::Save_Size, covenants::Write_Save,
+                covenants::Parse_Save, covenants::Commit_Save, covenants::Discard_Save, covenants::Clear},
         };
     } // namespace
 
