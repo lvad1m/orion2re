@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/world_events.h"
+#include "game/incidents.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 #include "legacy_world.h"
@@ -815,7 +816,8 @@ namespace COLCALC {
         bool pop_boom = static_cast<bool>(EVENTS::Event_Check_Population_Boom(colony_idx)) ||
             world_events::Population_Boom(colony_idx);  // a clutch (new events, off by default)
         bool plague = static_cast<bool>(EVENTS::Event_Check_Plague(colony_idx)) ||
-            world_events::Epidemic(colony_idx);  // an epidemic (new events, off by default)
+            world_events::Epidemic(colony_idx) ||  // an epidemic (new events, off by default)
+            incidents::Plague(colony_idx);  // a levy of the survivors (incidents, off by default)
 
         int food_pool = (colony->imports[ECON_FOOD] + colony->production[ECON_FOOD]) * 2;
         int industry_pool = colony->production[ECON_INDUSTRY] * 2;

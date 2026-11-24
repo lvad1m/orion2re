@@ -19,6 +19,7 @@
 #include "game/news.h"
 #include "game/projects.h"
 #include "game/wanderers.h"
+#include "game/incidents.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -122,6 +123,10 @@ namespace SAVEGAME {
             return wanderers::enabled && !wanderers::Empty();
         }
 
+        bool Incidents_Has_State_() {
+            return incidents::enabled && !incidents::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -172,6 +177,8 @@ namespace SAVEGAME {
                 projects::Parse_Save, projects::Commit_Save, projects::Discard_Save, projects::Clear},
             {SECTION_TYPE_WANDERERS, 1, "wanderers", Wanderers_Has_State_, wanderers::Save_Size, wanderers::Write_Save,
                 wanderers::Parse_Save, wanderers::Commit_Save, wanderers::Discard_Save, wanderers::Clear},
+            {SECTION_TYPE_INCIDENTS, 1, "incidents", Incidents_Has_State_, incidents::Save_Size, incidents::Write_Save,
+                incidents::Parse_Save, incidents::Commit_Save, incidents::Discard_Save, incidents::Clear},
         };
     } // namespace
 

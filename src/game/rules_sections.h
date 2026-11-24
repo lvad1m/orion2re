@@ -75,6 +75,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_PROJECTS = 0x4A4F5250;
     // 'WAND': wanderers - storms and traders (game/wanderers.h).
     inline constexpr uint32_t SECTION_TYPE_WANDERERS = 0x444E4157;
+    // 'INCD': incidents - disease, drug, treasury, deposit, general, governor (game/incidents.h).
+    inline constexpr uint32_t SECTION_TYPE_INCIDENTS = 0x44434E49;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

@@ -19,6 +19,7 @@
 #include "game/world_events.h"
 #include "game/projects.h"
 #include "game/wanderers.h"
+#include "game/incidents.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -496,6 +497,25 @@ namespace advisor {
                     Append_Format(out, "Event: a wandering trader at star %d, next stop star %d, sells technologies for BC.\n",
                         static_cast<int>(w.star), static_cast<int>(next));
                 }
+            }
+        }
+        if (incidents::enabled) {
+            const incidents::s_state* is = incidents::State();
+            for (int32_t i = 0; i < is->count; ++i) {
+                const incidents::s_incident& r = is->incident[i];
+                if (r.player != self.player) continue;
+                const char* what = "an incident";
+                switch (r.kind) {
+                    case incidents::KIND_PAINLESS: what = "a disease without pain"; break;
+                    case incidents::KIND_NATIVE_DRUG: what = "a drug of the natives"; break;
+                    case incidents::KIND_TREASURY: what = "a found treasury kept hidden"; break;
+                    case incidents::KIND_DEPOSIT: what = "a rare deposit under a colony"; break;
+                    case incidents::KIND_REBEL_GENERAL: what = "a rebel general"; break;
+                    case incidents::KIND_MAD_GOVERNOR: what = r.stage == 0 ? "a mad governor, the colony booms" : "a mad governor's collapse"; break;
+                    default: break;
+                }
+                Append_Format(out, "Event: %s (colony %d, leader %d, until stardate %d).\n", what, static_cast<int>(r.target),
+                    static_cast<int>(r.other), static_cast<int>(r.ends));
             }
         }
         if (self.loyal_leaders > 0) {

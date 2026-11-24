@@ -10927,6 +10927,18 @@
       bind_root: { header: "game/wanderers.h", symbol: "wanderers::enabled" },
     },
 
+    incidents: {
+      title: "Incidents: biology, economy, internal politics",
+      description: "Adds six events with a choice. Each turn an empire has a 0.8 percent chance to meet one (at most one new incident a turn in the galaxy). A disease without pain in a colony: a cure for 60 BC, a quarantine (morale -2 for 10 turns) or recruiting the survivors (a levy of people, morale +1). A drug of the natives: tolerated it calms the people (+2 morale) but costs a BC per population a turn, banned it weighs on the colony and smugglers rob the treasury, taxed it brings a BC per population a turn for 20 turns. A treasury found on a wreck, 60 to 240 BC of another empire: returned (its opinion of the finder rises), returned with a 20 percent commission, or kept (the owner may find out through its spies and remember it). A rare deposit under a colony: left alone (a little pride), mined with care (the planet one mineral class richer) or plundered (two classes richer, but the people revolt and earthquakes strike for 15 turns). A rebel general, a ship captain: reasoned with (a dice check against 12; a failure is a coup that loses him and his ship), ignored (after 10 turns a coup or a trial) or executed (the other leaders lose loyalty). A mad governor: removed, or kept (the colony booms for 10 turns, then collapses and loses its governor). A computer picks by personality, a human takes the first, safest option until the interface step. The advisor's view shows the empire's own running incidents.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events incidents = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/incidents.h", symbol: "incidents::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

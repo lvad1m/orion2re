@@ -3,6 +3,7 @@
 #include "game/espionage.h"
 #include "game/spy_ops.h"
 #include "game/world_events.h"
+#include "game/incidents.h"
 #include "game/spy_ranks.h"
 
 #include "strbuild.h"
@@ -32,7 +33,7 @@ namespace COLCALC {
         // Spy operations (off by default): a bribed governor neglects its colonies.
         const int bribe_penalty = spy_ops::Morale_Effect(colony);
         // New events (off by default): a duel of honour lifts the people.
-        const int event_bonus = world_events::Morale_Bonus(colony);
+        const int event_bonus = world_events::Morale_Bonus(colony) + incidents::Morale_Bonus(colony);  // incidents: off by default
         colony->morale = morale_lookup_table[govt];
 
         if (gov_type != GOVERNMENT_UNIFICATION / 2) {

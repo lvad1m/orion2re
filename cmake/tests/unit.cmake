@@ -54,6 +54,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/hostages_config.cpp
     src/game/projects_config.cpp
     src/game/wanderers_config.cpp
+    src/game/incidents_config.cpp
     src/game/news_config.cpp
     src/game/ambition_config.cpp
     src/game/eric_config.cpp
@@ -1076,6 +1077,10 @@ orion2re_add_game_test(test_wanderers
     tests/unit/wanderers_test.cpp
 )
 
+orion2re_add_game_test(test_incidents
+    tests/unit/incidents_test.cpp
+)
+
 orion2re_add_game_test(test_news
     tests/unit/news_test.cpp
 )
@@ -1492,6 +1497,7 @@ orion2re_add_unit_test(test_savegame
         src/game/hostages_state.cpp
         src/game/projects_state.cpp
         src/game/wanderers_state.cpp
+        src/game/incidents_state.cpp
         src/game/news_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp

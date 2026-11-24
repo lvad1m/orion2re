@@ -9,6 +9,7 @@
 #include "game/world_events.h"
 #include "game/projects.h"
 #include "game/wanderers.h"
+#include "game/incidents.h"
 
 #include "lua/lua_game.h"
 
@@ -84,6 +85,8 @@ namespace NEXTTURN {
         // Research projects and wanderers (off by default): studies are checked, storms and traders move.
         projects::Turn();
         wanderers::Turn();
+        // Incidents (off by default): a disease, a drug, a treasury, a deposit, a general, a governor.
+        incidents::Turn();
         // Crises (off by default): checks of the choices made, follow-ups, new crises.
         crises::Turn();
         lostship::Lose_Out_Of_Range_Ships();
