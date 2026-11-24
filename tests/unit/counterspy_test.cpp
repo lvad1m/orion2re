@@ -99,12 +99,12 @@ DOCTEST_TEST_CASE("the hunt finds a mole: the bribe is uncovered") {
     s_counterspy_scope scope;
     test::s_game_state state;
     Setup_(&state);
-    counterspy::On_Spy_Caught(2, 3);  // a spy caught in player 2: suspicion
+    counterspy::On_Secret_Leaked(2);  // a secret of player 2 leaked: suspicion
     DOCTEST_REQUIRE(counterspy::Suspects(2));
     DOCTEST_CHECK(counterspy::Suspect_Leader(2) == 4);
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, CATASTROPHE) == counterspy::HUNT_NOTHING);  // a failed hunt finds nothing
     DOCTEST_CHECK(spy_ops::Bribed_By(4) == 1);
-    counterspy::On_Spy_Caught(2, 3);
+    counterspy::On_Secret_Leaked(2);
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, TRIUMPH) == counterspy::HUNT_UNCOVERED);
     DOCTEST_CHECK(spy_ops::Bribed_By(4) == -1);
     DOCTEST_CHECK(state.leaders[4].status != 1);
@@ -120,11 +120,11 @@ DOCTEST_TEST_CASE("the hunt jails an innocent when the check fails; a success le
     loyalty::enabled = true;
     loyalty::Record(4)->loyalty = 40;
     loyalty::Record(5)->loyalty = 60;
-    counterspy::On_Spy_Caught(2, 3);
+    counterspy::On_Secret_Leaked(2);
     DOCTEST_CHECK(counterspy::Suspect_Leader(2) == 4);
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, TRIUMPH) == counterspy::HUNT_NOTHING);
     DOCTEST_CHECK(state.leaders[4].status == 1);
-    counterspy::On_Spy_Caught(2, 3);
+    counterspy::On_Secret_Leaked(2);
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, CATASTROPHE) == counterspy::HUNT_JAILED);
     DOCTEST_CHECK(state.leaders[4].status != 1);
     DOCTEST_CHECK(loyalty::Of(4) == 40 + counterspy::JAILED_LOYALTY);
@@ -136,10 +136,12 @@ DOCTEST_TEST_CASE("no hunt without suspicion, and a suspicion goes stale") {
     test::s_game_state state;
     Setup_(&state);
     DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
+    counterspy::On_Spy_Caught(2, 3);  // a caught spy is an outsider, not a mole
+    DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
     counterspy::Turn();  // phase 6: nobody suspects anyone
     DOCTEST_CHECK(spy_ops::Bribed_By(4) == 1);
     DOCTEST_CHECK(state.leaders[4].status == 1);
-    counterspy::On_Spy_Caught(2, 3);
+    counterspy::On_Secret_Leaked(2);
     DOCTEST_CHECK(counterspy::Suspects(2));
     MOX::stardate += counterspy::SUSPECT_TURNS + 1;
     DOCTEST_CHECK_FALSE(counterspy::Suspects(2));

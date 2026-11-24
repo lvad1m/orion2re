@@ -206,10 +206,10 @@ namespace counterspy {
     }
 
     void On_Spy_Caught(int16_t victim, int16_t owner) {
-        if (!mole_hunt && !interrogation) return;
+        // A caught spy is an outsider, not a mole: it raises no suspicion (leaks do, On_Secret_Leaked).
+        if (!interrogation) return;
         if (!Computer_(victim) || !Alive_(owner) || victim == owner) return;
-        if (mole_hunt) State()->suspicion[victim] = MOX::stardate;
-        if (!interrogation || Planned_Against_(owner) < 0) return;
+        if (Planned_Against_(owner) < 0) return;
         On_Spy_Caught_With_Roll(victim, owner, static_cast<int32_t>(game_random::Random(100)));
     }
 

@@ -5910,7 +5910,7 @@
 
     mole_hunt: {
       title: "Mole hunt",
-      description: "Every 10 turns a computer empire that suspects a mole - a spy caught in it or a secret of it sold, made public or revealed within 20 turns, or heightened or witch-hunt counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check against 12 (+3 for a spy master among its leaders, +3 for a telepath, and its counter-agents). A bribed leader is uncovered (the bribe ends, the leader is dismissed, the briber is remembered, -25). When the check fails on an innocent leader, it is jailed (dismissed, loyalty -20) and the other leaders lose a little loyalty.",
+      description: "Every 10 turns a computer empire that suspects a mole - a secret of it sold, made public or revealed within 20 turns (a caught spy is an outsider, not a mole), or heightened or witch-hunt counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check against 12 (+3 for a spy master among its leaders, +3 for a telepath, and its counter-agents). A bribed leader is uncovered (the bribe ends, the leader is dismissed, the briber is remembered, -25). When the check fails on an innocent leader, it is jailed (dismissed, loyalty -20) and the other leaders lose a little loyalty.",
       remarks: "False preserves classic behavior. Computer empires only. Kept in an optional save section that older builds skip.",
       examples: ["spy mole_hunt = true;"],
       group: "gameplay",
