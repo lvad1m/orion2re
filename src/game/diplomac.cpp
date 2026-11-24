@@ -6,6 +6,7 @@
 #include "game/covenants.h"
 #include "game/ambition.h"
 #include "game/hostages.h"
+#include "game/news.h"
 #include "game/vassals.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
@@ -845,6 +846,8 @@ namespace diplomac {
         hostages::Turn();
         // Ambitious governors (off by default): a restless governor defects with its colonies or deserts.
         ambition::Turn();
+        // News and ratings (off by default): eliminations noticed, ratings made, spies' facts.
+        news::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {
@@ -1094,6 +1097,9 @@ namespace diplomac {
     }
 
     void __cdecl Start_Treaty(int16_t p1, int16_t p2, int16_t treaty_type) {
+        // The news ring (off by default).
+        if (treaty_type == 1) news::Add(news::KIND_PEACE, p1, p2, 0);
+        if (treaty_type == 2) news::Add(news::KIND_ALLIANCE, p1, p2, 0);
         MOX::player[p1].treaty[p2] = (int8_t)treaty_type;
         MOX::player[p2].treaty[p1] = (int8_t)treaty_type;
 
@@ -1191,6 +1197,7 @@ namespace diplomac {
 
             // Opinion modifiers (off by default): the enemies of each side remember the help.
             opinion::On_War_Started(player_idx, target_idx);
+            news::Add(news::KIND_WAR, player_idx, target_idx, 0);  // the news ring (off by default)
         }
     }
 

@@ -10879,6 +10879,30 @@
       bind_root: { header: "game/crises.h", symbol: "crises::enabled" },
     },
 
+    news: {
+      title: "News and ratings",
+      description: "Keeps a ring of the last 32 facts of the galaxy - wars declared, peace and alliances made, colonies taken by invasion and founded, empires eliminated, council votes, new events and crises started and ended - and every 25 turns ranks the empires by population, fleet strength and known technologies. An empire reads only the news about empires it has contact with, and the galaxy-wide news. The advisor's view shows the last eight facts it may read and the last ranking; the text of a news item is written later by the language model, the engine only gives the facts.",
+      remarks: "False preserves classic behavior. Nothing is kept with the flag off. Kept in an optional save section that older builds skip.",
+      examples: ["events news = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/news.h", symbol: "news::enabled" },
+    },
+
+    news_intelligence: {
+      title: "News as intelligence",
+      description: "Every 10 turns each empire with spies in another empire learns, as private news, where the other's warfleet gathers (the star holding at least a third of its warship strength) and, 20 per mille for each spy (at most 5), whom the other's original AI plans to attack. Only the empire that has the spies reads these facts.",
+      remarks: "False preserves classic behavior. Effective only while events news is true.",
+      examples: ["events news_intelligence = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/news.h", symbol: "news::intelligence" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

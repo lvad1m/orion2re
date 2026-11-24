@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/news.h"
+
 namespace {
     s_colony colonies[MAX_COLONIES];
     s_planet_data planets[MAX_PLANETS];
@@ -96,3 +98,8 @@ namespace advisor {
         return false;
     }
 } // namespace advisor
+
+// The news ring is not under test here.
+namespace news {
+    void Add(e_kind, int16_t, int16_t, int32_t, int16_t) {}
+} // namespace news

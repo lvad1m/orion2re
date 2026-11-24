@@ -13,6 +13,7 @@
 #include "game/beliefs.h"
 #include "game/covenants.h"
 #include "game/hostages.h"
+#include "game/news.h"
 #include "game/reputation.h"
 #include "game/vassals.h"
 #include "game/world_events.h"
@@ -407,6 +408,14 @@ namespace advisor {
             Fill_Contact(world, player, static_cast<uint8_t>(other), &out->contacts[out->contact_count]);
             ++out->contact_count;
         }
+        if (news::enabled) {
+            news::s_item items[VIEW_NEWS_LINES];
+            out->news_count = news::Recent_For(player, items, VIEW_NEWS_LINES);
+            for (int32_t i = 0; i < out->news_count; ++i) {
+                std::snprintf(out->news_lines[i], VIEW_NEWS_LENGTH, "%s", news::Describe(items[i]).c_str());
+            }
+            std::snprintf(out->ratings, VIEW_RATINGS_LENGTH, "%s", news::Describe_Ratings(player).c_str());
+        }
         return true;
     }
 
@@ -473,6 +482,11 @@ namespace advisor {
                       static_cast<int>(self.free_planets_in_reach), static_cast<int>(self.free_outpost_sites_in_reach));
 
         Append_Format(out, "Technologies known: %d.\n", static_cast<int>(self.techs_known));
+        if (view->news_count > 0) {
+            Append_Format(out, "News (newest first):\n");
+            for (int32_t i = 0; i < view->news_count; ++i) Append_Format(out, " - %s\n", view->news_lines[i]);
+        }
+        if (view->ratings[0] != '\0') Append_Format(out, "Ratings (empires we know, best first): %s.\n", view->ratings);
         const s_race_leanings& race = self.race;
         if (race.war != 0 || race.diplomacy != 0 || race.spying != 0 || race.growth != 0 || race.stealth != 0) {
             Append_Format(out, "Race leanings: war %+d, diplomacy %+d, spying %+d, growth %+d, stealth %+d.\n",

@@ -6,6 +6,7 @@
 #include "game/opinion.h"
 #include "game/embargo.h"
 #include "game/intrigue.h"
+#include "game/news.h"
 #include "game/resolutions.h"
 
 namespace council {
@@ -424,6 +425,7 @@ namespace council {
             (int)MOX::stardate, (int)council_nominee_[0], (int)council_nominee_votes[0], (int)council_nominee_[1],
             (int)council_nominee_votes[1], (int)council_nominee_vote_total[0], (int)council_nominee_vote_total[1],
             (int)council_total_votes, (int)threshold, (int)winner);
+        news::Add(news::KIND_COUNCIL, winner, -1, 0);  // the news ring (off by default)
         // Council resolutions (off by default): with no leader elected, the council votes on one
         // resolution - an embargo, a ban or the Antaran defence fund.
         if (winner < 0) resolutions::Council_Meeting();

@@ -8,6 +8,7 @@
 #include "game/dice.h"
 #include "game/events.h"
 #include "game/invasion.h"
+#include "game/news.h"
 #include "game/opinion.h"
 #include "game/random.h"
 #include "game/stability.h"
@@ -123,6 +124,7 @@ namespace crises {
             s.roll = 0;
             s.due = MOX::stardate + delay;
             Log_(s.player, "it is not over: ", Name(follow_up));
+            news::Add(news::KIND_CRISIS_START, s.player, -1, follow_up);  // the news ring (off by default)
         }
 
         // The outcome, built from the classic primitives. Returns true when the slot was reused for a
@@ -294,6 +296,7 @@ namespace crises {
         free_slot->result = RESULT_PENDING;
         free_slot->roll = 0;
         free_slot->due = MOX::stardate + delay;
+        news::Add(news::KIND_CRISIS_START, player, -1, crisis);  // the news ring (off by default)
         if (delay == 0) Choose_(*free_slot);
         return true;
     }
@@ -315,6 +318,7 @@ namespace crises {
             (int)MOX::stardate, (int)s.player, Name(static_cast<e_crisis>(s.crisis)), RESULTS[s.result],
             dice::Describe_Check(option.name, check, modifiers, 1).c_str());
         const e_result result = static_cast<e_result>(s.result);
+        news::Add(news::KIND_CRISIS_END, s.player, -1, s.crisis * 10 + s.result);  // the news ring (off by default)
         if (!Apply_Outcome_(s)) s = s_active{};
         return result;
     }

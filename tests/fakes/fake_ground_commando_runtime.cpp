@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/news.h"
+
 #include "doctest/doctest.h"
 #include "game/officer_roster.h"
 #include "game/hostages.h"
@@ -333,3 +335,8 @@ namespace spy_ops {
 namespace hostages {
     bool On_Colony_Invaded(const s_colony*, int16_t) { return false; }
 } // namespace hostages
+
+// The news ring is not under test here.
+namespace news {
+    void Add(e_kind, int16_t, int16_t, int32_t, int16_t) {}
+} // namespace news

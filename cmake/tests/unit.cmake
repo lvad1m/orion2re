@@ -52,6 +52,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/counterspy_config.cpp
     src/game/covenants_config.cpp
     src/game/hostages_config.cpp
+    src/game/news_config.cpp
     src/game/ambition_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
@@ -1065,6 +1066,10 @@ orion2re_add_game_test(test_hostages
     tests/unit/hostages_test.cpp
 )
 
+orion2re_add_game_test(test_news
+    tests/unit/news_test.cpp
+)
+
 orion2re_add_game_test(test_ambition
     tests/unit/ambition_test.cpp
 )
@@ -1475,6 +1480,7 @@ orion2re_add_unit_test(test_savegame
         src/game/counterspy_state.cpp
         src/game/covenants_state.cpp
         src/game/hostages_state.cpp
+        src/game/news_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp

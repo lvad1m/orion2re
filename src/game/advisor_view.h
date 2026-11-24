@@ -149,8 +149,16 @@ namespace advisor {
         uint8_t we_hold = 0;
     };
 
+    // News (news.h; none with the flag off): the newest facts the empire may read and the last ranking.
+    constexpr int32_t VIEW_NEWS_LINES = 8;
+    constexpr int32_t VIEW_NEWS_LENGTH = 120;
+    constexpr int32_t VIEW_RATINGS_LENGTH = 400;
+
     struct s_empire_view {
         s_view_self self;
+        int32_t news_count = 0;
+        char news_lines[VIEW_NEWS_LINES][VIEW_NEWS_LENGTH] = {};
+        char ratings[VIEW_RATINGS_LENGTH] = {};
         int32_t contact_count = 0;
         s_view_contact contacts[MAX_PLAYERS];
     };

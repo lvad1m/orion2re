@@ -69,6 +69,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_COVENANTS = 0x544E5643;
     // 'HOST': hostages and captured leaders (game/hostages.h).
     inline constexpr uint32_t SECTION_TYPE_HOSTAGES = 0x54534F48;
+    // 'NEWS': the news ring and the last ranking (game/news.h).
+    inline constexpr uint32_t SECTION_TYPE_NEWS = 0x5357454E;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

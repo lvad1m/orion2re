@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/advisor_apply.h"
+#include "game/news.h"
 
 namespace COLONIZE {
     int16_t Star_N_Uncolonized_Planets(s_star_data* star) {
@@ -401,6 +402,8 @@ namespace COLONIZE {
             colony->just_produced = COLONY_PRODUCTION_JUST_COLONIZED;
             if (MOX::player[player_idx].home_planet_id == -1) {
                 MOX::player[player_idx].home_planet_id = planet_idx;
+            } else {
+                news::Add(news::KIND_COLONY_FOUNDED, player_idx, -1, colony_idx);  // the news ring (off by default)
             }
         } else {
             colony->outpost_flag = 1;

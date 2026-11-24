@@ -8,6 +8,7 @@
 #include "game/diplomac.h"
 #include "game/events.h"
 #include "game/intrigue.h"
+#include "game/news.h"
 #include "game/invasion.h"
 #include "game/officer.h"
 #include "game/opinion.h"
@@ -986,7 +987,8 @@ namespace world_events {
         if (galaxy_chance > 0 && static_cast<int32_t>(game_random::Random(1000)) <= galaxy_chance) {
             static const e_kind GALAXY[9] = {KIND_GOLDEN_AGE, KIND_TOURIST_BOOM, KIND_ORE_RUSH, KIND_GHOST_SHIP,
                 KIND_TERRITORIAL_BEAST, KIND_STAR_FLARE, KIND_SYSTEM_EMP, KIND_GALACTIC_SLOWDOWN, KIND_SENSOR_FAILURE};
-            Start_Galaxy_Event(GALAXY[Pick_(9)]);
+            const e_kind kind = GALAXY[Pick_(9)];
+            if (Start_Galaxy_Event(kind)) news::Add(news::KIND_EVENT, -1, -1, kind);  // the news ring (off by default)
         }
         if (empire_chance <= 0) return;
         for (int16_t p = 0; p < Players_(); ++p) {
@@ -994,12 +996,13 @@ namespace world_events {
             // Half the empire events are the race's own (stock races only).
             const uint8_t race = MOX::player[p].race;
             if (race < STOCK_RACE_COUNT && Pick_(2) == 0) {
-                Start_Race_Event(p, static_cast<e_race_event>(race));
+                if (Start_Race_Event(p, static_cast<e_race_event>(race))) news::Add(news::KIND_EVENT, p, -1, KIND_RACE_EVENT);
                 continue;
             }
             static const e_kind EMPIRE[6] = {KIND_AMBASSADOR_KILLED, KIND_ANCIENT_WRECK, KIND_MUTINY,
                 KIND_WARM_PLACE, KIND_EPIDEMIC, KIND_COMET_ORE};
-            Start_Empire_Event(EMPIRE[Pick_(6)], p);
+            const e_kind kind = EMPIRE[Pick_(6)];
+            if (Start_Empire_Event(kind, p)) news::Add(news::KIND_EVENT, p, -1, kind);
         }
     }
 

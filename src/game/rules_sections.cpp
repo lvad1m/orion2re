@@ -16,6 +16,7 @@
 #include "game/counterspy.h"
 #include "game/covenants.h"
 #include "game/hostages.h"
+#include "game/news.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -107,6 +108,10 @@ namespace SAVEGAME {
             return (hostages::hostage_swaps || hostages::prisoners) && !hostages::Empty();
         }
 
+        bool News_Has_State_() {
+            return (news::enabled || news::intelligence) && !news::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -151,6 +156,8 @@ namespace SAVEGAME {
                 covenants::Parse_Save, covenants::Commit_Save, covenants::Discard_Save, covenants::Clear},
             {SECTION_TYPE_HOSTAGES, 1, "hostages", Hostages_Has_State_, hostages::Save_Size, hostages::Write_Save,
                 hostages::Parse_Save, hostages::Commit_Save, hostages::Discard_Save, hostages::Clear},
+            {SECTION_TYPE_NEWS, 1, "news", News_Has_State_, news::Save_Size, news::Write_Save, news::Parse_Save,
+                news::Commit_Save, news::Discard_Save, news::Clear},
         };
     } // namespace
 
