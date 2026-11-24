@@ -84,6 +84,10 @@ namespace counterspy {
     int16_t Blamed(int16_t target, int16_t attacker, int16_t framed);
 
     // An assassination, poison or kill-scientist attempt against `target` (spy_ops.cpp): guards.
+    // A successful hostile operation `victim` can see makes it suspect a mole (spy mole_hunt): `op` is a
+    // spy_ops operation (only those with a visible effect count), OP_COUNT for a classic technology
+    // theft or a destroyed building (spy.cpp). Nothing with the flag off or for a human victim.
+    void On_Harm(int16_t victim, spy_ops::e_op op = spy_ops::OP_COUNT);
     void On_Attempt(int16_t target, spy_ops::e_op op);
     // Whether `player` guards its leaders now.
     bool Guarded(int16_t player);

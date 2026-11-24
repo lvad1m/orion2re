@@ -323,4 +323,24 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     DOCTEST_CHECK(counterspy::State()->guarded[0] == 1);
 }
 
+DOCTEST_TEST_CASE("a hostile operation the victim sees makes it suspect a mole; unseen ones do not") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::On_Harm(2, spy_ops::OP_DATA);
+    counterspy::On_Harm(2, spy_ops::OP_BRIBERY);
+    DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
+    counterspy::On_Harm(2, spy_ops::OP_SABOTAGE_SHIPYARD);
+    DOCTEST_CHECK(counterspy::Suspects(2));
+    MOX::stardate += counterspy::SUSPECT_TURNS + 1;
+    DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
+    counterspy::On_Harm(2);  // a classic theft or a destroyed building
+    DOCTEST_CHECK(counterspy::Suspects(2));
+    MOX::stardate += counterspy::SUSPECT_TURNS + 1;
+    counterspy::mole_hunt = false;
+    counterspy::On_Harm(2, spy_ops::OP_ASSASSINATION);
+    counterspy::mole_hunt = true;
+    DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
+}
+
 }

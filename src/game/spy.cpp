@@ -416,6 +416,7 @@ namespace spy {
 
         if (chosen_app_id >= 0) {
             COLCALC::Player_Gets_Tech_App(attacker, chosen_app_id);
+            counterspy::On_Harm(static_cast<int16_t>(victim_idx));  // a theft makes the victim suspect a mole (off by default)
 
             int16_t framed_player_idx = (int16_t)attacker_idx;
             if (frame_flag != 0) {
@@ -484,6 +485,7 @@ namespace spy {
         if (target_colony != -1) {
             ERICNET::Remove_Building(target_colony, (int16_t)target_building);
             spy_ranks::Note_Sabotage(target_colony);
+            counterspy::On_Harm(victim_player_idx);  // sabotage makes the victim suspect a mole (off by default)
 
             int16_t planet_idx = MOX::colony[target_colony].planet;
             int32_t diplomacy_mode = (acting_player_idx == (int16_t)framed_player_idx) ? 3 : 4;

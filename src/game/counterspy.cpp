@@ -242,6 +242,20 @@ namespace counterspy {
         return framed;
     }
 
+    void On_Harm(int16_t victim, spy_ops::e_op op) {
+        if (!mole_hunt || !Computer_(victim)) return;
+        switch (op) {
+            case spy_ops::OP_DATA:
+            case spy_ops::OP_BRIBERY:
+            case spy_ops::OP_FRAME_LEADER:
+            case spy_ops::OP_FALSE_FLAG:  // its building, destroyed through spy.cpp, counts there
+                return;
+            default:
+                break;
+        }
+        State()->suspicion[victim] = MOX::stardate;
+    }
+
     void On_Attempt(int16_t target, spy_ops::e_op op) {
         if (!guards || !Kill_Op_(op) || !Computer_(target)) return;
         State()->attempt[target] = MOX::stardate;

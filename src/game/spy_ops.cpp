@@ -409,6 +409,7 @@ namespace spy_ops {
                 reputation::On_Leader_Killed(attacker);
             }
             counterspy::On_Attempt(target, op);  // guards (off by default)
+            counterspy::On_Harm(target, op);     // the victim sees the harm and suspects a mole (off by default)
             switch (op) {
                 case OP_UNREST: {
                     uint8_t* unrest = Unrest_Slot(subject);
