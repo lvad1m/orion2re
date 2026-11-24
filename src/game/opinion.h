@@ -53,7 +53,7 @@ namespace opinion {
         REASON_HARMED_A_HOSTAGE = 25,     // a hostage of ours came to harm
         REASON_FAMILY_TIES = 26,          // a dynastic marriage or a hostage kept well (+)
         REASON_OVERLORD = 27,             // our overlord: protection for tribute (+) or a harsh one (-)
-        REASON_RESERVED_28 = 28,
+        REASON_BAD_RUMOURS = 28,          // heard bad rumours about it: a smear, a secret made public
         REASON_RESERVED_29 = 29,
         REASON_RESERVED_30 = 30,
         REASON_RESERVED_31 = 31,

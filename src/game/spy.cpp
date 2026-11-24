@@ -2,6 +2,7 @@
 #include "game/espionage.h"
 #include "game/beliefs.h"
 #include "game/intrigue.h"
+#include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 
@@ -60,6 +61,8 @@ namespace spy {
         spy_ranks::Turn();
         // Intrigues (off by default): caught spies' fates, revealed plans, proxy wars, letters, favours.
         intrigue::Turn();
+        // Secrets and smear (off by default): secrets learned and used, smear campaigns.
+        secrets::Turn();
         // Beliefs (off by default): disinformation seen through or planted; the evidence fades.
         beliefs::Turn();
     }

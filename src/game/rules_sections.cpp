@@ -13,9 +13,11 @@
 #include "game/reputation.h"
 #include "game/resolutions.h"
 #include "game/rivalry.h"
+#include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
 #include "game/stability.h"
+#include "game/vassals.h"
 #include "game/world_events.h"
 
 namespace SAVEGAME {
@@ -81,6 +83,14 @@ namespace SAVEGAME {
             return reputation::enabled && !reputation::Empty();
         }
 
+        bool Vassals_Has_State_() {
+            return vassals::enabled && !vassals::Empty();
+        }
+
+        bool Secrets_Has_State_() {
+            return secrets::enabled && !secrets::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -115,6 +125,10 @@ namespace SAVEGAME {
             {SECTION_TYPE_REPUTATION, 1, "stains and titles", Reputation_Has_State_, reputation::Save_Size,
                 reputation::Write_Save, reputation::Parse_Save, reputation::Commit_Save, reputation::Discard_Save,
                 reputation::Clear},
+            {SECTION_TYPE_VASSALS, 1, "vassals", Vassals_Has_State_, vassals::Save_Size, vassals::Write_Save,
+                vassals::Parse_Save, vassals::Commit_Save, vassals::Discard_Save, vassals::Clear},
+            {SECTION_TYPE_SECRETS, 1, "secrets", Secrets_Has_State_, secrets::Save_Size, secrets::Write_Save,
+                secrets::Parse_Save, secrets::Commit_Save, secrets::Discard_Save, secrets::Clear},
         };
     } // namespace
 

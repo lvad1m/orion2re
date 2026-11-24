@@ -3,6 +3,7 @@
 #include "game/advisor_apply.h"
 #include "game/beliefs.h"
 #include "game/reputation.h"
+#include "game/vassals.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
@@ -833,6 +834,8 @@ namespace diplomac {
         resolutions::End_Of_Turn();
         // Stains and titles (off by default): peaces noted, stains run out, titles reviewed.
         reputation::Turn();
+        // Vassals (off by default): vassalages reviewed, endangered weak empires seek an overlord.
+        vassals::Turn();
     }
 
     int16_t __cdecl Get_Player_Diplomacy_Personality(int16_t player_idx, int16_t target_idx) {

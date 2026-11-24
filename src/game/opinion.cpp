@@ -110,6 +110,7 @@ namespace opinion {
             case REASON_HARMED_A_HOSTAGE: return "harmed a hostage of ours";
             case REASON_FAMILY_TIES: return "family ties";
             case REASON_OVERLORD: return "our overlord";
+            case REASON_BAD_RUMOURS: return "bad rumours about it";
             default: return "unknown";
         }
     }

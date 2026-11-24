@@ -136,6 +136,9 @@ namespace advisor {
         uint8_t belief_honest = 0;
         // Stains and titles (reputation.h): bit reputation::e_title for each title they hold.
         uint32_t titles = 0;
+        // Vassals (vassals.h): 1 when they are our overlord / our vassal.
+        uint8_t our_overlord = 0;
+        uint8_t our_vassal = 0;
     };
 
     struct s_empire_view {

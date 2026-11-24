@@ -129,6 +129,7 @@ namespace beliefs {
                 break;
             case opinion::REASON_EXPOSED_US: Observe(holder, target, BELIEF_HOSTILE, 1); break;
             case opinion::REASON_SMEARED_US: Observe(holder, target, BELIEF_HONEST, -2); break;
+            case opinion::REASON_BAD_RUMOURS: Observe(holder, target, BELIEF_HONEST, -1); break;
             case opinion::REASON_FAMILY_TIES:
                 Observe(holder, target, BELIEF_HOSTILE, -2);
                 Observe(holder, target, BELIEF_FAITHFUL, 1);

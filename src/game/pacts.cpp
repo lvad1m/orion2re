@@ -8,6 +8,7 @@
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 #include "game/intrigue.h"
+#include "game/vassals.h"
 #include "game/opinion.h"
 
 #include <algorithm>
@@ -134,6 +135,7 @@ namespace pacts {
     } // namespace
 
     void On_Aggression(int16_t aggressor, int16_t victim) {
+        vassals::On_Aggression(aggressor, victim);  // an overlord defends its vassal (off by default)
         if (!enabled || responding || !Alive_(aggressor) || !Alive_(victim) || aggressor == victim) return;
         responding = true;
         for (int16_t p = 0; p < MOX::NUM_PLAYERS && p < MAX_PLAYERS; ++p) {

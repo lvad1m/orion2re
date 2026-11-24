@@ -12,6 +12,7 @@
 #include "game/aipower.h"
 #include "game/beliefs.h"
 #include "game/reputation.h"
+#include "game/vassals.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -213,6 +214,8 @@ namespace advisor {
             contact->their_embargo = embargo::Participates(other, player) ? 1 : 0;
             contact->network_points = static_cast<int16_t>(espionage::Points(player, other));
             contact->titles = reputation::Titles(static_cast<int16_t>(other));
+            contact->our_overlord = vassals::Is_Vassal_Of(static_cast<int16_t>(player), static_cast<int16_t>(other)) ? 1 : 0;
+            contact->our_vassal = vassals::Is_Vassal_Of(static_cast<int16_t>(other), static_cast<int16_t>(player)) ? 1 : 0;
             if (beliefs::neighbour_model) {
                 contact->belief_hostile = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_HOSTILE));
                 contact->belief_faithful = static_cast<uint8_t>(beliefs::Percent(player, other, beliefs::BELIEF_FAITHFUL));
@@ -470,6 +473,8 @@ namespace advisor {
             if (contact.network_points > 0) {
                 Append_Format(out, "   - our spy network there: %d points\n", static_cast<int>(contact.network_points));
             }
+            if (contact.our_overlord != 0) out->append("   - our overlord: we pay tribute, it defends us\n");
+            if (contact.our_vassal != 0) out->append("   - our vassal: it pays tribute, we defend it\n");
             if (contact.titles != 0) {
                 out->append("   - known as:");
                 bool first = true;
