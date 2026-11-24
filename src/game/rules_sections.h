@@ -63,6 +63,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_VASSALS = 0x4C534156;
     // 'SECR': secrets known (game/secrets.h).
     inline constexpr uint32_t SECTION_TYPE_SECRETS = 0x52434553;
+    // 'CSPY': counter-intelligence (game/counterspy.h).
+    inline constexpr uint32_t SECTION_TYPE_COUNTERSPY = 0x59505343;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

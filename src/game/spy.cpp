@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "game/espionage.h"
 #include "game/beliefs.h"
+#include "game/counterspy.h"
 #include "game/intrigue.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
@@ -63,6 +64,8 @@ namespace spy {
         intrigue::Turn();
         // Secrets and smear (off by default): secrets learned and used, smear campaigns.
         secrets::Turn();
+        // Counter-intelligence (off by default): guards, canary traps, mole hunts.
+        counterspy::Turn();
         // Beliefs (off by default): disinformation seen through or planted; the evidence fades.
         beliefs::Turn();
     }

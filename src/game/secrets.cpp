@@ -3,6 +3,7 @@
 #include "game/secrets.h"
 
 #include "game/bill.h"
+#include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
@@ -50,6 +51,7 @@ namespace secrets {
 
         // The victim learns the secret: the same effects as its own spies uncovering it.
         void Tell_Victim_(const s_secret& s) {
+            counterspy::On_Secret_Leaked(s.owner);  // the owner suspects a mole, sets a canary trap (off by default)
             const int16_t owner = s.owner;
             const int16_t victim = s.victim;
             if (s.kind == KIND_PLAN) {

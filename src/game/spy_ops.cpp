@@ -9,6 +9,7 @@
 #include "game/bomb.h"
 #include "game/colbldg.h"
 #include "game/colcalc.h"
+#include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
@@ -349,6 +350,7 @@ namespace spy_ops {
                 break;
             default: break;
         }
+        value += counterspy::Guard_Difficulty(target, op);  // guarded leaders (off by default)
         return value;
     }
 
@@ -406,6 +408,7 @@ namespace spy_ops {
             if ((op == OP_KILL_SCIENTIST || op == OP_ASSASSINATION || op == OP_POISON_FEAST) && check.outcome == dice::OUTCOME_SUCCESS) {
                 reputation::On_Leader_Killed(attacker);
             }
+            counterspy::On_Attempt(target, op);  // guards (off by default)
             switch (op) {
                 case OP_UNREST: {
                     uint8_t* unrest = Unrest_Slot(subject);
@@ -457,7 +460,10 @@ namespace spy_ops {
         }
         if (check.outcome != dice::OUTCOME_EXPOSED && check.outcome != dice::OUTCOME_CATASTROPHE) return RESULT_FAILED;
         BILL::Set_Their_Spy_Number(attacker, target, static_cast<uint8_t>(spies - 1));
-        opinion::Add(target, attacker, Reason_(op), EXPOSED_OPINION);
+        // An interrogated spy of a false-flag operation names the framed empire (off by default).
+        const int16_t blamed = counterspy::Blamed(target, attacker, op == OP_FALSE_FLAG ? subject : -1);
+        opinion::Add(target, blamed, Reason_(op), EXPOSED_OPINION);
+        counterspy::On_Attempt(target, op);
         espionage::On_Spy_Caught(target, attacker);
         if (op == OP_FRAME_LEADER) *Immune_Slot(subject) = 1;
         if (op == OP_POISON_FEAST || op == OP_POISON_WATER) reputation::On_Atrocity(attacker);

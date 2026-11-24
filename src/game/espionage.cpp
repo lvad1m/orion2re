@@ -5,6 +5,7 @@
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
 #include "game/bill.h"
+#include "game/counterspy.h"
 #include "game/intrigue.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
@@ -115,6 +116,7 @@ namespace espionage {
 
     void On_Spy_Caught(int16_t victim, int16_t attacker) {
         intrigue::On_Spy_Caught(victim, attacker);  // the spy's fate (off by default)
+        counterspy::On_Spy_Caught(victim, attacker);  // suspicion, interrogation (off by default)
         if (!counterintelligence || !Alive_(victim) || attacker < 0 || attacker >= MAX_PLAYERS || victim == attacker) return;
         s_state* s = State();
         if (s->caught[victim] != 0 && MOX::stardate - s->last_caught[victim] > RECENT_TURNS) s->caught[victim] = 0;

@@ -13,6 +13,7 @@
 #include "game/reputation.h"
 #include "game/resolutions.h"
 #include "game/rivalry.h"
+#include "game/counterspy.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -91,6 +92,11 @@ namespace SAVEGAME {
             return secrets::enabled && !secrets::Empty();
         }
 
+        bool Counterspy_Has_State_() {
+            return (counterspy::mole_hunt || counterspy::canary_trap || counterspy::interrogation || counterspy::guards) &&
+                !counterspy::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -129,6 +135,8 @@ namespace SAVEGAME {
                 vassals::Parse_Save, vassals::Commit_Save, vassals::Discard_Save, vassals::Clear},
             {SECTION_TYPE_SECRETS, 1, "secrets", Secrets_Has_State_, secrets::Save_Size, secrets::Write_Save,
                 secrets::Parse_Save, secrets::Commit_Save, secrets::Discard_Save, secrets::Clear},
+            {SECTION_TYPE_COUNTERSPY, 1, "counterspy", Counterspy_Has_State_, counterspy::Save_Size, counterspy::Write_Save,
+                counterspy::Parse_Save, counterspy::Commit_Save, counterspy::Discard_Save, counterspy::Clear},
         };
     } // namespace
 

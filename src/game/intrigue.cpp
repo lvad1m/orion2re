@@ -6,6 +6,7 @@
 #include "game/advisor_directive.h"
 #include "game/beliefs.h"
 #include "game/bill.h"
+#include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
@@ -89,6 +90,7 @@ namespace intrigue {
 
         // `victim` learns of `plotter`'s plan, from its own spies (warner -1) or from `warner`.
         void Expose_(int16_t plotter, int16_t victim, int16_t warner) {
+            counterspy::On_Secret_Leaked(plotter);  // the plotter suspects a mole, sets a canary trap (off by default)
             State()->revealed[plotter][victim] = MOX::stardate;
             opinion::Add(victim, plotter, opinion::REASON_PLOTTED_AGAINST_US, PLOTTED_OPINION);
             s_player& p = MOX::player[plotter];

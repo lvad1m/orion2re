@@ -5836,6 +5836,67 @@
       bind_root: { header: "game/spy_ops.h", symbol: "spy_ops::inside_man" },
     },
 
+    mole_hunt: {
+      title: "Mole hunt",
+      description: "Every 10 turns a computer empire that suspects a mole - a spy caught in it or a secret of it sold, made public or revealed within 20 turns, or heightened or witch-hunt counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check against 12 (+3 for a spy master among its leaders, +3 for a telepath, and its counter-agents). A bribed leader is uncovered (the bribe ends, the leader is dismissed, the briber is remembered, -25). When the check fails on an innocent leader, it is jailed (dismissed, loyalty -20) and the other leaders lose a little loyalty.",
+      remarks: "False preserves classic behavior. Computer empires only. Kept in an optional save section that older builds skip.",
+      examples: ["spy mole_hunt = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/counterspy.h", symbol: "counterspy::mole_hunt" },
+    },
+
+    canary_trap: {
+      title: "Canary trap",
+      description: "A computer empire that learns one of its secrets leaked (sold or made public, or a plan of it revealed) sets a canary trap; 10 turns later a bribed leader of it whose briber has spies or a resident in it is uncovered with certainty - an innocent leader is never harmed. One trap at a time.",
+      remarks: "False preserves classic behavior. Computer empires only. Kept in an optional save section that older builds skip.",
+      examples: ["spy canary_trap = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/counterspy.h", symbol: "counterspy::canary_trap" },
+    },
+
+    interrogation: {
+      title: "Interrogation",
+      description: "A computer empire that catches a spy interrogates it: 30 percent of the time it learns the plan of attack of the spy's owner (a plan against a third empire becomes a secret it holds, a plan against itself is revealed as by its own spies). When an exposed operation was false-flag, the interrogated spy names the framed empire and the victim's anger goes there instead of to the real attacker.",
+      remarks: "False preserves classic behavior. Learning a plan against a third empire needs spy secrets. Computer empires only.",
+      examples: ["spy interrogation = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/counterspy.h", symbol: "counterspy::interrogation" },
+    },
+
+    guards: {
+      title: "Guards for key leaders",
+      description: "A computer empire pays spy guard_fee BC a turn to guard its leaders while it was the target of an assassination, poison or kill-scientist attempt in the last 50 turns, or has at least 300 BC and a leader of level 3 or more; it stops when it cannot pay. Operations of assassination, poison at a feast and killing a scientist against a guarded empire are 3 harder.",
+      remarks: "False preserves classic behavior. Computer empires only. Needs spy operations to include these operations.",
+      examples: ["spy guards = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/counterspy.h", symbol: "counterspy::guards" },
+    },
+
+    guard_fee: {
+      title: "Guard fee",
+      description: "Sets the BC a turn an empire pays to guard its leaders.",
+      remarks: "Effective only while spy guards is true.",
+      examples: ["spy guard_fee = 10;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0, max: 100 },
+      default: 5,
+      bind_root: { header: "game/counterspy.h", symbol: "counterspy::guard_fee" },
+    },
+
     disable_scan: {
       title: "Disable tactical Scan",
       description: "Removes the Scan action from tactical combat.",

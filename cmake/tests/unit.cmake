@@ -49,6 +49,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/reputation_config.cpp
     src/game/vassals_config.cpp
     src/game/secrets_config.cpp
+    src/game/counterspy_config.cpp
     src/game/eric_config.cpp
     src/game/flt1_config.cpp
     src/game/initgame_config.cpp
@@ -1049,6 +1050,10 @@ orion2re_add_game_test(test_secrets
     tests/unit/secrets_test.cpp
 )
 
+orion2re_add_game_test(test_counterspy
+    tests/unit/counterspy_test.cpp
+)
+
 orion2re_add_game_test(test_dice
     tests/unit/dice_test.cpp
 )
@@ -1452,6 +1457,7 @@ orion2re_add_unit_test(test_savegame
         src/game/reputation_state.cpp
         src/game/vassals_state.cpp
         src/game/secrets_state.cpp
+        src/game/counterspy_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp
         src/lua/lua_game_ship_identity.cpp
