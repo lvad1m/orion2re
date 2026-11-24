@@ -10,6 +10,9 @@ and passed with /config; the copies are removed at the end. With "advisor journa
 game is moved to <OutDir>/d<difficulty>-s<seed>-<variant>.jsonl; tools/selfplay/report.py
 compares the variants from those journals.
 
+Games run silent: they are started with SDL's dummy audio driver (SDL_AUDIO_DRIVER=dummy), so the
+sound code runs as usual and nothing is played. -Sound keeps the sound.
+
 The "observe" variant turns the advisor on with all its mechanics off: the game plays exactly as
 without the advisor (the advisor never draws from the game RNG), but the journal is written.
 
@@ -25,6 +28,7 @@ param(
     [string] $Exe = "orion2re.exe",
     [switch] $Tactical,
     [int] $Players = 0,
+    [switch] $Sound,
     [switch] $Visible,
     [System.Collections.IDictionary] $Variants = $null
 )
@@ -110,6 +114,8 @@ $exePath = Join-Path $GameDir $Exe
 $baseConfig = Join-Path $GameDir "data\orion2re.cfg"
 if (-not (Test-Path $exePath)) { throw "game executable not found: $exePath" }
 if (-not (Test-Path $baseConfig)) { throw "main config not found: $baseConfig" }
+# Silent unless -Sound: the launched games inherit this process's environment.
+if (-not $Sound) { $env:SDL_AUDIO_DRIVER = "dummy" }
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 $journalDir = Join-Path $GameDir "advisor_journal"
 $historyRoot = Join-Path $OutDir "history"
