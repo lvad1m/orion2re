@@ -106,20 +106,25 @@ namespace discoveries {
             return best;
         }
 
-        // The empire that has explored the most stars (the lowest slot on a tie) finds vaults better.
+        // The empires of the finder race find vaults better.
         bool Is_Finder_(int16_t player) {
-            int16_t best = -1;
-            int32_t best_count = -1;
+            return State()->finder_race != NO_RACE && MOX::player[player].race == State()->finder_race;
+        }
+
+        // With the first vault of the galaxy one race among those of the living empires is chosen (a draw).
+        void Choose_Finder_Race_() {
+            uint8_t races[MAX_PLAYERS];
+            int32_t n = 0;
             for (int16_t p = 0; p < Players_(); ++p) {
-                if (!Alive_(p)) continue;
-                int32_t n = 0;
-                for (int16_t s = 0; s < MOX::NUM_STARS && s < MAX_STARS; ++s) n += ((MOX::star[s].visited >> p) & 1) != 0 ? 1 : 0;
-                if (n > best_count) {
-                    best = p;
-                    best_count = n;
-                }
+                if (!Alive_(p) || MOX::player[p].race >= MAX_RACE) continue;
+                bool seen = false;
+                for (int32_t i = 0; i < n && !seen; ++i) seen = races[i] == MOX::player[p].race;
+                if (!seen) races[n++] = MOX::player[p].race;
             }
-            return best == player;
+            if (n == 0) return;
+            State()->finder_race = races[Pick_(n)];
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "discoveries: stardate %d, the galaxy: the vaults of the guardians are placed, race %d finds them better",
+                (int)MOX::stardate, (int)State()->finder_race);
         }
 
         void Lose_Pop_(int16_t colony) {
@@ -218,6 +223,7 @@ namespace discoveries {
                 cand[n++] = s;
             }
             if (n == 0) return false;
+            if (st->finder_race == NO_RACE) Choose_Finder_Race_();
             const int16_t s = cand[Pick_(n)];
             st->record[st->count++] = New_(KIND_VAULT, player, s, -1, VAULT_TURNS);
             ++st->vaults_found;
@@ -447,7 +453,7 @@ namespace discoveries {
         dice::s_modifier modifiers[2];
         int32_t count = 0;
         modifiers[count++] = {"skill", projects::Skill(r.player)};
-        if (r.kind == KIND_VAULT && Is_Finder_(r.player)) modifiers[count++] = {"best explorers", VAULT_FINDER_BONUS};
+        if (r.kind == KIND_VAULT && Is_Finder_(r.player)) modifiers[count++] = {"race finds vaults better", VAULT_FINDER_BONUS};
         const dice::e_roll_kind kind = static_cast<dice::e_roll_kind>(dice::roll_kind);
         const int32_t difficulty = Difficulty_(r);
         const dice::s_check check = dice_values != nullptr ? dice::Resolve_Check(kind, dice_values, modifiers, count, difficulty)

@@ -18,6 +18,11 @@ namespace SERIAL {
 // chooses by its personality (Choose). Guardians are monsters of the game's table (SHIPS::Build_Nonplayer_Ship).
 // Rewards go through the existing levers: a technology application (research points when none is left to learn),
 // research points, BC, a colony building, a population point lost or a planet's mineral class (EVENTS::Enrich_Planet).
+// Wave 6, ab-review 2.12. The row (events-catalog 3.8): "ограниченный набор хранилищ с артефактами, бонусы
+// империи; одна раса находит их лучше". The author's decision: "бонус одной расе, выбранной при создании
+// хранилищ". Built: when the first vault of the galaxy is created one race among the races of the living
+// empires is drawn (s_state::finder_race); every empire of that race gets VAULT_FINDER_BONUS on the check of
+// a vault. (Before wave 6 the bonus went to the empire that had explored the most stars.)
 // Off by default (events discoveries); with the flag off nothing here draws from game_random, nothing is kept.
 namespace discoveries {
 
@@ -87,7 +92,7 @@ namespace discoveries {
     constexpr int32_t NATIVES_REVOLT_PERCENT = 35;
     constexpr int32_t NATIVES_REVOLT_BC = 30;
     // Vaults: VAULTS_TOTAL in the whole galaxy ever; a study of VAULT_TURNS, a check against VAULT_DIFFICULTY with a
-    // bonus VAULT_FINDER_BONUS for the empire that has explored the most stars; success an application and
+    // bonus VAULT_FINDER_BONUS for the empires of the finder race; success an application and
     // VAULT_BC, brilliant also VAULT_BRILLIANT_RESEARCH. A failed study loses the vault.
     constexpr int32_t VAULTS_TOTAL = 5;
     constexpr int32_t VAULT_TURNS = 6;
@@ -119,16 +124,21 @@ namespace discoveries {
     };
 
     constexpr int32_t USED_BYTES = BITMAP(MAX_STARS);
+    constexpr uint8_t NO_RACE = 255;  // no finder race chosen yet
+    constexpr uint8_t MAX_RACE = 64;  // a race number is below this
 
     struct s_state {
         int32_t count = 0;
         s_record record[MAX_RECORDS];
         uint8_t vaults_found = 0;
         uint8_t used[USED_BYTES] = {};  // stars that have had a discovery: no second one there
+        uint8_t finder_race = NO_RACE;  // the race that finds vaults better, chosen with the first vault
     };
     s_state* State();
 
     bool Used(int16_t star);
+    // The race that finds vaults better (NO_RACE before the first vault).
+    uint8_t Finder_Race();
     // The first running record of `kind` of `player` (-1: anyone) at `star` (-1: anywhere), or nullptr.
     const s_record* Find(e_kind kind, int16_t player, int16_t star);
     int32_t Active(int16_t player);
@@ -153,9 +163,10 @@ namespace discoveries {
     void Clear();
     bool Empty();
 
-    // Save section 'DISC' (game/rules_sections.h): payload version 1, then the count (uint8) and the vaults found
+    // Save section 'DISC' (game/rules_sections.h): payload version 2, then the count (uint8) and the vaults found
     // (uint8), per record kind (uint8), player (int8), star and other (int16), started and ends (int32), option
-    // and stage (int8), value (int16), then the used-stars bitmap (BITMAP(MAX_STARS) bytes).
+    // and stage (int8), value (int16), then the used-stars bitmap (BITMAP(MAX_STARS) bytes); version 2 (version 1 is read too, with no finder race)
+    // adds the finder race (uint8, NO_RACE when none) after the bitmap.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);

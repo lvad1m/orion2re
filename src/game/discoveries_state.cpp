@@ -11,7 +11,7 @@
 namespace discoveries {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 1 had no finder race
         constexpr uint32_t RECORD_BYTES = 1 + 1 + 2 + 2 + 4 + 4 + 1 + 1 + 2;
 
         s_state state;
@@ -21,6 +21,10 @@ namespace discoveries {
 
     s_state* State() {
         return &state;
+    }
+
+    uint8_t Finder_Race() {
+        return state.finder_race;
     }
 
     bool Used(int16_t star) {
@@ -49,12 +53,12 @@ namespace discoveries {
     }
 
     bool Empty() {
-        if (state.count != 0 || state.vaults_found != 0) return false;
+        if (state.count != 0 || state.vaults_found != 0 || state.finder_race != NO_RACE) return false;
         return std::all_of(state.used, state.used + USED_BYTES, [](uint8_t b) { return b == 0; });
     }
 
     uint32_t Save_Size() {
-        return sizeof(uint16_t) + 1 + 1 + static_cast<uint32_t>(state.count) * RECORD_BYTES + USED_BYTES;
+        return sizeof(uint16_t) + 1 + 1 + static_cast<uint32_t>(state.count) * RECORD_BYTES + USED_BYTES + 1;
     }
 
     void Write_Save(SERIAL::Writer_* writer) {
@@ -74,6 +78,7 @@ namespace discoveries {
             writer->Write_Int16(r.value);
         }
         for (int32_t i = 0; i < USED_BYTES; ++i) writer->Write_Uint8(state.used[i]);
+        writer->Write_Uint8(state.finder_race);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -83,12 +88,13 @@ namespace discoveries {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t) + 2) return fail("discoveries save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported discoveries payload version");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported discoveries payload version");
         const uint8_t count = reader->Read_Uint8();
         const uint8_t vaults = reader->Read_Uint8();
         if (count > MAX_RECORDS) return fail("discoveries save has too many records");
         if (vaults > VAULTS_TOTAL) return fail("discoveries save has too many vaults");
-        if (reader->Remaining() != count * RECORD_BYTES + USED_BYTES) return fail("discoveries save has the wrong size");
+        if (reader->Remaining() != count * RECORD_BYTES + USED_BYTES + (version == 1 ? 0 : 1)) return fail("discoveries save has the wrong size");
         pending = s_state{};
         pending.count = count;
         pending.vaults_found = vaults;
@@ -114,6 +120,10 @@ namespace discoveries {
             if (r.started < 0 || r.ends < 0) return fail("discoveries save has a bad stardate");
         }
         for (int32_t i = 0; i < USED_BYTES; ++i) pending.used[i] = reader->Read_Uint8();
+        if (version != 1) {
+            pending.finder_race = reader->Read_Uint8();
+            if (pending.finder_race != NO_RACE && pending.finder_race >= MAX_RACE) return fail("discoveries save has a bad finder race");
+        }
         if (reader->Failed()) return fail("discoveries save is truncated");
         has_pending = true;
         return true;

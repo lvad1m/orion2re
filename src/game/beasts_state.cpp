@@ -9,7 +9,8 @@
 namespace beasts {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 1 had no base (kind 5)
+        constexpr int32_t LAST_KIND_V1 = KIND_WORMHOLE;
         constexpr uint32_t RECORD_BYTES = 1 + 1 + 2 + 2 + 4 + 4 + 1 + 2 + 2;
 
         s_state state;
@@ -66,7 +67,8 @@ namespace beasts {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t) + 1) return fail("beasts save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported beasts payload version");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported beasts payload version");
         const uint8_t count = reader->Read_Uint8();
         if (count > MAX_RECORDS) return fail("beasts save has too many records");
         if (reader->Remaining() != count * RECORD_BYTES) return fail("beasts save has the wrong size");
@@ -83,7 +85,7 @@ namespace beasts {
             r.option = reader->Read_Int8();
             r.value = reader->Read_Int16();
             r.extra = reader->Read_Int16();
-            if (r.kind < KIND_HARVESTERS || r.kind > KIND_LAST) return fail("beasts save has a bad kind");
+            if (r.kind < KIND_HARVESTERS || r.kind > (version == 1 ? LAST_KIND_V1 : KIND_LAST)) return fail("beasts save has a bad kind");
             if (r.target < 0 || r.target >= MAX_STARS) return fail("beasts save has a bad star");
             // The empire: harvesters have none; a swallowing ambush names the owner of the ship.
             const bool has_player = r.kind == KIND_HIJACK || r.kind == KIND_WORMHOLE || (r.kind == KIND_AMBUSH && r.option == 1);
@@ -92,12 +94,14 @@ namespace beasts {
                 if (r.other < 0 || r.other >= MAX_STARS || r.other == r.target) return fail("beasts save has a bad exit");
             } else if (r.kind == KIND_AMBUSH && r.option == 1) {
                 if (r.other < 0 || r.other >= MAX_SHIPS) return fail("beasts save has a bad ship");
+            } else if (r.kind == KIND_BASE) {
+                if (r.other < -1 || r.other >= MAX_STARS) return fail("beasts save has a bad strike star");
             } else if (r.other != -1) {
                 return fail("beasts save has a stray party");
             }
             if (r.kind == KIND_AMBUSH ? (r.option < 0 || r.option > 1) : r.option != 0) return fail("beasts save has a bad option");
             if (r.value < 0) return fail("beasts save has a bad value");
-            if (r.extra != 0) return fail("beasts save has a bad extra");
+            if (r.kind == KIND_BASE ? (r.extra < 0 || r.extra > COUNTER_MAX_LEVEL) : r.extra != 0) return fail("beasts save has a bad extra");
             if (r.started < 0 || r.ends < 0) return fail("beasts save has a bad stardate");
         }
         if (reader->Failed()) return fail("beasts save is truncated");

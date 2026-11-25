@@ -16,6 +16,11 @@ namespace SERIAL {
 // a route of up to MAX_ROUTE stars and the stardate of its next move. What it does on arrival and what
 // it does to the star while it is there is decided per kind inside this module. Events built on it: the
 // space storm (events-catalog 3.1) and the wandering trader (3.3).
+// Wave 6, ab-review 2.7. The row (events-catalog 3.1): "буря движется к системе, вредит колониям и блокирует
+// прыжки, оставляет след на несколько ходов; постройки-громоотводы". The author's decision: "громоотвод -
+// существующая постройка колонии (например, планетарный щит) снижает урон бури". Built: a colony that has a
+// planetary shield (radiation, barrier or flux: Has_Lightning_Rod) is hit by the storm with STORM_ROD_HIT_PERCENT
+// instead of STORM_HIT_PERCENT (no new building, no extra draw).
 // Off by default (events wanderers); with the flag off nothing here draws from game_random, nothing is
 // kept and Star_Grounded is false. A human-owned subject takes the first, safest option: a human empire
 // never buys from the trader (no interface step yet).
@@ -38,6 +43,7 @@ namespace wanderers {
     constexpr int32_t STORM_HIT_PERCENT = 40;
     constexpr int32_t STORM_TRAIL_TURNS = 3;
     constexpr int32_t STORM_NEIGHBOURS = 4;         // a hop goes to one of the nearest stars
+    constexpr int32_t STORM_ROD_HIT_PERCENT = 10;   // the hit chance of a colony with a lightning rod
     // Trader: visits up to TRADER_STOPS colony stars, one stop every TRADER_MOVE_TURNS; every computer empire
     // with a colony there may buy one technology application it does not know (the cheapest by its field's
     // cost) for the cost / 2 BC, between TRADER_MIN_PRICE and TRADER_MAX_PRICE, keeping TRADER_RESERVE BC.
@@ -81,6 +87,8 @@ namespace wanderers {
     // True while a storm is at `star` or left it less than STORM_TRAIL_TURNS ago (false with the flag off):
     // shipmove.cpp - no ship leaves such a star, as at a flared one.
     bool Star_Grounded(int16_t star);
+    // Whether the colony has a lightning rod: a planetary shield (radiation, barrier or flux shield).
+    bool Has_Lightning_Rod(int16_t colony);
 
     // The primitive: puts a wanderer of `kind` on `route` (`length` stars, 2..MAX_ROUTE), a move every
     // `move_turns`; it arrives at the first star at once (the arrival action runs). Returns its index, -1

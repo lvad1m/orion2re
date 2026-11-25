@@ -13,7 +13,8 @@ namespace news {
     static_assert(RANK_SLOTS == MAX_PLAYERS, "news ranks one slot per empire");
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 1 had no wormhole fact (kind 14)
+        constexpr int32_t KIND_COUNT_V1 = KIND_WORMHOLE;
         constexpr uint32_t ITEM_BYTES = 4 + 1 + 1 + 1 + 1 + 2;
         constexpr uint32_t RATINGS_BYTES = 4 + RATING_COUNT * RANK_SLOTS * (1 + 4);
 
@@ -110,7 +111,8 @@ namespace news {
         };
         const auto empire_ok = [](int32_t player) { return player >= -1 && player < MAX_PLAYERS; };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t) + RATINGS_BYTES + 1) return fail("news save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported news payload version");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported news payload version");
         pending = s_ring{};
         pending.ratings.stardate = reader->Read_Int32();
         if (pending.ratings.stardate < 0) return fail("news save has a bad rating stardate");
@@ -132,7 +134,7 @@ namespace news {
             item.object = reader->Read_Int8();
             item.reader = reader->Read_Int8();
             item.value = reader->Read_Int16();
-            if (item.stardate < 0 || item.kind == KIND_NONE || item.kind >= KIND_COUNT) return fail("news save has a bad fact");
+            if (item.stardate < 0 || item.kind == KIND_NONE || item.kind >= (version == 1 ? KIND_COUNT_V1 : KIND_COUNT)) return fail("news save has a bad fact");
             if (!empire_ok(item.subject) || !empire_ok(item.object) || !empire_ok(item.reader)) return fail("news save has a bad empire");
             pending.items[i] = item;
         }

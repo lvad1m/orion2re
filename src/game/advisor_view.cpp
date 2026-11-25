@@ -618,6 +618,11 @@ namespace advisor {
                         Append_Format(out, "Event: a stolen flagship of player %d roams as a monster at star %d (until stardate %d).\n",
                             static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.ends));
                         break;
+                    case beasts::KIND_BASE:
+                        if (((MOX::star[r.target].visited >> self.player) & 1) == 0) break;
+                        Append_Format(out, "Event: a base of the harvesters at star %d, strength %d, the next swarm is stronger by %d.\n", static_cast<int>(r.target),
+                            static_cast<int>(r.value), static_cast<int>(beasts::COUNTER_STEP * r.extra));
+                        break;
                     case beasts::KIND_WORMHOLE:
                         if (r.player != self.player) break;
                         Append_Format(out, "Event: an unstable wormhole at star %d leads to star %d, used %d times (until stardate %d).\n",

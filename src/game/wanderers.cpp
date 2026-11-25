@@ -65,14 +65,23 @@ namespace wanderers {
             return n;
         }
 
-        // Storm: every colony at the star is hit with STORM_HIT_PERCENT (an earthquake's hit).
+        // Storm: every colony at the star is hit with STORM_HIT_PERCENT (an earthquake's hit), with
+        // STORM_ROD_HIT_PERCENT when the colony has a lightning rod.
         void Storm_Arrives_(const s_wanderer& w) {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, the galaxy: a space storm arrives at star %d", (int)MOX::stardate,
                 (int)w.star);
             for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
                 const s_colony& colony = MOX::colony[c];
                 if (colony.owner < 0 || colony.n_pops == 0 || Colony_Star_(c) != w.star) continue;
-                if (static_cast<int32_t>(game_random::Random(100)) > STORM_HIT_PERCENT) continue;
+                const bool rod = Has_Lightning_Rod(c);
+                const int32_t roll = static_cast<int32_t>(game_random::Random(100));
+                if (roll > (rod ? STORM_ROD_HIT_PERCENT : STORM_HIT_PERCENT)) {
+                    if (rod && roll <= STORM_HIT_PERCENT) {
+                        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: the lightning rod of colony %d at star %d turns the storm's hit aside",
+                            (int)MOX::stardate, (int)colony.owner, (int)c, (int)w.star);
+                    }
+                    continue;
+                }
                 const int16_t owner = colony.owner;
                 int16_t pops = 0;
                 int16_t buildings = 0;
@@ -135,6 +144,12 @@ namespace wanderers {
             return kind == KIND_STORM ? STORM_MOVE_TURNS : TRADER_MOVE_TURNS;
         }
     } // namespace
+
+    bool Has_Lightning_Rod(int16_t colony) {
+        if (colony < 0 || colony >= MOX::NUM_COLONIES || colony >= MAX_COLONIES) return false;
+        const s_colony& c = MOX::colony[colony];
+        return c.buildings[BUILDING_RADIATION_SHIELD] != 0 || c.buildings[BUILDING_BARRIER_SHIELD] != 0 || c.buildings[BUILDING_FLUX_SHIELD] != 0;
+    }
 
     int32_t Greedy_Route(int16_t from, int16_t to, int16_t* route) {
         if (from < 0 || to < 0 || from >= MOX::NUM_STARS || to >= MOX::NUM_STARS || from >= MAX_STARS || to >= MAX_STARS) return 0;

@@ -2,6 +2,7 @@
 
 #include "game/news.h"
 
+#include "game/beasts.h"
 #include "game/bill.h"
 #include "game/crises.h"
 #include "game/random.h"
@@ -163,6 +164,7 @@ namespace news {
                 return head + Format_("ratings: player %d leads in population, player %d in fleet, player %d in technology", s, o, item.value);
             case KIND_FLEETS_GATHER: return head + Format_("player %d's fleets gather at star %d", s, item.value);
             case KIND_EYES_ON: return head + Format_("player %d has its eyes on player %d", s, o);
+            case KIND_WORMHOLE: return head + Format_("player %d holds a wormhole that leads to star %d", s, item.value);
             default: return head + "unknown";
         }
     }
@@ -266,6 +268,24 @@ namespace news {
         return true;
     }
 
+    bool Report_Wormhole(int16_t reader, int16_t subject) {
+        if (!Intelligence_Ready_(reader, subject) || !beasts::enabled) return false;
+        const beasts::s_state* bs = beasts::State();
+        for (int32_t i = 0; i < bs->count; ++i) {
+            const beasts::s_record& r = bs->record[i];
+            if (r.kind != beasts::KIND_WORMHOLE || r.player != subject) continue;
+            s_item probe;
+            probe.kind = KIND_WORMHOLE;
+            probe.subject = static_cast<int8_t>(subject);
+            probe.reader = static_cast<int8_t>(reader);
+            probe.value = r.other;
+            if (Contains(probe)) return false;
+            Add(KIND_WORMHOLE, subject, -1, r.other, reader);
+            return true;
+        }
+        return false;
+    }
+
     void Turn() {
         if (!enabled) return;
         Notice_Eliminations_();
@@ -275,6 +295,7 @@ namespace news {
             for (int16_t subject = 0; subject < Players_(); ++subject) {
                 if (!Intelligence_Ready_(reader, subject)) continue;
                 Report_Gathering(reader, subject);
+                Report_Wormhole(reader, subject);
                 if (Planned_Victim(subject) >= 0) {
                     Report_Eyes_On(reader, subject, static_cast<int32_t>(game_random::Random(1000)));
                 }

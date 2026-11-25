@@ -289,13 +289,16 @@ DOCTEST_TEST_CASE("natives: leave, teach, work (revolt and quiet)")
     DOCTEST_CHECK(state.colonies[0].n_pops == 3);
 }
 
-DOCTEST_TEST_CASE("vaults: a limited set, the best explorers open them more easily")
+DOCTEST_TEST_CASE("vaults: a limited set, the finder race opens them more easily")
 {
     s_scope scope;
     test::s_game_state state;
     Setup_(&state);
     Human_(&state);
-    // Player 0 has explored more stars than player 1: +2, so 8 + 2 = 10 opens the vault; player 1 fails with 8.
+    // Player 0 is of the finder race: +2, so 8 + 2 = 10 opens the vault; player 1 fails with 8.
+    state.players[0].race = 3;
+    state.players[1].race = 5;
+    discoveries::State()->finder_race = 3;
     DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_VAULT, 1, 1));
     DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_VAULT, 0, 0));
     DOCTEST_CHECK_FALSE(discoveries::Start(discoveries::KIND_VAULT, 0, 1));  // not explored by player 0 (and used)
@@ -445,4 +448,73 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     DOCTEST_CHECK(discoveries::State()->count == 3);  // the failed parses left the state alone
 }
 
+
+DOCTEST_TEST_CASE("vaults: one race of the empires is chosen with the first vault and keeps the bonus")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Human_(&state);
+    state.players[0].race = 3;
+    state.players[1].race = 5;
+    DOCTEST_CHECK(discoveries::Finder_Race() == discoveries::NO_RACE);
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_VAULT, 0, 0));
+    const uint8_t race = discoveries::Finder_Race();
+    DOCTEST_CHECK((race == 3 || race == 5));
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_VAULT, 1, 1));
+    DOCTEST_CHECK(discoveries::Finder_Race() == race);  // not drawn again
+    // Whoever is of the race gets +2: 8 opens the vault for it only.
+    const int finder = race == 3 ? 0 : 1;
+    const int other = 1 - finder;
+    const int finder_idx = discoveries::State()->record[0].player == finder ? 0 : 1;
+    discoveries::Check_With_Dice(finder_idx, EIGHT);
+    DOCTEST_CHECK(state.players[finder].bc == 1000 + discoveries::VAULT_BC);
+    discoveries::Check_With_Dice(0, EIGHT);
+    DOCTEST_CHECK(state.players[other].bc == 1000);
+}
+
+DOCTEST_TEST_CASE("vaults: the finder race survives a save; version 1 loads without one; a bad race is refused")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    discoveries::State()->vaults_found = 1;
+    discoveries::State()->finder_race = 5;
+    const uint32_t size = discoveries::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    discoveries::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    discoveries::Clear();
+    discoveries::enabled = true;
+    std::string error;
+    {
+        SERIAL::Reader_ r(buffer.get(), size, "test underflow", true);
+        DOCTEST_REQUIRE(discoveries::Parse_Save(&r, &error));
+        discoveries::Commit_Save();
+        DOCTEST_CHECK(discoveries::Finder_Race() == 5);
+    }
+    {
+        auto bad = std::make_unique<uint8_t[]>(size);
+        std::copy(buffer.get(), buffer.get() + size, bad.get());
+        bad[size - 1] = 100;
+        SERIAL::Reader_ r(bad.get(), size, "test underflow", true);
+        DOCTEST_CHECK_FALSE(discoveries::Parse_Save(&r, &error));
+    }
+    {
+        // Version 1 has no byte for the race.
+        auto v1 = std::make_unique<uint8_t[]>(size);
+        std::copy(buffer.get(), buffer.get() + size - 1, v1.get());
+        v1[0] = 1;
+        SERIAL::Reader_ r(v1.get(), size - 1, "test underflow", true);
+        DOCTEST_REQUIRE(discoveries::Parse_Save(&r, &error));
+        discoveries::Clear();
+        discoveries::enabled = true;
+        SERIAL::Reader_ r2(v1.get(), size - 1, "test underflow", true);
+        DOCTEST_REQUIRE(discoveries::Parse_Save(&r2, &error));
+        discoveries::Commit_Save();
+        DOCTEST_CHECK(discoveries::Finder_Race() == discoveries::NO_RACE);
+        DOCTEST_CHECK(discoveries::State()->vaults_found == 1);
+    }
+}
 }

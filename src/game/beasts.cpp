@@ -171,6 +171,49 @@ namespace beasts {
 
         // Harvesters ---------------------------------------------------------------------------------------
 
+        // The base of the harvesters, nullptr when there is none.
+        s_record* Base_() {
+            s_state* s = State();
+            for (int32_t i = 0; i < s->count; ++i) {
+                if (s->record[i].kind == KIND_BASE) return &s->record[i];
+            }
+            return nullptr;
+        }
+
+        bool Spawn_Swarm_(int16_t star, int32_t strength) {
+            if (Count_(KIND_HARVESTERS) >= MAX_HARVESTERS || State()->count >= MAX_RECORDS || Record_At_Star_(KIND_HARVESTERS, star)) return false;
+            s_record r = New_(KIND_HARVESTERS, -1, 0);
+            r.target = star;
+            r.value = static_cast<int16_t>(strength);
+            return Record_(r);
+        }
+
+        // The nearest star without a colony to `from`; -1 when none.
+        int16_t Nearest_Empty_Star_(int16_t from) {
+            int16_t best = -1;
+            int32_t best_distance = INT_MAX;
+            for (int16_t s = 0; s < MOX::NUM_STARS && s < MAX_STARS; ++s) {
+                if (s == from || Colony_Star_(s)) continue;
+                const int32_t d = Distance2_(from, s);
+                if (d < best_distance) {
+                    best = s;
+                    best_distance = d;
+                }
+            }
+            return best;
+        }
+
+        // The harvesters at `star` are destroyed: while their base stands it grows a level and a stronger swarm
+        // is on its way.
+        void Strike_Back_(int16_t star) {
+            s_record* base = Base_();
+            if (base == nullptr) return;
+            base->extra = static_cast<int16_t>(std::min<int32_t>(COUNTER_MAX_LEVEL, base->extra + 1));
+            base->other = star;
+            base->ends = MOX::stardate + COUNTER_DELAY;
+            Log_Star_(base->target, "the base of the harvesters answers the loss: the next swarm will be stronger");
+        }
+
         bool Start_Harvesters_() {
             if (Count_(KIND_HARVESTERS) >= MAX_HARVESTERS || State()->count >= MAX_RECORDS) return false;
             int16_t cand[MAX_STARS];
@@ -181,9 +224,20 @@ namespace beasts {
             if (n == 0) return false;
             s_record r = New_(KIND_HARVESTERS, -1, 0);
             r.target = cand[Pick_(n)];
-            r.value = HARVESTER_STRENGTH;
+            const s_record* base = Base_();
+            r.value = static_cast<int16_t>(HARVESTER_STRENGTH + COUNTER_STEP * (base != nullptr ? base->extra : 0));
             if (!Record_(r)) return false;
             Log_Star_(r.target, "self-replicating harvesters arrive");
+            // Their base: a star without colonies, the nearest to where they arrive.
+            if (Base_() == nullptr && State()->count < MAX_RECORDS) {
+                const int16_t at = Nearest_Empty_Star_(r.target);
+                if (at >= 0) {
+                    s_record b = New_(KIND_BASE, -1, 0);
+                    b.target = at;
+                    b.value = BASE_STRENGTH;
+                    if (Record_(b)) Log_Star_(at, "the base of the self-replicating harvesters is set up");
+                }
+            }
             return true;
         }
 
@@ -200,6 +254,7 @@ namespace beasts {
                     } else {
                         Log_Star_(r.target, "the harvesters are destroyed");
                     }
+                    Strike_Back_(r.target);
                     return true;
                 }
             }
@@ -221,7 +276,7 @@ namespace beasts {
                     Add_Bc_(p, -loss);
                     Log_Player_(p, r.target, "the harvesters strip its colony");
                 }
-                r.value = static_cast<int16_t>(std::min<int32_t>(HARVESTER_CAP, r.value + 1));
+                if (r.value < HARVESTER_CAP) ++r.value;  // a swarm stronger than the cap (a counter-strike) does not shrink
             }
             if (age >= SPLIT_TURNS && r.value >= 2 && Count_(KIND_HARVESTERS) < MAX_HARVESTERS) {
                 const int16_t dest = Nearest_Free_Colony_Star_(r.target);
@@ -234,6 +289,35 @@ namespace beasts {
                         r.started = MOX::stardate;
                         Log_Star_(dest, "the harvesters split in two");
                     }
+                }
+            }
+            return false;
+        }
+
+        // One turn of the base; true when warships have destroyed it.
+        bool Run_Base_(s_record& r) {
+            const int16_t points = EVENTS::Ship_Size_Points_At_Star(r.target);
+            if (points > 0) {
+                r.value = static_cast<int16_t>(r.value - points);
+                if (r.value <= 0) {
+                    const int16_t lander = Landing_Owner_(r.target);
+                    if (lander >= 0) {
+                        Add_Bc_(lander, BASE_BC);
+                        Log_Player_(lander, r.target, "destroys the base of the harvesters");
+                    } else {
+                        Log_Star_(r.target, "the base of the harvesters is destroyed");
+                    }
+                    return true;
+                }
+            }
+            if (r.ends > 0 && MOX::stardate >= r.ends) {
+                int16_t dest = r.other;
+                if (dest < 0 || !Colony_Star_(dest) || Record_At_Star_(KIND_HARVESTERS, dest)) {
+                    dest = Nearest_Free_Colony_Star_(dest >= 0 ? dest : r.target);
+                }
+                if (dest >= 0 && Spawn_Swarm_(dest, HARVESTER_STRENGTH + COUNTER_STEP * r.extra)) {
+                    Log_Star_(dest, "a stronger swarm of the harvesters strikes back");
+                    r.ends = 0;
                 }
             }
             return false;
@@ -447,6 +531,7 @@ namespace beasts {
                 case KIND_AMBUSH: return Run_Ambush_(r);
                 case KIND_HIJACK: return Run_Hijack_(r);
                 case KIND_WORMHOLE: return Run_Wormhole_(r);
+                case KIND_BASE: return Run_Base_(r);
                 default: return true;
             }
         }

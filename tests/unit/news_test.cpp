@@ -2,6 +2,7 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "game/beasts.h"
 #include "game/bill.h"
 #include "game/news.h"
 #include "game/serialization.h"
@@ -13,14 +14,18 @@ namespace {
     struct s_news_scope {
         test::s_saved_value<bool> enabled{news::enabled};
         test::s_saved_value<bool> intelligence{news::intelligence};
+        test::s_saved_value<bool> beasts_enabled{beasts::enabled};
 
         s_news_scope() {
             news::Clear();
             news::enabled = true;
             news::intelligence = true;
+            beasts::Clear();
+            beasts::enabled = true;
         }
         ~s_news_scope() {
             news::Clear();
+            beasts::Clear();
         }
     };
 
@@ -261,4 +266,68 @@ DOCTEST_TEST_CASE("the payload round trips and bad payloads are refused") {
     DOCTEST_CHECK_FALSE(news::Parse_Save(&r3, &error));
 }
 
+
+DOCTEST_TEST_CASE("intelligence: a wormhole of the subject, only with spies, only for the reader") {
+    s_news_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    beasts::s_record wormhole;
+    wormhole.kind = beasts::KIND_WORMHOLE;
+    wormhole.player = 1;
+    wormhole.target = 2;
+    wormhole.other = 4;
+    wormhole.started = MOX::stardate;
+    wormhole.ends = MOX::stardate + 40;
+    beasts::State()->record[beasts::State()->count++] = wormhole;
+    DOCTEST_CHECK_FALSE(news::Report_Wormhole(0, 1));  // no spies
+    BILL::Set_Their_Spy_Number(0, 1, 1);
+    DOCTEST_CHECK_FALSE(news::Report_Wormhole(0, 2));  // player 2 holds none
+    DOCTEST_CHECK(news::Report_Wormhole(0, 1));
+    DOCTEST_CHECK_FALSE(news::Report_Wormhole(0, 1));  // already told
+    news::s_item out[8];
+    DOCTEST_REQUIRE(news::Recent_For(0, out, 8) == 1);
+    DOCTEST_CHECK(out[0].kind == news::KIND_WORMHOLE);
+    DOCTEST_CHECK(out[0].subject == 1);
+    DOCTEST_CHECK(out[0].value == 4);
+    DOCTEST_CHECK(news::Recent_For(1, out, 8) == 0);
+    DOCTEST_CHECK(news::Recent_For(2, out, 8) == 0);
+    DOCTEST_CHECK_FALSE(news::Describe(out[0]).empty());
+    // The turn's spy round tells it too (stardate % 10 == 5); without events beasts or the intelligence flag, not.
+    news::Clear();
+    MOX::stardate = 35105;
+    news::Turn();
+    DOCTEST_CHECK(news::Recent_For(0, out, 8) >= 1);
+    news::Clear();
+    beasts::enabled = false;
+    DOCTEST_CHECK_FALSE(news::Report_Wormhole(0, 1));
+    beasts::enabled = true;
+    news::intelligence = false;
+    DOCTEST_CHECK_FALSE(news::Report_Wormhole(0, 1));
+}
+
+DOCTEST_TEST_CASE("the wormhole fact round-trips; a version 1 payload cannot hold it") {
+    s_news_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    news::Add(news::KIND_WORMHOLE, 1, -1, 4, 0);
+    const uint32_t size = news::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    news::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    news::Clear();
+    std::string error;
+    {
+        SERIAL::Reader_ r(buffer.get(), size, "test underflow", true);
+        DOCTEST_REQUIRE(news::Parse_Save(&r, &error));
+        news::Commit_Save();
+        DOCTEST_REQUIRE(news::Count() == 1);
+        DOCTEST_CHECK(news::Nth_Newest(0)->kind == news::KIND_WORMHOLE);
+        DOCTEST_CHECK(news::Nth_Newest(0)->value == 4);
+    }
+    buffer[0] = 1;
+    SERIAL::Reader_ r1(buffer.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(news::Parse_Save(&r1, &error));
+    news::Add(news::KIND_WAR, 1, 2, 0);
+}
 }

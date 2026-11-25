@@ -272,4 +272,46 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     DOCTEST_CHECK(wanderers::State()->count == 2);  // the failed parses left the state alone
 }
 
+
+DOCTEST_TEST_CASE("a lightning rod (a planetary shield) lowers the storm's hit chance")
+{
+    s_wanderers_scope scope;
+    test::s_game_state state;
+    Setup_(&state, false);
+    const int16_t route[2] = {3, 4};
+    // A seed whose first roll lies between the rod's chance and the storm's, or within the rod's.
+    const auto seed_between = [](int32_t above, int32_t up_to) {
+        for (uint32_t seed = 1; seed < 100000; ++seed) {
+            game_random::Set_Random_Seed(seed);
+            const int32_t roll = static_cast<int32_t>(game_random::Random(100));
+            if (roll > above && roll <= up_to) {
+                game_random::Set_Random_Seed(seed);
+                return;
+            }
+        }
+    };
+    DOCTEST_CHECK_FALSE(wanderers::Has_Lightning_Rod(1));
+    state.colonies[1].buildings[BUILDING_BARRIER_SHIELD] = 1;
+    DOCTEST_CHECK(wanderers::Has_Lightning_Rod(1));
+    // A roll the rod turns aside: nothing is lost.
+    seed_between(wanderers::STORM_ROD_HIT_PERCENT, wanderers::STORM_HIT_PERCENT);
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_STORM, route, 2, 2) >= 0);
+    DOCTEST_CHECK(state.colonies[1].n_pops == 4);
+    DOCTEST_CHECK(state.colonies[1].buildings[BUILDING_BARRIER_SHIELD] == 1);
+    // The same roll without the rod is a hit.
+    wanderers::Clear();
+    wanderers::enabled = true;
+    state.colonies[1].buildings[BUILDING_BARRIER_SHIELD] = 0;
+    seed_between(wanderers::STORM_ROD_HIT_PERCENT, wanderers::STORM_HIT_PERCENT);
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_STORM, route, 2, 2) >= 0);
+    DOCTEST_CHECK(state.colonies[1].n_pops < 4);
+    // A roll within the rod's chance still hits (the shield or a person is lost).
+    wanderers::Clear();
+    wanderers::enabled = true;
+    state.colonies[1].n_pops = 4;
+    state.colonies[1].buildings[BUILDING_FLUX_SHIELD] = 1;
+    seed_between(0, wanderers::STORM_ROD_HIT_PERCENT);
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_STORM, route, 2, 2) >= 0);
+    DOCTEST_CHECK((state.colonies[1].n_pops < 4 || state.colonies[1].buildings[BUILDING_FLUX_SHIELD] == 0));
+}
 }

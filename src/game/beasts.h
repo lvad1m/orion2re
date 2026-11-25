@@ -16,6 +16,12 @@ namespace SERIAL {
 // more dangerous with each use. None has a choice for the player (the catalogue column says "no"); how bold a
 // computer is with the wormhole depends on its personality. Monsters are ships of the game's table
 // (SHIPS::Build_Nonplayer_Ship, as the ghost ship of world_events); the harvesters are records only.
+// Wave 6, ab-review 2.11. The row (events-catalog 3.7): "машины выкачивают ресурсы; убьёшь одну - приходит
+// ответный удар сильнее, пока не уничтожишь их базу". The author's decision: "база в системе без колоний;
+// каждое уничтожение сборщиков усиливает следующий рой, пока база цела". Built: KIND_BASE, a record at a star
+// without colonies; each destruction of harvesters raises the base's level and, COUNTER_DELAY turns later, the
+// base sends a new swarm stronger by COUNTER_STEP per level; swarms that arrive by chance are stronger too; the
+// base is worn down by warships at its star as the harvesters are, and when it falls the escalation ends.
 // Off by default (events beasts); with the flag off nothing here draws from game_random, nothing is kept.
 namespace beasts {
 
@@ -38,7 +44,10 @@ namespace beasts {
                               // stolen ship
         KIND_WORMHOLE = 4,    // record; player: the empire that found it, target: the entrance, other: the exit,
                               // value: uses so far
-        KIND_LAST = 4,
+        KIND_BASE = 5,        // record (wave 6); target: the star without colonies, value: its strength, extra: the
+                              // level of the counter-strike, other: the star where harvesters were last destroyed,
+                              // ends: the stardate the next swarm arrives (0: none)
+        KIND_LAST = 5,
     };
 
     // Harvesters (3.7): machines of HARVESTER_STRENGTH at a colony star. Every HARVEST_PERIOD turns each colony
@@ -46,7 +55,8 @@ namespace beasts {
     // colony at the star they go to the nearest colony star. Warships at the star wear them down by their size
     // points (no draw); when they are gone the empire with the most ship points there salvages SALVAGE_BC. After
     // SPLIT_TURNS turns left alone they split in two (the new half goes to the nearest colony star without
-    // harvesters), up to MAX_HARVESTERS at once. (The catalogue's stronger counter-strike is not built.)
+    // harvesters), up to MAX_HARVESTERS at once. The base (see the wave 6 note above): BASE_STRENGTH, destroyed by
+    // warships for BASE_BC to the empire with the most ship points there; one base at a time.
     constexpr int32_t HARVESTER_STRENGTH = 6;
     constexpr int32_t HARVESTER_CAP = 14;
     constexpr int32_t MAX_HARVESTERS = 3;
@@ -54,6 +64,11 @@ namespace beasts {
     constexpr int32_t HARVEST_BC = 25;
     constexpr int32_t SPLIT_TURNS = 20;
     constexpr int32_t SALVAGE_BC = 80;
+    constexpr int32_t BASE_STRENGTH = 10;
+    constexpr int32_t BASE_BC = 120;
+    constexpr int32_t COUNTER_DELAY = 5;        // turns from a destruction to the stronger swarm
+    constexpr int32_t COUNTER_STEP = 3;         // strength added to a swarm per level of the base
+    constexpr int32_t COUNTER_MAX_LEVEL = 5;
     // Ambush (3.7): a predator lives AMBUSH_TURNS in a belt (a star with an asteroid planet). Each turn with
     // AMBUSH_PERCENT it swallows the first ship of an empire that stands at the star; the owner has
     // AMBUSH_SAVE_TURNS turns: if the ship leaves, or another ship of the owner is at the star, it is freed (a
@@ -123,7 +138,7 @@ namespace beasts {
     void Clear();
     bool Empty();
 
-    // Save section 'BEST' (game/rules_sections.h): payload version 1, then the count (uint8), per record kind
+    // Save section 'BEST' (game/rules_sections.h): payload version 2 (version 1, which has no base, is read too), then the count (uint8), per record kind
     // (uint8), player (int8), target and other (int16), started and ends (int32), option (int8), value and
     // extra (int16).
     uint32_t Save_Size();

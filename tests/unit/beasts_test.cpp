@@ -455,4 +455,128 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     DOCTEST_CHECK(beasts::State()->count == 4);  // the failed parses left the state alone
 }
 
+
+DOCTEST_TEST_CASE("harvesters have a base at a star without colonies; each loss strengthens the next swarm while it stands")
+{
+    s_beasts_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_REQUIRE(beasts::Start(beasts::KIND_HARVESTERS, -1));
+    const beasts::s_record* base = Find_(beasts::KIND_BASE);
+    DOCTEST_REQUIRE(base != nullptr);
+    DOCTEST_CHECK(base->target == 3);  // the nearest star without a colony
+    DOCTEST_CHECK(base->value == beasts::BASE_STRENGTH);
+    DOCTEST_CHECK(beasts::State()->count == 2);
+    beasts::Clear();
+    beasts::enabled = true;
+
+    // Harvesters at star 0 are destroyed: the base's level rises and the swarm comes after COUNTER_DELAY turns.
+    Put_Record_(beasts::KIND_HARVESTERS, -1, 0, -1, 0, beasts::HARVESTER_STRENGTH, 0);
+    Put_Record_(beasts::KIND_BASE, -1, 3, -1, 0, beasts::BASE_STRENGTH, 0);
+    Put_Ship_(&state, 0, 1, 0, 50, 7);
+    Run_(1);
+    DOCTEST_CHECK(state.players[1].bc == 1000 + beasts::SALVAGE_BC);
+    DOCTEST_REQUIRE(Find_(beasts::KIND_BASE) != nullptr);
+    DOCTEST_CHECK(Find_(beasts::KIND_BASE)->extra == 1);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS) == nullptr);
+    state.ships[0].status = 5;
+    Run_(beasts::COUNTER_DELAY - 1);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS) == nullptr);
+    Run_(1);
+    DOCTEST_REQUIRE(Find_(beasts::KIND_HARVESTERS) != nullptr);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS)->target == 0);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS)->value == beasts::HARVESTER_STRENGTH + beasts::COUNTER_STEP);
+    DOCTEST_CHECK(Find_(beasts::KIND_BASE)->ends == 0);
+
+    // The stronger swarm is beaten too: the level rises again.
+    Put_Ship_(&state, 0, 1, 0, 50, 20);
+    Run_(1);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS) == nullptr);
+    DOCTEST_CHECK(Find_(beasts::KIND_BASE)->extra == 2);
+    state.ships[0].status = 5;
+    Run_(beasts::COUNTER_DELAY);
+    DOCTEST_REQUIRE(Find_(beasts::KIND_HARVESTERS) != nullptr);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS)->value == beasts::HARVESTER_STRENGTH + 2 * beasts::COUNTER_STEP);
+
+    // A swarm that arrives by chance is stronger as well.
+    beasts::State()->count = 1;  // drop the swarm, keep the base (record 0 is the base after the earlier removals)
+    beasts::State()->record[0] = *Find_(beasts::KIND_BASE);
+    DOCTEST_REQUIRE(beasts::Start(beasts::KIND_HARVESTERS, -1));
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS)->value == beasts::HARVESTER_STRENGTH + 2 * beasts::COUNTER_STEP);
+    DOCTEST_CHECK(beasts::State()->count == 2);  // and no second base
+}
+
+DOCTEST_TEST_CASE("destroying the base ends the escalation and pays the victor")
+{
+    s_beasts_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Put_Record_(beasts::KIND_BASE, -1, 3, -1, 0, beasts::BASE_STRENGTH, 0);
+    beasts::State()->record[0].extra = 2;
+    Put_Record_(beasts::KIND_HARVESTERS, -1, 0, -1, 0, beasts::HARVESTER_STRENGTH, 0);
+    Put_Ship_(&state, 0, 2, 3, 80, 10);  // 11 points against 10
+    Run_(1);
+    DOCTEST_CHECK(Find_(beasts::KIND_BASE) == nullptr);
+    DOCTEST_CHECK(state.players[2].bc == 1000 + beasts::BASE_BC);
+    // Now a lost swarm brings no counter-strike.
+    state.ships[0].status = 5;
+    Put_Ship_(&state, 1, 1, 0, 50, 7);
+    Run_(1);
+    DOCTEST_CHECK(Find_(beasts::KIND_HARVESTERS) == nullptr);
+    state.ships[1].status = 5;
+    Run_(beasts::COUNTER_DELAY + 1);
+    DOCTEST_CHECK(beasts::Empty());
+}
+
+DOCTEST_TEST_CASE("the base record round-trips; version 1 is still read; bad bases are refused")
+{
+    s_beasts_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Put_Record_(beasts::KIND_HARVESTERS, -1, 0, -1, 0, 6, 0);
+    const auto write = [&]() {
+        const uint32_t size = beasts::Save_Size();
+        auto buffer = std::make_unique<uint8_t[]>(size);
+        SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+        beasts::Write_Save(&writer);
+        return std::make_pair(std::move(buffer), size);
+    };
+    std::string error;
+    {
+        // A version 1 payload (no base) loads.
+        auto [buffer, size] = write();
+        buffer[0] = 1;
+        SERIAL::Reader_ r(buffer.get(), size, "test underflow", true);
+        DOCTEST_CHECK(beasts::Parse_Save(&r, &error));
+        beasts::Discard_Save();
+    }
+    Put_Record_(beasts::KIND_BASE, -1, 3, 0, 0, 7, 35010);
+    beasts::State()->record[1].extra = 2;
+    auto [buffer, size] = write();
+    {
+        beasts::Clear();
+        beasts::enabled = true;
+        SERIAL::Reader_ r(buffer.get(), size, "test underflow", true);
+        DOCTEST_REQUIRE(beasts::Parse_Save(&r, &error));
+        beasts::Commit_Save();
+        DOCTEST_REQUIRE(beasts::State()->count == 2);
+        DOCTEST_CHECK(beasts::State()->record[1].kind == beasts::KIND_BASE);
+        DOCTEST_CHECK(beasts::State()->record[1].extra == 2);
+        DOCTEST_CHECK(beasts::State()->record[1].other == 0);
+        DOCTEST_CHECK(beasts::State()->record[1].ends == 35010);
+    }
+    // Record 1 starts at 3 + 19 = 22: kind 22, target 24-25, other 26-27, extra 39-40.
+    const auto refuse = [&](size_t offset, uint8_t value) {
+        auto bad = std::make_unique<uint8_t[]>(size);
+        std::copy(buffer.get(), buffer.get() + size, bad.get());
+        bad[offset] = value;
+        SERIAL::Reader_ r(bad.get(), size, "test underflow", true);
+        return !beasts::Parse_Save(&r, &error);
+    };
+    DOCTEST_CHECK(refuse(0, 1));                    // a base in a version 1 payload
+    DOCTEST_CHECK(refuse(22 + 17, 6));              // a level past the top
+    DOCTEST_CHECK(refuse(22 + 5, 0x7F));            // a strike star out of range (high byte)
+    DOCTEST_CHECK(refuse(22 + 1, 1));               // a base with an empire
+    DOCTEST_CHECK(refuse(22 + 14, 1));              // a base with an option
+}
 }

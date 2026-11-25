@@ -14,6 +14,10 @@ namespace SERIAL {
 // the empires. An empire reads only the facts about empires it has contact with, and the galaxy-wide ones.
 // With news_intelligence, spies add private facts for their reader: where a fleet gathers, whom an empire
 // plans to attack. The advisor's view shows the last facts; the LLM writes the prose later.
+// Wave 6, ab-review 2.13. The row (events-catalog 3.12): "GNN намекает, где копятся флоты или куда ведёт
+// червоточина - при наличии шпионов". The author's decision: "при шпионах - новость о червоточине". Built:
+// KIND_WORMHOLE, a private fact for a reader with spies at the empire that holds a wormhole shortcut
+// (beasts.h): where the wormhole leads (value: the exit star).
 // Both flags off by default; with them off nothing is recorded and nothing here draws from game_random.
 namespace news {
 
@@ -45,7 +49,8 @@ namespace news {
         KIND_RATINGS = 11,        // leaders: subject by population, object by fleet, value by technologies
         KIND_FLEETS_GATHER = 12,  // private (intelligence): subject's fleets gather at star (value)
         KIND_EYES_ON = 13,        // private (intelligence): subject has its eyes on object
-        KIND_COUNT = 14,
+        KIND_WORMHOLE = 14,       // private (intelligence): subject's wormhole leads to star (value)
+        KIND_COUNT = 15,
     };
 
     struct s_item {
@@ -111,6 +116,8 @@ namespace news {
     // (0-999) under EYES_ON_PER_MILLE_PER_SPY a spy, the plan. True when a fact was recorded.
     bool Report_Gathering(int16_t reader, int16_t subject);
     bool Report_Eyes_On(int16_t reader, int16_t subject, int32_t roll);
+    // The private fact of `reader` about the wormhole `subject` holds (needs spies there and events beasts on).
+    bool Report_Wormhole(int16_t reader, int16_t subject);
 
     // Once a turn (diplomac.cpp End_Of_Turn_Diplomacy_Adjustments): eliminations noticed, ratings made,
     // and with intelligence the spies' facts (the only draws from game_random: one per spied plan).
@@ -119,7 +126,7 @@ namespace news {
     void Clear();
     bool Empty();
 
-    // Save section 'NEWS' (game/rules_sections.h): payload version 1, then the ratings (stardate int32, then
+    // Save section 'NEWS' (game/rules_sections.h): payload version 2 (version 1, without the wormhole fact, is read too), then the ratings (stardate int32, then
     // per rating and slot order int8 and value int32), the count (uint8) and per fact, oldest first,
     // stardate (int32), kind, subject, object, reader (int8 / uint8), value (int16).
     uint32_t Save_Size();
