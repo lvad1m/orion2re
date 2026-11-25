@@ -24,6 +24,11 @@ namespace world_events {
     bool Population_Boom(int16_t) { return false; }
     bool Epidemic(int16_t) { return false; }
 } // namespace world_events
+
+// Incidents (a levy of the survivors as a plague) are not under test here.
+namespace incidents {
+    bool Plague(int16_t) { return false; }
+} // namespace incidents
 #include "lua/lua_game.h"
 
 namespace {
