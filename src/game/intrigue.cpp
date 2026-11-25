@@ -32,7 +32,8 @@ namespace intrigue {
     namespace {
         constexpr int8_t TREATY_ALLIANCE = 2;
         constexpr int8_t TREATY_FIRST_WAR = 4;
-        constexpr int32_t HOME_SPY_LIMIT = 250;
+        // BILL::Set_Their_Spy_Number keeps 6 bits (the top two hold the mission): more than 63 would wrap.
+        constexpr int32_t HOME_SPY_LIMIT = 63;
 
         int16_t Players_() {
             return static_cast<int16_t>(std::min<int32_t>(MOX::NUM_PLAYERS, MAX_PLAYERS));
