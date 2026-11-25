@@ -5,6 +5,7 @@
 #include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/espionage.h"
+#include "game/hostages.h"
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/secrets.h"
@@ -108,6 +109,9 @@ DOCTEST_TEST_CASE("the hunt finds a mole: the bribe is uncovered") {
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, TRIUMPH) == counterspy::HUNT_UNCOVERED);
     DOCTEST_CHECK(spy_ops::Bribed_By(4) == -1);
     DOCTEST_CHECK(state.leaders[4].status != 1);
+    DOCTEST_REQUIRE(hostages::Find(4) >= 0);  // the uncovered mole is jailed as a traitor (ab-review 3.1)
+    DOCTEST_CHECK(hostages::State()->held[hostages::Find(4)].kind == hostages::KIND_TRAITOR);
+    hostages::Clear();
     DOCTEST_CHECK(state.leaders[5].status == 1);
     DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_BRIBED_OUR_LEADER) == counterspy::UNCOVERED_OPINION);
 }
@@ -127,6 +131,9 @@ DOCTEST_TEST_CASE("the hunt jails an innocent when the check fails; a success le
     counterspy::On_Secret_Leaked(2);
     DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, CATASTROPHE) == counterspy::HUNT_JAILED);
     DOCTEST_CHECK(state.leaders[4].status != 1);
+    DOCTEST_REQUIRE(hostages::Find(4) >= 0);  // the innocent is jailed (ab-review 3.1)
+    DOCTEST_CHECK(hostages::State()->held[hostages::Find(4)].kind == hostages::KIND_JAIL);
+    hostages::Clear();
     DOCTEST_CHECK(loyalty::Of(4) == 40 + counterspy::JAILED_LOYALTY);
     DOCTEST_CHECK(loyalty::Of(5) == 60 + counterspy::WITCH_LOYALTY);
 }

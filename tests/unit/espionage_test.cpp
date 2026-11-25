@@ -4,6 +4,7 @@
 #include "../fixtures/game_state.h"
 #include "game/advisor.h"
 #include "game/espionage.h"
+#include "game/hostages.h"
 #include "game/opinion.h"
 #include "game/serialization.h"
 
@@ -111,7 +112,7 @@ DOCTEST_TEST_CASE("the modes add defence, cost income and morale; a caught spy i
     DOCTEST_CHECK(espionage::State()->caught[1] == 1);
 }
 
-DOCTEST_TEST_CASE("a witch hunt dismisses honest leaders on false accusations") {
+DOCTEST_TEST_CASE("a witch hunt jails honest leaders on false accusations") {
     s_espionage_scope scope;
     test::s_game_state state;
     Setup_(&state);
@@ -125,8 +126,10 @@ DOCTEST_TEST_CASE("a witch hunt dismisses honest leaders on false accusations") 
     DOCTEST_CHECK(leader.status == 0);
     espionage::witch_hunt_accusation = 1000;  // certain
     espionage::Turn();
-    DOCTEST_CHECK(leader.status != 0);
-    DOCTEST_CHECK(leader.player_index != 1);
+    DOCTEST_CHECK(leader.status == -2);  // jailed (ab-review 3.1), not dismissed to the hire list
+    DOCTEST_CHECK(leader.player_index == 1);
+    DOCTEST_CHECK(hostages::Find(4) >= 0);
+    hostages::Clear();
 }
 
 DOCTEST_TEST_CASE("computer empires choose their mode by the spies they caught lately") {

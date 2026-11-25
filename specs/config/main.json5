@@ -4915,6 +4915,18 @@
       bind_root: { header: "game/hostages.h", symbol: "hostages::prisoners" },
     },
 
+    spy_prison: {
+      title: "Spies in prison",
+      description: "A spy caught by a computer or human empire whose fate nobody decided otherwise (diplomacy spy_fate decides it for computer catchers; so only a human catcher, or spy_fate off) is not simply lost: it sits in the catcher's prison, counted for each pair of empires, at most 8 per pair. Every 10 turns (stardate ending in 8) two computers that hold each other's spies exchange one for one, and a computer owner that keeps at least 100 BC after paying buys one back for 20 BC, which goes to the jailer. Every turn each pair has a 5 percent chance that one spy escapes home. A computer jailer that has kept a spy 40 turns releases it, or executes it if ruthless (the owner remembers it, -15). A human owner never pays and a human jailer never releases (no interface yet). Freed spies return to the owner's home pool. The leader jail (arrests with the classic dismissal replaced by a 20-turn term) is part of the arrest flags and needs no flag of its own; a hostage returned home may turn mole of its holder (25 percent) when the bribery operation is on.",
+      remarks: "False preserves classic behavior. Kept in the optional save section of hostages that older builds skip.",
+      examples: ["diplomacy spy_prison = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/hostages.h", symbol: "hostages::spy_prison" },
+    },
+
     council_bribery: {
       title: "Council bribery",
       description: "Before a council vote a computer nominee with at least 200 BC buys the vote of every other computer voter that thinks of it at -30 or better: 25 BC to each voter while the nominee keeps 100 BC, and a bought voter's vote score for it rises by 100. A nominee that holds a secret about a voter (spy secrets) spends it instead to blackmail the vote: the score rises by 150 and the secret is gone. The other nominee, if it has spies in the briber, learns of it with 30 percent and remembers the plot (-20). The bribes last for one vote.",

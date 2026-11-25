@@ -8,5 +8,6 @@ namespace hostages {
 
     bool hostage_swaps = false;
     bool prisoners = false;
+    bool spy_prison = false;
 
 } // namespace hostages

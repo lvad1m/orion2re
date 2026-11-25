@@ -9,6 +9,7 @@
 #include "game/bomb.h"
 #include "game/colbldg.h"
 #include "game/colcalc.h"
+#include "game/hostages.h"
 #include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/espionage.h"
@@ -290,7 +291,7 @@ namespace spy_ops {
                         (int)MOX::stardate, (int)owner, (int)i, (int)*briber);
                     opinion::Add(owner, *briber, opinion::REASON_BRIBED_OUR_LEADER, EXPOSED_OPINION);
                     *briber = -1;
-                    OFFICER::Deassign_Officer(i);
+                    hostages::Arrest(i, true);  // an uncovered bribe: the traitor is jailed (ab-review 3.1)
                     continue;
                 }
                 // A bribed governor hands a colony over when the briber's warship stands at its star.
@@ -445,7 +446,7 @@ namespace spy_ops {
                     break;
                 }
                 case OP_BRIBERY: *Bribed_Slot(subject) = static_cast<int8_t>(attacker); break;
-                case OP_FRAME_LEADER: OFFICER::Deassign_Officer(subject); break;
+                case OP_FRAME_LEADER: hostages::Arrest(subject, false); break;  // the framed honest leader is jailed (ab-review 3.1)
                 case OP_DATA:
                     for (int16_t s = 0; s < MOX::NUM_SHIPS; ++s) {
                         const s_ship_data& ship = MOX::ship[s];

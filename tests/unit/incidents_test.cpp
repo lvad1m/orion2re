@@ -4,6 +4,7 @@
 #include "../fixtures/game_state.h"
 #include "game/bill.h"
 #include "game/dice.h"
+#include "game/hostages.h"
 #include "game/incidents.h"
 #include "game/opinion.h"
 #include "game/random.h"
@@ -345,6 +346,11 @@ DOCTEST_TEST_CASE("rebel general: reasoning, execution, a coup or a trial after 
     DOCTEST_CHECK(incidents::Empty());
     DOCTEST_CHECK(state.ships[0].status == 0);
     DOCTEST_CHECK(state.leaders[0].status != 1);
+    // The trial jails the general (ab-review 3.1): held out of service by its own empire.
+    DOCTEST_REQUIRE(hostages::Find(0) >= 0);
+    DOCTEST_CHECK(hostages::State()->held[hostages::Find(0)].kind == hostages::KIND_JAIL);
+    DOCTEST_CHECK(state.leaders[0].status == -2);
+    hostages::Clear();
     // The general vanishing ends the record.
     state.ships[0].officer_index = 0;
     state.leaders[0].status = 1;

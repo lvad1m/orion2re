@@ -114,7 +114,8 @@ namespace SAVEGAME {
         }
 
         bool Hostages_Has_State_() {
-            return (hostages::hostage_swaps || hostages::prisoners) && !hostages::Empty();
+            // The jail has no flag of its own: its records exist only because an arrest site's flag was on.
+            return !hostages::Empty();
         }
 
         bool News_Has_State_() {

@@ -2,16 +2,31 @@
 
 #include "game/hostages.h"
 
+#include "game/bill.h"
 #include "game/colcalc.h"
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/spy_ops.h"
 
 #include <algorithm>
 
 // The behaviour of hostages and captured leaders (mechanics.md 3.5.3, events-catalog 3.12); the held
 // leaders and the save section are in hostages_state.cpp. game_random is drawn only with diplomacy
-// prisoners on and a prisoner held (the escape roll), once a turn per prisoner.
+// prisoners on and a prisoner held (the escape roll), once a turn per prisoner; with diplomacy spy_prison on
+// and spies in prison, once a turn per (jailer, owner) pair; and once for a returned hostage with the
+// bribery operation on (the mole roll).
+//
+// Wave 6 design rows (docs/LocalLLM/):
+// - mechanics.md 3.5.3, "Заложники и воспитанники": "лидер в залог договора; при нарушении — решается его
+//   судьба; вернувшийся может быть верен бывшему хозяину". ab-review 2.3: "воспитанник, вернувшийся домой,
+//   с шансом становится «кротом» хозяина (подкупленный лидер spy_ops)" -> Mole_With_Roll.
+// - events-catalog.md 3.12, "Пленные лидеры и выкуп": "пойманные шпионы и лидеры сидят в чужой тюрьме:
+//   выкуп, обмен, побег". ab-review 2.2: "пойманный шпион сидит, если судьба шпиона не решила иначе:
+//   выкуп, обмен, побег" -> Imprison_Spy and the spy cells.
+// - ab-review 3.1: "сделать настоящую тюрьму (как у заложников: лидер держится вне службы N ходов, потом
+//   возвращается или казнён)" for the arrests of mechanics.md 3.2.3 (подстава, раскрытый подкуп) and 3.5.5
+//   (охота на крота, суд над генералом) -> Arrest / Jail, KIND_JAIL and KIND_TRAITOR.
 namespace hostages {
 
     namespace {
@@ -36,11 +51,105 @@ namespace hostages {
         }
 
         bool Kind_On_(uint8_t kind) {
+            if (kind >= KIND_JAIL) return true;  // a jail record exists only because an arrest site's own flag was on
             return kind == KIND_HOSTAGE ? hostage_swaps : prisoners;
         }
 
         const char* Kind_Name_(uint8_t kind) {
-            return kind == KIND_HOSTAGE ? "hostage" : "prisoner";
+            switch (kind) {
+                case KIND_HOSTAGE: return "hostage";
+                case KIND_PRISONER: return "prisoner";
+                case KIND_TRAITOR: return "jailed traitor";
+                default: return "jailed leader";
+            }
+        }
+
+        // A hostage goes home; it may now serve its former holder (the roll is drawn only with bribery on).
+        void Hostage_Returns_(int32_t index, int16_t owner, const char* how) {
+            const s_held h = State()->held[index];
+            Release(index, owner, how);
+            if (h.kind == KIND_HOSTAGE && spy_ops::Enabled(spy_ops::OP_BRIBERY)) {
+                Mole_With_Roll(h.leader, h.holder, static_cast<int32_t>(game_random::Random(100)));
+            }
+        }
+
+        void Remove_Spy_Cell_(int32_t cell) {
+            s_state* s = State();
+            for (int32_t i = cell; i + 1 < s->spy_count; ++i) s->spies[i] = s->spies[i + 1];
+            s->spies[--s->spy_count] = s_spies{};
+        }
+
+        // One spy of the cell leaves the prison: for its home, or (executed) for good.
+        void Free_Spy_(int32_t cell, const char* how, bool goes_home) {
+            s_state* s = State();
+            const s_spies c = s->spies[cell];
+            if (--s->spies[cell].count == 0) {
+                Remove_Spy_Cell_(cell);
+            } else {
+                s->spies[cell].since = MOX::stardate;
+            }
+            if (goes_home) {
+                const int32_t home = BILL::Get_Their_Spy_Number(c.owner, c.owner);
+                BILL::Set_Their_Spy_Number(c.owner, c.owner, static_cast<int16_t>(std::min(HOME_SPY_LIMIT, home + 1)));
+            }
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, a spy of player %d held by player %d: %s",
+                (int)MOX::stardate, (int)c.owner, (int)c.jailer, how);
+        }
+
+        void Spy_Prison_Turn_() {
+            s_state* s = State();
+            for (int32_t i = 0; i < s->spy_count;) {
+                const s_spies c = s->spies[i];
+                if (!Alive_(c.jailer) || !Alive_(c.owner)) {
+                    Remove_Spy_Cell_(i);  // a gone empire's prison empties
+                    continue;
+                }
+                if (Spy_Escape_With_Roll(i, static_cast<int32_t>(game_random::Random(100)))) continue;
+                if (MOX::stardate - c.since >= SPY_PRISON_TURNS && Computer_(c.jailer)) {
+                    if (MOX::player[c.jailer].personality == PLAYER_PERSONALITY_RUTHLESS) {
+                        opinion::Add(c.owner, c.jailer, opinion::REASON_TREATED_OUR_SPY, EXECUTED_SPY_OPINION);
+                        Free_Spy_(i, "executed, held too long", false);
+                    } else {
+                        Free_Spy_(i, "released, held too long", true);
+                    }
+                    continue;
+                }
+                ++i;
+            }
+        }
+
+        // On the phase: one spy for one spy between two computers that hold each other's spies; then a computer
+        // owner that keeps the reserve pays SPY_RANSOM for one spy a pair.
+        void Spy_Exchange_And_Ransom_() {
+            s_state* s = State();
+            for (int32_t i = 0; i < s->spy_count; ++i) {
+                const s_spies a = s->spies[i];
+                if (!Computer_(a.owner) || !Computer_(a.jailer)) continue;
+                for (int32_t j = i + 1; j < s->spy_count; ++j) {
+                    const s_spies b = s->spies[j];
+                    if (b.owner != a.jailer || b.jailer != a.owner) continue;
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange a spy each",
+                        (int)MOX::stardate, (int)a.owner, (int)a.jailer);
+                    Free_Spy_(j, "exchanged", true);  // the higher index first: the cells move up
+                    Free_Spy_(i, "exchanged", true);
+                    i = -1;  // start over: the cells moved
+                    break;
+                }
+            }
+            for (int32_t i = 0; i < s->spy_count;) {
+                const s_spies c = s->spies[i];
+                if (!Computer_(c.owner) || !Alive_(c.jailer) || MOX::player[c.owner].bc - SPY_RANSOM < RANSOM_RESERVE) {
+                    ++i;
+                    continue;
+                }
+                MOX::player[c.owner].bc -= SPY_RANSOM;
+                MOX::player[c.jailer].bc += SPY_RANSOM;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d pays %d BC to player %d for a spy",
+                    (int)MOX::stardate, (int)c.owner, (int)SPY_RANSOM, (int)c.jailer);
+                const int32_t before = s->spy_count;
+                Free_Spy_(i, "ransomed", true);
+                if (s->spy_count == before) ++i;  // the cell still holds spies: one a period
+            }
         }
 
         // The holder's mind about a hostage whose giver broke a treaty: 0 execute, 1 send home, 2 keep as a ward.
@@ -104,12 +213,58 @@ namespace hostages {
         if (s->count >= MAX_HELD || Find(leader) >= 0) return false;
         s_leader_data& l = MOX::leaders[leader];
         const int16_t owner = l.player_index;
-        if (owner < 0 || owner >= MAX_PLAYERS || owner == holder) return false;
+        if (owner < 0 || owner >= MAX_PLAYERS || (owner == holder) != (kind >= KIND_JAIL)) return false;
         if (l.status != LEADER_POOL && l.status != LEADER_ASSIGNED) return false;
         OFFICER::Kill_Officer(leader);  // out of service: post cleared, colonies recalculated, status -2
         s->held[s->count++] = {static_cast<int8_t>(leader), static_cast<int8_t>(owner), static_cast<int8_t>(holder), kind, MOX::stardate};
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d holds leader %d of player %d as a %s",
             (int)MOX::stardate, (int)holder, (int)leader, (int)owner, Kind_Name_(kind));
+        return true;
+    }
+
+    bool Jail(int16_t leader, bool traitor) {
+        if (leader < 0 || leader >= MAX_LEADERS) return false;
+        const int16_t owner = MOX::leaders[leader].player_index;
+        return Hold(leader, owner, traitor ? KIND_TRAITOR : KIND_JAIL);
+    }
+
+    void Arrest(int16_t leader, bool traitor) {
+        if (!Jail(leader, traitor)) OFFICER::Deassign_Officer(leader);
+    }
+
+    bool Mole_With_Roll(int16_t leader, int16_t holder, int32_t roll) {
+        if (!spy_ops::Enabled(spy_ops::OP_BRIBERY) || roll >= MOLE_PERCENT || leader < 0 || leader >= MAX_LEADERS) return false;
+        const s_leader_data& l = MOX::leaders[leader];
+        if (!Alive_(holder) || l.player_index == holder || l.player_index < 0 || (l.status != LEADER_POOL && l.status != LEADER_ASSIGNED)) return false;
+        *spy_ops::Bribed_Slot(leader) = static_cast<int8_t>(holder);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, leader %d of player %d comes home a mole of player %d",
+            (int)MOX::stardate, (int)leader, (int)l.player_index, (int)holder);
+        return true;
+    }
+
+    bool Imprison_Spy(int16_t jailer, int16_t owner) {
+        if (!spy_prison || !Alive_(jailer) || !Alive_(owner) || jailer == owner) return false;
+        s_state* s = State();
+        for (int32_t i = 0; i < s->spy_count; ++i) {
+            if (s->spies[i].jailer != jailer || s->spies[i].owner != owner) continue;
+            if (s->spies[i].count >= MAX_SPIES_PER_CELL) return false;
+            ++s->spies[i].count;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d imprisons a spy of player %d (%d held)",
+                (int)MOX::stardate, (int)jailer, (int)owner, (int)s->spies[i].count);
+            return true;
+        }
+        if (s->spy_count >= MAX_SPY_CELLS) return false;
+        s->spies[s->spy_count++] = {static_cast<int8_t>(jailer), static_cast<int8_t>(owner), 1, MOX::stardate};
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d imprisons a spy of player %d (1 held)",
+            (int)MOX::stardate, (int)jailer, (int)owner);
+        return true;
+    }
+
+    bool Spy_Escape_With_Roll(int32_t cell, int32_t roll) {
+        if (!spy_prison) return false;
+        const s_state* s = State();
+        if (cell < 0 || cell >= s->spy_count || roll >= SPY_ESCAPE_PERCENT) return false;
+        Free_Spy_(cell, "escaped", true);
         return true;
     }
 
@@ -180,7 +335,7 @@ namespace hostages {
                     Execute(i, "the giver broke a treaty");
                     break;
                 case 1:
-                    Release(i, breaker, "the holder sends the hostage home");
+                    Hostage_Returns_(i, breaker, "the holder sends the hostage home");
                     break;
                 default:
                     Release(i, victim, "the holder keeps the hostage as a ward");
@@ -239,10 +394,20 @@ namespace hostages {
                 Release(i, h.owner, "its holder is gone");
                 continue;
             }
+            if (h.kind >= KIND_JAIL) {
+                if (MOX::stardate - h.since < JAIL_TURNS) {
+                    ++i;
+                } else if (h.kind == KIND_TRAITOR && Computer_(h.owner) && MOX::player[h.owner].personality == PLAYER_PERSONALITY_RUTHLESS) {
+                    Execute(i, "a ruthless empire executes its traitor");
+                } else {
+                    Release(i, h.owner, "the jail term is over");
+                }
+                continue;
+            }
             if (h.kind == KIND_HOSTAGE) {
                 if (MOX::stardate - h.since >= HOSTAGE_TURNS) {
                     opinion::Add(h.owner, h.holder, opinion::REASON_FAMILY_TIES, RETURNED_OPINION);
-                    Release(i, h.owner, "the term is over");
+                    Hostage_Returns_(i, h.owner, "the term is over");
                     continue;
                 }
                 ++i;
@@ -261,6 +426,10 @@ namespace hostages {
             ++i;
         }
         if (prisoners && MOX::stardate % PERIOD == PHASE) Exchange_And_Ransom_();
+        if (spy_prison) {
+            Spy_Prison_Turn_();
+            if (MOX::stardate % PERIOD == PHASE) Spy_Exchange_And_Ransom_();
+        }
     }
 
 } // namespace hostages

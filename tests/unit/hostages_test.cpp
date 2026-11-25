@@ -2,8 +2,11 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "game/espionage.h"
 #include "game/hostages.h"
+#include "game/intrigue.h"
 #include "game/opinion.h"
+#include "game/spy_ops.h"
 #include "game/serialization.h"
 
 #include <memory>
@@ -14,12 +17,18 @@ namespace {
         test::s_saved_value<bool> swaps{hostages::hostage_swaps};
         test::s_saved_value<bool> prisoners{hostages::prisoners};
         test::s_saved_value<bool> opinion_enabled{opinion::enabled};
+        test::s_saved_value<bool> spy_prison{hostages::spy_prison};
+        test::s_saved_value<bool> spy_fate{intrigue::spy_fate};
+        test::s_saved_value<int32_t> operations{spy_ops::operations};
 
         s_hostages_scope() {
             hostages::Clear();
             opinion::Clear();
             hostages::hostage_swaps = true;
             hostages::prisoners = true;
+            hostages::spy_prison = true;
+            intrigue::spy_fate = false;
+            spy_ops::operations = 0;
             opinion::enabled = true;
         }
         ~s_hostages_scope() {
@@ -77,7 +86,7 @@ namespace {
         for (uint32_t seed = 1; seed < 100000; ++seed) {
             game_random::Set_Random_Seed(seed);
             bool calm = true;
-            for (int i = 0; i < 3; ++i) calm = calm && game_random::Random(100) >= static_cast<uint32_t>(hostages::ESCAPE_PERCENT);
+            for (int i = 0; i < 3; ++i) calm = calm && game_random::Random(100) >= static_cast<uint32_t>(hostages::SPY_ESCAPE_PERCENT);
             if (calm) {
                 game_random::Set_Random_Seed(seed);
                 return;
@@ -287,6 +296,7 @@ DOCTEST_TEST_CASE("off: nothing is held, returned or drawn")
     Setup_(&state);
     hostages::hostage_swaps = false;
     hostages::prisoners = false;
+    hostages::spy_prison = false;
     Ally_(&state);
     DOCTEST_CHECK_FALSE(hostages::Hold(0, 1, hostages::KIND_PRISONER));
     DOCTEST_CHECK_FALSE(hostages::Hold(0, 1, hostages::KIND_HOSTAGE));
@@ -299,6 +309,9 @@ DOCTEST_TEST_CASE("off: nothing is held, returned or drawn")
     DOCTEST_CHECK(hostages::Empty());
     DOCTEST_CHECK(state.leaders[1].status == 0);
     DOCTEST_CHECK(hostages::Count_Held(0, 1) == 0);
+    DOCTEST_CHECK_FALSE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK_FALSE(hostages::Spy_Escape_With_Roll(0, 0));
 }
 
 DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
@@ -344,6 +357,263 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     SERIAL::Reader_ r4(buffer.get(), size - 1, "test underflow", true);
     DOCTEST_CHECK_FALSE(hostages::Parse_Save(&r4, &error));
     DOCTEST_CHECK(hostages::State()->count == 2);  // the failed parses left the state alone
+}
+
+
+DOCTEST_TEST_CASE("an arrest jails the leader in its own empire (no flag needed); it returns after the term")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    hostages::hostage_swaps = false;
+    hostages::prisoners = false;
+    hostages::spy_prison = false;
+    const uint32_t seed = game_random::Get_Random_Seed();
+    hostages::Arrest(2, false);
+    DOCTEST_REQUIRE(hostages::State()->count == 1);
+    DOCTEST_CHECK(hostages::State()->held[0].leader == 2);
+    DOCTEST_CHECK(hostages::State()->held[0].owner == 0);
+    DOCTEST_CHECK(hostages::State()->held[0].holder == 0);
+    DOCTEST_CHECK(hostages::State()->held[0].kind == hostages::KIND_JAIL);
+    DOCTEST_CHECK(state.leaders[2].status == -2);
+    DOCTEST_CHECK(state.leaders[2].level == 2);  // not promoted onto the hire list as the dismissal does
+    DOCTEST_CHECK_FALSE(hostages::Empty());
+
+    MOX::stardate += hostages::JAIL_TURNS - 1;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    MOX::stardate += 1;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[2].status == 0);
+    DOCTEST_CHECK(state.leaders[2].player_index == 0);  // back in its own pool
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);  // the jail draws nothing
+}
+
+DOCTEST_TEST_CASE("a jailed traitor is executed by a ruthless empire after the term, released by the others")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].personality = PLAYER_PERSONALITY_RUTHLESS;
+    hostages::Arrest(0, true);
+    DOCTEST_REQUIRE(hostages::State()->held[0].kind == hostages::KIND_TRAITOR);
+    MOX::stardate += hostages::JAIL_TURNS;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[0].status == -2);  // stays dead
+
+    state.players[0].personality = PLAYER_PERSONALITY_HONORABLE;
+    hostages::Arrest(1, true);
+    MOX::stardate += hostages::JAIL_TURNS;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[1].status == 0);  // an honest leader (framed as a traitor) comes back
+}
+
+DOCTEST_TEST_CASE("a full table or a leader out of service falls back to the classic dismissal")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    hostages::State()->count = hostages::MAX_HELD;
+    for (int i = 0; i < hostages::MAX_HELD; ++i) hostages::State()->held[i].leader = static_cast<int8_t>(50 + i);
+    DOCTEST_CHECK_FALSE(hostages::Jail(2, false));
+    hostages::Arrest(2, false);
+    DOCTEST_CHECK(hostages::State()->count == hostages::MAX_HELD);
+    DOCTEST_CHECK(hostages::Find(2) == -1);  // not jailed: the classic dismissal was done
+    hostages::State()->count = 0;
+    state.leaders[1].status = -2;
+    DOCTEST_CHECK_FALSE(hostages::Jail(1, false));
+}
+
+DOCTEST_TEST_CASE("a jailed leader of an empire that is gone is dropped")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    hostages::Arrest(2, false);
+    state.players[0].eliminated = 1;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Empty());
+}
+
+DOCTEST_TEST_CASE("a caught spy sits in prison unless spy_fate decided its fate; escape, ransom, exchange, term")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    // The classic path: spy_fate off, so espionage::On_Spy_Caught imprisons the spy of player 0 with player 1.
+    espionage::On_Spy_Caught(1, 0);
+    espionage::On_Spy_Caught(1, 0);
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 2);
+    DOCTEST_CHECK(hostages::Spies_Held(0, 1) == 0);
+    DOCTEST_CHECK_FALSE(hostages::Empty());
+    // spy_fate on: a computer catcher decides the fate (execute, expel, send home, turn): no prison.
+    intrigue::spy_fate = true;
+    espionage::On_Spy_Caught(1, 0);
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 2);
+    intrigue::spy_fate = false;
+
+    // Escape on a low roll: one spy goes home.
+    state.players[0].spies[0] = 0;
+    DOCTEST_CHECK_FALSE(hostages::Spy_Escape_With_Roll(0, hostages::SPY_ESCAPE_PERCENT));
+    DOCTEST_CHECK(hostages::Spy_Escape_With_Roll(0, 0));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 1);
+
+    // Ransom at the phase: 20 BC to the jailer; the last spy leaves, the cell is gone.
+    Calm_();
+    MOX::stardate = 35107;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    MOX::stardate = 35108;
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK(state.players[0].bc == 1000 - hostages::SPY_RANSOM);
+    DOCTEST_CHECK(state.players[1].bc == 1000 + hostages::SPY_RANSOM);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 2);
+
+    // A poor owner does not pay; a human owner does not pay.
+    state.players[0].bc = hostages::RANSOM_RESERVE;
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    state.players[0].bc = 1000;
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    state.players[0].objectives = PLAYER_OBJECTIVE_MILITARIST;
+
+    // Exchange one for one: each side holds the other's spy, no BC moves.
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(0, 1));
+    state.players[0].bc = state.players[1].bc = 1000;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK(hostages::Spies_Held(0, 1) == 0);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+}
+
+DOCTEST_TEST_CASE("a spy held too long is released, or executed by a ruthless jailer; the pair is capped")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].bc = 0;  // cannot pay
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    MOX::stardate += hostages::SPY_PRISON_TURNS;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 1);
+
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    MOX::stardate += hostages::SPY_PRISON_TURNS;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 1);  // executed: no spy came home
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_TREATED_OUR_SPY) == hostages::EXECUTED_SPY_OPINION);
+
+    for (int i = 0; i < hostages::MAX_SPIES_PER_CELL; ++i) DOCTEST_CHECK(hostages::Imprison_Spy(1, 0));
+    DOCTEST_CHECK_FALSE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_CHECK_FALSE(hostages::Imprison_Spy(1, 1));
+}
+
+DOCTEST_TEST_CASE("a hostage returned home may turn mole of its holder (bribery on); otherwise nothing is drawn")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = 63;
+    DOCTEST_CHECK(hostages::Mole_With_Roll(0, 1, hostages::MOLE_PERCENT - 1));
+    DOCTEST_CHECK(spy_ops::Bribed_By(0) == 1);
+    *spy_ops::Bribed_Slot(0) = -1;
+    DOCTEST_CHECK_FALSE(hostages::Mole_With_Roll(0, 1, hostages::MOLE_PERCENT));
+    DOCTEST_CHECK(spy_ops::Bribed_By(0) == -1);
+    spy_ops::operations = 0;
+    DOCTEST_CHECK_FALSE(hostages::Mole_With_Roll(0, 1, 0));
+
+    // The term's end with bribery off: no draw. With it on: one draw, and the leader is home either way.
+    Ally_(&state);
+    DOCTEST_REQUIRE(hostages::State()->count == 1);
+    const int16_t ward = hostages::State()->held[0].leader;
+    MOX::stardate += hostages::HOSTAGE_TURNS;
+    const uint32_t seed = game_random::Get_Random_Seed();
+    hostages::Turn();
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+    DOCTEST_CHECK(state.leaders[ward].status == 0);
+
+    spy_ops::operations = 63;
+    Ally_(&state);
+    DOCTEST_REQUIRE(hostages::State()->count == 1);
+    MOX::stardate += hostages::HOSTAGE_TURNS;
+    hostages::Turn();
+    DOCTEST_CHECK(game_random::Get_Random_Seed() != seed);  // the mole roll
+    DOCTEST_CHECK(state.leaders[ward].status == 0);
+    DOCTEST_CHECK(state.leaders[ward].player_index == 0);
+    *spy_ops::Bribed_Slot(ward) = -1;
+}
+
+DOCTEST_TEST_CASE("the payload with jail records and spy cells round-trips; version 1 is still read; bad cells are refused")
+{
+    s_hostages_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_REQUIRE(hostages::Jail(2, false));
+    DOCTEST_REQUIRE(hostages::Jail(1, true));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(0, 2));
+    const uint32_t size = hostages::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    hostages::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    hostages::Clear();
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(hostages::Parse_Save(&reader, &error));
+    hostages::Commit_Save();
+    DOCTEST_CHECK(hostages::State()->count == 2);
+    DOCTEST_CHECK(hostages::State()->held[1].kind == hostages::KIND_TRAITOR);
+    DOCTEST_CHECK(hostages::State()->held[1].owner == hostages::State()->held[1].holder);
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 2);
+    DOCTEST_CHECK(hostages::Spies_Held(0, 2) == 1);
+
+    // A spy cell at the end: jailer, owner, count, since (4 bytes). Offsets from the end: the last cell is 7 bytes.
+    auto same = std::make_unique<uint8_t[]>(size);
+    std::copy(buffer.get(), buffer.get() + size, same.get());
+    same[size - 6] = same[size - 7];  // owner = jailer
+    SERIAL::Reader_ r1(same.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(hostages::Parse_Save(&r1, &error));
+
+    auto zero = std::make_unique<uint8_t[]>(size);
+    std::copy(buffer.get(), buffer.get() + size, zero.get());
+    zero[size - 5] = 0;  // a cell of no spies
+    SERIAL::Reader_ r2(zero.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(hostages::Parse_Save(&r2, &error));
+
+    // A jail record held by another empire than its owner is refused.
+    auto wrong = std::make_unique<uint8_t[]>(size);
+    std::copy(buffer.get(), buffer.get() + size, wrong.get());
+    wrong[5] = 1;  // the first record (a jail): holder != owner
+    SERIAL::Reader_ r3(wrong.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(hostages::Parse_Save(&r3, &error));
+
+    // Version 1: no spy cells; the records are read as before.
+    uint8_t v1[] = {1, 0, 1, 3, 0, 1, hostages::KIND_PRISONER, 0, 0, 0, 0};
+    SERIAL::Reader_ r4(v1, sizeof(v1), "test underflow", true);
+    DOCTEST_REQUIRE(hostages::Parse_Save(&r4, &error));
+    hostages::Commit_Save();
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    DOCTEST_CHECK(hostages::State()->held[0].leader == 3);
+    DOCTEST_CHECK(hostages::State()->spy_count == 0);
 }
 
 }

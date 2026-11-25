@@ -6,6 +6,7 @@
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/events.h"
+#include "game/hostages.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
 #include "game/opinion.h"
@@ -126,8 +127,8 @@ namespace incidents {
 
         void Trial_(int16_t player, int16_t leader) {
             Add_Loyalty_(leader, -GENERAL_JAILED);
-            OFFICER::Deassign_Officer(leader);
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d is tried and dismissed", (int)MOX::stardate,
+            hostages::Arrest(leader, false);  // the trial jails the general (ab-review 3.1)
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d is tried and jailed", (int)MOX::stardate,
                 (int)player, (int)leader);
         }
 

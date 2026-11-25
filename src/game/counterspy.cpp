@@ -4,6 +4,7 @@
 
 #include "game/bill.h"
 #include "game/dice.h"
+#include "game/hostages.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
 #include "game/loyalty.h"
@@ -60,7 +61,7 @@ namespace counterspy {
             const int16_t briber = spy_ops::Bribed_By(leader);
             if (briber < 0) return;
             *spy_ops::Bribed_Slot(leader) = -1;
-            OFFICER::Deassign_Officer(leader);
+            hostages::Arrest(leader, true);  // the uncovered mole is jailed (ab-review 3.1)
             opinion::Add(owner, briber, opinion::REASON_BRIBED_OUR_LEADER, UNCOVERED_OPINION);
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d uncovers its leader %d bribed by player %d (%s)",
                 (int)MOX::stardate, (int)owner, (int)leader, (int)briber, how);
@@ -164,8 +165,8 @@ namespace counterspy {
             return HUNT_UNCOVERED;
         }
         if (success || check.outcome > dice::OUTCOME_FAILURE) return HUNT_NOTHING;
-        // An innocent is jailed; the others are shaken.
-        OFFICER::Deassign_Officer(suspect);
+        // An innocent is jailed; the others are shaken (ab-review 3.1: a real jail).
+        hostages::Arrest(suspect, false);
         Add_Loyalty_(suspect, JAILED_LOYALTY);
         for (int16_t i = 0; i < MAX_LEADERS; ++i) {
             if (i != suspect && Holds_(MOX::leaders[i], hunter)) Add_Loyalty_(i, WITCH_LOYALTY);

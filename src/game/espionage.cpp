@@ -6,6 +6,7 @@
 #include "game/advisor_directive.h"
 #include "game/bill.h"
 #include "game/counterspy.h"
+#include "game/hostages.h"
 #include "game/intrigue.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
@@ -93,9 +94,9 @@ namespace espionage {
                     const int32_t chance = trust == loyalty::UNTRACKED ? witch_hunt_accusation
                                                                        : witch_hunt_accusation * (100 - trust) / 50;
                     if (static_cast<int32_t>(game_random::Random(1000)) > chance) continue;
-                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d dismisses its leader %d in a witch hunt",
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d jails its leader %d in a witch hunt",
                         (int)MOX::stardate, (int)p, (int)i);
-                    OFFICER::Deassign_Officer(i);
+                    hostages::Arrest(i, false);  // a false accusation: an honest leader is jailed (mechanics.md 3.2.3, ab-review 3.1)
                 }
             }
             if (MOX::stardate % MODE_PERIOD != 0) return;
@@ -116,6 +117,10 @@ namespace espionage {
 
     void On_Spy_Caught(int16_t victim, int16_t attacker) {
         intrigue::On_Spy_Caught(victim, attacker);  // the spy's fate (off by default)
+        // A spy whose fate nobody decided otherwise sits in the catcher's prison (off by default; ab-review 2.2).
+        if (hostages::spy_prison && intrigue::Decide_Fate(victim, attacker, INT32_MAX) == intrigue::FATE_CLASSIC) {
+            hostages::Imprison_Spy(victim, attacker);
+        }
         counterspy::On_Spy_Caught(victim, attacker);  // suspicion, interrogation (off by default)
         if (!counterintelligence || !Alive_(victim) || attacker < 0 || attacker >= MAX_PLAYERS || victim == attacker) return;
         s_state* s = State();

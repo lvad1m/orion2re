@@ -7,6 +7,7 @@
 #include "game/dice.h"
 #include "game/colbldg.h"
 #include "game/espionage.h"
+#include "game/hostages.h"
 #include "game/opinion.h"
 #include "game/reputation.h"
 #include "game/serialization.h"
@@ -149,7 +150,10 @@ DOCTEST_TEST_CASE("a scientist is killed, a leader bribed or framed; a framed le
     DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_FRAMED_OUR_LEADER) == -25);
     // Only the bribed governor is left to frame now.
     DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_FRAME_LEADER, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
-    DOCTEST_CHECK(state.leaders[6].status == -1);
+    DOCTEST_CHECK(state.leaders[6].status == -2);  // jailed, not dismissed to the hire list (ab-review 3.1)
+    DOCTEST_REQUIRE(hostages::Find(6) >= 0);
+    DOCTEST_CHECK(hostages::State()->held[hostages::Find(6)].kind == hostages::KIND_JAIL);
+    hostages::Clear();
     DOCTEST_CHECK(honest.status == 0);
 }
 
