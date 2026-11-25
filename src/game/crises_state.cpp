@@ -11,34 +11,68 @@
 namespace crises {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 1: the slots only; 2: the slots and s_extra
         constexpr uint32_t SLOT_SIZE = 1 + 1 + 2 + 1 + 4 + 1 + 1;
-        constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + MAX_ACTIVE * SLOT_SIZE;
+        constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_ACTIVE * SLOT_SIZE;
+        constexpr uint32_t SCALE_SIZE = 1 + 1 + 2 + 4 + 1;
+        constexpr uint32_t EXTRA_SIZE = MAX_SCALES * SCALE_SIZE + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
 
         s_active slots[MAX_ACTIVE];
         s_active pending[MAX_ACTIVE];
+        s_extra extra;
+        s_extra pending_extra;
         bool has_pending = false;
+
+        bool Extra_Is_Empty_(const s_extra& e) {
+            for (const s_scale& s : e.scale) {
+                if (s.kind != SCALE_NONE) return false;
+            }
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                if (e.academy_left[p] != 0 || e.fallen_until[p] != 0 || e.given[p] != 0) return false;
+            }
+            return e.front_broken == 0 && e.council_progress == 0;
+        }
     } // namespace
 
     s_active* Slots() {
         return slots;
     }
 
+    s_extra* Extra() {
+        return &extra;
+    }
+
+    const s_scale* Find_Scale(e_scale kind, int16_t player) {
+        for (const s_scale& s : extra.scale) {
+            if (s.kind == kind && s.player == player) return &s;
+        }
+        return nullptr;
+    }
+
+    bool Extra_Empty() {
+        return Extra_Is_Empty_(extra);
+    }
+
     void Clear() {
         for (s_active& s : slots) s = s_active{};
+        extra = s_extra{};
         Discard_Save();
     }
 
     bool Empty() {
-        return std::all_of(std::begin(slots), std::end(slots), [](const s_active& s) { return s.crisis == CRISIS_NONE; });
+        return std::all_of(std::begin(slots), std::end(slots), [](const s_active& s) { return s.crisis == CRISIS_NONE; })
+            && Extra_Is_Empty_(extra);
     }
 
+    // Version 1 (the old layout) while nothing of the wave-4 state is kept, so a save made with the new flags
+    // off is the same bytes as before.
     uint32_t Save_Size() {
-        return SAVE_SIZE;
+        return Extra_Is_Empty_(extra) ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + EXTRA_SIZE;
     }
 
     void Write_Save(SERIAL::Writer_* writer) {
-        writer->Write_Uint16(SAVE_PAYLOAD_VERSION);
+        const bool with_extra = !Extra_Is_Empty_(extra);
+        writer->Write_Uint16(with_extra ? SAVE_PAYLOAD_VERSION : 1);
         for (const s_active& s : slots) {
             writer->Write_Uint8(s.crisis);
             writer->Write_Int8(s.player);
@@ -48,6 +82,19 @@ namespace crises {
             writer->Write_Uint8(s.result);
             writer->Write_Int8(s.roll);
         }
+        if (!with_extra) return;
+        for (const s_scale& s : extra.scale) {
+            writer->Write_Uint8(s.kind);
+            writer->Write_Int8(s.player);
+            writer->Write_Int16(s.value);
+            writer->Write_Int32(s.started);
+            writer->Write_Int8(s.approach);
+        }
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint8(extra.academy_left[p]);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.fallen_until[p]);
+        writer->Write_Uint8(extra.front_broken);
+        writer->Write_Int32(extra.council_progress);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint16(extra.given[p]);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -57,8 +104,10 @@ namespace crises {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("crises save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
-        if (reader->Remaining() != SAVE_SIZE - sizeof(uint16_t)) return fail("crises save has the wrong size");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
+        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + EXTRA_SIZE;
+        if (reader->Remaining() != expected - sizeof(uint16_t)) return fail("crises save has the wrong size");
         for (s_active& s : pending) {
             s.crisis = reader->Read_Uint8();
             s.player = reader->Read_Int8();
@@ -73,6 +122,34 @@ namespace crises {
             if (s.colony < -1 || s.colony >= MAX_COLONIES) return fail("crises save has an out-of-range colony");
             if (s.result > RESULT_FAILURE || s.due < 0) return fail("crises save has a bad value");
         }
+        pending_extra = s_extra{};
+        if (version >= 2) {
+            for (s_scale& s : pending_extra.scale) {
+                s.kind = reader->Read_Uint8();
+                s.player = reader->Read_Int8();
+                s.value = reader->Read_Int16();
+                s.started = reader->Read_Int32();
+                s.approach = reader->Read_Int8();
+                if (s.kind >= SCALE_COUNT) return fail("crises save has an unknown scale");
+                if (s.player < -1 || s.player >= MAX_PLAYERS) return fail("crises save has an out-of-range scale player");
+                if (s.value < 0 || s.value > SCALE_MAX || s.started < 0) return fail("crises save has a bad scale");
+                if (s.approach < -1 || s.approach >= APPROACH_COUNT) return fail("crises save has an out-of-range approach");
+            }
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                pending_extra.academy_left[p] = reader->Read_Uint8();
+                if (pending_extra.academy_left[p] > ACADEMY_TURNS) return fail("crises save has a bad academy");
+            }
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                pending_extra.fallen_until[p] = reader->Read_Int32();
+                if (pending_extra.fallen_until[p] < 0) return fail("crises save has a bad crisis end");
+            }
+            pending_extra.front_broken = reader->Read_Uint8();
+            pending_extra.council_progress = reader->Read_Int32();
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) pending_extra.given[p] = reader->Read_Uint16();
+            if (pending_extra.front_broken > 1 || pending_extra.council_progress < 0 || pending_extra.council_progress > 1000000) {
+                return fail("crises save has a bad council project");
+            }
+        }
         if (reader->Failed()) return fail("crises save is truncated");
         has_pending = true;
         return true;
@@ -81,6 +158,7 @@ namespace crises {
     void Commit_Save() {
         if (!has_pending) return;
         std::copy(std::begin(pending), std::end(pending), std::begin(slots));
+        extra = pending_extra;
         has_pending = false;
     }
 

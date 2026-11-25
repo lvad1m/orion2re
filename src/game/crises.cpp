@@ -323,8 +323,22 @@ namespace crises {
         return result;
     }
 
+    namespace {
+        void Crisis_Turn_();
+        void Situations_Turn_();
+        void Front_Turn_();
+    } // namespace
+
+    // The three parts run in this order; each is under its own flag, so with the new flags off the old
+    // crises draw exactly what they drew before.
     void Turn() {
-        if (!enabled) return;
+        if (enabled) Crisis_Turn_();
+        if (situations) Situations_Turn_();
+        if (crisis_front) Front_Turn_();
+    }
+
+    namespace {
+    void Crisis_Turn_() {
         for (int32_t i = 0; i < MAX_ACTIVE; ++i) {
             s_active& s = Slots()[i];
             if (s.crisis == CRISIS_NONE) continue;
@@ -347,6 +361,304 @@ namespace crises {
             const int16_t colony = crisis == CRISIS_ASTEROID ? Capital_(p) : Random_Colony_(p, crisis == CRISIS_REVOLUTIONARIES);
             if (colony >= 0) Open(p, crisis, colony);
         }
+    }
+
+    // ---- Wave 4, piece 7: situations and crises with a front ----
+
+    constexpr s_approach APPROACHES[APPROACH_COUNT] = {
+        {"propaganda", 5, 0, 3},
+        {"martial law", 0, 3, 2},
+        {"carry on", 0, 0, 0},
+    };
+
+    s_scale* Mutable_Scale_(e_scale kind, int16_t player) {
+        return const_cast<s_scale*>(Find_Scale(kind, player));
+    }
+
+    s_scale* New_Scale_(e_scale kind, int16_t player) {
+        for (s_scale& slot : Extra()->scale) {
+            if (slot.kind != SCALE_NONE) continue;
+            slot = s_scale{};
+            slot.kind = kind;
+            slot.player = static_cast<int8_t>(player);
+            slot.started = MOX::stardate;
+            return &slot;
+        }
+        return nullptr;
+    }
+
+    void Log_Line_(const char* what, int16_t player, int32_t value) {
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: %s (%d)", (int)MOX::stardate, (int)player, what,
+            (int)value);
+    }
+
+    int16_t Pops_(int16_t player) {
+        int32_t pops = 0;
+        for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+            if (MOX::colony[c].owner == player) pops += MOX::colony[c].n_pops;
+        }
+        return static_cast<int16_t>(std::min<int32_t>(pops, 30000));
+    }
+
+    void Pick_Approach_(s_scale& scale) {
+        scale.approach = static_cast<int8_t>(Computer_(scale.player) ? Choose_Approach(scale.player) : 0);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: war weariness - it takes the approach: %s",
+            (int)MOX::stardate, (int)scale.player, APPROACHES[scale.approach].name);
+    }
+
+    // The scale of war weariness of every empire (events-catalog.md 3.9).
+    void War_Weariness_() {
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (!Alive_(p)) continue;
+            s_player& player = MOX::player[p];
+            bool at_war = false;
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o != p && Alive_(o) && player.contact[o] != 0 && player.treaty[o] >= TREATY_FIRST_WAR) at_war = true;
+            }
+            s_scale* scale = Mutable_Scale_(SCALE_WAR_WEARINESS, p);
+            if (scale == nullptr) {
+                if (!at_war) continue;
+                scale = New_Scale_(SCALE_WAR_WEARINESS, p);
+                if (scale == nullptr) continue;
+                Log_Line_("war weariness: the scale starts", p, scale->value);
+                Pick_Approach_(*scale);
+            }
+            int32_t delta = -WEARY_PEACE;
+            if (at_war) {
+                const s_approach& approach = APPROACHES[std::clamp<int32_t>(scale->approach, 0, APPROACH_COUNT - 1)];
+                delta = WEARY_WAR;
+                if (player.bc >= approach.cost_bc) {
+                    player.bc -= approach.cost_bc;
+                    player.research_accumulated = std::max<int32_t>(0, player.research_accumulated - approach.cost_research);
+                    delta -= approach.relief;
+                }
+            }
+            const int32_t stage = Scale_Move(*scale, delta);
+            if (scale->value == 0) {
+                *scale = s_scale{};
+                Log_Line_("war weariness: the scale ends", p, 0);
+                continue;
+            }
+            if (stage == 0) continue;
+            const int16_t capital = Capital_(p);
+            if (stage == 2 && capital >= 0) {
+                MOX::colony[capital].production_spent = 0;
+                Log_Line_("war weariness: strikes - the capital's output of the turn is lost", p, scale->value);
+            } else if (stage == 3) {
+                player.bc = std::max<int32_t>(0, player.bc - WEARY_FINE);
+                Log_Line_("war weariness: unrest - the war fund is fined", p, scale->value);
+            } else if (stage >= 4) {
+                if (capital >= 0) Lose_Dearest_Building_(capital);
+                scale->value = WEARY_RESET;
+                Log_Line_("war weariness: a general strike - the capital loses a building", p, scale->value);
+            }
+            if (Computer_(p)) Pick_Approach_(*scale);
+        }
+    }
+
+    void Finish_Academy_(int16_t p) {
+        s_leader_data* best = nullptr;
+        for (int16_t l = 0; l < MAX_LEADERS; ++l) {
+            s_leader_data& leader = MOX::leaders[l];
+            if (leader.player_index != p || leader.status != STATUS_ASSIGNED) continue;
+            if (best == nullptr || leader.xp < best->xp) best = &leader;
+        }
+        if (best != nullptr) {
+            best->xp = static_cast<int16_t>(std::min<int32_t>(30000, best->xp + ACADEMY_XP));
+            Log_Line_("the academy is done: a leader is trained", p, best->xp);
+        } else {
+            MOX::player[p].bc += ACADEMY_COST / 2;
+            Log_Line_("the academy is done but there is no leader to train: half of the cost comes back", p, ACADEMY_COST / 2);
+        }
+    }
+
+    // Academies (3.9): a project of ACADEMY_TURNS turns; it needs no choice, so humans found them too.
+    void Academies_() {
+        s_extra* extra = Extra();
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (extra->academy_left[p] == 0) continue;
+            if (!Alive_(p)) {
+                extra->academy_left[p] = 0;
+                continue;
+            }
+            if (--extra->academy_left[p] == 0) Finish_Academy_(p);
+        }
+        if (MOX::stardate - 35000 < MIN_TURN) return;
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (!Alive_(p) || extra->academy_left[p] != 0 || MOX::player[p].bc < ACADEMY_COST || Capital_(p) < 0) continue;
+            if (static_cast<int32_t>(game_random::Random(1000)) > ACADEMY_CHANCE) continue;
+            Found_Academy(p);
+            return;  // at most one a turn
+        }
+    }
+
+    void Situations_Turn_() {
+        War_Weariness_();
+        Academies_();
+    }
+
+    // The empire's attitude to a character-led crisis: a martial or suspicious character.
+    bool Crisis_Prone_(int16_t player) {
+        switch (MOX::player[player].personality) {
+            case PLAYER_PERSONALITY_AGGRESSIVE:
+            case PLAYER_PERSONALITY_RUTHLESS:
+            case PLAYER_PERSONALITY_XENOPHOBIC: return true;
+            default: return false;
+        }
+    }
+
+    void Fallen_() {
+        s_extra* extra = Extra();
+        bool any = false;
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (extra->fallen_until[p] == 0) continue;
+            if (!Alive_(p) || MOX::stardate >= extra->fallen_until[p]) {
+                extra->fallen_until[p] = 0;
+                Log_Line_("the crisis of the fallen empire is over", p, 0);
+            } else {
+                any = true;
+            }
+        }
+        if (any || MOX::stardate - 35000 < FALLEN_MIN_TURN) return;
+        int32_t pops[MAX_PLAYERS] = {};
+        int32_t total = 0;
+        int32_t alive = 0;
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (!Alive_(p)) continue;
+            pops[p] = Pops_(p);
+            total += pops[p];
+            ++alive;
+        }
+        for (int16_t p = 0; p < Players_() && alive > 1; ++p) {
+            if (!Computer_(p) || !Crisis_Prone_(p) || pops[p] <= 0) continue;
+            const int32_t others_average = (total - pops[p]) / (alive - 1);
+            if (pops[p] * FALLEN_RATIO >= others_average) continue;
+            if (static_cast<int32_t>(game_random::Random(1000)) > FALLEN_CHANCE) continue;
+            Turn_Fallen(p);
+            return;  // one at a time
+        }
+    }
+
+    void Antaran_Front_() {
+        if (front_strength <= 0 || MOX::settings.xenons_exist == 0 || MOX::antarans.field6_0x3c != 0) return;
+        s_extra* extra = Extra();
+        if (extra->front_broken != 0) return;
+        const auto add_resources = [](int32_t amount) {
+            MOX::antarans.resource_offensive = static_cast<int16_t>(std::min<int32_t>(RESOURCE_CAP, MOX::antarans.resource_offensive + amount));
+        };
+        s_scale* front = Mutable_Scale_(SCALE_ANTARAN_FRONT, -1);
+        if (front == nullptr) {
+            front = New_Scale_(SCALE_ANTARAN_FRONT, -1);
+            if (front == nullptr) return;
+            front->value = static_cast<int16_t>(std::clamp<int32_t>(front_strength, 1, SCALE_MAX));
+            add_resources(front->value * FRONT_START_RESOURCE);
+            Log_Line_("the Antaran front opens", -1, front->value);
+            return;
+        }
+        if (MOX::stardate % FRONT_PERIOD == 0) {
+            const int32_t stage = Scale_Move(*front, FRONT_STEP);
+            if (stage > 0) {
+                add_resources(stage * FRONT_STAGE_RESOURCE);
+                Log_Line_("the Antaran front advances: a new stage", -1, front->value);
+            }
+        }
+        // The council's project (3.12): trophies against the crisis.
+        if (MOX::stardate % COUNCIL_PERIOD != 1) return;
+        for (int16_t p = 0; p < Players_(); ++p) {
+            const int32_t gift = Council_Gift(p);
+            if (gift == 0) continue;
+            MOX::player[p].bc -= gift;
+            extra->given[p] = static_cast<uint16_t>(std::min<int32_t>(65535, extra->given[p] + gift));
+            extra->council_progress += gift;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: hands %d BC of trophies to the council's project (%d of %d)",
+                (int)MOX::stardate, (int)p, (int)gift, (int)extra->council_progress, (int)COUNCIL_GOAL);
+        }
+        if (extra->council_progress < COUNCIL_GOAL) return;
+        for (int16_t p = 0; p < Players_(); ++p) {
+            if (extra->given[p] == 0 || !Alive_(p)) continue;
+            MOX::player[p].research_accumulated += extra->given[p] * COUNCIL_BONUS;
+            Log_Line_("the council's project is done: research for the contributor", p, extra->given[p] * COUNCIL_BONUS);
+        }
+        MOX::antarans.resource_offensive = static_cast<int16_t>(MOX::antarans.resource_offensive / 2);
+        front->value = static_cast<int16_t>(std::max<int32_t>(0, front->value - COUNCIL_PUSHBACK));
+        extra->council_progress = 0;
+        for (uint16_t& given : extra->given) given = 0;
+        if (front->value == 0) {
+            *front = s_scale{};
+            extra->front_broken = 1;
+            Log_Line_("the council has beaten the Antaran front", -1, 0);
+        } else {
+            Log_Line_("the council pushes the Antaran front back", -1, front->value);
+        }
+    }
+
+    void Front_Turn_() {
+        Fallen_();
+        Antaran_Front_();
+    }
+    } // namespace
+
+    int32_t Scale_Move(s_scale& scale, int32_t delta) {
+        const int32_t before = scale.value / SCALE_STAGE;
+        scale.value = static_cast<int16_t>(std::clamp<int32_t>(scale.value + delta, 0, SCALE_MAX));
+        const int32_t after = scale.value / SCALE_STAGE;
+        return after > before ? after : 0;
+    }
+
+    const s_approach* Approaches() {
+        return APPROACHES;
+    }
+
+    int32_t Choose_Approach(int16_t player) {
+        if (!Alive_(player)) return 0;
+        switch (MOX::player[player].personality) {
+            case PLAYER_PERSONALITY_AGGRESSIVE:
+            case PLAYER_PERSONALITY_RUTHLESS: return 1;  // martial law
+            default: break;
+        }
+        return MOX::player[player].bc >= 100 ? 0 : 1;  // propaganda when it can pay for it
+    }
+
+    bool Found_Academy(int16_t player) {
+        if (!situations || !Alive_(player) || Extra()->academy_left[player] != 0) return false;
+        if (MOX::player[player].bc < ACADEMY_COST || Capital_(player) < 0) return false;
+        MOX::player[player].bc -= ACADEMY_COST;
+        Extra()->academy_left[player] = ACADEMY_TURNS;
+        Log_Line_("founds an academy", player, ACADEMY_TURNS);
+        return true;
+    }
+
+    bool Is_Fallen(int16_t player) {
+        return player >= 0 && player < MAX_PLAYERS && Extra()->fallen_until[player] != 0;
+    }
+
+    bool Turn_Fallen(int16_t player) {
+        if (!crisis_front || !Computer_(player) || Is_Fallen(player)) return false;
+        for (int16_t o = 0; o < Players_(); ++o) {
+            if (Is_Fallen(o)) return false;  // one at a time
+        }
+        Extra()->fallen_until[player] = MOX::stardate + FALLEN_DURATION;
+        MOX::player[player].bc += FALLEN_GRANT;
+        Log_Line_("has fallen far behind and turns into a crisis for the others", player, FALLEN_DURATION);
+        for (int16_t o = 0; o < Players_(); ++o) {
+            if (o == player || !Computer_(o) || MOX::player[o].contact[player] == 0) continue;
+            beliefs::Observe(o, player, beliefs::BELIEF_HOSTILE, 2);
+            opinion::Add(o, player, opinion::REASON_PLOTTED_AGAINST_US, -20);
+        }
+        return true;
+    }
+
+    int32_t Council_Gift(int16_t player) {
+        if (!Computer_(player) || MOX::player[player].bc < COUNCIL_MIN_BC) return 0;
+        switch (MOX::player[player].personality) {
+            case PLAYER_PERSONALITY_AGGRESSIVE:
+            case PLAYER_PERSONALITY_RUTHLESS:
+            case PLAYER_PERSONALITY_XENOPHOBIC: return 0;
+            case PLAYER_PERSONALITY_HONORABLE:
+            case PLAYER_PERSONALITY_PACIFIST: return COUNCIL_GENEROUS;
+            default: break;
+        }
+        return MOX::player[player].objectives == PLAYER_OBJECTIVE_TECHNOLOGIST ? COUNCIL_GENEROUS : COUNCIL_SHARE;
     }
 
 } // namespace crises

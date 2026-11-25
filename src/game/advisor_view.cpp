@@ -18,6 +18,7 @@
 #include "game/vassals.h"
 #include "game/world_events.h"
 #include "game/projects.h"
+#include "game/crises.h"
 #include "game/wanderers.h"
 #include "game/incidents.h"
 #include "game/overtures.h"
@@ -484,6 +485,29 @@ namespace advisor {
                 Append_Format(out, "Project: %s at star %d, stage %d of %d, a check in %d turns.\n",
                     p.kind == projects::KIND_ANOMALY ? "studying an anomaly" : "excavating an ancient site", static_cast<int>(p.star),
                     static_cast<int>(p.stage) + 1, static_cast<int>(p.chapters), static_cast<int>(p.turns) - static_cast<int>(p.elapsed));
+            }
+        }
+        if (crises::situations || crises::crisis_front) {
+            const crises::s_extra* ex = crises::Extra();
+            if (const crises::s_scale* war = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, self.player)) {
+                Append_Format(out, "Situation: war weariness %d of %d, approach: %s.\n", static_cast<int>(war->value), crises::SCALE_MAX,
+                    crises::Approaches()[std::clamp<int>(war->approach, 0, crises::APPROACH_COUNT - 1)].name);
+            }
+            if (self.player >= 0 && self.player < MAX_PLAYERS && ex->academy_left[self.player] != 0) {
+                Append_Format(out, "Project: an academy, done in %d turns.\n", static_cast<int>(ex->academy_left[self.player]));
+            }
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                if (ex->fallen_until[p] == 0) continue;
+                Append_Format(out, "Crisis: empire %d has fallen far behind and turned on the others until stardate %d.\n", static_cast<int>(p),
+                    static_cast<int>(ex->fallen_until[p]));
+            }
+            if (const crises::s_scale* front = crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1)) {
+                Append_Format(out, "Crisis: the Antaran front stands at %d of %d; the council's project holds %d of %d BC of trophies",
+                    static_cast<int>(front->value), crises::SCALE_MAX, static_cast<int>(ex->council_progress), crises::COUNCIL_GOAL);
+                if (self.player >= 0 && self.player < MAX_PLAYERS) {
+                    Append_Format(out, " (you gave %d)", static_cast<int>(ex->given[self.player]));
+                }
+                Append_Format(out, ".\n");
             }
         }
         if (wanderers::enabled) {

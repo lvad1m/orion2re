@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/consts.h"
+
 #include <cstdint>
 #include <string>
 
@@ -20,6 +22,9 @@ namespace crises {
 
     extern bool enabled;        // events crises
     extern int32_t chance;      // events crisis_chance: per mille a turn for each computer empire
+    extern bool situations;     // events situations: the situation scale (war weariness) and academies
+    extern bool crisis_front;   // events crisis_front: a fallen empire turns crisis, the Antaran front, the council project
+    extern int32_t front_strength;  // events crisis_front_strength: the Antaran front's start, 0..100; 0 = no front
 
     enum e_crisis : uint8_t {
         CRISIS_NONE = 0,
@@ -77,8 +82,107 @@ namespace crises {
     e_result Resolve_With_Dice(int32_t slot, const int32_t* dice_values);
 
     // Once a turn after the new events (nextturn.cpp): due crises are resolved, follow-ups open,
-    // and new crises may start.
+    // and new crises may start; then the situations and the front, each under its own flag.
     void Turn();
+
+    // ---- Wave 4, piece 7: situations and crises with a front (events-catalog.md 3.9, 3.10, 3.12) ----
+
+    // The situation scale: a value 0..SCALE_MAX that moves every turn; every SCALE_STAGE points is a
+    // stage and a stage reached from below has its effect; an "approach" is a standing policy with a
+    // price paid every turn. War weariness uses it for each empire, the Antaran front for the galaxy.
+    enum e_scale : uint8_t {
+        SCALE_NONE = 0,
+        SCALE_WAR_WEARINESS = 1,  // player's scale: it grows while the empire is at war
+        SCALE_ANTARAN_FRONT = 2,  // the galaxy's scale (player -1): the Antarans' advance
+        SCALE_COUNT = 3,
+    };
+    constexpr int32_t SCALE_MAX = 100;
+    constexpr int32_t SCALE_STAGE = 25;
+    constexpr int32_t MAX_SCALES = 16;
+    struct s_scale {
+        uint8_t kind = SCALE_NONE;
+        int8_t player = -1;
+        int16_t value = 0;
+        int32_t started = 0;
+        int8_t approach = -1;    // chosen approach, -1 before the choice
+    };
+    // Moves `scale` by `delta` within 0..SCALE_MAX; returns the new stage when a stage was reached from
+    // below, else 0.
+    int32_t Scale_Move(s_scale& scale, int32_t delta);
+
+    // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn at war, -WEARY_PEACE otherwise.
+    // Stage 2: the capital's output of the turn is lost; stage 3: a fine in BC; stage 4: a strike costs
+    // the capital its dearest building and the scale falls to WEARY_RESET. Three approaches.
+    constexpr int32_t WEARY_WAR = 6;
+    constexpr int32_t WEARY_PEACE = 4;
+    constexpr int32_t WEARY_FINE = 100;
+    constexpr int32_t WEARY_RESET = 60;
+    constexpr int32_t APPROACH_COUNT = 3;
+    struct s_approach {
+        const char* name;
+        int16_t cost_bc;        // paid every turn the approach stands (skipped when the empire cannot pay)
+        int16_t cost_research;  // research points lost every turn
+        int16_t relief;         // taken off the scale's growth every turn
+    };
+    const s_approach* Approaches();  // APPROACH_COUNT approaches: propaganda, martial law, carry on
+    // The approach a computer takes for its scale of war weariness (a human takes 0).
+    int32_t Choose_Approach(int16_t player);
+
+    // Academy (3.9): an empire founds one for ACADEMY_COST BC; ACADEMY_TURNS later a leader of the
+    // empire gains ACADEMY_XP experience (with no leader to train the half of the cost comes back).
+    constexpr int32_t ACADEMY_CHANCE = 4;     // per mille a turn for each empire without one, from MIN_TURN
+    constexpr int32_t ACADEMY_COST = 150;
+    constexpr int32_t ACADEMY_TURNS = 12;
+    constexpr int32_t ACADEMY_XP = 100;
+    bool Found_Academy(int16_t player);       // false: flag off, a project already runs, no money or no capital
+
+    // A fallen empire turns crisis (3.10): a computer empire of a martial or suspicious character whose
+    // population is under a third of the others' average, FALLEN_CHANCE per mille a turn from FALLEN_MIN_TURN,
+    // one at a time. For FALLEN_DURATION turns it gets FALLEN_GRANT BC, and every computer empire in
+    // contact with it thinks it likelier to attack and holds a plot against it (opinion -20).
+    constexpr int32_t FALLEN_CHANCE = 6;
+    constexpr int32_t FALLEN_MIN_TURN = 80;
+    constexpr int32_t FALLEN_DURATION = 40;
+    constexpr int32_t FALLEN_GRANT = 300;
+    constexpr int32_t FALLEN_RATIO = 3;
+    bool Turn_Fallen(int16_t player);         // turns `player` into a crisis at once (for the tests and the roll)
+    bool Is_Fallen(int16_t player);
+
+    // The Antaran front (3.12): a galaxy scale that starts at front_strength, grows FRONT_STEP every
+    // FRONT_PERIOD turns and feeds the Antarans' offensive resources: FRONT_START_RESOURCE per point at the
+    // start and FRONT_STAGE_RESOURCE per stage each time a stage is reached. Needs the Antarans to exist.
+    constexpr int32_t FRONT_STEP = 1;
+    constexpr int32_t FRONT_PERIOD = 5;
+    constexpr int32_t FRONT_START_RESOURCE = 4;
+    constexpr int32_t FRONT_STAGE_RESOURCE = 150;
+    constexpr int32_t RESOURCE_CAP = 30000;
+
+    // The council's project (3.12): every COUNCIL_PERIOD turns each computer empire with COUNCIL_MIN_BC may
+    // hand over trophies (BC): COUNCIL_GENEROUS for the honorable, pacifists and technologists, COUNCIL_SHARE
+    // for most, nothing for the aggressive, ruthless and xenophobic. At COUNCIL_GOAL the project pushes the
+    // front back by COUNCIL_PUSHBACK (and halves the Antarans' offensive resources); every contributor
+    // gets research points worth COUNCIL_BONUS times what it gave. A human gives nothing (the safe choice).
+    constexpr int32_t COUNCIL_PERIOD = 5;
+    constexpr int32_t COUNCIL_MIN_BC = 200;
+    constexpr int32_t COUNCIL_SHARE = 20;
+    constexpr int32_t COUNCIL_GENEROUS = 40;
+    constexpr int32_t COUNCIL_GOAL = 400;
+    constexpr int32_t COUNCIL_PUSHBACK = 25;
+    constexpr int32_t COUNCIL_BONUS = 2;
+    // BC `player` gives at a handover (0: none), by character.
+    int32_t Council_Gift(int16_t player);
+
+    struct s_extra {
+        s_scale scale[MAX_SCALES];
+        uint8_t academy_left[MAX_PLAYERS] = {};   // turns until the academy of each empire is done, 0 = none
+        int32_t fallen_until[MAX_PLAYERS] = {};   // stardate the crisis of each fallen empire ends, 0 = not fallen
+        uint8_t front_broken = 0;                 // the council has beaten the front for good
+        int32_t council_progress = 0;
+        uint16_t given[MAX_PLAYERS] = {};
+    };
+    s_extra* Extra();
+    const s_scale* Find_Scale(e_scale kind, int16_t player);  // nullptr when there is none
+    bool Extra_Empty();
 
     struct s_active {
         uint8_t crisis = CRISIS_NONE;
@@ -96,7 +200,10 @@ namespace crises {
 
     // Save section 'CRIS' (game/rules_sections.h): payload version 1, then MAX_ACTIVE slots of
     // crisis (uint8), player (int8), colony (int16), option (int8), due (int32), result (uint8),
-    // roll (int8).
+    // roll (int8). Version 2 (written only when s_extra holds something; version 1 is still read) adds
+    // MAX_SCALES scales (kind uint8, player int8, value int16, started int32, approach int8), the
+    // academies (MAX_PLAYERS uint8), the fallen (MAX_PLAYERS int32), front_broken (uint8), the council's
+    // progress (int32) and its gifts (MAX_PLAYERS uint16).
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
