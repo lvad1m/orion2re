@@ -2,9 +2,13 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "game/colcalc.h"
 #include "game/events.h"
+#include "game/mox.h"
 #include "game/moo_world.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
+#include "game/pop.h"
 #include "game/pirate_world.h"
 #include "game/random.h"
 #include "game/serialization.h"
@@ -20,12 +24,16 @@ namespace {
         test::s_saved_value<bool> enabled{moo_world::enabled};
         test::s_saved_value<bool> opinion_enabled{opinion::enabled};
         test::s_saved_value<bool> pirates_enabled{pirate_world::enabled};
+        test::s_saved_value<bool> pacts_enabled{pacts::enabled};
+        test::s_saved_value<int16_t> pressure{MOX::antarans.attack_pressure};
         test::s_saved_value<EVENTS::s_pirate_raid> raid{EVENTS::pirate_raid};
 
         s_scope() {
             moo_world::Clear();
             pirate_world::Clear();
             opinion::Clear();
+            pacts::Clear();
+            MOX::antarans.attack_pressure = 0;
             moo_world::enabled = true;
             pirate_world::enabled = true;
             opinion::enabled = true;
@@ -36,6 +44,7 @@ namespace {
             moo_world::Clear();
             pirate_world::Clear();
             opinion::Clear();
+            pacts::Clear();
             for (int i = 0; i < world_events::MAX_ENTRIES; ++i) world_events::Entry_Slots()[i] = world_events::s_entry{};
         }
     };
@@ -470,6 +479,10 @@ DOCTEST_TEST_CASE("payload round trip and bad values refused")
     Setup_(&state);
     moo_world::State()->count = 2;
     moo_world::State()->unite_turns = 7;
+    moo_world::State()->exile_mask = 0x04;
+    moo_world::State()->guilty_mask = 0x03;
+    moo_world::State()->agreed_mask = 0x01;
+    moo_world::State()->last_scout = 35010;
     {
         moo_world::s_record& a = moo_world::State()->record[0];
         a.kind = moo_world::KIND_PIRATE_KING; a.player = -1; a.target = 4; a.other = -1; a.started = 35001; a.ends = 35061; a.value = 15; a.extra = 26;
@@ -490,12 +503,17 @@ DOCTEST_TEST_CASE("payload round trip and bad values refused")
     moo_world::Commit_Save();
     DOCTEST_REQUIRE(moo_world::State()->count == 2);
     DOCTEST_CHECK(moo_world::State()->unite_turns == 7);
+    DOCTEST_CHECK(moo_world::State()->exile_mask == 0x04);
+    DOCTEST_CHECK(moo_world::State()->guilty_mask == 0x03);
+    DOCTEST_CHECK(moo_world::State()->agreed_mask == 0x01);
+    DOCTEST_CHECK(moo_world::State()->last_scout == 35010);
     DOCTEST_CHECK(moo_world::State()->record[0].extra == 26);
     DOCTEST_CHECK(moo_world::State()->record[1].player == 1);
     DOCTEST_CHECK(moo_world::State()->record[1].ends == 35004);
 
-    // Layout: version (2), count (1), unite turns (2), then 19 bytes a record: kind 0, player 1, target 2-3,
-    // other 4-5, started 6-9, ends 10-13, option 14, value 15-16, extra 17-18. Record 0 at 5, record 1 at 24.
+    // Layout: version (2), count (1), unite turns (2), three masks (6), last scout (4), then 19 bytes a record:
+    // kind 0, player 1, target 2-3, other 4-5, started 6-9, ends 10-13, option 14, value 15-16, extra 17-18.
+    // Record 0 at 15, record 1 at 34.
     const auto refuse = [&](size_t offset, uint8_t value) {
         auto bad = std::make_unique<uint8_t[]>(size);
         std::copy(buffer.get(), buffer.get() + size, bad.get());
@@ -503,18 +521,423 @@ DOCTEST_TEST_CASE("payload round trip and bad values refused")
         SERIAL::Reader_ r(bad.get(), size, "test underflow", true);
         return !moo_world::Parse_Save(&r, &error);
     };
-    DOCTEST_CHECK(refuse(5, 9));             // a bad kind
-    DOCTEST_CHECK(refuse(5, 0));
-    DOCTEST_CHECK(refuse(5 + 1, 0x7F));      // a bad empire
-    DOCTEST_CHECK(refuse(24 + 1, 0xFF));     // an epidemic without an empire
-    DOCTEST_CHECK(refuse(5 + 3, 0x7F));      // a star out of range
-    DOCTEST_CHECK(refuse(5 + 5, 0x7F));      // a second star out of range
-    DOCTEST_CHECK(refuse(5 + 9, 0x80));      // a negative stardate
-    DOCTEST_CHECK(refuse(5 + 16, 0x7F));     // a bad value
+    DOCTEST_CHECK(refuse(15, 9));            // a bad kind
+    DOCTEST_CHECK(refuse(15, 0));
+    DOCTEST_CHECK(refuse(15 + 1, 0x7F));     // a bad empire
+    DOCTEST_CHECK(refuse(34 + 1, 0xFF));     // an epidemic without an empire
+    DOCTEST_CHECK(refuse(15 + 3, 0x7F));     // a star out of range
+    DOCTEST_CHECK(refuse(15 + 5, 0x7F));     // a second star out of range
+    DOCTEST_CHECK(refuse(15 + 9, 0x80));     // a negative stardate
+    DOCTEST_CHECK(refuse(15 + 16, 0x7F));    // a bad value
     DOCTEST_CHECK(refuse(4, 0x80));          // a negative unite counter
+    DOCTEST_CHECK(refuse(6, 0xFF));          // an empire mask with a bit beyond the empires
+    DOCTEST_CHECK(refuse(14, 0x80));         // a negative scout stardate
     DOCTEST_CHECK(refuse(2, 30));            // too many records
     DOCTEST_CHECK(refuse(0, 7));             // the version
     SERIAL::Reader_ r4(buffer.get(), size - 1, "test underflow", true);
     DOCTEST_CHECK_FALSE(moo_world::Parse_Save(&r4, &error));
     DOCTEST_CHECK(moo_world::State()->count == 2);  // the failed parses left the state alone
+}
+
+DOCTEST_TEST_CASE("payload version 1 is still read; refugee and scout records are checked")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    // A version 1 payload: version, count, unite turns, one epidemic record.
+    constexpr uint32_t v1_size = 2 + 1 + 2 + 19;
+    uint8_t v1[v1_size];
+    {
+        SERIAL::Writer_ w(v1, v1_size, "test overflow");
+        w.Write_Uint16(1);
+        w.Write_Uint8(1);
+        w.Write_Int16(9);
+        w.Write_Uint8(moo_world::KIND_FLEET_EPIDEMIC);
+        w.Write_Int8(1);
+        w.Write_Int16(3);
+        w.Write_Int16(-1);
+        w.Write_Int32(35001);
+        w.Write_Int32(35004);
+        w.Write_Int8(0);
+        w.Write_Int16(0);
+        w.Write_Int16(0);
+        DOCTEST_REQUIRE(w.Length() == v1_size);
+    }
+    SERIAL::Reader_ reader(v1, v1_size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(moo_world::Parse_Save(&reader, &error));
+    moo_world::Commit_Save();
+    DOCTEST_CHECK(moo_world::State()->count == 1);
+    DOCTEST_CHECK(moo_world::State()->unite_turns == 9);
+    DOCTEST_CHECK(moo_world::State()->exile_mask == 0);
+    DOCTEST_CHECK(moo_world::State()->last_scout == 0);
+
+    // Refugees: the aggressor and the race are checked.
+    moo_world::Clear();
+    moo_world::enabled = true;
+    moo_world::s_record r;
+    r.kind = moo_world::KIND_REFUGEES;
+    r.player = 0;
+    r.option = 1;
+    r.target = 0;
+    r.started = 35001;
+    r.ends = 35004;
+    r.value = 0;
+    moo_world::State()->count = 1;
+    moo_world::State()->record[0] = r;
+    const auto round_trip = [&]() {
+        const uint32_t size = moo_world::Save_Size();
+        auto buffer = std::make_unique<uint8_t[]>(size);
+        SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+        moo_world::Write_Save(&writer);
+        SERIAL::Reader_ rd(buffer.get(), size, "test underflow", true);
+        return moo_world::Parse_Save(&rd, &error);
+    };
+    DOCTEST_CHECK(round_trip());
+    moo_world::State()->record[0].option = -1;
+    DOCTEST_CHECK_FALSE(round_trip());
+    moo_world::State()->record[0].option = 1;
+    moo_world::State()->record[0].value = 12;
+    DOCTEST_CHECK_FALSE(round_trip());
+    moo_world::State()->record[0].value = 3;
+    moo_world::State()->record[0].player = -1;
+    DOCTEST_CHECK_FALSE(round_trip());
+}
+
+DOCTEST_TEST_CASE("flag off: the five events of the second part do nothing")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    moo_world::enabled = false;
+    state.players[2].eliminated = 1;
+    state.leaders[5].player_index = 2;
+    state.leaders[5].status = 0;
+    state.players[0].biological_weapons_flag[1] = 1;
+    MOX::antarans.attack_pressure = 9;
+    game_random::Set_Random_Seed(77);
+    const uint32_t first = game_random::Random(1000000);
+    game_random::Set_Random_Seed(77);
+    DOCTEST_CHECK_FALSE(moo_world::Start_Exile(2));
+    DOCTEST_CHECK_FALSE(moo_world::Start_Defection(0));
+    DOCTEST_CHECK_FALSE(moo_world::Start_Scout(0, 0));
+    DOCTEST_CHECK_FALSE(moo_world::Council_Demand(0));
+    DOCTEST_CHECK(moo_world::Refugee_Choice(0) == 0);
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    moo_world::Turn();
+    DOCTEST_CHECK(moo_world::Empty());
+    DOCTEST_CHECK_FALSE(moo_world::Scout_Near(0));
+    DOCTEST_CHECK(state.leaders[5].player_index == 2);
+    DOCTEST_CHECK(game_random::Random(1000000) == first);
+}
+
+DOCTEST_TEST_CASE("famous exile: the best leader of a fallen empire is hired by the computer that liked it most")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    opinion::Add(1, 2, opinion::REASON_DEFENDED_US, 30);  // empire 1 admired the empire while it lived
+    state.players[2].eliminated = 1;
+    for (int i : {5, 6}) {
+        s_leader_data& l = state.leaders[i];
+        l.player_index = 2;
+        l.status = 0;
+        l.type = LEADER_TYPE_SHIP;
+        l.skill_value = 1;
+        l.xp = static_cast<int16_t>(i == 6 ? 1000 : 0);
+        l.location = -1;
+    }
+    const int32_t bc = state.players[1].bc;
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    DOCTEST_CHECK(state.leaders[6].player_index == 1);
+    DOCTEST_CHECK(state.leaders[6].status == 0);
+    DOCTEST_CHECK(state.players[1].bc < bc);
+    DOCTEST_CHECK(state.leaders[5].player_index == 2);  // only the best one offers service
+    DOCTEST_CHECK_FALSE(moo_world::Start_Exile(2));       // once
+    DOCTEST_CHECK_FALSE(moo_world::Empty());               // the exile mask is kept
+}
+
+DOCTEST_TEST_CASE("famous exile: nobody who can pay, the leader waits on the hire list; no leader, nothing")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[2].eliminated = 1;
+    for (auto& p : state.players) p.bc = 0;
+    s_leader_data& l = state.leaders[5];
+    l.player_index = 2;
+    l.status = 1;
+    l.type = LEADER_TYPE_SHIP;
+    l.skill_value = 1;
+    l.xp = 100;
+    l.location = -1;
+    moo_world::Turn();  // the rule finds the dead empire by itself
+    DOCTEST_CHECK(l.status == -1);
+    DOCTEST_CHECK(l.player_index == -1);
+    // A second dead empire without leaders.
+    state.players[1].eliminated = 1;
+    DOCTEST_CHECK_FALSE(moo_world::Start_Exile(1));
+    DOCTEST_CHECK_FALSE(moo_world::Start_Exile(0));  // alive
+}
+
+DOCTEST_TEST_CASE("scientist defection: an unstable empire loses its scientist to the neighbour it likes best, with a technology")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    s_leader_data& sci = state.leaders[7];
+    sci.player_index = 0;
+    sci.status = 0;
+    sci.type = LEADER_TYPE_COLONY;
+    sci.general_skills = LEADER_GENERAL_SKILL_RESEARCHER;
+    sci.skill_value = 1;
+    sci.location = -1;
+    int app = -1;
+    for (int a = 1; a < TECH_APP_COUNT && app < 0; ++a) {
+        if (COLCALC::Player_May_Get_Tech_App(&state.players[1], a)) app = a;
+    }
+    DOCTEST_REQUIRE(app > 0);
+    state.players[0].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;  // a human's designs only refresh their equipment (no allocator here)
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    // Stable colonies: nothing happens.
+    state.colonies[0].morale = 0;
+    DOCTEST_CHECK_FALSE(moo_world::Start_Defection(0));
+    state.colonies[0].morale = static_cast<int8_t>(moo_world::DEFECT_MORALE);
+    opinion::Add(0, 2, opinion::REASON_DEFENDED_US, 30);  // empire 2 is the one it likes
+    state.players[0].spies[2] = 2;                        // its spies saw who took it
+    const int tech_before = state.players[2].tech_applications[app];
+    DOCTEST_REQUIRE(moo_world::Start_Defection(0));
+    DOCTEST_CHECK(sci.player_index == 2);
+    DOCTEST_CHECK(state.players[2].tech_applications[app] != tech_before);
+    DOCTEST_CHECK(state.players[1].tech_applications[app] == 0);
+    DOCTEST_CHECK(opinion::Modifier(0, 2, opinion::REASON_PLOTTED_AGAINST_US) == moo_world::DEFECT_OPINION);
+    DOCTEST_CHECK_FALSE(moo_world::Start_Defection(0));  // no scientist left
+}
+
+DOCTEST_TEST_CASE("scientist defection: unseen it is not remembered; a human owner keeps its scientist; the chance draws")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    s_leader_data& sci = state.leaders[7];
+    sci.player_index = 0;
+    sci.status = 1;
+    sci.type = LEADER_TYPE_COLONY;
+    sci.special_skills = LEADER_COLONY_SKILL_SCIENCE_LEADER;
+    sci.skill_value = 1;
+    sci.location = -1;
+    int app = -1;
+    for (int a = 1; a < TECH_APP_COUNT && app < 0; ++a) {
+        if (COLCALC::Player_May_Get_Tech_App(&state.players[1], a)) app = a;
+    }
+    DOCTEST_REQUIRE(app > 0);
+    state.players[0].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;  // a human's designs only refresh their equipment (no allocator here)
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.colonies[0].morale = static_cast<int8_t>(moo_world::DEFECT_MORALE);
+    // A bad draw: nothing.
+    Seed_For_({{1000, 5, 1000}});
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_CHECK(sci.player_index == 0);
+    // A good draw.
+    Seed_For_({{1000, 1, 4}});
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_REQUIRE(sci.player_index != 0);
+    DOCTEST_CHECK(sci.status == 0);
+    DOCTEST_CHECK(opinion::Modifier(0, sci.player_index, opinion::REASON_PLOTTED_AGAINST_US) == 0);
+    // A human owner is not driven by this step.
+    sci.player_index = 0;
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    DOCTEST_CHECK_FALSE(moo_world::Start_Defection(0));
+}
+
+DOCTEST_TEST_CASE("the council's demand: agree or refuse by personality, and a repeat is a broken word")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].personality = PLAYER_PERSONALITY_HONORABLE;
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    state.players[0].biological_weapons_flag[2] = 1;
+    state.players[1].biological_weapons_flag[2] = 1;
+    ++MOX::stardate;
+    moo_world::Turn();
+    // The honorable agrees: a small good memory with the others.
+    DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_DID_US_A_SERVICE) == moo_world::COUNCIL_AGREE_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_DID_US_A_SERVICE) == moo_world::COUNCIL_AGREE_OPINION);
+    // The ruthless refuses: bad rumours with everybody who knows it.
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_BAD_RUMOURS) == moo_world::COUNCIL_REFUSE_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_BAD_RUMOURS) == moo_world::COUNCIL_REFUSE_OPINION);
+    // Not told again while it goes on.
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_BAD_RUMOURS) == moo_world::COUNCIL_REFUSE_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_DID_US_A_SERVICE) == moo_world::COUNCIL_AGREE_OPINION);
+    // The weapons rest, then the honorable uses them again: a broken word.
+    state.players[0].biological_weapons_flag[2] = 0;
+    ++MOX::stardate;
+    moo_world::Turn();
+    state.players[0].biological_weapons_flag[2] = 1;
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_BROKE_ITS_WORD) == moo_world::COUNCIL_BROKE_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_BROKE_ITS_WORD) == moo_world::COUNCIL_BROKE_OPINION);
+    DOCTEST_CHECK((moo_world::State()->agreed_mask & 1) == 0);
+}
+
+DOCTEST_TEST_CASE("the council's demand: a human agrees; an empire out of contact does not hear")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].personality = PLAYER_PERSONALITY_RUTHLESS;  // a human is not driven by its personality
+    state.players[0].contact[2] = 0;
+    state.players[2].contact[0] = 0;
+    DOCTEST_REQUIRE(moo_world::Council_Demand(0));
+    DOCTEST_CHECK((moo_world::State()->agreed_mask & 1) != 0);
+    DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_DID_US_A_SERVICE) == moo_world::COUNCIL_AGREE_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_DID_US_A_SERVICE) == 0);
+}
+
+DOCTEST_TEST_CASE("the Antaran scout: seen under pressure, once in a cooldown; neighbours draw together")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    // No pressure, no scout.
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_CHECK(Find_(moo_world::KIND_ANTARAN_SCOUT) == nullptr);
+    MOX::antarans.attack_pressure = moo_world::SCOUT_PRESSURE;
+    ++MOX::stardate;
+    moo_world::Turn();
+    const moo_world::s_record* scout = Find_(moo_world::KIND_ANTARAN_SCOUT);
+    DOCTEST_REQUIRE(scout != nullptr);
+    const int victim = scout->player;
+    DOCTEST_CHECK(moo_world::Scout_Near(static_cast<int16_t>(victim)));
+    DOCTEST_CHECK(moo_world::State()->last_scout == MOX::stardate);
+    // The two others (the pacts are off) lean to each other.
+    int others[2];
+    int n = 0;
+    for (int p = 0; p < 3; ++p) {
+        if (p != victim) others[n++] = p;
+    }
+    DOCTEST_CHECK(opinion::Modifier(static_cast<int16_t>(others[0]), static_cast<int16_t>(others[1]), opinion::REASON_DID_US_A_SERVICE) ==
+                  moo_world::SCOUT_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(static_cast<int16_t>(others[1]), static_cast<int16_t>(others[0]), opinion::REASON_DID_US_A_SERVICE) ==
+                  moo_world::SCOUT_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(static_cast<int16_t>(victim), static_cast<int16_t>(others[0]), opinion::REASON_DID_US_A_SERVICE) == 0);
+    // Cooldown: no second scout; the first one passes.
+    Run_(moo_world::SCOUT_TURNS);
+    DOCTEST_CHECK(Find_(moo_world::KIND_ANTARAN_SCOUT) == nullptr);
+    DOCTEST_CHECK_FALSE(moo_world::Scout_Near(static_cast<int16_t>(victim)));
+    moo_world::Turn();
+    DOCTEST_CHECK(Find_(moo_world::KIND_ANTARAN_SCOUT) == nullptr);
+    MOX::stardate += moo_world::SCOUT_COOLDOWN;
+    moo_world::Turn();
+    DOCTEST_CHECK(Find_(moo_world::KIND_ANTARAN_SCOUT) != nullptr);
+}
+
+DOCTEST_TEST_CASE("the Antaran scout: with the pacts on the neighbours sign one; empires at war do not")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    pacts::enabled = true;
+    DOCTEST_REQUIRE(moo_world::Start_Scout(0, 0));
+    DOCTEST_CHECK(pacts::Has_Pact(1, 2));
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(0, 1));
+    pacts::Clear();
+    state.players[1].treaty[2] = 4;  // at war
+    moo_world::Clear();
+    moo_world::enabled = true;
+    DOCTEST_REQUIRE(moo_world::Start_Scout(0, 0));
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+    // Far apart (no colony of 1 near the scout): no answer either.
+    pacts::Clear();
+    state.players[1].treaty[2] = 0;
+    state.stars[1].x = 5000;
+    moo_world::Clear();
+    moo_world::enabled = true;
+    DOCTEST_REQUIRE(moo_world::Start_Scout(0, 0));
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+}
+
+DOCTEST_TEST_CASE("refugees: a third empire takes them in and the aggressor remembers it")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.planets[2].size = 4;  // a big world: room for more people
+    state.colonies[2].climate = 8;
+    const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+    DOCTEST_REQUIRE(cap >= 2);
+    state.colonies[2].n_pops = static_cast<uint8_t>(cap - 1);
+    state.players[2].personality = PLAYER_PERSONALITY_HONORABLE;
+    POP::Set_Race(&state.colonies[0].pop[0], 0);
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);  // empire 1 took the colony of empire 0
+    const moo_world::s_record* r = Find_(moo_world::KIND_REFUGEES);
+    DOCTEST_REQUIRE(r != nullptr);
+    DOCTEST_CHECK(r->player == 0);
+    DOCTEST_CHECK(r->option == 1);
+    Run_(moo_world::REFUGEE_DELAY - 1);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) != nullptr);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap - 1);
+    Run_(1);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap);
+    DOCTEST_CHECK(POP::Get_Race(state.colonies[2].pop[cap - 1]) == 0);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_BAD_RUMOURS) == moo_world::REFUGEE_AGGRESSOR_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(0, 2, opinion::REASON_ABANDONED_US) == 0);
+}
+
+DOCTEST_TEST_CASE("refugees: a ruthless empire turns them away and the old owner remembers it; a human takes them in")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.planets[2].size = 4;  // a big world: room for more people
+    state.colonies[2].climate = 8;
+    const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+    DOCTEST_REQUIRE(cap >= 2);
+    state.colonies[2].n_pops = static_cast<uint8_t>(cap - 1);
+    state.players[2].personality = PLAYER_PERSONALITY_RUTHLESS;
+    DOCTEST_CHECK(moo_world::Refugee_Choice(2) == 1);
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap - 1);
+    DOCTEST_CHECK(opinion::Modifier(0, 2, opinion::REASON_ABANDONED_US) == moo_world::REFUGEE_REFUSED_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_BAD_RUMOURS) == 0);
+    // A human takes them in whatever its personality says.
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    DOCTEST_CHECK(moo_world::Refugee_Choice(2) == 0);
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap);
+}
+
+DOCTEST_TEST_CASE("refugees: no room anywhere, an outpost, or the same owner: nothing")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.planets[2].size = 4;  // a big world: room for more people
+    state.colonies[2].climate = 8;
+    const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+    state.colonies[2].n_pops = static_cast<uint8_t>(cap);  // full
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap);
+    DOCTEST_CHECK(opinion::Modifier(0, 2, opinion::REASON_ABANDONED_US) == 0);
+    state.colonies[0].outpost_flag = 1;
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);
+    state.colonies[0].outpost_flag = 0;
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 0);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);
 }

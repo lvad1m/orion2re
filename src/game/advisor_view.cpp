@@ -658,6 +658,12 @@ namespace advisor {
                 if (r.kind == moo_world::KIND_PIRATE_KING && moo_world::King_Near(self.player)) {
                     Append_Format(out, "Event: a pirate king (strength %d) at star %d raids and demands tribute near our colonies (until stardate %d).\n",
                         static_cast<int>(r.value), static_cast<int>(r.target), static_cast<int>(r.ends));
+                } else if (r.kind == moo_world::KIND_ANTARAN_SCOUT && r.player == self.player) {
+                    Append_Format(out, "Event: an Antaran scout was seen near our colony at star %d; a raid may follow (until stardate %d).\n",
+                        static_cast<int>(r.target), static_cast<int>(r.ends));
+                } else if (r.kind == moo_world::KIND_REFUGEES && r.player == self.player) {
+                    Append_Format(out, "Event: refugees of ours from star %d are on their way to a neighbour (arriving stardate %d).\n",
+                        static_cast<int>(r.target), static_cast<int>(r.ends));
                 } else if (r.kind == moo_world::KIND_FLEET_EPIDEMIC && r.player == self.player) {
                     Append_Format(out, "Event: an epidemic in our fleet at star %d, no ship leaves it until stardate %d.\n",
                         static_cast<int>(r.target), static_cast<int>(r.ends));

@@ -3,10 +3,18 @@
 #include "game/moo_world.h"
 
 #include "game/bill.h"
+#include "game/colcalc.h"
 #include "game/events.h"
+#include "game/mox.h"
+#include "game/officer.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
 #include "game/pirate_world.h"
+#include "game/pop.h"
 #include "game/random.h"
+#include "game/reputation.h"
+#include "game/stability.h"
+#include "game/techdata.h"
 #include "game/world_events.h"
 
 #include <algorithm>
@@ -246,6 +254,181 @@ namespace moo_world {
             Raise_King(star, static_cast<int16_t>(std::min<int32_t>(sum, 9999)));
         }
 
+        // The statuses of the leader records and the first treaty that means war (s_player::treaty).
+        constexpr int8_t STATUS_POOL = 0;
+        constexpr int8_t STATUS_ASSIGNED = 1;
+        constexpr int8_t STATUS_LIMBO = 2;
+        constexpr int8_t TREATY_FIRST_WAR = 4;
+
+        bool Holds_(const s_leader_data& leader, int16_t player) {
+            return leader.player_index == player &&
+                (leader.status == STATUS_POOL || leader.status == STATUS_ASSIGNED || leader.status == STATUS_LIMBO);
+        }
+
+        // Famous exile --------------------------------------------------------------------------------------
+
+        void Exile_Step_() {
+            for (int16_t p = 0; p < Players_(); ++p) {
+                if (MOX::player[p].eliminated != 0) Start_Exile(p);
+            }
+        }
+
+        // Scientist defection -------------------------------------------------------------------------------
+
+        // The leader of `owner` with a science skill (the spy operations' scientist), the highest level; -1 when none.
+        int16_t Scientist_(int16_t owner) {
+            int16_t best = -1;
+            for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                const s_leader_data& l = MOX::leaders[i];
+                if (!Holds_(l, owner)) continue;
+                if ((l.special_skills & LEADER_COLONY_SKILL_SCIENCE_LEADER) == 0 && (l.general_skills & LEADER_GENERAL_SKILL_RESEARCHER) == 0) continue;
+                if (best < 0 || OFFICER::Owned_Officer_Level(i) > OFFICER::Owned_Officer_Level(best)) best = i;
+            }
+            return best;
+        }
+
+        // A colony of `owner` in unrest: stability at DEFECT_STABILITY or worse (morale when stability is off).
+        bool Unstable_(int16_t owner) {
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const s_colony& colony = MOX::colony[c];
+                if (colony.owner != owner || colony.outpost_flag != 0) continue;
+                if (stability::enabled ? stability::Of(c) <= DEFECT_STABILITY : colony.morale <= DEFECT_MORALE) return true;
+            }
+            return false;
+        }
+
+        // The cheapest (by field cost) application `from` has and `to` lacks and may have; -1 when none.
+        int16_t Gift_Tech_(int16_t from, int16_t to) {
+            const auto cost = [](int16_t app) {
+                const int16_t field = TECHDATA::technology_applications[app].tech_field_id;
+                return field >= 0 && field < TECH_FIELD_COUNT ? static_cast<int64_t>(TECHDATA::technology_fields[field].cost) : INT64_MAX;
+            };
+            s_player* giver = &MOX::player[from];
+            s_player* taker = &MOX::player[to];
+            int16_t best = -1;
+            for (int32_t app = TECH_APP_NO_TECH + 1; app < TECH_APP_COUNT; ++app) {
+                if (giver->tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED) continue;
+                if (taker->tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED || !COLCALC::Player_May_Get_Tech_App(taker, app)) continue;
+                if (best < 0 || cost(static_cast<int16_t>(app)) < cost(best)) best = static_cast<int16_t>(app);
+            }
+            return best;
+        }
+
+        // Council's demand -----------------------------------------------------------------------------------
+
+        bool Guilty_(int16_t player) {
+            for (int16_t j = 0; j < MAX_PLAYERS; ++j) {
+                if (MOX::player[player].biological_weapons_flag[j] != 0) return true;
+            }
+            return reputation::Has(player, reputation::TITLE_ATROCITIES);
+        }
+
+        void Council_Step_() {
+            s_state* s = State();
+            for (int16_t p = 0; p < Players_(); ++p) {
+                const uint16_t bit = static_cast<uint16_t>(1u << p);
+                if (!Alive_(p)) continue;
+                const bool guilty = Guilty_(p);
+                const bool was = (s->guilty_mask & bit) != 0;
+                if (guilty && !was) {
+                    s->guilty_mask = static_cast<uint16_t>(s->guilty_mask | bit);
+                    Council_Demand(p);
+                } else if (!guilty && was) {
+                    s->guilty_mask = static_cast<uint16_t>(s->guilty_mask & ~bit);
+                }
+            }
+        }
+
+        // Antaran scout ----------------------------------------------------------------------------------------
+
+        void Scout_Step_() {
+            const s_state* s = State();
+            if (MOX::antarans.attack_pressure < SCOUT_PRESSURE) return;
+            if (s->last_scout != 0 && MOX::stardate - s->last_scout < SCOUT_COOLDOWN) return;
+            int16_t colonies[MAX_COLONIES];
+            int32_t n = 0;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const s_colony& colony = MOX::colony[c];
+                const int16_t star = Colony_Star_(c);
+                if (Alive_(colony.owner) && colony.outpost_flag == 0 && star >= 0 && star < MAX_STARS) colonies[n++] = c;
+            }
+            if (n == 0) return;
+            const int16_t c = colonies[Pick_(n)];
+            Start_Scout(MOX::colony[c].owner, Colony_Star_(c));
+        }
+
+        // The neighbours of a scouted colony answer: a pair of computers not at war with each other that think well
+        // of each other signs a pact (or leans to each other when the pacts are off).
+        void Neighbours_Answer_(int16_t victim, int16_t star) {
+            bool near_star[MAX_PLAYERS] = {};
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const int16_t owner = MOX::colony[c].owner;
+                const int16_t at = Colony_Star_(c);
+                if (!Computer_(owner) || owner == victim || at < 0 || at >= MAX_STARS) continue;
+                if (Distance2_(star, at) <= SCOUT_REACH2) near_star[owner] = true;
+            }
+            for (int16_t a = 0; a < Players_(); ++a) {
+                for (int16_t b = static_cast<int16_t>(a + 1); b < Players_(); ++b) {
+                    if (!near_star[a] || !near_star[b]) continue;
+                    if (MOX::player[a].treaty[b] >= TREATY_FIRST_WAR || MOX::player[b].treaty[a] >= TREATY_FIRST_WAR) continue;
+                    if (opinion::Relations(a, b) < 0 || opinion::Relations(b, a) < 0) continue;
+                    if (pacts::enabled) {
+                        if (pacts::Has_Pact(a, b)) continue;
+                        pacts::Sign_Pact(a, b, -1);
+                    } else {
+                        opinion::Add(a, b, opinion::REASON_DID_US_A_SERVICE, SCOUT_OPINION);
+                        opinion::Add(b, a, opinion::REASON_DID_US_A_SERVICE, SCOUT_OPINION);
+                    }
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, players %d and %d draw together against the Antarans (%s)",
+                        (int)MOX::stardate, (int)a, (int)b, pacts::enabled ? "a defence pact" : "good will");
+                }
+            }
+        }
+
+        // Refugees ----------------------------------------------------------------------------------------------
+
+        // The refugees of `r` reach the nearest colony of a third empire with room for them; true when done.
+        bool Run_Refugees_(const s_record& r) {
+            if (MOX::stardate < r.ends) return false;
+            int16_t best = -1;
+            int64_t best_distance = INT64_MAX;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                const s_colony& colony = MOX::colony[c];
+                const int16_t star = Colony_Star_(c);
+                if (!Alive_(colony.owner) || colony.owner == r.player || colony.owner == r.option || colony.outpost_flag != 0) continue;
+                if (star < 0 || star >= MAX_STARS || colony.n_pops == 0 || colony.n_pops >= MAX_COLONY_POPULATION) continue;
+                if (colony.n_pops >= COLCALC::Planet_Max_Population_For_Player(&MOX::planet[colony.planet], colony.owner)) continue;
+                const int64_t d = Distance2_(r.target, star);
+                if (d < best_distance) {
+                    best_distance = d;
+                    best = c;
+                }
+            }
+            if (best < 0) {
+                Log_(r.player, "its refugees find nobody to take them in");
+                return true;
+            }
+            s_colony& colony = MOX::colony[best];
+            const int16_t host = colony.owner;
+            if (Refugee_Choice(host) == 0) {
+                uint32_t pop = 0;
+                POP::Set_Race(&pop, static_cast<uint32_t>(r.value));
+                POP::Set_Original_Owner(&pop, r.value < MAX_PLAYERS ? static_cast<uint32_t>(r.value) : static_cast<uint32_t>(r.player));
+                POP::Set_Prof(&pop, POP::PROF_WORKER);
+                colony.pop[colony.n_pops] = pop;
+                ++colony.n_pops;
+                COLCALC::Colony_Calculation(best);
+                opinion::Add(r.option, host, opinion::REASON_BAD_RUMOURS, REFUGEE_AGGRESSOR_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d takes in the refugees of player %d (driven out by player %d)",
+                    (int)MOX::stardate, (int)host, (int)r.player, (int)r.option);
+            } else {
+                if (Alive_(r.player)) opinion::Add(r.player, host, opinion::REASON_ABANDONED_US, REFUGEE_REFUSED_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d turns the refugees of player %d away",
+                    (int)MOX::stardate, (int)host, (int)r.player);
+            }
+            return true;
+        }
+
         // Epidemic in a fleet ----------------------------------------------------------------------------
 
         // The star where `player` keeps the most ships in orbit (at least FLEET_MIN_SHIPS, not yet grounded).
@@ -263,7 +446,7 @@ namespace moo_world {
             return best;
         }
 
-        // A new event may start; at most one a turn. The scandal first, then the epidemics.
+        // A new event may start; at most one a turn. The scandal first, then the defection, then the epidemics.
         void Start_New_() {
             for (int16_t owner = 0; owner < Players_(); ++owner) {
                 if (!Alive_(owner)) continue;
@@ -274,6 +457,11 @@ namespace moo_world {
                     if (static_cast<int32_t>(game_random::Random(1000)) > spies * SCANDAL_PER_SPY) continue;
                     if (Start_Scandal(owner, target)) return;
                 }
+            }
+            for (int16_t p = 0; p < Players_(); ++p) {
+                if (!Computer_(p) || Scientist_(p) < 0 || !Unstable_(p)) continue;
+                if (static_cast<int32_t>(game_random::Random(1000)) > DEFECT_CHANCE) continue;
+                if (Start_Defection(p)) return;
             }
             for (int16_t p = 0; p < Players_(); ++p) {
                 if (!Alive_(p)) continue;
@@ -294,6 +482,149 @@ namespace moo_world {
             case PLAYER_PERSONALITY_AGGRESSIVE: return 2;
             default: return 1;
         }
+    }
+
+    int32_t Refugee_Choice(int16_t player) {
+        if (!enabled || !Computer_(player)) return 0;
+        switch (MOX::player[player].personality) {
+            case PLAYER_PERSONALITY_XENOPHOBIC:
+            case PLAYER_PERSONALITY_RUTHLESS:
+            case PLAYER_PERSONALITY_AGGRESSIVE: return 1;
+            default: return 0;
+        }
+    }
+
+    bool Start_Exile(int16_t dead) {
+        if (!enabled || dead < 0 || dead >= Players_() || MOX::player[dead].eliminated == 0) return false;
+        s_state* s = State();
+        const uint16_t bit = static_cast<uint16_t>(1u << dead);
+        if ((s->exile_mask & bit) != 0) return false;
+        s->exile_mask = static_cast<uint16_t>(s->exile_mask | bit);
+        int16_t best = -1;
+        for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+            if (!Holds_(MOX::leaders[i], dead)) continue;
+            if (best < 0 || OFFICER::Owned_Officer_Level(i) > OFFICER::Owned_Officer_Level(best)) best = i;
+        }
+        if (best < 0) return false;
+        OFFICER::Deassign_Officer(best);  // onto the hire list
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: leader %d of the fallen empire offers service as an exile",
+            (int)MOX::stardate, (int)dead, (int)best);
+        int16_t suitor = -1;
+        int32_t suitor_opinion = INT_MIN;
+        int32_t suitor_cost = 0;
+        for (int16_t q = 0; q < Players_(); ++q) {
+            if (q == dead || !Computer_(q) || !OFFICER::Player_Can_Hire_More_Officers(q)) continue;
+            const int32_t cost = OFFICER::Officer_Cost(q, best);
+            if (MOX::player[q].bc < cost) continue;
+            const int32_t liking = opinion::Relations(q, dead);
+            if (liking > suitor_opinion) {
+                suitor = q;
+                suitor_opinion = liking;
+                suitor_cost = cost;
+            }
+        }
+        if (suitor < 0) return true;
+        Add_Bc_(suitor, -suitor_cost);
+        OFFICER::Set_Officer_To_Player(best, suitor, 1);
+        if (MOX::leaders[best].player_index != suitor) {
+            Add_Bc_(suitor, suitor_cost);  // no room after all: the money stays
+            return true;
+        }
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d hires leader %d, the exile of player %d (%d BC)",
+            (int)MOX::stardate, (int)suitor, (int)best, (int)dead, (int)suitor_cost);
+        return true;
+    }
+
+    bool Start_Defection(int16_t owner) {
+        if (!enabled || !Computer_(owner) || !Unstable_(owner)) return false;
+        const int16_t leader = Scientist_(owner);
+        if (leader < 0) return false;
+        int16_t target = -1;
+        int16_t app = -1;
+        for (int16_t q = 0; q < Players_(); ++q) {
+            if (q == owner || !Alive_(q) || !Contact_(owner, q) || !OFFICER::Player_Can_Hire_More_Officers(q)) continue;
+            const int16_t gift = Gift_Tech_(owner, q);
+            if (gift < 0) continue;
+            if (target < 0 || opinion::Relations(owner, q) > opinion::Relations(owner, target)) {
+                target = q;
+                app = gift;
+            }
+        }
+        if (target < 0) return false;
+        OFFICER::Deassign_Officer(leader);
+        OFFICER::Set_Officer_To_Player(leader, target, 1);
+        if (MOX::leaders[leader].player_index != target) return false;
+        COLCALC::Player_Gets_Tech_App(&MOX::player[target], app);
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: scientist %d defects to player %d and brings application %d",
+            (int)MOX::stardate, (int)owner, (int)leader, (int)target, (int)app);
+        if (BILL::Get_Their_Spy_Number(owner, target) > 0) opinion::Add(owner, target, opinion::REASON_PLOTTED_AGAINST_US, DEFECT_OPINION);
+        return true;
+    }
+
+    bool Council_Demand(int16_t player) {
+        if (!enabled || !Alive_(player)) return false;
+        s_state* s = State();
+        const uint16_t bit = static_cast<uint16_t>(1u << player);
+        const auto tell_all = [&](opinion::e_reason reason, int32_t value) {
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o != player && Alive_(o) && Contact_(o, player)) opinion::Add(o, player, reason, value);
+            }
+        };
+        if ((s->agreed_mask & bit) != 0) {
+            s->agreed_mask = static_cast<uint16_t>(s->agreed_mask & ~bit);
+            tell_all(opinion::REASON_BROKE_ITS_WORD, COUNCIL_BROKE_OPINION);
+            Log_(player, "uses biological weapons again after promising the council to stop");
+            return true;
+        }
+        const int8_t personality = MOX::player[player].personality;
+        const bool refuses = Computer_(player) && (personality == PLAYER_PERSONALITY_XENOPHOBIC || personality == PLAYER_PERSONALITY_RUTHLESS ||
+                                                   personality == PLAYER_PERSONALITY_AGGRESSIVE);
+        if (refuses) {
+            tell_all(opinion::REASON_BAD_RUMOURS, COUNCIL_REFUSE_OPINION);
+            Log_(player, "refuses the council's demand to stop using biological weapons");
+        } else {
+            s->agreed_mask = static_cast<uint16_t>(s->agreed_mask | bit);
+            tell_all(opinion::REASON_DID_US_A_SERVICE, COUNCIL_AGREE_OPINION);
+            Log_(player, "agrees to the council's demand to stop using biological weapons");
+        }
+        return true;
+    }
+
+    bool Start_Scout(int16_t player, int16_t star) {
+        if (!enabled || !Alive_(player) || star < 0 || star >= MAX_STARS) return false;
+        s_record r;
+        r.kind = KIND_ANTARAN_SCOUT;
+        r.player = static_cast<int8_t>(player);
+        r.target = star;
+        r.started = MOX::stardate;
+        r.ends = MOX::stardate + SCOUT_TURNS;
+        if (!Record_(r)) return false;
+        State()->last_scout = MOX::stardate;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: an Antaran scout is seen near its colony at star %d",
+            (int)MOX::stardate, (int)player, (int)star);
+        Neighbours_Answer_(player, star);
+        return true;
+    }
+
+    void On_Colony_Taken(const s_colony* colony, int16_t old_owner, int16_t new_owner) {
+        if (!enabled || colony == nullptr || colony->outpost_flag != 0 || colony->n_pops == 0) return;
+        if (old_owner < 0 || old_owner >= Players_() || new_owner < 0 || new_owner >= Players_() || old_owner == new_owner) return;
+        const int16_t star = Colony_Star_(static_cast<int16_t>(colony - MOX::colony));
+        if (star < 0 || star >= MAX_STARS) return;
+        // The race of the colony's first population unit when it is one of the empires', else the old owner's.
+        uint32_t race = POP::Get_Race(POP::Load(&colony->pop[0]));
+        if (race >= static_cast<uint32_t>(MAX_PLAYERS)) race = static_cast<uint32_t>(old_owner);
+        s_record r;
+        r.kind = KIND_REFUGEES;
+        r.player = static_cast<int8_t>(old_owner);
+        r.option = static_cast<int8_t>(new_owner);
+        r.target = star;
+        r.value = static_cast<int16_t>(race);
+        r.started = MOX::stardate;
+        r.ends = MOX::stardate + REFUGEE_DELAY;
+        if (!Record_(r)) return;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: refugees flee the colony at star %d taken by player %d",
+            (int)MOX::stardate, (int)old_owner, (int)star, (int)new_owner);
     }
 
     bool Raise_King(int16_t star, int16_t strength) {
@@ -350,6 +681,10 @@ namespace moo_world {
             } else if (r.kind == KIND_FLEET_EPIDEMIC) {
                 gone = MOX::stardate >= r.ends || !Alive_(r.player);
                 if (gone) Log_(r.player, "the epidemic in the fleet is over");
+            } else if (r.kind == KIND_ANTARAN_SCOUT) {
+                gone = MOX::stardate >= r.ends;
+            } else if (r.kind == KIND_REFUGEES) {
+                gone = Run_Refugees_(r);
             }
             if (gone) {
                 Remove_Record_(i);
@@ -362,6 +697,9 @@ namespace moo_world {
     void Turn() {
         if (!enabled) return;
         Run_Records();
+        Exile_Step_();
+        Council_Step_();
+        Scout_Step_();
         Unite_();
         Start_New_();
     }

@@ -2,6 +2,7 @@
 
 #include "game/spy_ops.h"
 #include "game/hostages.h"
+#include "game/moo_world.h"
 #include "game/news.h"
 
 namespace invasion {
@@ -498,6 +499,8 @@ namespace invasion {
         if (results != nullptr) hostages::On_Colony_Invaded(colony, static_cast<int16_t>(new_owner_idx));
         // The news ring (off by default): the same invasions.
         if (results != nullptr) news::Add(news::KIND_COLONY_TAKEN, static_cast<int16_t>(new_owner_idx), old_owner_idx, colony_idx);
+        // Refugees of the old owner's race (off by default): the same invasions.
+        if (results != nullptr) moo_world::On_Colony_Taken(colony, old_owner_idx, static_cast<int16_t>(new_owner_idx));
 
         // Increase war losses for the old owner against the new owner
         MOX::player[old_owner_idx].colony_war_losses[new_owner_idx] += 10;

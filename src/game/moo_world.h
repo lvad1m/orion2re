@@ -5,13 +5,16 @@
 #include <cstdint>
 #include <string>
 
+struct s_colony;
+
 namespace SERIAL {
     class Reader_;
     class Writer_;
 } // namespace SERIAL
 
 // Events of the MOO2 world (docs/LocalLLM/events-catalog.md 4.2; README.md 10.9, wave 5): the pirate king, the
-// epidemic in a fleet and the spy scandal. The module's record table is general (kind, players, a star, a value,
+// epidemic in a fleet, the spy scandal, the famous exile, the scientist who defects, the council's demand, the
+// Antaran scout and the refugees. The module's record table is general (kind, players, a star, a value,
 // timers) so that the later events of the world can join it. A human-owned subject takes the first, safest option
 // (no interface step yet); a computer picks by its personality (Choose). The shared pirate effects are reused
 // (events.h: Pirates_At_Star_Turn, Pirate_Raid_Amount, Pirate_Raid_Loss).
@@ -26,7 +29,10 @@ namespace moo_world {
         KIND_NONE = 0,
         KIND_PIRATE_KING = 1,     // record; target: the star, value: strength left, extra: strength it rose with
         KIND_FLEET_EPIDEMIC = 2,  // record; player: the empire whose fleet fell ill, target: the star it is grounded at
-        KIND_LAST = 2,
+        KIND_ANTARAN_SCOUT = 3,   // record; player: the empire whose colony it was seen near, target: that colony's star
+        KIND_REFUGEES = 4,        // record; player: the old owner, option: the aggressor, target: the colony's star,
+                                  // value: the race of the refugees (a pop race id), ends: when they arrive
+        KIND_LAST = 4,
     };
 
     // Pirate king: while at least two pirate presences (a lair of the pirate world, pirates hired in the world
@@ -66,6 +72,49 @@ namespace moo_world {
     constexpr int32_t SCANDAL_OPINION = -25;
     constexpr int32_t SCANDAL_RUMOUR = -8;
 
+    // Famous exile: when an empire is eliminated, its best surviving leader (the highest level; in the pool, at a post
+    // or in limbo) goes on the hire list and the computer that thinks best of the dead empire (opinion::Relations,
+    // ties to the lowest number) hires it at once if it has room and can pay the classic cost. No draws.
+    // Scientist defection: each turn, DEFECT_CHANCE per mille for every computer empire with an unstable colony
+    // (stability <= DEFECT_STABILITY, or colony morale <= DEFECT_MORALE when stability is off) and a leader with a
+    // science skill: the best such leader goes over to the neighbour (in contact, room for a leader) that the old
+    // owner thinks best of, and brings the cheapest technology application the neighbour lacks. The old owner
+    // remembers it (REASON_PLOTTED_AGAINST_US, DEFECT_OPINION) only if it keeps spies in the neighbour.
+    constexpr int32_t DEFECT_CHANCE = 4;
+    constexpr int32_t DEFECT_STABILITY = -3;
+    constexpr int32_t DEFECT_MORALE = -5;
+    constexpr int32_t DEFECT_OPINION = -15;
+
+    // The council's demand: an empire that has used biological weapons (a biological_weapons_flag of its set, or
+    // the atrocity title of the reputation module) is told to stop, once for every time it starts using them
+    // again. A computer agrees by its personality (a ruthless, aggressive or xenophobic one refuses); a human
+    // agrees. A refusal costs it COUNCIL_REFUSE_OPINION (REASON_BAD_RUMOURS) with every computer that knows it,
+    // an agreement earns COUNCIL_AGREE_OPINION (REASON_DID_US_A_SERVICE); using them again after agreeing costs
+    // COUNCIL_BROKE_OPINION (REASON_BROKE_ITS_WORD) with every computer that knows it.
+    constexpr int32_t COUNCIL_REFUSE_OPINION = -10;
+    constexpr int32_t COUNCIL_AGREE_OPINION = 4;
+    constexpr int32_t COUNCIL_BROKE_OPINION = -20;
+
+    // Antaran scout: once the Antarans' attack pressure (MOX::antarans.attack_pressure) has reached SCOUT_PRESSURE
+    // and the last scout was SCOUT_COOLDOWN turns ago, a scout is seen near a colony of a random empire (stays in
+    // the records SCOUT_TURNS turns). The computer empires with a colony within SCOUT_REACH2 of that star that are
+    // not at war with each other may sign a defence pact (pacts.h; the pair thinks well of each other, relations
+    // >= 0 both ways); with the pacts off, each leans to the other by SCOUT_OPINION (REASON_DID_US_A_SERVICE).
+    constexpr int32_t SCOUT_PRESSURE = 3;
+    constexpr int32_t SCOUT_COOLDOWN = 40;
+    constexpr int32_t SCOUT_TURNS = 10;
+    constexpr int32_t SCOUT_REACH2 = KING_REACH2;
+    constexpr int32_t SCOUT_OPINION = 5;
+
+    // Refugees: after an invasion takes a colony the refugees of its race reach, REFUGEE_DELAY turns later, the
+    // nearest colony of a third empire with room for a population unit. A computer accepts them (honorable,
+    // pacifist, erratic, dishonored) or refuses (xenophobic, ruthless, aggressive); a human accepts. Accepted: a
+    // unit of the race joins the colony, the aggressor remembers it (REFUGEE_AGGRESSOR_OPINION, REASON_BAD_RUMOURS).
+    // Refused: the old owner remembers it (REFUGEE_REFUSED_OPINION, REASON_ABANDONED_US).
+    constexpr int32_t REFUGEE_DELAY = 3;
+    constexpr int32_t REFUGEE_AGGRESSOR_OPINION = -10;
+    constexpr int32_t REFUGEE_REFUSED_OPINION = -8;
+
     struct s_record {
         uint8_t kind = KIND_NONE;
         int8_t player = -1;
@@ -82,6 +131,13 @@ namespace moo_world {
         int32_t count = 0;
         // Turns running with at least two pirate presences and no king.
         int16_t unite_turns = 0;
+        // Bit p: the famous exile of empire p was dealt with; p was guilty of biological weapons last turn; p agreed
+        // to the council's demand and has not been guilty since. Never set with the flag off.
+        uint16_t exile_mask = 0;
+        uint16_t guilty_mask = 0;
+        uint16_t agreed_mask = 0;
+        // The stardate of the last Antaran scout (0: none yet).
+        int32_t last_scout = 0;
         s_record record[MAX_RECORDS];
     };
     s_state* State();
@@ -104,6 +160,27 @@ namespace moo_world {
     // True while a pirate king lives and `player` has a colony within his reach.
     bool King_Near(int16_t player);
 
+    // True when the table holds a scout of the Antarans near a colony of `player`.
+    bool Scout_Near(int16_t player);
+
+    // Deals with the leaders of the eliminated empire `dead` (the famous exile); false when the flag is off, the
+    // empire is not eliminated, was dealt with already or had no leader.
+    bool Start_Exile(int16_t dead);
+    // The leader with a science skill of `owner` defects to a neighbour with a technology (no draw: the chance is
+    // the caller's); false when no neighbour, leader or technology qualifies.
+    bool Start_Defection(int16_t owner);
+    // Raises the Antaran scout near a colony of `player` (at `star`) and lets its neighbours answer; false with the
+    // flag off or the table full.
+    bool Start_Scout(int16_t player, int16_t star);
+    // The council's demand to `player` (it has used biological weapons): the answer by personality is recorded.
+    // True with the flag on and a live empire (a repeat use after an agreement is remembered as a broken word).
+    bool Council_Demand(int16_t player);
+    // Whether a computer of `player` accepts refugees (0) or refuses (1); a human accepts; the flag off: 0.
+    int32_t Refugee_Choice(int16_t player);
+    // Hook (invasion.cpp Change_Colony_Ownership, before the pops change hands): refugees of the old owner's race
+    // are on their way. Does nothing with the flag off.
+    void On_Colony_Taken(const s_colony* colony, int16_t old_owner, int16_t new_owner);
+
     // Once a turn after the other events (nextturn.cpp): the records run and end, the pirates unite, a new
     // event may start (at most one a turn).
     void Turn();
@@ -113,8 +190,9 @@ namespace moo_world {
     void Clear();
     bool Empty();
 
-    // Save section 'MOOW' (game/rules_sections.h): payload version 1, then the count (uint8), the unite turns
-    // (int16), per record kind (uint8), player (int8), target and other (int16), started and ends (int32),
+    // Save section 'MOOW' (game/rules_sections.h): payload version 2 (version 1 is still read: no masks, no scout
+    // stardate), then the count (uint8), the unite turns (int16), the exile, guilty and agreed masks (uint16 each),
+    // the stardate of the last scout (int32), per record kind (uint8), player (int8), target and other (int16), started and ends (int32),
     // option (int8), value and extra (int16).
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);

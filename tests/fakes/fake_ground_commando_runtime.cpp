@@ -336,6 +336,11 @@ namespace hostages {
     bool On_Colony_Invaded(const s_colony*, int16_t) { return false; }
 } // namespace hostages
 
+// The world events are not under test here.
+namespace moo_world {
+    void On_Colony_Taken(const s_colony*, int16_t, int16_t) {}
+} // namespace moo_world
+
 // The news ring is not under test here.
 namespace news {
     void Add(e_kind, int16_t, int16_t, int32_t, int16_t) {}
