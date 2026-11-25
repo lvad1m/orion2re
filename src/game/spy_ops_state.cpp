@@ -11,9 +11,10 @@
 namespace spy_ops {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 3;
         constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_COLONIES + MAX_LEADERS * 2;
-        constexpr uint32_t SAVE_SIZE = SAVE_SIZE_V1 + MAX_COLONIES * 2;
+        constexpr uint32_t SAVE_SIZE_V2 = SAVE_SIZE_V1 + MAX_COLONIES * 2;
+        constexpr uint32_t SAVE_SIZE = SAVE_SIZE_V2 + MAX_COLONIES;
 
         struct s_tables {
             uint8_t unrest[MAX_COLONIES] = {};
@@ -21,6 +22,7 @@ namespace spy_ops {
             uint8_t immune[MAX_LEADERS] = {};
             uint8_t stall[MAX_COLONIES] = {};
             uint8_t famine[MAX_COLONIES] = {};
+            uint8_t mourn[MAX_COLONIES] = {};
             s_tables() {
                 std::fill(std::begin(bribed_by), std::end(bribed_by), static_cast<int8_t>(-1));
             }
@@ -74,6 +76,10 @@ namespace spy_ops {
         return colony >= 0 && colony < MAX_COLONIES ? &tables.famine[colony] : nullptr;
     }
 
+    uint8_t* Mourn_Slot(int16_t colony) {
+        return colony >= 0 && colony < MAX_COLONIES ? &tables.mourn[colony] : nullptr;
+    }
+
     bool Stalled(int16_t colony) {
         const uint8_t* slot = Stall_Slot(colony);
         return slot != nullptr && *slot > 0;
@@ -88,7 +94,9 @@ namespace spy_ops {
 
     int32_t Unrest(int16_t colony) {
         const uint8_t* slot = Unrest_Slot(colony);
-        return Enabled(OP_UNREST) && slot != nullptr ? *slot : 0;
+        // Stirred up by spies, or left by a killed governor (the assassination bits).
+        const bool on = Enabled(OP_UNREST) || Enabled(OP_ASSASSINATION) || Enabled(OP_POISON_FEAST);
+        return on && slot != nullptr ? *slot : 0;
     }
 
     int16_t Bribed_By(int16_t leader) {
@@ -105,6 +113,7 @@ namespace spy_ops {
         return std::all_of(std::begin(tables.unrest), std::end(tables.unrest), [](uint8_t v) { return v == 0; }) &&
             std::all_of(std::begin(tables.stall), std::end(tables.stall), [](uint8_t v) { return v == 0; }) &&
             std::all_of(std::begin(tables.famine), std::end(tables.famine), [](uint8_t v) { return v == 0; }) &&
+            std::all_of(std::begin(tables.mourn), std::end(tables.mourn), [](uint8_t v) { return v == 0; }) &&
             std::all_of(std::begin(tables.bribed_by), std::end(tables.bribed_by), [](int8_t v) { return v == -1; }) &&
             std::all_of(std::begin(tables.immune), std::end(tables.immune), [](uint8_t v) { return v == 0; });
     }
@@ -120,6 +129,7 @@ namespace spy_ops {
         for (uint8_t v : tables.immune) writer->Write_Uint8(v);
         for (uint8_t v : tables.stall) writer->Write_Uint8(v);
         for (uint8_t v : tables.famine) writer->Write_Uint8(v);
+        for (uint8_t v : tables.mourn) writer->Write_Uint8(v);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -130,8 +140,8 @@ namespace spy_ops {
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("spy operations save is truncated");
         const uint16_t version = reader->Read_Uint16();
-        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported spy operations payload version");
-        const uint32_t size = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE;
+        if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported spy operations payload version");
+        const uint32_t size = version == 1 ? SAVE_SIZE_V1 : version == 2 ? SAVE_SIZE_V2 : SAVE_SIZE;
         if (reader->Remaining() != size - sizeof(uint16_t)) return fail("spy operations save has the wrong size");
         pending = s_tables{};
         for (uint8_t& v : pending.unrest) {
@@ -154,6 +164,12 @@ namespace spy_ops {
             for (uint8_t& v : pending.famine) {
                 v = reader->Read_Uint8();
                 if (v > SABOTAGE_TURNS) return fail("spy operations save has an out-of-range famine");
+            }
+        }
+        if (version >= 3) {
+            for (uint8_t& v : pending.mourn) {
+                v = reader->Read_Uint8();
+                if (v > MOURN_TURNS) return fail("spy operations save has an out-of-range mourning");
             }
         }
         if (reader->Failed()) return fail("spy operations save is truncated");

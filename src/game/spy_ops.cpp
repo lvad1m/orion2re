@@ -12,6 +12,7 @@
 #include "game/hostages.h"
 #include "game/counterspy.h"
 #include "game/dice.h"
+#include "game/ericnet.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
 #include "game/invasion.h"
@@ -180,7 +181,64 @@ namespace spy_ops {
 
         int32_t Freighters_Lost_(int16_t target) {
             const int32_t n = MOX::player[target].n_freighters;
-            return n <= 0 ? 0 : std::min<int32_t>(n, std::max<int32_t>(2, n / 4));
+            return n <= 0 ? 0 : std::min<int32_t>(n, std::max<int32_t>(TRADE_LOSS_MIN, n * TRADE_LOSS_PERCENT / 100));
+        }
+
+        // Iteration 3: a killed leader leaves a mark ("убийство лидера оставляет заметный след (без адмирала
+        // флот слабеет, без губернатора колония в смуте)"). Called before the kill, for assassination and
+        // poison at a feast. A governor: unrest and mourning in the colonies he governed. A ship officer:
+        // the crew experience of his ship and the ships of his group (same owner and position) is cut,
+        // the level recomputed (the combat formulas are untouched). No dice.
+        void Leave_Mark_(int16_t leader) {
+            const s_leader_data& l = MOX::leaders[leader];
+            if (l.status != STATUS_ASSIGNED || l.location < 0) return;
+            if (l.type == LEADER_TYPE_COLONY) {
+                for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                    s_colony& colony = MOX::colony[c];
+                    if (colony.owner != l.player_index || colony.outpost_flag != 0 || COLCALC::Colony_Officer(&colony) != leader) continue;
+                    uint8_t* unrest = Unrest_Slot(c);
+                    *unrest = static_cast<uint8_t>(std::min<int32_t>(UNREST_MAX, *unrest + GOVERNOR_UNREST));
+                    *Mourn_Slot(c) = static_cast<uint8_t>(MOURN_TURNS);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ops: stardate %d, colony %d of player %d mourns its governor %d",
+                        (int)MOX::stardate, (int)c, (int)colony.owner, (int)leader);
+                }
+                return;
+            }
+            if (l.location >= MOX::NUM_SHIPS || l.location >= MAX_SHIPS) return;
+            const s_ship_data lead = MOX::ship[l.location];
+            for (int16_t s = 0; s < MOX::NUM_SHIPS && s < MAX_SHIPS; ++s) {
+                s_ship_data& ship = MOX::ship[s];
+                const bool grouped = s == l.location ||
+                    (ship.location == lead.location && ship.x == lead.x && ship.y == lead.y);
+                if (ship.owner != lead.owner || ship.status >= SHIP_STATUS_FIRST_NOT_ALIVE || !grouped || ship.crew_experience == 0) continue;
+                const int32_t lost = ship.crew_experience * SHIP_XP_LOSS_PERCENT / 100;
+                ship.crew_experience = static_cast<uint16_t>(ship.crew_experience - lost);
+                ERICNET::Calc_Ship_Level(s);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "spy_ops: stardate %d, ship %d of player %d loses %d crew experience with officer %d",
+                    (int)MOX::stardate, (int)s, (int)ship.owner, (int)lost, (int)leader);
+            }
+        }
+
+        // Iteration 3: the computers rotate among the sabotage kinds that can bite now (a stalled colony or
+        // a running famine is not hit again), by the turn, the attacker and the target: no dice, so the
+        // chooser spreads over all kinds instead of always taking the first. OP_COUNT: none.
+        e_op Sabotage_Pick_(int16_t a, int16_t t) {
+            const auto ready = [&](e_op op) { return Enabled(op) && espionage::Points(a, t) >= Cost(op); };
+            e_op list[5];
+            int32_t n = 0;
+            const int16_t yard = Shipyard_Colony_(t);
+            if (ready(OP_SABOTAGE_SHIPYARD) && yard >= 0 && !Stalled(yard)) list[n++] = OP_SABOTAGE_SHIPYARD;
+            if (ready(OP_SABOTAGE_RESEARCH) && MOX::player[t].research_accumulated > MOX::player[a].research_accumulated &&
+                MOX::player[t].research_accumulated >= 2) {
+                list[n++] = OP_SABOTAGE_RESEARCH;
+            }
+            const int16_t farm = Populous_Colony_(t, true, 0);
+            if (ready(OP_SABOTAGE_FOOD) && farm >= 0 && *Famine_Slot(farm) == 0) list[n++] = OP_SABOTAGE_FOOD;
+            const int16_t factory = Strike_Colony_(t);
+            if (ready(OP_STRIKE) && factory >= 0 && !Stalled(factory)) list[n++] = OP_STRIKE;
+            if (ready(OP_SABOTAGE_TRADE) && Freighters_Lost_(t) > 0) list[n++] = OP_SABOTAGE_TRADE;
+            if (n == 0) return OP_COUNT;
+            return list[(MOX::stardate / AI_PERIOD + a + t) % n];
         }
 
         opinion::e_reason Reason_(e_op op) {
@@ -232,14 +290,8 @@ namespace spy_ops {
                 // Wave 2 (off unless their bits are set).
                 if (dark && ready(OP_ASSASSINATION) && Assassination_Subject_(t) >= 0) return OP_ASSASSINATION;
                 if (ruthless && ready(OP_POISON_WATER) && Populous_Colony_(t, false, POISON_WATER_MIN_POPS) >= 0) return OP_POISON_WATER;
-                if (ready(OP_SABOTAGE_SHIPYARD) && Shipyard_Colony_(t) >= 0) return OP_SABOTAGE_SHIPYARD;
-                if (ready(OP_SABOTAGE_RESEARCH) && MOX::player[t].research_accumulated > MOX::player[a].research_accumulated &&
-                    MOX::player[t].research_accumulated >= 2) {
-                    return OP_SABOTAGE_RESEARCH;
-                }
-                if (ready(OP_SABOTAGE_FOOD) && Populous_Colony_(t, true, 0) >= 0) return OP_SABOTAGE_FOOD;
-                if (ready(OP_STRIKE) && Strike_Colony_(t) >= 0) return OP_STRIKE;
-                if (ready(OP_SABOTAGE_TRADE) && Freighters_Lost_(t) > 0) return OP_SABOTAGE_TRADE;
+                const e_op sabotage = Sabotage_Pick_(a, t);
+                if (sabotage != OP_COUNT) return sabotage;
                 const bool democracy = MOX::player[t].traits[TRAIT_CURRENT_GOVERNMENT] / 2 == GOVERNMENT_DEMOCRACY / 2;
                 if (ready(OP_UNREST) && (democracy || Unstable_(t)) && Unrest_Colony_(t) >= 0) return OP_UNREST;
                 return ready(OP_DATA) ? OP_DATA : OP_COUNT;
@@ -262,9 +314,8 @@ namespace spy_ops {
                     *third = Scapegoat_(a, t);
                     if (*third >= 0) return OP_FALSE_FLAG;
                 }
-                if (ready(OP_SABOTAGE_FOOD) && Populous_Colony_(t, true, 0) >= 0) return OP_SABOTAGE_FOOD;
-                if (ready(OP_STRIKE) && Strike_Colony_(t) >= 0) return OP_STRIKE;
-                if (ready(OP_SABOTAGE_TRADE) && Freighters_Lost_(t) > 0) return OP_SABOTAGE_TRADE;
+                const e_op sabotage = Sabotage_Pick_(a, t);
+                if (sabotage != OP_COUNT) return sabotage;
             }
             return ready(OP_DATA) ? OP_DATA : OP_COUNT;
         }
@@ -417,15 +468,15 @@ namespace spy_ops {
                     *unrest = static_cast<uint8_t>(std::min<int32_t>(UNREST_MAX, *unrest + UNREST_PER_OPERATION));
                     break;
                 }
-                case OP_KILL_SCIENTIST:
                 case OP_ASSASSINATION:
-                case OP_POISON_FEAST: OFFICER::Kill_Officer(subject); break;
+                case OP_POISON_FEAST: Leave_Mark_(subject); OFFICER::Kill_Officer(subject); break;
+                case OP_KILL_SCIENTIST: OFFICER::Kill_Officer(subject); break;
                 case OP_SABOTAGE_SHIPYARD:
                     MOX::colony[subject].production_spent = 0;
                     *Stall_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS);
                     break;
                 case OP_STRIKE: *Stall_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS); break;
-                case OP_SABOTAGE_RESEARCH: MOX::player[subject].research_accumulated -= MOX::player[subject].research_accumulated / 2; break;
+                case OP_SABOTAGE_RESEARCH: MOX::player[subject].research_accumulated -= MOX::player[subject].research_accumulated * RESEARCH_LOSS_PERCENT / 100; break;
                 case OP_SABOTAGE_FOOD:
                     *Famine_Slot(subject) = static_cast<uint8_t>(SABOTAGE_TURNS);
                     COLCALC::Colony_Calculation(subject);
@@ -474,9 +525,17 @@ namespace spy_ops {
     }
 
     int32_t Morale_Effect(const s_colony* colony) {
-        if (!Enabled(OP_BRIBERY) || colony == nullptr) return 0;
-        const int officer = COLCALC::Colony_Officer(const_cast<s_colony*>(colony));
-        return officer >= 0 && Bribed_By(static_cast<int16_t>(officer)) >= 0 ? BRIBED_GOVERNOR_MORALE : 0;
+        if (colony == nullptr) return 0;
+        int32_t effect = 0;
+        if (Enabled(OP_BRIBERY)) {
+            const int officer = COLCALC::Colony_Officer(const_cast<s_colony*>(colony));
+            if (officer >= 0 && Bribed_By(static_cast<int16_t>(officer)) >= 0) effect += BRIBED_GOVERNOR_MORALE;
+        }
+        if (Enabled(OP_ASSASSINATION) || Enabled(OP_POISON_FEAST)) {
+            const uint8_t* mourn = Mourn_Slot(static_cast<int16_t>(colony - MOX::colony));
+            if (mourn != nullptr && *mourn > 0) effect += MOURN_MORALE;
+        }
+        return effect;
     }
 
     int16_t Inside_Man_Troops(const s_colony* colony, int16_t invader, int16_t troops) {
@@ -496,6 +555,11 @@ namespace spy_ops {
         return true;
     }
 
+    e_op Choose_Operation(int16_t attacker, int16_t target) {
+        int16_t third = -1;
+        return Choose_(attacker, target, &third);
+    }
+
     void Turn() {
         if (operations == 0) return;
         for (int16_t c = 0; c < MAX_COLONIES; ++c) {
@@ -503,6 +567,8 @@ namespace spy_ops {
             if (*unrest > 0) --*unrest;
             uint8_t* famine = Famine_Slot(c);
             if (*famine > 0) --*famine;
+            uint8_t* mourn = Mourn_Slot(c);
+            if (*mourn > 0) --*mourn;
             uint8_t* stall = Stall_Slot(c);
             if (*stall > 0) {
                 --*stall;
