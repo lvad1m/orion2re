@@ -60,6 +60,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/beasts_config.cpp
     src/game/discoveries_config.cpp
     src/game/heroes_config.cpp
+    src/game/moo_world_config.cpp
     src/game/news_config.cpp
     src/game/ambition_config.cpp
     src/game/eric_config.cpp
@@ -1106,6 +1107,10 @@ orion2re_add_game_test(test_heroes
     tests/unit/heroes_test.cpp
 )
 
+orion2re_add_game_test(test_moo_world
+    tests/unit/moo_world_test.cpp
+)
+
 orion2re_add_game_test(test_news
     tests/unit/news_test.cpp
 )
@@ -1528,6 +1533,7 @@ orion2re_add_unit_test(test_savegame
         src/game/beasts_state.cpp
         src/game/discoveries_state.cpp
         src/game/heroes_state.cpp
+        src/game/moo_world_state.cpp
         src/game/news_state.cpp
         src/game/advisor_directive.cpp
         src/game/advisor_intel.cpp

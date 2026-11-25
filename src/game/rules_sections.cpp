@@ -25,6 +25,7 @@
 #include "game/beasts.h"
 #include "game/discoveries.h"
 #include "game/heroes.h"
+#include "game/moo_world.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -152,6 +153,10 @@ namespace SAVEGAME {
             return heroes::enabled && !heroes::Empty();
         }
 
+        bool Moo_World_Has_State_() {
+            return moo_world::enabled && !moo_world::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -214,6 +219,8 @@ namespace SAVEGAME {
                 discoveries::Parse_Save, discoveries::Commit_Save, discoveries::Discard_Save, discoveries::Clear},
             {SECTION_TYPE_HEROES, 1, "heroes", Heroes_Has_State_, heroes::Save_Size, heroes::Write_Save,
                 heroes::Parse_Save, heroes::Commit_Save, heroes::Discard_Save, heroes::Clear},
+            {SECTION_TYPE_MOO_WORLD, 1, "moo world", Moo_World_Has_State_, moo_world::Save_Size, moo_world::Write_Save,
+                moo_world::Parse_Save, moo_world::Commit_Save, moo_world::Discard_Save, moo_world::Clear},
         };
     } // namespace
 

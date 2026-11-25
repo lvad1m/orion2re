@@ -15,6 +15,7 @@
 #include "game/beasts.h"
 #include "game/discoveries.h"
 #include "game/heroes.h"
+#include "game/moo_world.h"
 
 #include "lua/lua_game.h"
 
@@ -89,6 +90,8 @@ namespace NEXTTURN {
         world_events::Turn();
         // Heroes (off by default): a crisis manager, mind control, leaders' quirks, rival heroes.
         heroes::Turn();
+        // World events (off by default): the pirate king, a fleet epidemic, a spy scandal.
+        moo_world::Turn();
         // Research projects and wanderers (off by default): studies are checked, storms and traders move.
         projects::Turn();
         wanderers::Turn();

@@ -87,6 +87,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_DISCOVERIES = 0x43534944;
     // 'HERO': leaders and characters - a crisis manager, mind control, quirks, rival heroes (game/heroes.h).
     inline constexpr uint32_t SECTION_TYPE_HEROES = 0x4F524548;
+    // 'MOOW': events of the MOO2 world - the pirate king, a fleet epidemic, a spy scandal (game/moo_world.h).
+    inline constexpr uint32_t SECTION_TYPE_MOO_WORLD = 0x574F4F4D;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

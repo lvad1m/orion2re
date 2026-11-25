@@ -26,6 +26,7 @@
 #include "game/beasts.h"
 #include "game/discoveries.h"
 #include "game/heroes.h"
+#include "game/moo_world.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -648,6 +649,19 @@ namespace advisor {
                                    : r.kind == heroes::KIND_PACIFISM ? "a pacifist leader"
                                                                      : "a leader sabotaging";
                 Append_Format(out, "Event: %s (leader %d, until stardate %d).\n", name, static_cast<int>(r.leader), static_cast<int>(r.ends));
+            }
+        }
+        if (moo_world::enabled) {
+            const moo_world::s_state* ms = moo_world::State();
+            for (int32_t i = 0; i < ms->count; ++i) {
+                const moo_world::s_record& r = ms->record[i];
+                if (r.kind == moo_world::KIND_PIRATE_KING && moo_world::King_Near(self.player)) {
+                    Append_Format(out, "Event: a pirate king (strength %d) at star %d raids and demands tribute near our colonies (until stardate %d).\n",
+                        static_cast<int>(r.value), static_cast<int>(r.target), static_cast<int>(r.ends));
+                } else if (r.kind == moo_world::KIND_FLEET_EPIDEMIC && r.player == self.player) {
+                    Append_Format(out, "Event: an epidemic in our fleet at star %d, no ship leaves it until stardate %d.\n",
+                        static_cast<int>(r.target), static_cast<int>(r.ends));
+                }
             }
         }
         if (self.loyal_leaders > 0) {

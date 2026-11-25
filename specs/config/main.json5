@@ -11036,6 +11036,18 @@
       bind_root: { header: "game/heroes.h", symbol: "heroes::enabled" },
     },
 
+    moo_world: {
+      title: "World events: pirate king, fleet epidemic, spy scandal",
+      description: "Adds three events of the Master of Orion II world. Pirates that are not put down unite: when two or more pirate presences (pirate lairs, hired pirates) have stood together for 12 turns, a pirate king rises at the strongest one with the sum of their strength; every 5 turns he asks each empire with a colony within 6 parsecs for tribute (a computer pays, haggles or refuses by its personality; a refusal or a poor treasury means a raid) and warships at his star wear him down until he falls and the empire with the most ships there takes his loot. An epidemic breaks out in a fleet (0.3 percent a turn for an empire with three or more ships in orbit at one star) and no ship may leave that star for 2 to 5 turns. A spy scandal exposes the spy network of one empire in another (0.2 percent a turn for each spy it keeps there): every spy there is lost, the target remembers it and every other empire in contact with the owner hears bad rumours. Humans are subjects too and take the first, safest option. The advisor view lists the events that touch the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events moo_world = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/moo_world.h", symbol: "moo_world::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",
