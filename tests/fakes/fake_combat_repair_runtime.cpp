@@ -1,5 +1,6 @@
 #include "pch.h"
 
+#include "game/moo_world.h"
 #include "game/reputation.h"
 #include "game/resolutions.h"
 #include "game/secrets.h"
@@ -17,6 +18,11 @@ namespace resolutions {
 namespace reputation {
     void On_Atrocity(int16_t) {}
 } // namespace reputation
+
+// The world events are not under test here.
+namespace moo_world {
+    void On_Bio_Weapon(int16_t, int16_t) {}
+} // namespace moo_world
 
 // Secrets are not under test here.
 namespace secrets {

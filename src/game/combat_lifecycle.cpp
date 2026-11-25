@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/moo_world.h"
 #include "game/reputation.h"
 #include "game/resolutions.h"
 #include "game/secrets.h"
@@ -741,6 +742,7 @@ namespace COMBINIT {
         // Council resolutions (off by default): the use is remembered, and punished under a ban.
         resolutions::On_Banned_Act(player_idx, resolutions::BAN_BIO_WEAPONS);
         reputation::On_Atrocity(player_idx);  // "the North remembers" (off by default)
+        moo_world::On_Bio_Weapon(player_idx, star_idx);  // the council's demand sees it (off by default)
         secrets::On_Bio_Weapon(player_idx, star_idx);  // a secret for the spies (spy secrets, off by default)
         if (player_idx < MAX_PLAYERS) {
             for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {

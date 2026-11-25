@@ -23,6 +23,7 @@ namespace incidents {
 
     namespace {
         constexpr int8_t LEADER_ASSIGNED = 1;
+        constexpr int8_t TREATY_FIRST_WAR = 4;  // the first s_player::treaty value that means war
 
         int16_t Players_() {
             return static_cast<int16_t>(std::min<int32_t>(MOX::NUM_PLAYERS, MAX_PLAYERS));
@@ -115,13 +116,37 @@ namespace incidents {
             return best;
         }
 
-        // The general's ship and the general are lost to the rebels (the closest to the classic mutiny's
-        // change of sides: no ship changes hands outside combat in this engine).
+        // The enemy of the empire: the empire at war with it (a treaty of war either way) that it likes least
+        // (opinion::Relations, ties to the lowest number); -1 when it is at war with nobody.
+        int16_t Enemy_(int16_t player) {
+            int16_t best = -1;
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o == player || !Alive_(o)) continue;
+                if (MOX::player[player].treaty[o] < TREATY_FIRST_WAR && MOX::player[o].treaty[player] < TREATY_FIRST_WAR) continue;
+                if (best < 0 || opinion::Relations(player, o) < opinion::Relations(player, best)) best = o;
+            }
+            return best;
+        }
+
+        // Design row (events-catalog.md 3.4): "Мятежный генерал | генерал не подчиняется: урезонить, игнорировать,
+        // казнить; ветки — переворот или суд"; ab-review 3.3: "генерал и корабль гибнут -> доделать: корабль уходит
+        // к врагу империи (движок умеет менять владельца корабля — так сделана капитуляция)".
+        // The general dies; his ship changes owner to the enemy of the empire as in Do_Surrender_Empire. With no
+        // enemy (at war with nobody) the ship is lost, as before.
         void Coup_(int16_t player, int16_t leader) {
             const int16_t ship = MOX::leaders[leader].location;
             OFFICER::Kill_Officer(leader);
-            if (ship >= 0 && ship < MAX_SHIPS && MOX::ship[ship].owner == player) SHIPS::Kill_Ship(ship);
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d stages a coup, he and his ship are lost",
+            const bool own_ship = ship >= 0 && ship < MAX_SHIPS && MOX::ship[ship].owner == player;
+            const int16_t enemy = own_ship ? Enemy_(player) : static_cast<int16_t>(-1);
+            if (enemy >= 0) {
+                MOX::ship[ship].owner = static_cast<int8_t>(enemy);
+                MOX::ship[ship].officer_index = -1;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d stages a coup, his ship %d goes over to player %d",
+                    (int)MOX::stardate, (int)player, (int)leader, (int)ship, (int)enemy);
+                return;
+            }
+            if (own_ship) SHIPS::Kill_Ship(ship);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d stages a coup, he and his ship are lost (no enemy to go over to)",
                 (int)MOX::stardate, (int)player, (int)leader);
         }
 

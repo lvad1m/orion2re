@@ -85,6 +85,10 @@ namespace moo_world {
     constexpr int32_t DEFECT_MORALE = -5;
     constexpr int32_t DEFECT_OPINION = -15;
 
+    // Design row (events-catalog.md 4.2): "Совет требует | совет требует прекратить применение биологического
+    // оружия; отказ — −отношения со всеми | совет, biological_weapons_flag[]"; ab-review 3.4: "флаг биооружия
+    // движок не ставит -> доделать: отмечать биооружие там, где его уже ловит reputation::On_Atrocity"
+    // (On_Bio_Weapon below sets the flag).
     // The council's demand: an empire that has used biological weapons (a biological_weapons_flag of its set, or
     // the atrocity title of the reputation module) is told to stop, once for every time it starts using them
     // again. A computer agrees by its personality (a ruthless, aggressive or xenophobic one refuses); a human
@@ -106,7 +110,10 @@ namespace moo_world {
     constexpr int32_t SCOUT_REACH2 = KING_REACH2;
     constexpr int32_t SCOUT_OPINION = 5;
 
-    // Refugees: after an invasion takes a colony the refugees of its race reach, REFUGEE_DELAY turns later, the
+    // Design row (events-catalog.md 4.2): "Беженцы | после разгрома колонии беженцы прибывают к соседу; принять
+    // (+население чужой расы, −отношения с агрессором) или отказать | выбор, население, отношения"; ab-review
+    // 3.6: "только после захвата колонии, не после уничтожения -> доделать: хук в месте уничтожения планеты".
+    // Refugees: after an invasion takes a colony (or a stellar converter destroys it) the refugees of its race reach, REFUGEE_DELAY turns later, the
     // nearest colony of a third empire with room for a population unit. A computer accepts them (honorable,
     // pacifist, erratic, dishonored) or refuses (xenophobic, ruthless, aggressive); a human accepts. Accepted: a
     // unit of the race joins the colony, the aggressor remembers it (REFUGEE_AGGRESSOR_OPINION, REASON_BAD_RUMOURS).
@@ -180,6 +187,14 @@ namespace moo_world {
     // Hook (invasion.cpp Change_Colony_Ownership, before the pops change hands): refugees of the old owner's race
     // are on their way. Does nothing with the flag off.
     void On_Colony_Taken(const s_colony* colony, int16_t old_owner, int16_t new_owner);
+    // Hook (combfind.cpp, next to reputation::On_Atrocity, before the planet is destroyed): the colony of its
+    // owner is wiped out by `attacker`; its refugees flee as from a taken colony. Nothing with the flag off.
+    void On_Colony_Destroyed(const s_colony* colony, int16_t attacker);
+    // Hook (combat_lifecycle.cpp Apply_Bio_Weapon_Penalty, next to reputation::On_Atrocity): `attacker` used
+    // biological weapons at `star`; the engine's flag biological_weapons_flag[victim] is set (the victim: the
+    // owner of a colony at the star, else the attacker's own slot) so that the council's demand sees it.
+    // Nothing with the flag off.
+    void On_Bio_Weapon(int16_t attacker, int16_t star);
 
     // Once a turn after the other events (nextturn.cpp): the records run and end, the pirates unite, a new
     // event may start (at most one a turn).

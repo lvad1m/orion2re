@@ -52,13 +52,18 @@ namespace incidents {
     // cannot pay and keep PAINLESS_RESERVE quarantines); quarantine weighs on the colony's morale
     // (PAINLESS_QUARANTINE_MORALE) for PAINLESS_TURNS; recruiting the survivors as soldiers (the classic plague's
     // loss of people for PAINLESS_LEVY_TURNS, as a levy) lifts the morale (PAINLESS_RECRUIT_MORALE) for
-    // PAINLESS_TURNS. Closest equivalent: the engine has no hook for a bonus to ground troops.
+    // PAINLESS_TURNS, and the empire's ground troops fight with a bonus of PAINLESS_GROUND_BONUS strength
+    // points (Ground_Bonus, invasion.cpp Compute_Ground_Combat_Info) for the same PAINLESS_TURNS, attacking
+    // or defending.
+    // Design row (events-catalog.md 3.2): "Болезнь без боли | выжившие не чувствуют боли: лечить, карантин или
+    // набрать в десант | выбор, ± население, бонус наземным войскам".
     constexpr int32_t PAINLESS_CURE_COST = 60;
     constexpr int32_t PAINLESS_RESERVE = 50;
     constexpr int32_t PAINLESS_TURNS = 10;
     constexpr int32_t PAINLESS_LEVY_TURNS = 2;
     constexpr int32_t PAINLESS_QUARANTINE_MORALE = -2;   // morale points (5 % each)
     constexpr int32_t PAINLESS_RECRUIT_MORALE = 1;
+    constexpr int32_t PAINLESS_GROUND_BONUS = 10;  // strength points (the roll is 1..100; a rifle gives about 5)
     // Drug of the natives (3.2): tolerated, it calms the people (DRUG_TOLERATE_MORALE) but costs the treasury
     // a BC per colony population a turn (the lost output); a ban weighs on the morale (DRUG_BAN_MORALE) and
     // smugglers rob the empire (DRUG_CONTRABAND_PERCENT a turn, DRUG_CONTRABAND_LOSS BC); a tax gives the
@@ -95,8 +100,13 @@ namespace incidents {
     // Rebel general (3.4): a ship captain that ignores orders. Reasoning is a dice check against
     // GENERAL_DIFFICULTY (+ the general's loyalty over 50 in tens): a success restores GENERAL_LOYALTY_GAIN
     // loyalty, a failure is a coup. Ignored, the matter ripens for GENERAL_RIPEN_TURNS, then half the time it
-    // is a coup (the general and his ship are lost to the rebels: the classic mutiny changing sides is
-    // approximated by losing the ship) and half a trial (the general is dismissed, loyalty -GENERAL_JAILED).
+    // is a coup and half a trial (the general is dismissed, loyalty -GENERAL_JAILED). A coup kills the
+    // general and his ship goes over to the enemy of the empire (ab-review 3.3: the empire it is at war with
+    // that it thinks worst of; the ship changes owner as in the surrender of an empire, its officer gone); at
+    // peace with everybody the ship is lost.
+    // Design row (events-catalog.md 3.4): "Мятежный генерал | генерал не подчиняется: урезонить, игнорировать,
+    // казнить; ветки — переворот или суд | выбор, лидер, мораль"; decision ab-review 3.3: "корабль уходит к
+    // врагу империи".
     // An execution kills the general at once and frightens the other leaders (loyalty -GENERAL_FEAR).
     constexpr int32_t GENERAL_DIFFICULTY = 12;
     constexpr int32_t GENERAL_RIPEN_TURNS = 10;
@@ -136,6 +146,9 @@ namespace incidents {
     int32_t Morale_Bonus(const s_colony* colony);  // colcalc_main.cpp Colony_Morale (morale points)
     int32_t Unrest(int16_t colony);                // stability.cpp (stability points)
     bool Plague(int16_t colony);                   // colcalc.cpp: a levy of the survivors, as the classic plague
+    // invasion.cpp Compute_Ground_Combat_Info: strength points added to every ground unit of `player` while a
+    // recruited-survivors record of the painless disease runs (PAINLESS_GROUND_BONUS); 0 with the flag off.
+    int32_t Ground_Bonus(int16_t player);
 
     // The option a computer of `player` takes for `kind` by its personality; a human, or the flag off: 0.
     int32_t Choose(e_kind kind, int16_t player);

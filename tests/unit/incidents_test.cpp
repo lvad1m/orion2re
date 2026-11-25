@@ -467,4 +467,45 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     DOCTEST_CHECK(incidents::State()->count == 2);  // the failed parses left the state alone
 }
 
+
+DOCTEST_TEST_CASE("painless disease: recruited survivors give the empire's ground troops a bonus (ab-review 2.8)")
+{
+    s_incidents_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == 0);
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_PAINLESS, 0, incidents::PAINLESS_QUARANTINE));
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == 0);  // quarantine gives none
+    incidents::Clear();
+    incidents::enabled = true;
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_PAINLESS, 0, incidents::PAINLESS_RECRUIT));
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == incidents::PAINLESS_GROUND_BONUS);
+    DOCTEST_CHECK(incidents::Ground_Bonus(1) == 0);
+    MOX::stardate += incidents::PAINLESS_TURNS - 1;
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == incidents::PAINLESS_GROUND_BONUS);
+    MOX::stardate += 1;
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == 0);
+    // The flag off: nothing.
+    incidents::Clear();
+    incidents::enabled = true;
+    MOX::stardate = 35001;
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_PAINLESS, 0, incidents::PAINLESS_RECRUIT));
+    incidents::enabled = false;
+    DOCTEST_CHECK(incidents::Ground_Bonus(0) == 0);
+}
+
+DOCTEST_TEST_CASE("rebel general: a coup takes his ship over to the enemy of the empire (ab-review 3.3)")
+{
+    s_incidents_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].treaty[1] = 4;  // at war with empire 1
+    const int32_t bad[3] = {1, 1, 0};
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_REBEL_GENERAL, 0, incidents::GENERAL_REASON, bad));
+    DOCTEST_CHECK(state.leaders[0].status != 1);        // the general is gone
+    DOCTEST_CHECK(state.ships[0].owner == 1);           // the ship serves the enemy
+    DOCTEST_CHECK(state.ships[0].status == 0);          // and is not lost
+    DOCTEST_CHECK(state.ships[0].officer_index == -1);
+}
+
 }

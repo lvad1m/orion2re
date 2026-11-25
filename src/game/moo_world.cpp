@@ -627,6 +627,23 @@ namespace moo_world {
             (int)MOX::stardate, (int)old_owner, (int)star, (int)new_owner);
     }
 
+    void On_Colony_Destroyed(const s_colony* colony, int16_t attacker) {
+        if (!enabled || colony == nullptr) return;
+        On_Colony_Taken(colony, colony->owner, attacker);
+    }
+
+    void On_Bio_Weapon(int16_t attacker, int16_t star) {
+        if (!enabled || attacker < 0 || attacker >= Players_() || star < 0 || star >= MAX_STARS) return;
+        int16_t victim = attacker;
+        for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+            const int16_t owner = MOX::colony[c].owner;
+            if (owner == attacker || !Alive_(owner) || Colony_Star_(c) != star) continue;
+            victim = owner;
+            break;
+        }
+        MOX::player[attacker].biological_weapons_flag[victim] = 1;
+    }
+
     bool Raise_King(int16_t star, int16_t strength) {
         if (!enabled || star < 0 || star >= MAX_STARS || strength <= 0 || Has_King_()) return false;
         s_record r;

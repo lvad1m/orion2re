@@ -941,3 +941,54 @@ DOCTEST_TEST_CASE("refugees: no room anywhere, an outpost, or the same owner: no
     moo_world::On_Colony_Taken(&state.colonies[0], 0, 0);
     DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);
 }
+
+DOCTEST_TEST_CASE("council's demand: a bio-weapon strike marks the flag of its victim (ab-review 3.4), the demand follows")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].personality = PLAYER_PERSONALITY_HONORABLE;
+    // The flag off: no mark.
+    moo_world::enabled = false;
+    moo_world::On_Bio_Weapon(0, 1);
+    DOCTEST_CHECK(state.players[0].biological_weapons_flag[1] == 0);
+    moo_world::enabled = true;
+    // Empire 0 used them at star 1, where empire 1 has its colony.
+    moo_world::On_Bio_Weapon(0, 1);
+    DOCTEST_CHECK(state.players[0].biological_weapons_flag[1] == 1);
+    DOCTEST_CHECK(state.players[0].biological_weapons_flag[2] == 0);
+    // A star without a colony of another empire: the attacker's own slot.
+    moo_world::On_Bio_Weapon(0, 4);
+    DOCTEST_CHECK(state.players[0].biological_weapons_flag[0] == 1);
+    ++MOX::stardate;
+    moo_world::Turn();
+    DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_DID_US_A_SERVICE) == moo_world::COUNCIL_AGREE_OPINION);
+    DOCTEST_CHECK((moo_world::State()->agreed_mask & 1) != 0);
+}
+
+DOCTEST_TEST_CASE("refugees: a colony destroyed (a stellar converter) sends them too (ab-review 3.6); the flag off: nothing")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    moo_world::enabled = false;
+    moo_world::On_Colony_Destroyed(&state.colonies[0], 1);
+    DOCTEST_CHECK(moo_world::Empty());
+    moo_world::enabled = true;
+    state.planets[2].size = 4;
+    state.colonies[2].climate = 8;
+    const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+    DOCTEST_REQUIRE(cap >= 2);
+    state.colonies[2].n_pops = static_cast<uint8_t>(cap - 1);
+    state.players[2].personality = PLAYER_PERSONALITY_HONORABLE;
+    POP::Set_Race(&state.colonies[0].pop[0], 0);
+    moo_world::On_Colony_Destroyed(&state.colonies[0], 1);
+    const moo_world::s_record* r = Find_(moo_world::KIND_REFUGEES);
+    DOCTEST_REQUIRE(r != nullptr);
+    DOCTEST_CHECK(r->player == 0);
+    DOCTEST_CHECK(r->option == 1);
+    state.colonies[0].n_pops = 0;  // the planet is gone before the refugees arrive
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_BAD_RUMOURS) == moo_world::REFUGEE_AGGRESSOR_OPINION);
+}

@@ -56,6 +56,15 @@ namespace incidents {
         return false;
     }
 
+    int32_t Ground_Bonus(int16_t player) {
+        if (!enabled || player < 0) return 0;
+        for (int32_t i = 0; i < state.count; ++i) {
+            const s_incident& r = state.incident[i];
+            if (r.kind == KIND_PAINLESS && r.option == PAINLESS_RECRUIT && r.player == player && r.ends > MOX::stardate) return PAINLESS_GROUND_BONUS;
+        }
+        return 0;
+    }
+
     void Clear() {
         state = s_state{};
         Discard_Save();

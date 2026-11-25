@@ -1,4 +1,5 @@
 #include "pch.h"
+#include "game/moo_world.h"
 #include "game/reputation.h"
 #include "legacy_ids.h"
 #include "game/advisor_intel.h"
@@ -2026,6 +2027,7 @@ namespace COMBFIND {
                                 results->info.planet_destroyed_flag = 1;
                                 resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
                                 reputation::On_Atrocity(attacker_id);  // "the North remembers" (off by default)
+                                moo_world::On_Colony_Destroyed(colony, attacker_id);  // refugees (off by default)
                                 BOMB::Destroy_Colony(colony, 2);
                                 ERIC::Play_Planetary_Destruction_Flic();
                                 COMBFIND::current_star_has_player[colony_owner].colony_count--;
@@ -2203,6 +2205,7 @@ namespace COMBFIND {
                                 results->info.planet_destroyed_flag = 1;
                                 resolutions::On_Banned_Act(attacker_id, resolutions::BAN_PLANET_DESTRUCTION);
                                 reputation::On_Atrocity(attacker_id);  // "the North remembers" (off by default)
+                                moo_world::On_Colony_Destroyed(colony, attacker_id);  // refugees (off by default)
                                 terminal_destroyed = 1;
                                 BOMB::Destroy_Colony(colony, 2);
                             } else {

@@ -2,6 +2,7 @@
 
 #include "game/spy_ops.h"
 #include "game/hostages.h"
+#include "game/incidents.h"
 #include "game/moo_world.h"
 #include "game/news.h"
 
@@ -139,7 +140,8 @@ namespace invasion {
             own_mods->low_g_penalty +
             (uint8_t)own_mods->subterranean_bonus +
             own_mods->difficulty_bonus +
-            own_mods->officer_bonus;
+            own_mods->officer_bonus +
+            incidents::Ground_Bonus(side->player_id);  // painless disease: recruited survivors (off by default)
 
         for (int16_t i = 0; i < 4; ++i) {
             if (i == 3) {
