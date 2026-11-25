@@ -303,6 +303,9 @@ namespace pirate_world {
 namespace beasts {
     void Turn() {}
 }
+namespace discoveries {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}

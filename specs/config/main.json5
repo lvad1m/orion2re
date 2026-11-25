@@ -10975,6 +10975,18 @@
       bind_root: { header: "game/beasts.h", symbol: "beasts::enabled" },
     },
 
+    discoveries: {
+      title: "Discoveries: power plant, symbionts, natives, vaults, tombs",
+      description: "Adds five finds. Each turn every empire has a 0.8 percent chance of a find (one new find a turn in the galaxy): an ancient power plant at a colony (test it, take it apart or install it), sleeping symbionts (study the ship, wake them or bond with a volunteer), natives on a continent (leave, teach or use as workers, with a risk of revolt), a vault of the guardians at an explored star (five in the whole galaxy; the best explorers open them more easily) or a tomb at an ancient site (the dig wakes a guardian monster that must be beaten before the reward). Dice checks use the empire's scientists as in research projects. A human takes the first, safest way; a computer chooses by personality. The advisor view lists the finds of the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events discoveries = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/discoveries.h", symbol: "discoveries::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

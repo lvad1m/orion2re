@@ -13,6 +13,7 @@
 #include "game/overtures.h"
 #include "game/pirate_world.h"
 #include "game/beasts.h"
+#include "game/discoveries.h"
 
 #include "lua/lua_game.h"
 
@@ -96,6 +97,8 @@ namespace NEXTTURN {
         pirate_world::Turn();
         // Beasts (off by default): harvesters, an ambush in a belt, a stolen flagship, a wormhole.
         beasts::Turn();
+        // Discoveries (off by default): a power plant, symbionts, natives, vaults, tombs with guardians.
+        discoveries::Turn();
         // Crises (off by default): checks of the choices made, follow-ups, new crises.
         crises::Turn();
         lostship::Lose_Out_Of_Range_Ships();

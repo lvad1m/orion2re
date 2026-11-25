@@ -23,6 +23,7 @@
 #include "game/overtures.h"
 #include "game/pirate_world.h"
 #include "game/beasts.h"
+#include "game/discoveries.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -593,6 +594,20 @@ namespace advisor {
                         break;
                     default: break;
                 }
+            }
+        }
+        if (discoveries::enabled) {
+            const discoveries::s_state* ds = discoveries::State();
+            for (int32_t i = 0; i < ds->count; ++i) {
+                const discoveries::s_record& r = ds->record[i];
+                if (r.player != self.player) continue;
+                const char* name = r.kind == discoveries::KIND_POWER_PLANT ? "an ancient power plant"
+                                   : r.kind == discoveries::KIND_SYMBIONTS ? "sleeping symbionts"
+                                   : r.kind == discoveries::KIND_NATIVES ? "natives on the continent"
+                                   : r.kind == discoveries::KIND_VAULT ? "a vault of the guardians"
+                                                                       : (r.stage == 1 ? "a tomb whose guardian is awake" : "a tomb being dug");
+                Append_Format(out, "Event: %s at star %d, way %d (until stardate %d).\n", name, static_cast<int>(r.star),
+                    static_cast<int>(r.option), static_cast<int>(r.ends));
             }
         }
         if (self.loyal_leaders > 0) {
