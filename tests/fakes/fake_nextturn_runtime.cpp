@@ -306,6 +306,9 @@ namespace beasts {
 namespace discoveries {
     void Turn() {}
 }
+namespace heroes {
+    void Turn() {}
+}
 
 namespace INITSHIP {
     void __cdecl Repair_Ships_At_Colonies() {}

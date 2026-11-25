@@ -11024,6 +11024,18 @@
       bind_root: { header: "game/discoveries.h", symbol: "discoveries::enabled" },
     },
 
+    heroes: {
+      title: "Leaders: crisis manager, mind control, quirks, rival heroes",
+      description: "Adds four leader events with no choices. A crisis manager appears (4 percent a turn, 60 BC) for an empire in a crisis or deep in war weariness and for 12 turns adds 2 to every crisis check and takes 3 points a turn off the war weariness. An alien mind (0.5 percent a turn for a computer empire with a telepath leader) takes over an assigned leader of an empire it is at war with or dislikes: for up to 30 turns 6 BC a turn pass from the victim to the profiting empire (with spy bribery on, the leader also stands bribed), and the victim may free the leader each turn (more easily with strict counterintelligence). Leader quirks (0.6 percent a turn for each empire, by the leader's loyalty): stimulants (experience, then a crash of loyalty), paranoia (loyalty falls and the leader locks himself away, leaving his post), pacifism (a computer's ship captain keeps leaving his post, then writes a treatise worth experience) and sabotage (a robbed treasury). Rival heroes: every 10 turns each famous leader nobody holds gains 40 experience, may die and may be hired by the richest computer that can afford him. Quirks are kept in the module's own state, never in the leader record. The advisor view lists the events that touch the empire.",
+      remarks: "False preserves classic behavior. Kept in an optional save section that older builds skip.",
+      examples: ["events heroes = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/heroes.h", symbol: "heroes::enabled" },
+    },
+
     crisis_chance: {
       title: "Crisis chance",
       description: "Sets the chance, in per mille a turn for each computer empire from turn 30, that a crisis opens (one at a time for an empire).",

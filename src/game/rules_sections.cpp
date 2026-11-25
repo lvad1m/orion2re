@@ -24,6 +24,7 @@
 #include "game/pirate_world.h"
 #include "game/beasts.h"
 #include "game/discoveries.h"
+#include "game/heroes.h"
 #include "game/secrets.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
@@ -147,6 +148,10 @@ namespace SAVEGAME {
             return discoveries::enabled && !discoveries::Empty();
         }
 
+        bool Heroes_Has_State_() {
+            return heroes::enabled && !heroes::Empty();
+        }
+
         const s_rules_section sections[] = {
             {SECTION_TYPE_OPINION, 1, "opinion modifiers", Opinion_Has_State_, opinion::Save_Size, opinion::Write_Save,
                 opinion::Parse_Save, opinion::Commit_Save, opinion::Discard_Save, opinion::Clear},
@@ -207,6 +212,8 @@ namespace SAVEGAME {
                 beasts::Parse_Save, beasts::Commit_Save, beasts::Discard_Save, beasts::Clear},
             {SECTION_TYPE_DISCOVERIES, 1, "discoveries", Discoveries_Has_State_, discoveries::Save_Size, discoveries::Write_Save,
                 discoveries::Parse_Save, discoveries::Commit_Save, discoveries::Discard_Save, discoveries::Clear},
+            {SECTION_TYPE_HEROES, 1, "heroes", Heroes_Has_State_, heroes::Save_Size, heroes::Write_Save,
+                heroes::Parse_Save, heroes::Commit_Save, heroes::Discard_Save, heroes::Clear},
         };
     } // namespace
 

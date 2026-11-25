@@ -25,6 +25,7 @@
 #include "game/pirate_world.h"
 #include "game/beasts.h"
 #include "game/discoveries.h"
+#include "game/heroes.h"
 #include "game/harold.h"
 #include "game/legacy_ids.h"
 #include "game/loyalty.h"
@@ -632,6 +633,21 @@ namespace advisor {
                                                                        : (r.stage == 1 ? "a tomb whose guardian is awake" : "a tomb being dug");
                 Append_Format(out, "Event: %s at star %d, way %d (until stardate %d).\n", name, static_cast<int>(r.star),
                     static_cast<int>(r.option), static_cast<int>(r.ends));
+            }
+        }
+        if (heroes::enabled) {
+            const heroes::s_state* hs = heroes::State();
+            for (int32_t i = 0; i < hs->count; ++i) {
+                const heroes::s_record& r = hs->record[i];
+                if (r.player != self.player && !(r.kind == heroes::KIND_MIND && r.other == self.player)) continue;
+                const bool profits = r.player != self.player;
+                const char* name = r.kind == heroes::KIND_MANAGER    ? "a crisis manager at work"
+                                   : r.kind == heroes::KIND_MIND     ? (profits ? "an alien mind makes a leader of another empire work for us" : "an alien mind controls a leader")
+                                   : r.kind == heroes::KIND_STIMULANT ? "a leader on stimulants"
+                                   : r.kind == heroes::KIND_PARANOIA ? "a paranoid leader"
+                                   : r.kind == heroes::KIND_PACIFISM ? "a pacifist leader"
+                                                                     : "a leader sabotaging";
+                Append_Format(out, "Event: %s (leader %d, until stardate %d).\n", name, static_cast<int>(r.leader), static_cast<int>(r.ends));
             }
         }
         if (self.loyal_leaders > 0) {

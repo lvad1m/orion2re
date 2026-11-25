@@ -7,6 +7,7 @@
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/events.h"
+#include "game/heroes.h"
 #include "game/invasion.h"
 #include "game/news.h"
 #include "game/opinion.h"
@@ -256,7 +257,7 @@ namespace crises {
                 break;
             default: break;
         }
-        return std::clamp<int32_t>(standing, -5, 5) + (leader ? LEADER_BONUS : 0);
+        return std::clamp<int32_t>(standing, -5, 5) + (leader ? LEADER_BONUS : 0) + heroes::Manager_Bonus(player);
     }
 
     int32_t Choose_Option(int16_t player, e_crisis crisis) {

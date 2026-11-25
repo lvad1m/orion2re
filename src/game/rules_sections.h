@@ -85,6 +85,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_BEASTS = 0x54534542;
     // 'DISC': discoveries - a power plant, symbionts, natives, vaults, tombs (game/discoveries.h).
     inline constexpr uint32_t SECTION_TYPE_DISCOVERIES = 0x43534944;
+    // 'HERO': leaders and characters - a crisis manager, mind control, quirks, rival heroes (game/heroes.h).
+    inline constexpr uint32_t SECTION_TYPE_HEROES = 0x4F524548;
 
     // The registered sections, in the order they are written.
     const s_rules_section* Rules_Sections(uint32_t* count);

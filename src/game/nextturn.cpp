@@ -14,6 +14,7 @@
 #include "game/pirate_world.h"
 #include "game/beasts.h"
 #include "game/discoveries.h"
+#include "game/heroes.h"
 
 #include "lua/lua_game.h"
 
@@ -86,6 +87,8 @@ namespace NEXTTURN {
         EVENTS::Event_Twiddle();
         // New events (off by default): modifiers, the bankruptcy scale, galaxy, empire and race events.
         world_events::Turn();
+        // Heroes (off by default): a crisis manager, mind control, leaders' quirks, rival heroes.
+        heroes::Turn();
         // Research projects and wanderers (off by default): studies are checked, storms and traders move.
         projects::Turn();
         wanderers::Turn();
