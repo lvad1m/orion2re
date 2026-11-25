@@ -4,6 +4,8 @@
 
 #include "game/bill.h"
 #include "game/colcalc.h"
+#include "game/diplomac.h"
+#include "game/diplomacy_memory.h"
 #include "game/events.h"
 #include "game/mox.h"
 #include "game/officer.h"
@@ -273,6 +275,84 @@ namespace moo_world {
             }
         }
 
+        // Pretender in exile ----------------------------------------------------------------------------------
+
+        constexpr int8_t TREATY_ALLIANCE = 2;
+
+        int32_t Former_Colonies_Of_(int16_t holder, int16_t dead) {
+            int32_t n = 0;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                if (MOX::colony[c].owner == holder && Is_Former_Colony(c, dead)) ++n;
+            }
+            return n;
+        }
+
+        // Former colonies of `dead` held by anyone but `supporter`.
+        int32_t Claimed_(int16_t dead, int16_t supporter) {
+            int32_t n = 0;
+            for (int16_t h = 0; h < Players_(); ++h) {
+                if (h != supporter && Alive_(h)) n += Former_Colonies_Of_(h, dead);
+            }
+            return n;
+        }
+
+        void Start_Pretender_(int16_t dead, int16_t supporter, int16_t leader) {
+            if (Claimed_(dead, supporter) == 0) return;
+            s_record r;
+            r.kind = KIND_PRETENDER;
+            r.player = static_cast<int8_t>(dead);
+            r.option = static_cast<int8_t>(supporter);
+            r.target = -1;
+            r.value = leader;
+            r.started = MOX::stardate;
+            r.ends = MOX::stardate + PRETENDER_TURNS;
+            if (!Record_(r)) return;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d backs leader %d, the pretender of fallen player %d: %d former colonies claimed until stardate %d",
+                (int)MOX::stardate, (int)supporter, (int)leader, (int)dead, (int)Claimed_(dead, supporter), (int)r.ends);
+        }
+
+        // Runs one pretender a turn; true when the claim ends.
+        bool Run_Pretender_(s_record& r) {
+            const int16_t supporter = r.option;
+            const int16_t dead = r.player;
+            const char* why = nullptr;
+            if (MOX::stardate >= r.ends) {
+                why = "the claim lapses with time";
+            } else if (!Alive_(supporter) || r.value >= MAX_LEADERS || !Holds_(MOX::leaders[r.value], supporter)) {
+                why = "the supporter no longer holds the pretender";
+            } else if (Claimed_(dead, supporter) == 0) {
+                why = "no former colony is left in other hands";
+            }
+            if (why != nullptr) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: the pretender of fallen player %d is done: %s",
+                    (int)MOX::stardate, (int)supporter, (int)dead, why);
+                return true;
+            }
+            if (r.extra != 0 || !Computer_(supporter)) return false;
+            const int8_t personality = MOX::player[supporter].personality;
+            if (personality == PLAYER_PERSONALITY_HONORABLE || personality == PLAYER_PERSONALITY_PACIFIST) return false;
+            if (diplomemory::Too_Weary_For_New_War(supporter)) return false;
+            int16_t target = -1;
+            int32_t most = 0;
+            for (int16_t h = 0; h < Players_(); ++h) {
+                if (h == supporter || !Alive_(h)) continue;
+                const int8_t treaty = MOX::player[supporter].treaty[h];
+                if (treaty == 0 || treaty >= TREATY_FIRST_WAR || treaty == TREATY_ALLIANCE || MOX::player[h].treaty[supporter] >= TREATY_FIRST_WAR) continue;
+                const int32_t n = Former_Colonies_Of_(h, dead);
+                if (n > most) {
+                    most = n;
+                    target = h;
+                }
+            }
+            if (target < 0) return false;
+            r.extra = 1;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d declares war on player %d, which holds %d former colonies of fallen player %d, for the pretender",
+                (int)MOX::stardate, (int)supporter, (int)target, (int)most, (int)dead);
+            diplomac::Declare_War(supporter, target);  // the cause (Pretender_Cause) lightens the stain
+            pacts::On_Aggression(supporter, target);
+            return false;
+        }
+
         // Scientist defection -------------------------------------------------------------------------------
 
         // The leader of `owner` with a science skill (the spy operations' scientist), the highest level; -1 when none.
@@ -532,6 +612,7 @@ namespace moo_world {
         }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d hires leader %d, the exile of player %d (%d BC)",
             (int)MOX::stardate, (int)suitor, (int)best, (int)dead, (int)suitor_cost);
+        Start_Pretender_(dead, suitor, best);
         return true;
     }
 
@@ -702,6 +783,8 @@ namespace moo_world {
                 gone = MOX::stardate >= r.ends;
             } else if (r.kind == KIND_REFUGEES) {
                 gone = Run_Refugees_(r);
+            } else if (r.kind == KIND_PRETENDER) {
+                gone = Run_Pretender_(r);
             }
             if (gone) {
                 Remove_Record_(i);

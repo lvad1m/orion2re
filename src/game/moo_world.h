@@ -32,7 +32,9 @@ namespace moo_world {
         KIND_ANTARAN_SCOUT = 3,   // record; player: the empire whose colony it was seen near, target: that colony's star
         KIND_REFUGEES = 4,        // record; player: the old owner, option: the aggressor, target: the colony's star,
                                   // value: the race of the refugees (a pop race id), ends: when they arrive
-        KIND_LAST = 4,
+        KIND_PRETENDER = 5,       // record; player: the fallen empire, option: the supporter, value: the leader (the
+                                  // exile), ends: when the claim lapses; extra: 1 once the supporter has declared its war
+        KIND_LAST = 5,
     };
 
     // Pirate king: while at least two pirate presences (a lair of the pirate world, pirates hired in the world
@@ -84,6 +86,23 @@ namespace moo_world {
     constexpr int32_t DEFECT_STABILITY = -3;
     constexpr int32_t DEFECT_MORALE = -5;
     constexpr int32_t DEFECT_OPINION = -15;
+
+    // Design row (mechanics.md 3.5.6): "Претендент в изгнании | лидер погибшей империи претендует на её бывшие
+    // колонии; поддержка даёт повод для войны и снижает стабильность там"; ab-review 4.5: "включить вместе с
+    // «Знаменитым изгнанником»". Built under the same flag as the exile (events moo_world): it is the exile's
+    // continuation, not a separate event, and it draws nothing from game_random.
+    // The pretender: when a computer hires the famous exile (Start_Exile) and colonies that once belonged to the
+    // fallen empire are still held by other empires, the exile claims them. The former colonies of the dead empire
+    // are the settled colonies of other empires that still hold at least one population unit of the dead empire's
+    // race (conquered colonies keep their people; Is_Former_Colony). The supporter is the empire that hired the
+    // leader. For PRETENDER_TURNS the supporter holds a lawful cause for war against every holder of such a colony
+    // (Pretender_Cause, read by ultimatums::Has_Cause: no oathbreaker stain, no sneak-attack opinion), and every
+    // former colony not held by the supporter has PRETENDER_UNREST more unrest (Unrest, read by stability). A
+    // computer supporter that is not honorable or pacifist and not too weary declares that war once, on the holder
+    // with the most former colonies it is at peace with. The claim lapses when the time is out, the supporter is
+    // gone, no longer holds the leader, or no former colony is left in other hands.
+    constexpr int32_t PRETENDER_TURNS = 40;
+    constexpr int32_t PRETENDER_UNREST = 3;  // stability points (negative stability factor)
 
     // Design row (events-catalog.md 4.2): "Совет требует | совет требует прекратить применение биологического
     // оружия; отказ — −отношения со всеми | совет, biological_weapons_flag[]"; ab-review 3.4: "флаг биооружия
@@ -184,6 +203,13 @@ namespace moo_world {
     bool Council_Demand(int16_t player);
     // Whether a computer of `player` accepts refugees (0) or refuses (1); a human accepts; the flag off: 0.
     int32_t Refugee_Choice(int16_t player);
+    // The colony is settled, held by an empire other than `dead`, and keeps a population unit of `dead`'s race.
+    bool Is_Former_Colony(int16_t colony, int16_t dead);
+    // `demander` supports a pretender of a fallen empire that has a former colony held by `victim` (the flag off:
+    // false): a lawful cause for war (ultimatums::Has_Cause).
+    bool Pretender_Cause(int16_t demander, int16_t victim);
+    // The unrest (stability points) a pretender's claim brings to `colony` (stability.cpp); 0 with the flag off.
+    int32_t Unrest(int16_t colony);
     // Hook (invasion.cpp Change_Colony_Ownership, before the pops change hands): refugees of the old owner's race
     // are on their way. Does nothing with the flag off.
     void On_Colony_Taken(const s_colony* colony, int16_t old_owner, int16_t new_owner);

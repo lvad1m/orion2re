@@ -10,6 +10,7 @@
 #include "game/spy_ops.h"
 #include "game/world_events.h"
 #include "game/incidents.h"
+#include "game/moo_world.h"
 
 #include <algorithm>
 
@@ -68,6 +69,7 @@ namespace stability {
         negative += spy_ops::Unrest(colony);  // stirred up by enemy spies (tier 3)
         negative += world_events::Unrest(colony);  // a mutiny (new events, tier 5)
         negative += incidents::Unrest(colony);  // a plundered deposit (incidents, off by default)
+        negative += moo_world::Unrest(colony);  // a pretender's claim on a former colony (events moo_world, off by default)
 
         int32_t positive = 0;
         if (!at_war) positive += 3;

@@ -17,6 +17,7 @@ namespace loyalty {
 
     extern bool enabled;          // loyalty leaders
     extern int32_t period;        // loyalty period: turns per step of service and mood
+    extern bool rivalry;          // loyalty leader_rivalry: a promotion lowers the loyalty of the leader's peers
 
     constexpr int8_t UNTRACKED = -1;
     constexpr int32_t START = 50;
@@ -24,6 +25,7 @@ namespace loyalty {
     constexpr int32_t VICTORY = 5;
     constexpr int32_t DEFEAT = -5;
     constexpr int32_t PASSED_OVER = -5;
+    constexpr int32_t RIVAL_PROMOTED = -3;  // per level the other was promoted, for a peer overtaken (rivalry)
     constexpr int32_t IDLE_TURNS = 20;
     constexpr int32_t MORALE_GOOD = 4;    // average colony morale points
     constexpr int32_t WEARY = 20;         // diplomemory war weariness

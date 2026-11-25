@@ -688,6 +688,9 @@ namespace advisor {
                 } else if (r.kind == moo_world::KIND_REFUGEES && r.player == self.player) {
                     Append_Format(out, "Event: refugees of ours from star %d are on their way to a neighbour (arriving stardate %d).\n",
                         static_cast<int>(r.target), static_cast<int>(r.ends));
+                } else if (r.kind == moo_world::KIND_PRETENDER && (r.option == self.player || moo_world::Pretender_Cause(r.option, self.player))) {
+                    Append_Format(out, "Event: the exile of fallen empire %d, backed by empire %d, claims its former colonies (until stardate %d).\n",
+                        static_cast<int>(r.player), static_cast<int>(r.option), static_cast<int>(r.ends));
                 } else if (r.kind == moo_world::KIND_FLEET_EPIDEMIC && r.player == self.player) {
                     Append_Format(out, "Event: an epidemic in our fleet at star %d, no ship leaves it until stardate %d.\n",
                         static_cast<int>(r.target), static_cast<int>(r.ends));

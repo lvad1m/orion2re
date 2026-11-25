@@ -5491,6 +5491,18 @@
       },
     },
 
+    leader_rivalry: {
+      title: "Rivalry of leaders",
+      description: "When a leader is promoted to a higher level, every other leader of the same empire and kind whose level lay from the promoted one's old level up to its new level, a peer who was equalled or overtaken, loses 3 points of loyalty for each level the other gained.",
+      remarks: "False preserves classic behavior. Needs loyalty leaders. Nothing is saved or drawn.",
+      examples: ["loyalty leader_rivalry = true;"],
+      group: "gameplay",
+      namespace: "loyalty",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/loyalty.h", symbol: "loyalty::rivalry" },
+    },
+
     ambitious_governors: {
       title: "Ambitious governors",
       description: "Every 10 turns (stardate ending in 7) each computer empire's assigned governor with loyalty 20 or less and level 3 or more, not governing the capital's star, defects with 20 percent. It goes with the colonies at its star to the neighbouring computer empire in contact whose colony is nearest, preferring one the old owner is at war with or dislikes; the leader joins the new owner's reserve and the old owner remembers the plot (-20). With no such neighbour the governor deserts to the hire list.",

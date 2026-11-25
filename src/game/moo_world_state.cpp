@@ -2,6 +2,7 @@
 
 #include "game/moo_world.h"
 
+#include "game/pop.h"
 #include "game/serialization.h"
 
 // The records of the world events, the queries and the save section; the behaviour is in moo_world.cpp. Nothing
@@ -60,6 +61,40 @@ namespace moo_world {
             if (r.kind == KIND_ANTARAN_SCOUT && r.player == player && r.ends > MOX::stardate) return true;
         }
         return false;
+    }
+
+    bool Is_Former_Colony(int16_t colony, int16_t dead) {
+        if (colony < 0 || colony >= MOX::NUM_COLONIES || colony >= MAX_COLONIES || dead < 0 || dead >= MAX_PLAYERS) return false;
+        const s_colony& c = MOX::colony[colony];
+        if (c.owner < 0 || c.owner >= MAX_PLAYERS || c.owner == dead || c.outpost_flag != 0) return false;
+        for (int i = 0; i < c.n_pops && i < MAX_COLONY_POPULATION; ++i) {
+            if (POP::Get_Race(POP::Load(&c.pop[i])) == static_cast<uint32_t>(dead)) return true;
+        }
+        return false;
+    }
+
+    bool Pretender_Cause(int16_t demander, int16_t victim) {
+        if (!enabled || demander == victim) return false;
+        for (int32_t i = 0; i < state.count; ++i) {
+            const s_record& r = state.record[i];
+            if (r.kind != KIND_PRETENDER || r.option != demander || r.ends <= MOX::stardate) continue;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                if (MOX::colony[c].owner == victim && Is_Former_Colony(c, r.player)) return true;
+            }
+        }
+        return false;
+    }
+
+    int32_t Unrest(int16_t colony) {
+        if (!enabled || state.count == 0) return 0;
+        for (int32_t i = 0; i < state.count; ++i) {
+            const s_record& r = state.record[i];
+            if (r.kind != KIND_PRETENDER || r.ends <= MOX::stardate) continue;
+            if (colony >= 0 && colony < MAX_COLONIES && MOX::colony[colony].owner != r.option && Is_Former_Colony(colony, r.player)) {
+                return PRETENDER_UNREST;
+            }
+        }
+        return 0;
     }
 
     void Clear() {
@@ -142,7 +177,11 @@ namespace moo_world {
                 return fail("moo_world save has a record without an empire");
             }
             if (r.kind == KIND_REFUGEES && (r.option < 0 || r.option >= MAX_PLAYERS || r.value > 9)) return fail("moo_world save has bad refugees");
-            if (r.target < 0 || r.target >= MAX_STARS) return fail("moo_world save has a bad star");
+            if (r.kind == KIND_PRETENDER && (r.player < 0 || r.option < 0 || r.option >= MAX_PLAYERS || r.value >= MAX_LEADERS || r.extra > 1)) {
+                return fail("moo_world save has a bad pretender");
+            }
+            // A pretender has no star (-1); every other record has one.
+            if (r.target < (r.kind == KIND_PRETENDER ? -1 : 0) || r.target >= MAX_STARS) return fail("moo_world save has a bad star");
             if (r.other < -1 || r.other >= MAX_STARS) return fail("moo_world save has a bad second star");
             if (r.started < 0 || r.ends < 0) return fail("moo_world save has a bad stardate");
             if (r.value < 0 || r.value > MAX_VALUE || r.extra < 0 || r.extra > MAX_VALUE) return fail("moo_world save has a bad value");

@@ -2,6 +2,7 @@
 
 #include "game/ultimatums.h"
 
+#include "game/moo_world.h"
 #include "game/serialization.h"
 
 // The records of the ultimatums, the query of a lawful cause and the save section; the behaviour is in
@@ -29,6 +30,7 @@ namespace ultimatums {
     }
 
     bool Has_Cause(int16_t demander, int16_t victim) {
+        if (moo_world::Pretender_Cause(demander, victim)) return true;  // a pretender's claim is a lawful cause too
         if (!enabled || state.count == 0) return false;
         const int32_t i = Find(demander, victim);
         return i >= 0 && state.record[i].state == STATE_CAUSE && MOX::stardate < state.record[i].deadline + CAUSE_TURNS;

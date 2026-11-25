@@ -8,5 +8,6 @@ namespace loyalty {
 
     bool enabled = false;
     int32_t period = 5;
+    bool rivalry = false;
 
 } // namespace loyalty

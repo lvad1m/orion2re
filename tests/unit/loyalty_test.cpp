@@ -11,6 +11,7 @@ namespace {
     struct s_loyalty_scope {
         test::s_saved_value<bool> enabled{loyalty::enabled};
         test::s_saved_value<int32_t> period{loyalty::period};
+        test::s_saved_value<bool> rivalry{loyalty::rivalry};
 
         s_loyalty_scope() {
             loyalty::Clear();
@@ -172,6 +173,60 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     buffer[2] = 101;  // leader 0's loyalty
     SERIAL::Reader_ bad(buffer.get(), loyalty::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(loyalty::Parse_Save(&bad, &error));
+}
+
+DOCTEST_TEST_CASE("rivalry: a promotion lowers the loyalty of the peers it overtakes, only with the flag on") {
+    s_loyalty_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    // Leader 4: a peer of leader 3 (level 0); leader 5: already far above; leader 6: another empire's peer.
+    for (int i : {4, 5, 6}) {
+        s_leader_data& l = state.leaders[i];
+        l.player_index = i == 6 ? 2 : 1;
+        l.status = 0;
+        l.type = SHIP_LEADER;
+        l.xp = i == 5 ? 1000 : 0;
+    }
+    loyalty::Turn();
+    state.leaders[3].xp = 150;  // two levels up
+
+    // Flag off: only the promoted one changes.
+    loyalty::Turn();
+    DOCTEST_CHECK(loyalty::Of(3) == 70);
+    DOCTEST_CHECK(loyalty::Of(4) == 50);
+
+    // Flag on: the same promotion, a fresh leader.
+    loyalty::Clear();
+    state.leaders[3].xp = 0;
+    loyalty::Turn();
+    loyalty::rivalry = true;
+    state.leaders[3].xp = 150;
+    loyalty::Turn();
+    loyalty::rivalry = false;
+    DOCTEST_CHECK(loyalty::Of(3) == 70);
+    DOCTEST_CHECK(loyalty::Of(4) == 50 + 2 * loyalty::RIVAL_PROMOTED);  // overtaken
+    DOCTEST_CHECK(loyalty::Of(5) == 50);                                // above the promoted one
+    DOCTEST_CHECK(loyalty::Of(6) == 50);                                // another empire's
+}
+
+DOCTEST_TEST_CASE("rivalry: leaders promoted together are not rivals; off by default") {
+    s_loyalty_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    DOCTEST_CHECK_FALSE(loyalty::rivalry);
+    s_leader_data& l = state.leaders[4];
+    l.player_index = 1;
+    l.status = 0;
+    l.type = SHIP_LEADER;
+    l.xp = 0;
+    loyalty::Turn();
+    loyalty::rivalry = true;
+    state.leaders[3].xp = 150;
+    l.xp = 150;
+    loyalty::Turn();
+    loyalty::rivalry = false;
+    DOCTEST_CHECK(loyalty::Of(3) == 70);
+    DOCTEST_CHECK(loyalty::Of(4) == 70);
 }
 
 }

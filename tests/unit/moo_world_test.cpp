@@ -9,6 +9,7 @@
 #include "game/opinion.h"
 #include "game/pacts.h"
 #include "game/pop.h"
+#include "game/ultimatums.h"
 #include "game/pirate_world.h"
 #include "game/random.h"
 #include "game/serialization.h"
@@ -991,4 +992,159 @@ DOCTEST_TEST_CASE("refugees: a colony destroyed (a stellar converter) sends them
     Run_(moo_world::REFUGEE_DELAY);
     DOCTEST_CHECK(state.colonies[2].n_pops == cap);
     DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_BAD_RUMOURS) == moo_world::REFUGEE_AGGRESSOR_OPINION);
+}
+
+namespace {
+    // The famous exile (leader 6 of the fallen empire 2) is hired by empire 1, which liked the dead empire; colony 0
+    // of empire 0 still holds people of the dead empire's race.
+    void Setup_Pretender_(test::s_game_state* state) {
+        Setup_(state);
+        opinion::Add(1, 2, opinion::REASON_DEFENDED_US, 30);
+        state->players[2].eliminated = 1;
+        s_leader_data& l = state->leaders[6];
+        l.player_index = 2;
+        l.status = 0;
+        l.type = LEADER_TYPE_SHIP;
+        l.skill_value = 1;
+        l.xp = 1000;
+        l.location = -1;
+        POP::Set_Race(&state->colonies[0].pop[0], 2);
+        state->players[1].treaty[0] = state->players[0].treaty[1] = 3;  // peace
+    }
+}
+
+DOCTEST_TEST_SUITE("pretender in exile") {
+
+DOCTEST_TEST_CASE("the hired exile claims the former colonies: a lawful cause for war and unrest there")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_Pretender_(&state);
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    const moo_world::s_record* r = Find_(moo_world::KIND_PRETENDER);
+    DOCTEST_REQUIRE(r != nullptr);
+    DOCTEST_CHECK(r->player == 2);
+    DOCTEST_CHECK(r->option == 1);
+    DOCTEST_CHECK(r->value == 6);
+    DOCTEST_CHECK(r->ends == MOX::stardate + moo_world::PRETENDER_TURNS);
+    DOCTEST_CHECK(moo_world::Is_Former_Colony(0, 2));
+    DOCTEST_CHECK_FALSE(moo_world::Is_Former_Colony(1, 2));
+    DOCTEST_CHECK(moo_world::Pretender_Cause(1, 0));
+    DOCTEST_CHECK_FALSE(moo_world::Pretender_Cause(0, 1));  // the holder has no cause against the supporter
+    DOCTEST_CHECK_FALSE(moo_world::Pretender_Cause(1, 2));
+    DOCTEST_CHECK(ultimatums::Has_Cause(1, 0));              // the ultimatums' reading sees it with its own flag off
+    DOCTEST_CHECK(moo_world::Unrest(0) == moo_world::PRETENDER_UNREST);
+    DOCTEST_CHECK(moo_world::Unrest(1) == 0);
+    // A former colony held by the supporter itself is not shaken.
+    POP::Set_Race(&state.colonies[1].pop[0], 2);
+    DOCTEST_CHECK(moo_world::Unrest(1) == 0);
+}
+
+DOCTEST_TEST_CASE("a computer supporter declares its lawful war once on the holder; the claim lapses with time")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_Pretender_(&state);
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    moo_world::Run_Records();
+    DOCTEST_CHECK(state.players[1].treaty[0] >= 4);
+    DOCTEST_REQUIRE(Find_(moo_world::KIND_PRETENDER) != nullptr);
+    DOCTEST_CHECK(Find_(moo_world::KIND_PRETENDER)->extra == 1);
+    MOX::stardate += moo_world::PRETENDER_TURNS;
+    moo_world::Run_Records();
+    DOCTEST_CHECK(Find_(moo_world::KIND_PRETENDER) == nullptr);
+    DOCTEST_CHECK_FALSE(moo_world::Pretender_Cause(1, 0));
+    DOCTEST_CHECK(moo_world::Unrest(0) == 0);
+}
+
+DOCTEST_TEST_CASE("an honorable supporter keeps the cause but does not declare; the claim ends without the leader or the colonies")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_Pretender_(&state);
+    state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    moo_world::Run_Records();
+    DOCTEST_CHECK(state.players[1].treaty[0] == 3);
+    DOCTEST_CHECK(moo_world::Pretender_Cause(1, 0));
+    state.colonies[0].n_pops = 0;  // nothing left to claim
+    moo_world::Run_Records();
+    DOCTEST_CHECK(Find_(moo_world::KIND_PRETENDER) == nullptr);
+
+    moo_world::Clear();
+    state.colonies[0].n_pops = 3;
+    state.players[1].bc = 1000;
+    state.leaders[6].player_index = 2;
+    state.leaders[6].status = 0;
+    state.players[2].eliminated = 1;
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    DOCTEST_REQUIRE(Find_(moo_world::KIND_PRETENDER) != nullptr);
+    state.leaders[6].status = -1;  // the supporter lost the leader
+    state.leaders[6].player_index = -1;
+    moo_world::Run_Records();
+    DOCTEST_CHECK(Find_(moo_world::KIND_PRETENDER) == nullptr);
+}
+
+DOCTEST_TEST_CASE("no former colonies, nothing; the flag off, nothing and no draw")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_Pretender_(&state);
+    POP::Set_Race(&state.colonies[0].pop[0], 0);  // nobody holds people of the dead empire
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    DOCTEST_CHECK(Find_(moo_world::KIND_PRETENDER) == nullptr);
+
+    moo_world::Clear();
+    POP::Set_Race(&state.colonies[0].pop[0], 2);
+    state.leaders[6].player_index = 2;
+    state.leaders[6].status = 0;
+    state.players[1].bc = 1000;
+    DOCTEST_REQUIRE(moo_world::Start_Exile(2));
+    moo_world::enabled = false;
+    game_random::Set_Random_Seed(7);
+    const uint32_t first = game_random::Random(1000000);
+    game_random::Set_Random_Seed(7);
+    DOCTEST_CHECK_FALSE(moo_world::Pretender_Cause(1, 0));
+    DOCTEST_CHECK(moo_world::Unrest(0) == 0);
+    moo_world::Run_Records();
+    DOCTEST_CHECK(game_random::Random(1000000) == first);
+}
+
+DOCTEST_TEST_CASE("the pretender record round-trips (no star) and bad pretenders are refused")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_Pretender_(&state);
+    moo_world::State()->count = 1;
+    moo_world::s_record& a = moo_world::State()->record[0];
+    a.kind = moo_world::KIND_PRETENDER; a.player = 2; a.target = -1; a.other = -1; a.started = 35001; a.ends = 35041; a.option = 1; a.value = 6; a.extra = 1;
+    const uint32_t size = moo_world::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    moo_world::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    moo_world::Clear();
+    moo_world::enabled = true;
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(moo_world::Parse_Save(&reader, &error));
+    moo_world::Commit_Save();
+    DOCTEST_REQUIRE(moo_world::State()->count == 1);
+    DOCTEST_CHECK(moo_world::State()->record[0].target == -1);
+    DOCTEST_CHECK(moo_world::State()->record[0].option == 1);
+    DOCTEST_CHECK(moo_world::State()->record[0].value == 6);
+    // Layout: record at 15: kind 15, player 16, target 17-18, other 19-20, started 21-24, ends 25-28, option 29,
+    // value 30-31, extra 32-33.
+    const auto refuse = [&](size_t offset, uint8_t value) {
+        auto bad = std::make_unique<uint8_t[]>(size);
+        std::copy(buffer.get(), buffer.get() + size, bad.get());
+        bad[offset] = value;
+        SERIAL::Reader_ r(bad.get(), size, "test underflow", true);
+        return !moo_world::Parse_Save(&r, &error);
+    };
+    DOCTEST_CHECK(refuse(29, 0xFF));  // no supporter
+    DOCTEST_CHECK(refuse(16, 0xFF));  // no fallen empire
+    DOCTEST_CHECK(refuse(32, 2));     // a bad war flag
+}
+
 }

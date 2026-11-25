@@ -6,7 +6,14 @@
 #include "game/officer.h"
 
 #include <algorithm>
+#include <iterator>
 
+// Design row (mechanics.md 3.5.6): "Соперничество лидеров | продвинули одного — у другого падает лояльность";
+// ab-review 4.4: "включить: дёшево, модуль лояльности". Built (flag loyalty leader_rivalry): when a leader is promoted
+// (its level rose, seen in Turn), every other leader of the same empire and kind whose level lies from the
+// promoted one's old level up to its new one - a peer who was equalled or overtaken - loses RIVAL_PROMOTED per
+// level gained. A leader promoted in the same turn is not a rival of the other. Passing over an idle higher-level
+// leader at an appointment (On_Assigned) is the older rule and stays.
 // The behaviour of leader loyalty (mechanics.md 3.2.5.1); the state and its save section are in
 // loyalty_state.cpp. Nothing here draws from game_random.
 namespace loyalty {
@@ -56,11 +63,33 @@ namespace loyalty {
             }
             return weariness;
         }
+
+        // Every promotion of the turn lowers the loyalty of the peers it overtook (see the header comment).
+        void Rivalry_(const int8_t* old_level) {
+            for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                if (old_level[i] < 0 || !Owned_(MOX::leaders[i])) continue;
+                const s_leader_data& winner = MOX::leaders[i];
+                const int16_t new_level = OFFICER::Owned_Officer_Level(i);
+                for (int16_t j = 0; j < MAX_LEADERS; ++j) {
+                    const s_leader_data& other = MOX::leaders[j];
+                    s_record* r = Record(j);
+                    if (j == i || old_level[j] >= 0 || !Owned_(other) || r->loyalty == UNTRACKED) continue;
+                    if (other.player_index != winner.player_index || other.type != winner.type) continue;
+                    const int16_t level = OFFICER::Owned_Officer_Level(j);
+                    if (level < old_level[i] || level > new_level) continue;
+                    Change_(r, RIVAL_PROMOTED * (new_level - old_level[i]));
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "loyalty: stardate %d, player %d: leader %d is promoted over leader %d, whose loyalty falls to %d",
+                        (int)MOX::stardate, (int)winner.player_index, (int)i, (int)j, (int)r->loyalty);
+                }
+            }
+        }
     } // namespace
 
     void Turn() {
         if (!enabled) return;
         const bool step = period >= 1 && MOX::stardate % period == 0;
+        int8_t old_level[MAX_LEADERS];  // the level before a promotion this turn, -1 when none (rivalry only)
+        if (rivalry) std::fill(std::begin(old_level), std::end(old_level), static_cast<int8_t>(-1));
         for (int16_t i = 0; i < MAX_LEADERS; ++i) {
             const s_leader_data& leader = MOX::leaders[i];
             s_record* r = Record(i);
@@ -76,7 +105,10 @@ namespace loyalty {
                 r->last_level = static_cast<int8_t>(level);
                 continue;
             }
-            if (level > r->last_level) Change_(r, LEVEL_UP * (level - r->last_level));
+            if (level > r->last_level) {
+                Change_(r, LEVEL_UP * (level - r->last_level));
+                if (rivalry) old_level[i] = r->last_level;
+            }
             r->last_level = static_cast<int8_t>(level);
             r->idle = leader.status == STATUS_POOL ? static_cast<int16_t>(std::min<int32_t>(r->idle + 1, 30000)) : 0;
             if (!step) continue;
@@ -90,6 +122,7 @@ namespace loyalty {
             }
             if (Weariness_(leader.player_index) >= WEARY) Change_(r, -1);
         }
+        if (rivalry) Rivalry_(old_level);
     }
 
     void On_Battle(int16_t star, int16_t winner, int16_t loser) {
