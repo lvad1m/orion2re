@@ -11,11 +11,13 @@
 namespace crises {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;  // 1: the slots only; 2: the slots and s_extra
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 3;  // 1: the slots only; 2: the slots and s_extra; 3: s_extra of the threat and the contest
         constexpr uint32_t SLOT_SIZE = 1 + 1 + 2 + 1 + 4 + 1 + 1;
         constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_ACTIVE * SLOT_SIZE;
         constexpr uint32_t SCALE_SIZE = 1 + 1 + 2 + 4 + 1;
-        constexpr uint32_t EXTRA_SIZE = MAX_SCALES * SCALE_SIZE + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
+        constexpr uint32_t EXTRA_SIZE_V2 = MAX_SCALES * SCALE_SIZE + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
+        constexpr uint32_t EXTRA_SIZE = MAX_SCALES * SCALE_SIZE + 1 + 4 + MAX_PLAYERS * 2 + MAX_PLAYERS * 2 + MAX_PLAYERS * 1
+            + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 4;
 
         s_active slots[MAX_ACTIVE];
         s_active pending[MAX_ACTIVE];
@@ -28,9 +30,9 @@ namespace crises {
                 if (s.kind != SCALE_NONE) return false;
             }
             for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                if (e.academy_left[p] != 0 || e.fallen_until[p] != 0 || e.given[p] != 0) return false;
+                if (e.threat[p] != 0 || e.war_mask[p] != 0 || e.strike_until[p] != 0 || e.given[p] != 0) return false;
             }
-            return e.front_broken == 0 && e.council_progress == 0;
+            return e.front_broken == 0 && e.council_progress == 0 && e.contest_stage == 0;
         }
     } // namespace
 
@@ -90,11 +92,15 @@ namespace crises {
             writer->Write_Int32(s.started);
             writer->Write_Int8(s.approach);
         }
-        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint8(extra.academy_left[p]);
-        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.fallen_until[p]);
         writer->Write_Uint8(extra.front_broken);
         writer->Write_Int32(extra.council_progress);
         for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint16(extra.given[p]);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint16(extra.threat[p]);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint8(extra.war_mask[p]);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.strike_until[p]);
+        writer->Write_Uint8(extra.contest_stage);
+        writer->Write_Int32(extra.contest_ends);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.baseline[p]);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -105,8 +111,8 @@ namespace crises {
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("crises save is truncated");
         const uint16_t version = reader->Read_Uint16();
-        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
-        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + EXTRA_SIZE;
+        if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
+        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + (version == 2 ? EXTRA_SIZE_V2 : EXTRA_SIZE);
         if (reader->Remaining() != expected - sizeof(uint16_t)) return fail("crises save has the wrong size");
         for (s_active& s : pending) {
             s.crisis = reader->Read_Uint8();
@@ -135,19 +141,38 @@ namespace crises {
                 if (s.value < 0 || s.value > SCALE_MAX || s.started < 0) return fail("crises save has a bad scale");
                 if (s.approach < -1 || s.approach >= APPROACH_COUNT) return fail("crises save has an out-of-range approach");
             }
-            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                pending_extra.academy_left[p] = reader->Read_Uint8();
-                if (pending_extra.academy_left[p] > ACADEMY_TURNS) return fail("crises save has a bad academy");
-            }
-            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                pending_extra.fallen_until[p] = reader->Read_Int32();
-                if (pending_extra.fallen_until[p] < 0) return fail("crises save has a bad crisis end");
+            if (version == 2) {
+                // The wave-4 academies and fallen empires are dropped: those mechanics are replaced.
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    if (reader->Read_Uint8() > 12) return fail("crises save has a bad academy");
+                }
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    if (reader->Read_Int32() < 0) return fail("crises save has a bad crisis end");
+                }
             }
             pending_extra.front_broken = reader->Read_Uint8();
             pending_extra.council_progress = reader->Read_Int32();
             for (int32_t p = 0; p < MAX_PLAYERS; ++p) pending_extra.given[p] = reader->Read_Uint16();
             if (pending_extra.front_broken > 1 || pending_extra.council_progress < 0 || pending_extra.council_progress > 1000000) {
                 return fail("crises save has a bad council project");
+            }
+            if (version >= 3) {
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    pending_extra.threat[p] = reader->Read_Uint16();
+                    if (pending_extra.threat[p] > THREAT_MAX) return fail("crises save has a bad threat");
+                }
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) pending_extra.war_mask[p] = reader->Read_Uint8();
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    pending_extra.strike_until[p] = reader->Read_Int32();
+                    if (pending_extra.strike_until[p] < 0) return fail("crises save has a bad strike");
+                }
+                pending_extra.contest_stage = reader->Read_Uint8();
+                pending_extra.contest_ends = reader->Read_Int32();
+                if (pending_extra.contest_stage > ACADEMY_STAGES || pending_extra.contest_ends < 0) return fail("crises save has a bad contest");
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    pending_extra.baseline[p] = reader->Read_Int32();
+                    if (pending_extra.baseline[p] < -40000 || pending_extra.baseline[p] > 40000) return fail("crises save has a bad baseline");
+                }
             }
         }
         if (reader->Failed()) return fail("crises save is truncated");

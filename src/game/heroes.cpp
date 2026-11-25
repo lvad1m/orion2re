@@ -97,27 +97,6 @@ namespace heroes {
             return false;
         }
 
-        // Crisis manager --------------------------------------------------------------------------------------
-
-        bool Has_Crisis_(int16_t player) {
-            const crises::s_active* slots = crises::Slots();
-            for (int32_t i = 0; i < crises::MAX_ACTIVE; ++i) {
-                if (slots[i].crisis != crises::CRISIS_NONE && slots[i].player == player && slots[i].result == crises::RESULT_PENDING) return true;
-            }
-            return false;
-        }
-
-        bool War_Weary_(int16_t player) {
-            const crises::s_scale* s = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, player);
-            return s != nullptr && s->value >= 2 * crises::SCALE_STAGE;
-        }
-
-        void Relieve_(int16_t player) {
-            for (crises::s_scale& s : crises::Extra()->scale) {
-                if (s.kind == crises::SCALE_WAR_WEARINESS && s.player == player) crises::Scale_Move(s, -MANAGER_RELIEF);
-            }
-        }
-
         // Mind control ----------------------------------------------------------------------------------------
 
         void Release_Bribe_(const s_record& r) {
@@ -155,14 +134,9 @@ namespace heroes {
             }
             const int32_t elapsed = MOX::stardate - r.started;
             const bool over = MOX::stardate >= r.ends;
-            if (r.kind == KIND_MANAGER) {
-                Relieve_(r.player);
-                if (over) {
-                    Log_(r.player, "the crisis manager leaves, his work is done");
-                    Remove_Record_(index);
-                    return true;
-                }
-                return false;
+            if (r.kind == KIND_MANAGER) {  // retired kind of an old save
+                Remove_Record_(index);
+                return true;
             }
             if (!Held_(r.leader, r.player)) {
                 Log_Leader_(r.player, r.leader, "the event ends, the leader is gone");
@@ -256,16 +230,6 @@ namespace heroes {
 
         // New events -------------------------------------------------------------------------------------------
 
-        bool Spawn_Manager_() {
-            for (int16_t p = 0; p < Players_(); ++p) {
-                if (!Alive_(p) || Find(KIND_MANAGER, p, -1) != nullptr) continue;
-                if (!(Has_Crisis_(p) || War_Weary_(p)) || MOX::player[p].bc < MANAGER_FEE) continue;
-                if (static_cast<int32_t>(game_random::Random(1000)) > MANAGER_CHANCE) continue;
-                if (Start(KIND_MANAGER, p)) return true;
-            }
-            return false;
-        }
-
         bool Spawn_Mind_() {
             for (int16_t c = 0; c < Players_(); ++c) {
                 if (!Computer_(c) || !Has_Telepath_(c)) continue;
@@ -333,21 +297,39 @@ namespace heroes {
         return pick != 0 ? KIND_SABOTAGE : KIND_PARANOIA;
     }
 
+    int16_t On_Crisis_Solved(int16_t player) {
+        if (!enabled || !Alive_(player) || !OFFICER::Player_Can_Hire_More_Officers(player)) return -1;
+        int16_t best = -1;
+        int32_t best_score = 0;
+        for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+            const s_leader_data& l = MOX::leaders[i];
+            if (i == 0x41 || i == 0x42 || l.status != STATUS_FREE || l.player_index != -1) continue;
+            int32_t score = 0;
+            for (uint32_t bits = l.general_skills | l.special_skills; bits != 0; bits &= bits - 1) ++score;
+            if (score == 0) continue;
+            if (Is_Famous(i)) score += 100;
+            if (score > best_score) {  // the first of the best: no dice
+                best = i;
+                best_score = score;
+            }
+        }
+        if (best < 0) {
+            Log_(player, "a crisis solved brilliantly, but the hire list has no leader with an ability");
+            return -1;
+        }
+        OFFICER::Set_Officer_To_Player(best, player, 1);
+        if (MOX::leaders[best].player_index != player) return -1;
+        Log_Leader_(player, best, "a crisis solved brilliantly: a special leader joins the empire");
+        return best;
+    }
+
     bool Start(e_kind kind, int16_t player, int16_t leader, int16_t other) {
         s_state* st = State();
-        if (!enabled || !Alive_(player) || st->count >= MAX_RECORDS || kind < KIND_MANAGER || kind > KIND_LAST) return false;
+        if (!enabled || !Alive_(player) || st->count >= MAX_RECORDS || kind <= KIND_MANAGER || kind > KIND_LAST) return false;
         s_record r;
         r.kind = kind;
         r.player = static_cast<int8_t>(player);
         r.started = MOX::stardate;
-        if (kind == KIND_MANAGER) {
-            if (Find(KIND_MANAGER, player, -1) != nullptr || MOX::player[player].bc < MANAGER_FEE) return false;
-            Add_Bc_(player, -MANAGER_FEE);
-            r.ends = MOX::stardate + MANAGER_TURNS;
-            st->record[st->count++] = r;
-            Log_(player, "a crisis manager takes charge");
-            return true;
-        }
         if (!Held_(leader, player) || Tied_(leader) || Active(player) >= MAX_PER_EMPIRE) return false;
         r.leader = leader;
         if (kind == KIND_MIND) {
@@ -429,7 +411,6 @@ namespace heroes {
     void Turn() {
         if (!enabled) return;
         Run_Records();
-        if (Spawn_Manager_()) return;
         if (Spawn_Mind_()) return;
         Spawn_Quirk_();
     }

@@ -2,6 +2,7 @@
 
 #include "game/reputation.h"
 
+#include "game/crises.h"
 #include "game/opinion.h"
 
 #include <algorithm>
@@ -157,6 +158,7 @@ namespace reputation {
     }
 
     void On_Atrocity(int16_t player) {
+        crises::Add_Threat(player);  // "become a crisis": the threat scale (events crisis_front, off by default)
         if (!enabled || !Alive_(player)) return;
         Grant_(player, TITLE_ATROCITIES, ATROCITY_TURNS);
         for (int16_t o = 0; o < Players_(); ++o) {

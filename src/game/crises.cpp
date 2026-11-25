@@ -5,6 +5,7 @@
 #include "game/beliefs.h"
 #include "game/bill.h"
 #include "game/colcalc.h"
+#include "game/diplomac.h"
 #include "game/dice.h"
 #include "game/events.h"
 #include "game/heroes.h"
@@ -257,7 +258,7 @@ namespace crises {
                 break;
             default: break;
         }
-        return std::clamp<int32_t>(standing, -5, 5) + (leader ? LEADER_BONUS : 0) + heroes::Manager_Bonus(player);
+        return std::clamp<int32_t>(standing, -5, 5) + (leader ? LEADER_BONUS : 0);
     }
 
     int32_t Choose_Option(int16_t player, e_crisis crisis) {
@@ -320,6 +321,8 @@ namespace crises {
             dice::Describe_Check(option.name, check, modifiers, 1).c_str());
         const e_result result = static_cast<e_result>(s.result);
         news::Add(news::KIND_CRISIS_END, s.player, -1, s.crisis * 10 + s.result);  // the news ring (off by default)
+        // A brilliant or triumphant solution gives the empire a special leader (events-catalog.md 3.11; heroes.cpp).
+        if (check.outcome >= dice::OUTCOME_BRILLIANT) heroes::On_Crisis_Solved(s.player);
         if (!Apply_Outcome_(s)) s = s_active{};
         return result;
     }
@@ -410,6 +413,16 @@ namespace crises {
     // The scale of war weariness of every empire (events-catalog.md 3.9).
     void War_Weariness_() {
         for (int16_t p = 0; p < Players_(); ++p) {
+            s_extra* extra = Extra();
+            if (extra->strike_until[p] != 0) {
+                const int16_t strike_capital = Capital_(p);
+                if (!Alive_(p) || MOX::stardate >= extra->strike_until[p]) {
+                    extra->strike_until[p] = 0;
+                    if (Alive_(p)) Log_Line_("war weariness: the general strike is over", p, 0);
+                } else if (strike_capital >= 0) {
+                    MOX::colony[strike_capital].production_spent = 0;
+                }
+            }
             if (!Alive_(p)) continue;
             s_player& player = MOX::player[p];
             bool at_war = false;
@@ -449,94 +462,112 @@ namespace crises {
                 player.bc = std::max<int32_t>(0, player.bc - WEARY_FINE);
                 Log_Line_("war weariness: unrest - the war fund is fined", p, scale->value);
             } else if (stage >= 4) {
-                if (capital >= 0) Lose_Dearest_Building_(capital);
+                // Softened (ab-review.md 3.5): a strike of STRIKE_TURNS turns instead of the loss of a building.
+                Extra()->strike_until[p] = MOX::stardate + STRIKE_TURNS;
                 scale->value = WEARY_RESET;
-                Log_Line_("war weariness: a general strike - the capital loses a building", p, scale->value);
+                Log_Line_("war weariness: a general strike begins - the capital's output is lost for some turns", p, STRIKE_TURNS);
             }
             if (Computer_(p)) Pick_Approach_(*scale);
         }
     }
 
-    void Finish_Academy_(int16_t p) {
-        s_leader_data* best = nullptr;
-        for (int16_t l = 0; l < MAX_LEADERS; ++l) {
-            s_leader_data& leader = MOX::leaders[l];
-            if (leader.player_index != p || leader.status != STATUS_ASSIGNED) continue;
-            if (best == nullptr || leader.xp < best->xp) best = &leader;
-        }
-        if (best != nullptr) {
-            best->xp = static_cast<int16_t>(std::min<int32_t>(30000, best->xp + ACADEMY_XP));
-            Log_Line_("the academy is done: a leader is trained", p, best->xp);
+    // ---- The academy contest (events-catalog.md 3.9, row "Академия"; header of crises.h) ----
+
+    const char* const STAGE_NAMES[ACADEMY_STAGES] = {"science", "industry", "BC"};
+
+    void Record_Baselines_(int32_t stage) {
+        for (int16_t p = 0; p < Players_(); ++p) Extra()->baseline[p] = Alive_(p) ? Academy_Output(p, stage) : 0;
+    }
+
+    void Give_Prize_(int16_t p, int32_t stage) {
+        s_player& player = MOX::player[p];
+        if (stage == ACADEMY_SCIENCE) {
+            player.research_accumulated += ACADEMY_PRIZE;
+        } else if (stage == ACADEMY_INDUSTRY) {
+            const int16_t capital = Capital_(p);
+            if (capital >= 0) {
+                MOX::colony[capital].production_spent = static_cast<int16_t>(std::min<int32_t>(30000, MOX::colony[capital].production_spent + ACADEMY_PRIZE));
+            }
         } else {
-            MOX::player[p].bc += ACADEMY_COST / 2;
-            Log_Line_("the academy is done but there is no leader to train: half of the cost comes back", p, ACADEMY_COST / 2);
+            player.bc += ACADEMY_PRIZE;
         }
     }
 
-    // Academies (3.9): a project of ACADEMY_TURNS turns; it needs no choice, so humans found them too.
-    void Academies_() {
+    void Academy_Turn_() {
         s_extra* extra = Extra();
+        if (extra->contest_stage == 0) {
+            if (MOX::stardate - 35000 < MIN_TURN) return;
+            if (static_cast<int32_t>(game_random::Random(1000)) > ACADEMY_CHANCE) return;
+            Start_Academy();
+            return;
+        }
+        if (MOX::stardate < extra->contest_ends) return;
+        const int32_t stage = extra->contest_stage - 1;
+        int16_t winner = -1;
+        int32_t best = 0;
+        bool tie = false;
         for (int16_t p = 0; p < Players_(); ++p) {
-            if (extra->academy_left[p] == 0) continue;
-            if (!Alive_(p)) {
-                extra->academy_left[p] = 0;
-                continue;
+            if (!Alive_(p)) continue;
+            const int32_t growth = Academy_Output(p, stage) - extra->baseline[p];
+            if (growth > best) {
+                best = growth;
+                winner = p;
+                tie = false;
+            } else if (growth == best && winner >= 0) {
+                tie = true;
             }
-            if (--extra->academy_left[p] == 0) Finish_Academy_(p);
         }
-        if (MOX::stardate - 35000 < MIN_TURN) return;
-        for (int16_t p = 0; p < Players_(); ++p) {
-            if (!Alive_(p) || extra->academy_left[p] != 0 || MOX::player[p].bc < ACADEMY_COST || Capital_(p) < 0) continue;
-            if (static_cast<int32_t>(game_random::Random(1000)) > ACADEMY_CHANCE) continue;
-            Found_Academy(p);
-            return;  // at most one a turn
+        if (winner >= 0 && !tie) {
+            Give_Prize_(winner, stage);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: wins the academy's stage %d (%s grew by %d) and gets %d",
+                (int)MOX::stardate, (int)winner, (int)extra->contest_stage, STAGE_NAMES[stage], (int)best, (int)ACADEMY_PRIZE);
+        } else {
+            Log_Line_("the academy's stage has no winner", -1, extra->contest_stage);
         }
+        if (extra->contest_stage >= ACADEMY_STAGES) {
+            extra->contest_stage = 0;
+            extra->contest_ends = 0;
+            for (int32_t& base : extra->baseline) base = 0;
+            Log_Line_("the academy contest is over", -1, 0);
+            return;
+        }
+        ++extra->contest_stage;
+        extra->contest_ends = MOX::stardate + ACADEMY_STAGE_TURNS;
+        Record_Baselines_(extra->contest_stage - 1);
     }
 
     void Situations_Turn_() {
         War_Weariness_();
-        Academies_();
+        Academy_Turn_();
     }
 
-    // The empire's attitude to a character-led crisis: a martial or suspicious character.
-    bool Crisis_Prone_(int16_t player) {
-        switch (MOX::player[player].personality) {
-            case PLAYER_PERSONALITY_AGGRESSIVE:
-            case PLAYER_PERSONALITY_RUTHLESS:
-            case PLAYER_PERSONALITY_XENOPHOBIC: return true;
-            default: return false;
-        }
-    }
-
-    void Fallen_() {
+    // Become a crisis (events-catalog.md 3.10; header of crises.h): the threat decays, and above the threshold
+    // every computer empire that knows the culprit declares war on it, once.
+    void Threat_() {
         s_extra* extra = Extra();
-        bool any = false;
         for (int16_t p = 0; p < Players_(); ++p) {
-            if (extra->fallen_until[p] == 0) continue;
-            if (!Alive_(p) || MOX::stardate >= extra->fallen_until[p]) {
-                extra->fallen_until[p] = 0;
-                Log_Line_("the crisis of the fallen empire is over", p, 0);
-            } else {
-                any = true;
+            if (extra->threat[p] == 0) {
+                extra->war_mask[p] = 0;
+                continue;
             }
-        }
-        if (any || MOX::stardate - 35000 < FALLEN_MIN_TURN) return;
-        int32_t pops[MAX_PLAYERS] = {};
-        int32_t total = 0;
-        int32_t alive = 0;
-        for (int16_t p = 0; p < Players_(); ++p) {
-            if (!Alive_(p)) continue;
-            pops[p] = Pops_(p);
-            total += pops[p];
-            ++alive;
-        }
-        for (int16_t p = 0; p < Players_() && alive > 1; ++p) {
-            if (!Computer_(p) || !Crisis_Prone_(p) || pops[p] <= 0) continue;
-            const int32_t others_average = (total - pops[p]) / (alive - 1);
-            if (pops[p] * FALLEN_RATIO >= others_average) continue;
-            if (static_cast<int32_t>(game_random::Random(1000)) > FALLEN_CHANCE) continue;
-            Turn_Fallen(p);
-            return;  // one at a time
+            if (!Alive_(p)) {
+                extra->threat[p] = 0;
+                extra->war_mask[p] = 0;
+                continue;
+            }
+            if (extra->threat[p] >= THREAT_WAR) {
+                for (int16_t o = 0; o < Players_(); ++o) {
+                    if (o == p || !Computer_(o) || (extra->war_mask[p] & (1u << o)) != 0) continue;
+                    if (MOX::player[o].contact[p] == 0 && MOX::player[p].contact[o] == 0) continue;
+                    extra->war_mask[p] = static_cast<uint8_t>(extra->war_mask[p] | (1u << o));
+                    if (MOX::player[o].treaty[p] >= TREATY_FIRST_WAR) continue;  // already at war
+                    diplomac::Declare_War(o, p);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: declares war on player %d, whose atrocities threaten everyone (threat %d)",
+                        (int)MOX::stardate, (int)o, (int)p, (int)extra->threat[p]);
+                }
+            }
+            extra->threat[p] = static_cast<uint16_t>(std::max<int32_t>(0, extra->threat[p] - THREAT_DECAY));
+            if (extra->threat[p] < THREAT_WAR) extra->war_mask[p] = 0;
         }
     }
 
@@ -594,7 +625,7 @@ namespace crises {
     }
 
     void Front_Turn_() {
-        Fallen_();
+        Threat_();
         Antaran_Front_();
     }
     } // namespace
@@ -620,33 +651,37 @@ namespace crises {
         return MOX::player[player].bc >= 100 ? 0 : 1;  // propaganda when it can pay for it
     }
 
-    bool Found_Academy(int16_t player) {
-        if (!situations || !Alive_(player) || Extra()->academy_left[player] != 0) return false;
-        if (MOX::player[player].bc < ACADEMY_COST || Capital_(player) < 0) return false;
-        MOX::player[player].bc -= ACADEMY_COST;
-        Extra()->academy_left[player] = ACADEMY_TURNS;
-        Log_Line_("founds an academy", player, ACADEMY_TURNS);
+    bool Start_Academy() {
+        if (!situations || Extra()->contest_stage != 0) return false;
+        int32_t alive = 0;
+        for (int16_t p = 0; p < Players_(); ++p) alive += Alive_(p) ? 1 : 0;
+        if (alive < 2) return false;
+        Extra()->contest_stage = 1;
+        Extra()->contest_ends = MOX::stardate + ACADEMY_STAGE_TURNS;
+        Record_Baselines_(0);
+        Log_Line_("the academy contest begins: three stages, science first", -1, ACADEMY_STAGE_TURNS);
         return true;
     }
 
-    bool Is_Fallen(int16_t player) {
-        return player >= 0 && player < MAX_PLAYERS && Extra()->fallen_until[player] != 0;
+    int32_t Academy_Output(int16_t player, int32_t stage) {
+        if (!Alive_(player)) return 0;
+        const s_player& p = MOX::player[player];
+        return stage == ACADEMY_SCIENCE ? p.research_produced : stage == ACADEMY_INDUSTRY ? p.industry_produced : p.bc_produced;
     }
 
-    bool Turn_Fallen(int16_t player) {
-        if (!crisis_front || !Computer_(player) || Is_Fallen(player)) return false;
-        for (int16_t o = 0; o < Players_(); ++o) {
-            if (Is_Fallen(o)) return false;  // one at a time
-        }
-        Extra()->fallen_until[player] = MOX::stardate + FALLEN_DURATION;
-        MOX::player[player].bc += FALLEN_GRANT;
-        Log_Line_("has fallen far behind and turns into a crisis for the others", player, FALLEN_DURATION);
-        for (int16_t o = 0; o < Players_(); ++o) {
-            if (o == player || !Computer_(o) || MOX::player[o].contact[player] == 0) continue;
-            beliefs::Observe(o, player, beliefs::BELIEF_HOSTILE, 2);
-            opinion::Add(o, player, opinion::REASON_PLOTTED_AGAINST_US, -20);
-        }
-        return true;
+    void Add_Threat(int16_t player) {
+        if (!crisis_front || !Alive_(player)) return;
+        uint16_t& threat = Extra()->threat[player];
+        threat = static_cast<uint16_t>(std::min<int32_t>(THREAT_MAX, threat + THREAT_ATROCITY));
+        Log_Line_("an atrocity raises the empire's threat to the galaxy", player, threat);
+    }
+
+    int32_t Threat(int16_t player) {
+        return player >= 0 && player < MAX_PLAYERS ? Extra()->threat[player] : 0;
+    }
+
+    bool On_Strike(int16_t player) {
+        return player >= 0 && player < MAX_PLAYERS && Extra()->strike_until[player] != 0;
     }
 
     int32_t Council_Gift(int16_t player) {

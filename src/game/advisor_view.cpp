@@ -495,13 +495,18 @@ namespace advisor {
                 Append_Format(out, "Situation: war weariness %d of %d, approach: %s.\n", static_cast<int>(war->value), crises::SCALE_MAX,
                     crises::Approaches()[std::clamp<int>(war->approach, 0, crises::APPROACH_COUNT - 1)].name);
             }
-            if (self.player >= 0 && self.player < MAX_PLAYERS && ex->academy_left[self.player] != 0) {
-                Append_Format(out, "Project: an academy, done in %d turns.\n", static_cast<int>(ex->academy_left[self.player]));
+            if (ex->contest_stage != 0) {
+                Append_Format(out, "Project: the academy contest, stage %d of %d (%s), ends at stardate %d.\n", static_cast<int>(ex->contest_stage),
+                    crises::ACADEMY_STAGES, ex->contest_stage == 1 ? "science" : ex->contest_stage == 2 ? "industry" : "BC",
+                    static_cast<int>(ex->contest_ends));
+            }
+            if (self.player >= 0 && self.player < MAX_PLAYERS && crises::On_Strike(self.player)) {
+                Append_Format(out, "Situation: a general strike until stardate %d.\n", static_cast<int>(ex->strike_until[self.player]));
             }
             for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                if (ex->fallen_until[p] == 0) continue;
-                Append_Format(out, "Crisis: empire %d has fallen far behind and turned on the others until stardate %d.\n", static_cast<int>(p),
-                    static_cast<int>(ex->fallen_until[p]));
+                if (ex->threat[p] == 0) continue;
+                Append_Format(out, "Crisis: empire %d is a threat to the galaxy (%d of %d, war at %d).\n", static_cast<int>(p),
+                    static_cast<int>(ex->threat[p]), crises::THREAT_MAX, crises::THREAT_WAR);
             }
             if (const crises::s_scale* front = crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1)) {
                 Append_Format(out, "Crisis: the Antaran front stands at %d of %d; the council's project holds %d of %d BC of trophies",
@@ -642,8 +647,7 @@ namespace advisor {
                 const heroes::s_record& r = hs->record[i];
                 if (r.player != self.player && !(r.kind == heroes::KIND_MIND && r.other == self.player)) continue;
                 const bool profits = r.player != self.player;
-                const char* name = r.kind == heroes::KIND_MANAGER    ? "a crisis manager at work"
-                                   : r.kind == heroes::KIND_MIND     ? (profits ? "an alien mind makes a leader of another empire work for us" : "an alien mind controls a leader")
+                const char* name = r.kind == heroes::KIND_MIND     ? (profits ? "an alien mind makes a leader of another empire work for us" : "an alien mind controls a leader")
                                    : r.kind == heroes::KIND_STIMULANT ? "a leader on stimulants"
                                    : r.kind == heroes::KIND_PARANOIA ? "a paranoid leader"
                                    : r.kind == heroes::KIND_PACIFISM ? "a pacifist leader"

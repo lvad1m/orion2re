@@ -22,8 +22,8 @@ namespace crises {
 
     extern bool enabled;        // events crises
     extern int32_t chance;      // events crisis_chance: per mille a turn for each computer empire
-    extern bool situations;     // events situations: the situation scale (war weariness) and academies
-    extern bool crisis_front;   // events crisis_front: a fallen empire turns crisis, the Antaran front, the council project
+    extern bool situations;     // events situations: the situation scale (war weariness) and the academy contest
+    extern bool crisis_front;   // events crisis_front: the threat of atrocities, the Antaran front, the council project
     extern int32_t front_strength;  // events crisis_front_strength: the Antaran front's start, 0..100; 0 = no front
 
     enum e_crisis : uint8_t {
@@ -111,8 +111,9 @@ namespace crises {
     int32_t Scale_Move(s_scale& scale, int32_t delta);
 
     // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn at war, -WEARY_PEACE otherwise.
-    // Stage 2: the capital's output of the turn is lost; stage 3: a fine in BC; stage 4: a strike costs
-    // the capital its dearest building and the scale falls to WEARY_RESET. Three approaches.
+    // Stage 2: the capital's output of the turn is lost; stage 3: a fine in BC; stage 4: a general strike
+    // (STRIKE_TURNS turns without the capital's output; ab-review.md 3.5 softened it from the loss of a building)
+    // and the scale falls to WEARY_RESET. Three approaches.
     constexpr int32_t WEARY_WAR = 6;
     constexpr int32_t WEARY_PEACE = 4;
     constexpr int32_t WEARY_FINE = 100;
@@ -128,25 +129,39 @@ namespace crises {
     // The approach a computer takes for its scale of war weariness (a human takes 0).
     int32_t Choose_Approach(int16_t player);
 
-    // Academy (3.9): an empire founds one for ACADEMY_COST BC; ACADEMY_TURNS later a leader of the
-    // empire gains ACADEMY_XP experience (with no leader to train the half of the cost comes back).
-    constexpr int32_t ACADEMY_CHANCE = 4;     // per mille a turn for each empire without one, from MIN_TURN
-    constexpr int32_t ACADEMY_COST = 150;
-    constexpr int32_t ACADEMY_TURNS = 12;
-    constexpr int32_t ACADEMY_XP = 100;
-    bool Found_Academy(int16_t player);       // false: flag off, a project already runs, no money or no capital
+    // Academy (3.9) - events-catalog.md row "јкадеми€": "империи соревнуютс€ за лучший результат в ресурсе на
+    // нескольких этапах"; the author's decision (ab-review.md 1.2): all empires compete, 3 stages of 10 turns
+    // (growth of science, of industry, of BC); the winner of a stage gets a prize. The contest starts by chance
+    // (ACADEMY_CHANCE per mille a turn from MIN_TURN, one at a time, at least two empires alive); no choice, so
+    // humans take part. A stage's result is the growth of the empire's per-turn output of the stage's resource
+    // (research_produced, industry_produced, bc_produced) from the start of the stage to its end; the winner is
+    // the empire with the greatest positive growth (a tie for the top: no winner). Prizes: research points, the
+    // capital's production points, BC.
+    constexpr int32_t ACADEMY_CHANCE = 4;
+    constexpr int32_t ACADEMY_STAGES = 3;
+    constexpr int32_t ACADEMY_STAGE_TURNS = 10;
+    constexpr int32_t ACADEMY_PRIZE = 150;
+    enum e_academy_resource : uint8_t { ACADEMY_SCIENCE = 0, ACADEMY_INDUSTRY = 1, ACADEMY_BC = 2 };
+    bool Start_Academy();                     // false: flag off, a contest runs, fewer than two empires alive
+    int32_t Academy_Output(int16_t player, int32_t stage);  // the stage's resource, the empire's per-turn output
 
-    // A fallen empire turns crisis (3.10): a computer empire of a martial or suspicious character whose
-    // population is under a third of the others' average, FALLEN_CHANCE per mille a turn from FALLEN_MIN_TURN,
-    // one at a time. For FALLEN_DURATION turns it gets FALLEN_GRANT BC, and every computer empire in
-    // contact with it thinks it likelier to attack and holds a plot against it (opinion -20).
-    constexpr int32_t FALLEN_CHANCE = 6;
-    constexpr int32_t FALLEN_MIN_TURN = 80;
-    constexpr int32_t FALLEN_DURATION = 40;
-    constexpr int32_t FALLEN_GRANT = 300;
-    constexpr int32_t FALLEN_RATIO = 3;
-    bool Turn_Fallen(int16_t player);         // turns `player` into a crisis at once (for the tests and the roll)
-    bool Is_Fallen(int16_t player);
+    // Become a crisis (3.10) - row "—тать кризисом": "игрок накапливает Ђугрозуї злоде€ни€ми (биологическое
+    // оружие, разрушение планет) Ч галактика объ€вл€ет ему войну"; the author's decision (ab-review.md 1.1): a
+    // threat scale fed by atrocities (reputation::On_Atrocity: biological weapons, a destroyed planet, poisoned
+    // water); above the threshold every computer empire that knows the culprit declares war on it. Each atrocity
+    // adds THREAT_ATROCITY (at most THREAT_MAX), the threat falls THREAT_DECAY a turn; at THREAT_WAR the galaxy
+    // declares war (once for each empire, as long as the threat stays up). Any empire, a human too, can be the
+    // culprit. Under events crisis_front.
+    constexpr int32_t THREAT_ATROCITY = 25;
+    constexpr int32_t THREAT_MAX = 100;
+    constexpr int32_t THREAT_DECAY = 1;
+    constexpr int32_t THREAT_WAR = 50;
+    void Add_Threat(int16_t player);          // an atrocity of `player` (no-op with the flag off)
+    int32_t Threat(int16_t player);
+
+    // The strike of war weariness' stage 4 lasts STRIKE_TURNS turns: the capital's output is lost every turn.
+    constexpr int32_t STRIKE_TURNS = 5;
+    bool On_Strike(int16_t player);
 
     // The Antaran front (3.12): a galaxy scale that starts at front_strength, grows FRONT_STEP every
     // FRONT_PERIOD turns and feeds the Antarans' offensive resources: FRONT_START_RESOURCE per point at the
@@ -174,8 +189,12 @@ namespace crises {
 
     struct s_extra {
         s_scale scale[MAX_SCALES];
-        uint8_t academy_left[MAX_PLAYERS] = {};   // turns until the academy of each empire is done, 0 = none
-        int32_t fallen_until[MAX_PLAYERS] = {};   // stardate the crisis of each fallen empire ends, 0 = not fallen
+        uint16_t threat[MAX_PLAYERS] = {};        // the threat each empire's atrocities have built up
+        uint8_t war_mask[MAX_PLAYERS] = {};       // bit o: empire o has declared war on this one for its threat
+        int32_t strike_until[MAX_PLAYERS] = {};   // stardate the general strike of each empire ends, 0 = none
+        uint8_t contest_stage = 0;                // the academy: 0 = none, else the running stage 1..ACADEMY_STAGES
+        int32_t contest_ends = 0;                 // stardate the running stage ends
+        int32_t baseline[MAX_PLAYERS] = {};       // each empire's output when the stage started
         uint8_t front_broken = 0;                 // the council has beaten the front for good
         int32_t council_progress = 0;
         uint16_t given[MAX_PLAYERS] = {};
@@ -203,7 +222,10 @@ namespace crises {
     // roll (int8). Version 2 (written only when s_extra holds something; version 1 is still read) adds
     // MAX_SCALES scales (kind uint8, player int8, value int16, started int32, approach int8), the
     // academies (MAX_PLAYERS uint8), the fallen (MAX_PLAYERS int32), front_broken (uint8), the council's
-    // progress (int32) and its gifts (MAX_PLAYERS uint16).
+    // progress (int32) and its gifts (MAX_PLAYERS uint16). Version 3 (written when s_extra holds something) drops the
+    // academies and the fallen and, after the council's gifts, adds the threats (MAX_PLAYERS uint16), the war masks
+    // (MAX_PLAYERS uint8), the strikes (MAX_PLAYERS int32), the contest's stage (uint8) and end (int32) and the
+    // baselines (MAX_PLAYERS int32); versions 1 and 2 are still read (the old academies and fallen are dropped).
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);

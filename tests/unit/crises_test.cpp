@@ -5,6 +5,7 @@
 #include "game/beliefs.h"
 #include "game/crises.h"
 #include "game/dice.h"
+#include "game/random.h"
 #include "game/serialization.h"
 
 #include <memory>
@@ -195,8 +196,19 @@ DOCTEST_TEST_CASE("war weariness: grows at war, stages bite, approaches cost, pe
     crises::Extra()->scale[0].approach = 2;
     crises::Extra()->scale[0].value = 97;
     crises::Turn();
-    DOCTEST_CHECK(state.colonies[0].buildings[BUILDING_HYDROPONIC_FARM] == 0);  // stage 4: a building lost
+    DOCTEST_CHECK(state.colonies[0].buildings[BUILDING_HYDROPONIC_FARM] == 1);  // stage 4: no building is lost any more
+    DOCTEST_CHECK(crises::On_Strike(0));                                          // a general strike instead
     DOCTEST_CHECK(crises::Extra()->scale[0].value == crises::WEARY_RESET);
+    state.colonies[0].production_spent = 9;
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(state.colonies[0].production_spent == 0);                       // the strike goes on: no output
+    crises::Extra()->scale[0].approach = 2;
+    MOX::stardate += crises::STRIKE_TURNS;
+    state.colonies[0].production_spent = 9;
+    crises::Turn();
+    DOCTEST_CHECK_FALSE(crises::On_Strike(0));                                    // and ends
+    DOCTEST_CHECK(state.colonies[0].production_spent == 9);
     // Propaganda costs 5 BC a turn and takes 3 off the growth.
     crises::Extra()->scale[0].approach = 0;
     crises::Extra()->scale[0].value = 10;
@@ -229,52 +241,139 @@ DOCTEST_TEST_CASE("computers pick an approach by character; a human takes propag
     DOCTEST_CHECK(scale->approach == 0);
 }
 
-DOCTEST_TEST_CASE("an academy trains a leader after its turns; with no leader half the cost returns") {
+// Sets the per-turn outputs the academy contest measures: science, industry, BC of each empire.
+void Outputs_(test::s_game_state* state, int p, int science, int industry, int bc) {
+    state->players[p].research_produced = static_cast<int16_t>(science);
+    state->players[p].industry_produced = static_cast<int16_t>(industry);
+    state->players[p].bc_produced = static_cast<int16_t>(bc);
+}
+
+DOCTEST_TEST_CASE("the academy: all empires compete in three stages and the winner of each stage gets a prize") {
     s_crises_scope scope;
     test::s_game_state state;
     Setup_(&state);
     crises::situations = true;
     state.players[0].bc = 200;
-    DOCTEST_REQUIRE(crises::Found_Academy(0));
-    DOCTEST_CHECK(state.players[0].bc == 200 - crises::ACADEMY_COST);
-    DOCTEST_CHECK_FALSE(crises::Found_Academy(0));  // one at a time
-    s_leader_data& leader = state.leaders[2];
-    leader.player_index = 0;
-    leader.status = 1;
-    leader.xp = 20;
-    for (int i = 0; i < crises::ACADEMY_TURNS - 1; ++i) crises::Turn();
-    DOCTEST_CHECK(leader.xp == 20);
-    DOCTEST_CHECK(crises::Extra()->academy_left[0] == 1);
+    state.players[1].bc = 200;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;  // a human takes part too
+    Outputs_(&state, 0, 10, 10, 10);
+    Outputs_(&state, 1, 10, 10, 10);
+    DOCTEST_REQUIRE(crises::Start_Academy());
+    DOCTEST_CHECK_FALSE(crises::Start_Academy());  // one at a time
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 1);
+    DOCTEST_CHECK(state.players[0].bc == 200);     // no fee
+
+    // Stage 1, science: the human empire grows more.
+    Outputs_(&state, 0, 14, 10, 10);
+    Outputs_(&state, 1, 20, 10, 10);
+    MOX::stardate += crises::ACADEMY_STAGE_TURNS - 1;
     crises::Turn();
-    DOCTEST_CHECK(leader.xp == 20 + crises::ACADEMY_XP);
-    DOCTEST_CHECK(crises::Extra()->academy_left[0] == 0);
-    leader.player_index = -1;
-    state.players[0].bc = 200;
-    DOCTEST_REQUIRE(crises::Found_Academy(0));
-    for (int i = 0; i < crises::ACADEMY_TURNS; ++i) crises::Turn();
-    DOCTEST_CHECK(state.players[0].bc == 50 + crises::ACADEMY_COST / 2);
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 1);
+    MOX::stardate += 1;
+    state.players[1].research_accumulated = 0;
+    crises::Turn();
+    DOCTEST_CHECK(state.players[1].research_accumulated == crises::ACADEMY_PRIZE);
+    DOCTEST_CHECK(state.players[0].research_accumulated == 0);
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 2);
+
+    // Stage 2, industry: both grow alike - no winner. The baseline is the output at the start of the stage.
+    Outputs_(&state, 0, 14, 15, 10);
+    Outputs_(&state, 1, 20, 15, 10);
+    state.colonies[0].production_spent = 0;
+    MOX::stardate += crises::ACADEMY_STAGE_TURNS;
+    crises::Turn();
+    DOCTEST_CHECK(state.colonies[0].production_spent == 0);
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 3);
+
+    // Stage 3, BC: the computer wins and the contest is over.
+    Outputs_(&state, 0, 14, 15, 30);
+    MOX::stardate += crises::ACADEMY_STAGE_TURNS;
+    crises::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 200 + crises::ACADEMY_PRIZE);
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 0);
+    DOCTEST_CHECK(crises::Extra_Empty());
 }
 
-DOCTEST_TEST_CASE("a fallen empire turns crisis: grant, marks, one at a time, an end") {
+DOCTEST_TEST_CASE("the academy: the industry prize goes to the capital's production; it needs two empires") {
     s_crises_scope scope;
     test::s_game_state state;
     Setup_(&state);
-    DOCTEST_CHECK_FALSE(crises::Turn_Fallen(0));  // flag off
-    crises::crisis_front = true;
-    state.players[0].bc = 0;
-    DOCTEST_REQUIRE(crises::Turn_Fallen(0));
-    DOCTEST_CHECK(crises::Is_Fallen(0));
-    DOCTEST_CHECK(state.players[0].bc == crises::FALLEN_GRANT);
-    DOCTEST_CHECK(beliefs::Evidence(1, 0, beliefs::BELIEF_HOSTILE) == 2);
-    DOCTEST_CHECK_FALSE(crises::Turn_Fallen(1));  // one at a time
-    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
-    crises::Extra()->fallen_until[0] = 0;
-    DOCTEST_CHECK_FALSE(crises::Turn_Fallen(1));  // a human never
-    MOX::stardate = 35100;
-    DOCTEST_REQUIRE(crises::Turn_Fallen(0));
-    MOX::stardate = 35100 + crises::FALLEN_DURATION;
+    crises::situations = true;
+    Outputs_(&state, 0, 0, 5, 0);
+    Outputs_(&state, 1, 0, 5, 0);
+    DOCTEST_REQUIRE(crises::Start_Academy());
+    crises::Extra()->contest_stage = 2;
+    crises::Extra()->contest_ends = MOX::stardate;
+    Outputs_(&state, 0, 0, 9, 0);
     crises::Turn();
-    DOCTEST_CHECK_FALSE(crises::Is_Fallen(0));
+    DOCTEST_CHECK(state.colonies[0].production_spent == crises::ACADEMY_PRIZE);
+    crises::Clear();
+    state.players[1].eliminated = 1;
+    DOCTEST_CHECK_FALSE(crises::Start_Academy());
+}
+
+DOCTEST_TEST_CASE("the academy starts by chance from the minimum turn only, once the dice allow it") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::situations = true;
+    MOX::stardate = 35000 + crises::MIN_TURN - 1;
+    const uint32_t seed = game_random::Get_Random_Seed();
+    crises::Turn();
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);  // too early: no draw
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 0);
+    MOX::stardate = 35000 + crises::MIN_TURN;
+    for (int i = 0; i < 4000 && crises::Extra()->contest_stage == 0; ++i) crises::Turn();
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 1);
+}
+
+DOCTEST_TEST_CASE("become a crisis: atrocities build a threat, the galaxy declares war, the threat decays") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::Add_Threat(0);  // flag off
+    DOCTEST_CHECK(crises::Threat(0) == 0);
+    crises::crisis_front = true;
+    crises::Add_Threat(0);
+    DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY);
+    state.players[1].treaty[0] = 0;
+    state.players[0].treaty[1] = 0;
+    crises::Turn();  // below the threshold: no war
+    DOCTEST_CHECK(state.players[1].treaty[0] < 4);
+    DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY - crises::THREAT_DECAY);
+    crises::Add_Threat(0);
+    crises::Add_Threat(0);
+    DOCTEST_CHECK(crises::Threat(0) >= crises::THREAT_WAR);
+    crises::Turn();  // the threshold: a computer that knows the culprit declares war
+    DOCTEST_CHECK(state.players[1].treaty[0] >= 4);
+    DOCTEST_CHECK(state.players[0].treaty[1] >= 4);
+    DOCTEST_CHECK((crises::Extra()->war_mask[0] & 2) != 0);
+    // A human culprit works the same; the threat falls away and the mask with it.
+    for (int i = 0; i < 4 * crises::THREAT_MAX; ++i) crises::Turn();
+    DOCTEST_CHECK(crises::Threat(0) == 0);
+    DOCTEST_CHECK(crises::Extra()->war_mask[0] == 0);
+}
+
+DOCTEST_TEST_CASE("become a crisis: a human culprit is declared war on, a human never declares; no contact, no war") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::crisis_front = true;
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].contact[0] = 0;
+    state.players[0].contact[1] = 0;
+    crises::Add_Threat(0);
+    crises::Add_Threat(0);
+    crises::Add_Threat(0);
+    crises::Turn();
+    DOCTEST_CHECK(state.players[1].treaty[0] < 4);  // it does not know the culprit
+    state.players[1].contact[0] = 1;
+    crises::Turn();
+    DOCTEST_CHECK(state.players[1].treaty[0] >= 4);
+    state.players[1].treaty[0] = 0;
+    state.players[0].treaty[1] = 0;
+    crises::Turn();  // declared once: not again while the threat stays up
+    DOCTEST_CHECK(state.players[1].treaty[0] < 4);
 }
 
 DOCTEST_TEST_CASE("the Antaran front starts at its strength, advances by itself and feeds the Antarans") {
@@ -356,8 +455,9 @@ DOCTEST_TEST_CASE("the new flags off: nothing starts, nothing is kept") {
     MOX::settings.xenons_exist = 1;
     crises::front_strength = 50;
     crises::Turn();
-    DOCTEST_CHECK_FALSE(crises::Found_Academy(0));
-    DOCTEST_CHECK_FALSE(crises::Turn_Fallen(0));
+    DOCTEST_CHECK_FALSE(crises::Start_Academy());
+    crises::Add_Threat(0);
+    DOCTEST_CHECK(crises::Threat(0) == 0);
     DOCTEST_CHECK(crises::Extra_Empty());
     DOCTEST_CHECK(crises::Empty());
     DOCTEST_CHECK(crises::Save_Size() == 2 + crises::MAX_ACTIVE * 11);  // the old, version 1 layout
@@ -370,14 +470,17 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     crises::situations = true;
     crises::crisis_front = true;
     state.players[0].bc = 500;
-    DOCTEST_REQUIRE(crises::Found_Academy(0));
+    DOCTEST_REQUIRE(crises::Start_Academy());
     crises::s_extra* extra = crises::Extra();
     extra->scale[3].kind = crises::SCALE_WAR_WEARINESS;
     extra->scale[3].player = 1;
     extra->scale[3].value = 42;
     extra->scale[3].started = 35090;
     extra->scale[3].approach = 1;
-    extra->fallen_until[1] = 35140;
+    extra->threat[1] = 75;
+    extra->war_mask[1] = 5;
+    extra->strike_until[0] = 35105;
+    extra->baseline[1] = -7;
     extra->council_progress = 123;
     extra->given[0] = 77;
     extra->front_broken = 1;
@@ -387,7 +490,7 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
     crises::Write_Save(&writer);
     DOCTEST_REQUIRE(writer.Length() == size);
-    DOCTEST_CHECK(buffer[0] == 2);
+    DOCTEST_CHECK(buffer[0] == 3);
     crises::Clear();
     SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
     std::string error;
@@ -395,10 +498,14 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     DOCTEST_CHECK(crises::Extra_Empty());
     crises::Commit_Save();
     extra = crises::Extra();
-    DOCTEST_CHECK(extra->academy_left[0] == crises::ACADEMY_TURNS);
+    DOCTEST_CHECK(extra->contest_stage == 1);
+    DOCTEST_CHECK(extra->contest_ends == 35100 + crises::ACADEMY_STAGE_TURNS);
+    DOCTEST_CHECK(extra->threat[1] == 75);
+    DOCTEST_CHECK(extra->war_mask[1] == 5);
+    DOCTEST_CHECK(extra->strike_until[0] == 35105);
+    DOCTEST_CHECK(extra->baseline[1] == -7);
     DOCTEST_CHECK(extra->scale[3].value == 42);
     DOCTEST_CHECK(extra->scale[3].approach == 1);
-    DOCTEST_CHECK(extra->fallen_until[1] == 35140);
     DOCTEST_CHECK(extra->council_progress == 123);
     DOCTEST_CHECK(extra->given[0] == 77);
     DOCTEST_CHECK(extra->front_broken == 1);
@@ -416,11 +523,56 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     SERIAL::Writer_ old_writer(old_buffer.get(), old_size, "test overflow");
     crises::Write_Save(&old_writer);
     DOCTEST_CHECK(old_buffer[0] == 1);
-    crises::Extra()->academy_left[0] = 5;
+    crises::Extra()->threat[0] = 5;
     SERIAL::Reader_ old_reader(old_buffer.get(), old_size, "test underflow", true);
     DOCTEST_REQUIRE(crises::Parse_Save(&old_reader, &error));
     crises::Commit_Save();
     DOCTEST_CHECK(crises::Extra_Empty());
+}
+
+DOCTEST_TEST_CASE("a version 2 payload of wave 4 still reads: its academies and fallen are dropped, the rest stays") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    const uint32_t size = 2 + crises::MAX_ACTIVE * 11 + crises::MAX_SCALES * 9 + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    writer.Write_Uint16(2);
+    for (int i = 0; i < crises::MAX_ACTIVE; ++i) {
+        writer.Write_Uint8(0); writer.Write_Int8(-1); writer.Write_Int16(-1); writer.Write_Int8(-1);
+        writer.Write_Int32(0); writer.Write_Uint8(0); writer.Write_Int8(0);
+    }
+    for (int i = 0; i < crises::MAX_SCALES; ++i) {
+        const bool first = i == 0;
+        writer.Write_Uint8(first ? crises::SCALE_WAR_WEARINESS : 0); writer.Write_Int8(first ? 1 : -1);
+        writer.Write_Int16(first ? 40 : 0); writer.Write_Int32(first ? 35050 : 0); writer.Write_Int8(first ? 2 : -1);
+    }
+    for (int p = 0; p < MAX_PLAYERS; ++p) writer.Write_Uint8(p == 0 ? 5 : 0);        // an academy: dropped
+    for (int p = 0; p < MAX_PLAYERS; ++p) writer.Write_Int32(p == 1 ? 35140 : 0);    // a fallen empire: dropped
+    writer.Write_Uint8(0);
+    writer.Write_Int32(55);
+    for (int p = 0; p < MAX_PLAYERS; ++p) writer.Write_Uint16(p == 0 ? 9 : 0);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(crises::Parse_Save(&reader, &error));
+    crises::Commit_Save();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1) != nullptr);
+    DOCTEST_CHECK(crises::Extra()->council_progress == 55);
+    DOCTEST_CHECK(crises::Extra()->given[0] == 9);
+    DOCTEST_CHECK(crises::Extra()->contest_stage == 0);
+    DOCTEST_CHECK(crises::Extra()->threat[0] == 0);
+    // A bad value in the new section is refused (a threat over the maximum).
+    crises::Extra()->threat[0] = 5;
+    const uint32_t size3 = crises::Save_Size();
+    auto buffer3 = std::make_unique<uint8_t[]>(size3);
+    SERIAL::Writer_ writer3(buffer3.get(), size3, "test overflow");
+    crises::Write_Save(&writer3);
+    DOCTEST_CHECK(buffer3[0] == 3);
+    const uint32_t threat_offset = 2 + crises::MAX_ACTIVE * 11 + crises::MAX_SCALES * 9 + 1 + 4 + MAX_PLAYERS * 2;
+    buffer3[threat_offset + 1] = 0x7f;  // the high byte of threat 0
+    SERIAL::Reader_ bad(buffer3.get(), size3, "test underflow", true);
+    DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad, &error));
 }
 
 DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {

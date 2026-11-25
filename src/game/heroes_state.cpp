@@ -38,10 +38,6 @@ namespace heroes {
         return n;
     }
 
-    int32_t Manager_Bonus(int16_t player) {
-        return Find(KIND_MANAGER, player, -1) != nullptr ? MANAGER_BONUS : 0;
-    }
-
     bool Controlled(int16_t leader) {
         return Find(KIND_MIND, -1, leader) != nullptr;
     }

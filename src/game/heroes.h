@@ -27,7 +27,7 @@ namespace heroes {
 
     enum e_kind : uint8_t {
         KIND_NONE = 0,
-        KIND_MANAGER = 1,      // a crisis manager of an empire; no leader
+        KIND_MANAGER = 1,      // retired: only so old saves load (the record is dropped)
         KIND_MIND = 2,         // an alien mind controls `leader` of `player`; `other` is the empire that profits
         KIND_STIMULANT = 3,    // a leader on stimulants
         KIND_PARANOIA = 4,
@@ -43,15 +43,12 @@ namespace heroes {
     constexpr int8_t STATUS_ASSIGNED = 1;
     constexpr int8_t STATUS_LIMBO = 2;
 
-    // --- Crisis manager (3.11): an empire in a crisis (an open crisis of crises.h or a war weariness at stage 2 or
-    // worse) may get one: MANAGER_CHANCE per mille a turn, MANAGER_FEE BC. For MANAGER_TURNS turns it adds
-    // MANAGER_BONUS to every check of a crisis (crises::Check_Bonus) and takes MANAGER_RELIEF points off the empire's
-    // war weariness every turn.
-    constexpr int32_t MANAGER_CHANCE = 40;
-    constexpr int32_t MANAGER_FEE = 60;
-    constexpr int32_t MANAGER_TURNS = 12;
-    constexpr int32_t MANAGER_BONUS = 2;
-    constexpr int32_t MANAGER_RELIEF = 3;
+    // --- Crisis manager (3.11) - events-catalog.md row "Антикризисный управляющий": "удачно решённый кризис даёт
+    // особого лидера"; the author's decision (ab-review.md 1.3): a brilliant or triumphant solution of a crisis
+    // (crises::Resolve_With_Dice, dice.h OUTCOME_BRILLIANT / OUTCOME_TRIUMPH) gives the empire a leader with a
+    // special ability from the list of leaders for hire (status -1), hired free of charge: the one with the most
+    // abilities, a famous one first (no dice). KIND_MANAGER stays in the enum only so that old saves load; a record
+    // of it is dropped at once.
 
     // --- Mind control (3.11): a computer empire that holds a telepath and is at war with another empire (or
     // thinks MIND_OPINION or worse of it) takes over one of its assigned leaders, MIND_CHANCE per mille a turn. For
@@ -123,8 +120,10 @@ namespace heroes {
     const s_record* Find(e_kind kind, int16_t player, int16_t leader);
     int32_t Active(int16_t player);
 
-    // Hook of crises::Check_Bonus: MANAGER_BONUS while `player` has a manager, else 0 (always 0 with the flag off).
-    int32_t Manager_Bonus(int16_t player);
+    // Hook of crises::Resolve_With_Dice: `player` has solved a crisis brilliantly or triumphantly; hires it the best
+    // leader of the hire list for nothing. Returns the leader's index, -1 when none was hired (flag off, no leader
+    // with an ability on the list, no room for another officer).
+    int16_t On_Crisis_Solved(int16_t player);
     // Whether `leader` is controlled by an alien mind.
     bool Controlled(int16_t leader);
 
@@ -134,8 +133,7 @@ namespace heroes {
     bool Is_Famous(int16_t leader);
     int32_t Famous_Leaders(int16_t player, int16_t* out, int32_t max);
 
-    // Starts an event by hand (the chance and the pick are the caller's): the crisis manager of `player`
-    // (`leader` ignored), the mind control of `leader` by `other` (the empire that profits), or a quirk of `leader`.
+    // Starts an event by hand (the chance and the pick are the caller's): the mind control of `leader` by `other` (the empire that profits), or a quirk of `leader`.
     // Costs are paid now. False when the flag is off, the table is full or the subject does not qualify.
     bool Start(e_kind kind, int16_t player, int16_t leader = -1, int16_t other = -1);
 

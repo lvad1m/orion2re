@@ -3,6 +3,7 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "game/crises.h"
+#include "game/dice.h"
 #include "game/heroes.h"
 #include "game/loyalty.h"
 #include "game/random.h"
@@ -133,7 +134,7 @@ DOCTEST_TEST_CASE("flag off: nothing starts, nothing is kept, no draw from game_
     Setup_(&state);
     Famous_(&state, HERO);
     heroes::enabled = false;
-    DOCTEST_CHECK_FALSE(heroes::Start(heroes::KIND_MANAGER, 0));
+    DOCTEST_CHECK(heroes::On_Crisis_Solved(0) == -1);
     DOCTEST_CHECK_FALSE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
     DOCTEST_CHECK_FALSE(heroes::Start(heroes::KIND_STIMULANT, 0, SHIP_LEADER));
     const uint32_t seed = game_random::Get_Random_Seed();
@@ -143,67 +144,69 @@ DOCTEST_TEST_CASE("flag off: nothing starts, nothing is kept, no draw from game_
     }
     DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
     DOCTEST_CHECK(heroes::Empty());
-    DOCTEST_CHECK(heroes::Manager_Bonus(0) == 0);
-    DOCTEST_CHECK(heroes::Find(heroes::KIND_MANAGER, -1, -1) == nullptr);
     DOCTEST_CHECK(state.players[0].bc == 1000);
     DOCTEST_CHECK(state.leaders[HERO].xp == 0);
     DOCTEST_CHECK(state.leaders[HERO].status == -1);
 }
 
-DOCTEST_TEST_CASE("the crisis manager: a fee, a bonus to crisis checks, relief of war weariness, an end")
+DOCTEST_TEST_CASE("a crisis solved brilliantly hires a free leader with an ability, free of charge, without dice")
 {
     s_scope scope;
     test::s_game_state state;
     Setup_(&state);
-    const int32_t before = crises::Check_Bonus(0, crises::CHECK_SCIENCE);
-    DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MANAGER, 0));
-    DOCTEST_CHECK(state.players[0].bc == 1000 - heroes::MANAGER_FEE);
-    DOCTEST_CHECK(heroes::Manager_Bonus(0) == heroes::MANAGER_BONUS);
-    DOCTEST_CHECK(heroes::Manager_Bonus(1) == 0);
-    DOCTEST_CHECK(crises::Check_Bonus(0, crises::CHECK_SCIENCE) == before + heroes::MANAGER_BONUS);
-    DOCTEST_CHECK_FALSE(heroes::Start(heroes::KIND_MANAGER, 0));  // one at a time
-    state.players[2].bc = 10;
-    DOCTEST_CHECK_FALSE(heroes::Start(heroes::KIND_MANAGER, 2));  // cannot pay
-
-    crises::s_scale& scale = crises::Extra()->scale[0];
-    scale.kind = crises::SCALE_WAR_WEARINESS;
-    scale.player = 0;
-    scale.value = 80;
-    Run_(1);
-    DOCTEST_CHECK(scale.value == 80 - heroes::MANAGER_RELIEF);
-    Run_(heroes::MANAGER_TURNS - 1);
-    DOCTEST_CHECK(heroes::Find(heroes::KIND_MANAGER, 0, -1) == nullptr);
-    DOCTEST_CHECK(heroes::Manager_Bonus(0) == 0);
-    DOCTEST_CHECK(crises::Check_Bonus(0, crises::CHECK_SCIENCE) == before);
+    Famous_(&state, HERO);                                   // famous: preferred
+    state.leaders[HERO2].player_index = -1;                  // a plain leader with two abilities
+    state.leaders[HERO2].status = -1;
+    state.leaders[HERO2].type = LEADER_TYPE_SHIP;
+    state.leaders[HERO2].general_skills = LEADER_GENERAL_SKILL_DIPLOMAT | LEADER_GENERAL_SKILL_RESEARCHER;
+    const uint32_t seed = game_random::Get_Random_Seed();
+    const int16_t hired = heroes::On_Crisis_Solved(0);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+    DOCTEST_REQUIRE(hired == HERO);
+    DOCTEST_CHECK(state.leaders[HERO].player_index == 0);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(heroes::Empty());                          // no record is kept
+    // Next time the other one is the best that is left.
+    DOCTEST_CHECK(heroes::On_Crisis_Solved(0) == HERO2);
+    // Nobody with an ability is left on the list.
+    DOCTEST_CHECK(heroes::On_Crisis_Solved(0) == -1);
 }
 
-DOCTEST_TEST_CASE("a manager appears by chance only for an empire in a crisis")
+DOCTEST_TEST_CASE("the crisis hook: a brilliant or triumphant result hires, a plain success does not")
 {
     s_scope scope;
     test::s_game_state state;
     Setup_(&state);
-    Seed_For_({{1000, 1, 40}});
-    heroes::Turn();
-    DOCTEST_CHECK(heroes::Find(heroes::KIND_MANAGER, -1, -1) == nullptr);  // no crisis, no manager
+    Famous_(&state, HERO);
+    test::s_saved_value<bool> crises_enabled{crises::enabled};
+    test::s_saved_value<uint8_t> kind{dice::roll_kind};
+    test::s_saved_value<int32_t> margin{dice::brilliant_margin};
+    dice::brilliant_margin = 5;
+    crises::enabled = true;
+    dice::roll_kind = dice::ROLL_TWO_D10;
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, 0, 5));
+    crises::Slots()[0].option = 2;                           // a ready option, cost 0
+    crises::Slots()[0].due = MOX::stardate;
+    const int32_t plain[2] = {6, 6};                         // 12 + bonus: a success, not brilliant
+    crises::Resolve_With_Dice(0, plain);
+    DOCTEST_CHECK(state.leaders[HERO].player_index == -1);
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, 0, 5));
+    crises::Slots()[0].option = 2;
+    const int32_t triumph[2] = {10, 10};
+    crises::Resolve_With_Dice(0, triumph);
+    DOCTEST_CHECK(state.leaders[HERO].player_index == 0);
+}
 
-    crises::s_scale& scale = crises::Extra()->scale[0];
-    scale.kind = crises::SCALE_WAR_WEARINESS;
-    scale.player = 1;
-    scale.value = 60;  // stage 2
-    Seed_For_({{1000, 1, 40}});
-    heroes::Turn();
-    DOCTEST_CHECK(heroes::Find(heroes::KIND_MANAGER, 1, -1) != nullptr);
-    DOCTEST_CHECK(state.players[1].bc == 1000 - heroes::MANAGER_FEE);
-
-    // An open crisis counts as well (a computer empire 2).
-    heroes::Clear();
-    scale = crises::s_scale{};
-    crises::Slots()[0].crisis = crises::CRISIS_ASTEROID;
-    crises::Slots()[0].player = 2;
-    crises::Slots()[0].result = crises::RESULT_PENDING;
-    Seed_For_({{1000, 1, 40}});
-    heroes::Turn();
-    DOCTEST_CHECK(heroes::Find(heroes::KIND_MANAGER, 2, -1) != nullptr);
+DOCTEST_TEST_CASE("a retired manager record of an old save is dropped at once")
+{
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    heroes::State()->count = 1;
+    heroes::s_record& a = heroes::State()->record[0];
+    a.kind = heroes::KIND_MANAGER; a.player = 0; a.leader = -1; a.other = -1; a.started = 35001; a.ends = 35013;
+    Run_(1);
+    DOCTEST_CHECK(heroes::State()->count == 0);
 }
 
 DOCTEST_TEST_CASE("mind control: tribute to the master, freed by chance, ends, leaves the bribe slot clean")
