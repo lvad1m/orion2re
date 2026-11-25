@@ -264,6 +264,9 @@ namespace reputation {
         s->last_red_aggressor = aggressor;
         s->last_red_victim = victim;
         s->last_red_stardate = MOX::stardate;
+        // Iteration 1, decision 3 (iterations.md): "угрозу копят и «красная свадьба»" - a recognised red wedding feeds
+        // the "become a crisis" threat (no-op with events crisis_front off).
+        crises::Add_Threat(aggressor);
         Grant_Forever_(aggressor, TITLE_HOSPITALITY_BREAKER);
         opinion::Add(victim, aggressor, opinion::REASON_VIOLATED_HOSPITALITY, RED_WEDDING_VICTIM_OPINION);
         for (int16_t o = 0; o < Players_(); ++o) {

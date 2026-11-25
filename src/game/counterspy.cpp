@@ -167,6 +167,19 @@ namespace counterspy {
         return best;
     }
 
+    void On_Innocent_Jailed(int16_t hunter, int16_t leader) {
+        if (hunter < 0 || hunter >= MAX_PLAYERS) return;
+        uint8_t& jailed = State()->innocents[hunter];
+        const int32_t shake = WITCH_LOYALTY + INNOCENT_STEP * std::min<int32_t>(jailed, INNOCENT_CAP);
+        Add_Loyalty_(leader, JAILED_LOYALTY);
+        for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+            if (i != leader && Holds_(MOX::leaders[i], hunter)) Add_Loyalty_(i, shake);
+        }
+        if (jailed < 255) ++jailed;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d: innocent leader %d jailed (#%d), the others lose %d loyalty",
+            (int)MOX::stardate, (int)hunter, (int)leader, (int)jailed, (int)-shake);
+    }
+
     e_hunt Hunt(int16_t hunter) {
         return Hunt_With_Dice(hunter, nullptr);
     }
@@ -189,6 +202,7 @@ namespace counterspy {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d hunts a mole, suspects leader %d: %s",
             (int)MOX::stardate, (int)hunter, (int)suspect, dice::Describe_Check("mole hunt", check, modifiers, 3).c_str());
         State()->suspicion[hunter] = 0;  // the hunt is held; a new suspicion starts a new one
+        State()->last_hunt[hunter] = MOX::stardate;
         const bool success = check.outcome >= dice::OUTCOME_SUCCESS;
         if (spy_ops::Bribed_By(suspect) >= 0) {
             if (!success) return HUNT_NOTHING;
@@ -198,10 +212,7 @@ namespace counterspy {
         if (success || check.outcome > dice::OUTCOME_FAILURE) return HUNT_NOTHING;
         // An innocent is jailed; the others are shaken (ab-review 3.1: a real jail).
         hostages::Arrest(suspect, false);
-        Add_Loyalty_(suspect, JAILED_LOYALTY);
-        for (int16_t i = 0; i < MAX_LEADERS; ++i) {
-            if (i != suspect && Holds_(MOX::leaders[i], hunter)) Add_Loyalty_(i, WITCH_LOYALTY);
-        }
+        On_Innocent_Jailed(hunter, suspect);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d jails its innocent leader %d",
             (int)MOX::stardate, (int)hunter, (int)suspect);
         return HUNT_JAILED;
@@ -327,7 +338,10 @@ namespace counterspy {
         }
         if (mole_hunt && MOX::stardate % PERIOD == PHASE) {
             for (int16_t p = 0; p < Players_(); ++p) {
-                if (Suspects(p)) Hunt(p);
+                if (!Suspects(p)) continue;
+                const int32_t last = State()->last_hunt[p];
+                if (last != 0 && MOX::stardate - last < HUNT_COOLDOWN) continue;  // decision 2: one hunt per HUNT_COOLDOWN turns
+                Hunt(p);
             }
         }
     }

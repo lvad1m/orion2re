@@ -4,7 +4,9 @@
 #include "../fixtures/game_state.h"
 #include "game/advisor.h"
 #include "game/espionage.h"
+#include "game/counterspy.h"
 #include "game/hostages.h"
+#include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/serialization.h"
 
@@ -130,6 +132,33 @@ DOCTEST_TEST_CASE("a witch hunt jails honest leaders on false accusations") {
     DOCTEST_CHECK(leader.player_index == 1);
     DOCTEST_CHECK(hostages::Find(4) >= 0);
     hostages::Clear();
+}
+
+DOCTEST_TEST_CASE("decision 2: a witch hunt's innocents cost the other leaders loyalty, more with each one") {
+    s_espionage_scope scope;
+    test::s_saved_value<bool> loyalty_enabled{loyalty::enabled};
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::Clear();
+    loyalty::Clear();
+    loyalty::enabled = true;
+    for (int i = 4; i < 7; ++i) {
+        s_leader_data& leader = state.leaders[i];
+        leader.player_index = 1;
+        leader.status = 0;
+        leader.location = -1;
+        loyalty::Record(static_cast<int16_t>(i))->loyalty = 10;  // distrusted: certain to be accused
+    }
+    espionage::Set_Mode(1, espionage::MODE_WITCH_HUNT);
+    espionage::witch_hunt_accusation = 1000;  // everybody is accused
+    espionage::Turn();
+    DOCTEST_CHECK(counterspy::State()->innocents[1] >= 1);
+    // The leaders are jailed in turn: the later ones were shaken by the earlier ones, the last jailed most.
+    DOCTEST_CHECK(counterspy::State()->innocents[1] == 3);
+    DOCTEST_CHECK(loyalty::Of(6) < 10 + counterspy::WITCH_LOYALTY);
+    hostages::Clear();
+    counterspy::Clear();
+    loyalty::Clear();
 }
 
 DOCTEST_TEST_CASE("computer empires choose their mode by the spies they caught lately") {

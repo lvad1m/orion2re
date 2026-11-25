@@ -44,7 +44,16 @@ namespace counterspy {
     constexpr int32_t HUNT_AGENTS_MAX = 3;         // counter-agents: one point for two, at most this
     constexpr int32_t UNCOVERED_OPINION = -25;     // the owner's memory of the briber
     constexpr int32_t JAILED_LOYALTY = -20;        // the innocent jailed
-    constexpr int32_t WITCH_LOYALTY = -3;          // each other leader of the hunter
+    constexpr int32_t WITCH_LOYALTY = -3;          // each other leader of the hunter, for the first innocent jailed
+    // Iteration 1, decision 2 (iterations.md): "Паранойя ограничивает себя: не больше одной охоты на крота за 20
+    // ходов на империю; каждый посаженный невиновный сильнее снижает лояльность остальных лидеров — частые аресты
+    // становятся заметной ценой. Это и есть «чуточку уменьшить паранойю»." The hunt (Turn) is held while the
+    // empire's last hunt is less than HUNT_COOLDOWN turns old. Each innocent jailed (by the mole hunt or by the
+    // witch hunt of espionage.cpp) costs the other leaders WITCH_LOYALTY and INNOCENT_STEP more for every innocent
+    // the empire has jailed before (at most INNOCENT_CAP earlier ones count): -3, -5, -7 ... -13.
+    constexpr int32_t HUNT_COOLDOWN = 20;
+    constexpr int32_t INNOCENT_STEP = -2;
+    constexpr int32_t INNOCENT_CAP = 5;
     constexpr int32_t DEFAULT_LOYALTY = 50;        // an untracked leader
     constexpr int32_t CANARY_TURNS = 10;
     constexpr int32_t CANARY_SUSPECTS = 3;         // leaders fed a false report, one report each
@@ -66,6 +75,9 @@ namespace counterspy {
     // The leader `player` would suspect (lowest loyalty among its assigned leaders), -1 if none.
     int16_t Suspect_Leader(int16_t player);
 
+    // An innocent leader of `hunter` was jailed (the mole hunt here, the witch hunt in espionage.cpp): the jailed
+    // leader's loyalty falls by JAILED_LOYALTY, every other leader's by the escalating amount; counted for the empire.
+    void On_Innocent_Jailed(int16_t hunter, int16_t leader);
     // `hunter` hunts a mole now (the dice are rolled or given; Turn calls it when Suspects).
     e_hunt Hunt(int16_t hunter);
     e_hunt Hunt_With_Dice(int16_t hunter, const int32_t* dice_values);
@@ -108,10 +120,12 @@ namespace counterspy {
     void Clear();
     bool Empty();
 
-    // Save section 'CSPY' (game/rules_sections.h): payload version 2, then per player the stardate the
+    // Save section 'CSPY' (game/rules_sections.h): payload version 3, then per player the stardate the
     // suspicion began (int32, 0 none), the turn the canary trap springs (int32, 0 none), the stardate
     // of the last attempt on its leaders (int32, 0 none), whether it guards (uint8) and the three
-    // leaders fed false reports (int16, -1 none). Version 1 (without the leaders) is still read.
+    // leaders fed false reports (int16, -1 none). Version 1 (without the leaders) is still read. Version 3 adds,
+    // after the players' rows, the stardate of the last hunt (int32) and the innocents jailed (uint8) per player;
+    // versions 1 and 2 are still read.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
@@ -124,6 +138,8 @@ namespace counterspy {
         int32_t attempt[8] = {};
         uint8_t guarded[8] = {};
         int16_t canary_leader[8][3];  // the suspects of each trap, -1 none (CANARY_SUSPECTS)
+        int32_t last_hunt[8] = {};    // stardate of the empire's last mole hunt, 0 none
+        uint8_t innocents[8] = {};    // innocent leaders the empire has jailed
         s_state() {
             for (auto& row : canary_leader) {
                 for (int16_t& leader : row) leader = -1;

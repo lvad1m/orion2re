@@ -174,6 +174,7 @@ DOCTEST_TEST_CASE("war weariness: grows at war, stages bite, approaches cost, pe
     MOX::stardate = 35020;  // before the academies' first turn: no dice here
     crises::situations = true;
     state.players[0].treaty[1] = 4;
+    state.players[1].total_ship_strength[0] = 100;  // a stronger enemy: the war presses at once
     state.players[0].bc = 0;
     state.players[0].research_accumulated = 10;
     crises::Turn();
@@ -184,12 +185,12 @@ DOCTEST_TEST_CASE("war weariness: grows at war, stages bite, approaches cost, pe
     DOCTEST_CHECK(state.players[0].research_accumulated == 7);
     DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1) == nullptr);  // player 1 is not at war by its own books
     crises::Extra()->scale[0].approach = 2;           // carry on: no price, no relief
-    crises::Extra()->scale[0].value = 45;
+    crises::Extra()->scale[0].value = 49;
     state.colonies[0].production_spent = 7;
     crises::Turn();
     DOCTEST_CHECK(state.colonies[0].production_spent == 0);  // stage 2: the strike
     crises::Extra()->scale[0].approach = 2;
-    crises::Extra()->scale[0].value = 70;
+    crises::Extra()->scale[0].value = 73;
     state.players[0].bc = 250;
     crises::Turn();
     DOCTEST_CHECK(state.players[0].bc == 150);        // stage 3: the fine
@@ -235,6 +236,7 @@ DOCTEST_TEST_CASE("computers pick an approach by character; a human takes propag
     crises::situations = true;
     state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
     state.players[1].treaty[0] = 4;
+    state.players[0].total_ship_strength[1] = 100;  // a stronger enemy: the war presses
     crises::Turn();
     const crises::s_scale* scale = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1);
     DOCTEST_REQUIRE(scale != nullptr);
@@ -381,6 +383,7 @@ DOCTEST_TEST_CASE("the Antaran front starts at its strength, advances by itself 
     test::s_game_state state;
     Setup_(&state);
     crises::crisis_front = true;
+    MOX::stardate = 35190;  // the latest turn the front can start
     MOX::settings.xenons_exist = 1;
     MOX::antarans.field6_0x3c = 0;
     MOX::antarans.resource_offensive = 0;
@@ -392,18 +395,120 @@ DOCTEST_TEST_CASE("the Antaran front starts at its strength, advances by itself 
     DOCTEST_REQUIRE(front != nullptr);
     DOCTEST_CHECK(front->value == 30);
     DOCTEST_CHECK(MOX::antarans.resource_offensive == 30 * crises::FRONT_START_RESOURCE);
-    MOX::stardate = 35105;
+    MOX::stardate = 35195;
     crises::Turn();
     DOCTEST_CHECK(front->value == 31);
     crises::Extra()->scale[0].value = 49;
-    MOX::stardate = 35110;
+    MOX::stardate = 35200;
     crises::Turn();
     DOCTEST_CHECK(front->value == 50);
-    DOCTEST_CHECK(MOX::antarans.resource_offensive == 30 * crises::FRONT_START_RESOURCE + 2 * crises::FRONT_STAGE_RESOURCE);
+    DOCTEST_CHECK(MOX::antarans.resource_offensive == 30 * crises::FRONT_START_RESOURCE + 2 * crises::FRONT_STAGE_RESOURCE * 30);
     MOX::settings.xenons_exist = 0;  // no Antarans in the game: the front stands still
-    MOX::stardate = 35115;
+    MOX::stardate = 35205;
     crises::Turn();
     DOCTEST_CHECK(front->value == 50);
+}
+
+DOCTEST_TEST_CASE("decision 1: the front starts on a drawn turn in 170..190, once, and its resources grow with the strength") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::crisis_front = true;
+    crises::front_strength = 10;
+    MOX::settings.xenons_exist = 1;
+    MOX::antarans.field6_0x3c = 0;
+    MOX::antarans.resource_offensive = 0;
+    MOX::stardate = 35000 + 100;
+    crises::Turn();  // the turn is drawn, too early to open
+    const int32_t start = crises::Extra()->front_start;
+    DOCTEST_CHECK(start >= crises::FRONT_START_TURN - crises::FRONT_START_SPREAD);
+    DOCTEST_CHECK(start <= crises::FRONT_START_TURN + crises::FRONT_START_SPREAD);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) == nullptr);
+    const uint32_t seed = game_random::Get_Random_Seed();
+    MOX::stardate = 35000 + start - 1;
+    crises::Turn();  // one turn early: still nothing, and no new draw
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) == nullptr);
+    DOCTEST_CHECK(crises::Extra()->front_start == start);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+    MOX::stardate = 35000 + start;
+    crises::Turn();
+    DOCTEST_REQUIRE(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) != nullptr);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+    const int32_t at_ten = MOX::antarans.resource_offensive;
+    // Strength 20 opens with more resources than strength 10, and a stage feeds it more as well.
+    crises::Clear();
+    crises::front_strength = 20;
+    MOX::antarans.resource_offensive = 0;
+    crises::Extra()->front_start = 150;  // already drawn
+    MOX::stardate = 35190;
+    crises::Turn();
+    DOCTEST_CHECK(MOX::antarans.resource_offensive == 2 * at_ten);
+    crises::Extra()->scale[0].value = 24;
+    MOX::antarans.resource_offensive = 0;
+    MOX::stardate = 35195;
+    crises::Turn();
+    DOCTEST_CHECK(MOX::antarans.resource_offensive == crises::FRONT_STAGE_RESOURCE * 20);
+    crises::front_strength = 10;
+    crises::Extra()->scale[0].value = 24;
+    MOX::antarans.resource_offensive = 0;
+    MOX::stardate = 35200;
+    crises::Turn();
+    DOCTEST_CHECK(MOX::antarans.resource_offensive == crises::FRONT_STAGE_RESOURCE * 10);
+}
+
+DOCTEST_TEST_CASE("decision 1: with the flag off the front draws nothing and keeps no start") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::front_strength = 10;
+    MOX::settings.xenons_exist = 1;
+    MOX::stardate = 35100;
+    const uint32_t seed = game_random::Get_Random_Seed();
+    crises::Turn();
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+    DOCTEST_CHECK(crises::Extra()->front_start == 0);
+    DOCTEST_CHECK(crises::Extra_Empty());
+}
+
+DOCTEST_TEST_CASE("decision 5: war weariness grows by 3, only in a long war or against a stronger enemy; the approach is logged on change") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::situations = true;
+    MOX::stardate = 35020;
+    state.players[0].treaty[1] = 4;
+    state.players[0].bc = 0;
+    state.players[0].total_ship_strength[1] = 100;
+    state.players[1].total_ship_strength[0] = 100;  // equal strength: not stronger enough
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0) == nullptr);  // a short war against an equal: nothing
+    DOCTEST_CHECK(crises::Extra()->war_since[0] == 35020);
+    state.players[1].total_ship_strength[0] = 119;  // below WEARY_STRONGER_PERCENT
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0) == nullptr);
+    state.players[1].total_ship_strength[0] = 120;  // stronger
+    MOX::stardate += 1;
+    crises::Turn();
+    const crises::s_scale* scale = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0);
+    DOCTEST_REQUIRE(scale != nullptr);
+    DOCTEST_CHECK(scale->value == crises::WEARY_WAR - 2);  // martial law takes 2 of the 3
+    DOCTEST_CHECK(crises::WEARY_WAR == 3);
+    // The enemy turns weaker: the scale falls like peace, unless the war has lasted long.
+    state.players[1].total_ship_strength[0] = 10;
+    crises::Extra()->scale[0].value = 40;
+    crises::Extra()->scale[0].approach = 2;
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == 40 - crises::WEARY_PEACE);
+    MOX::stardate = 35020 + crises::WEARY_LONG_TURNS;
+    crises::Extra()->scale[0].value = 40;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == 40 + crises::WEARY_WAR);  // a long war presses
+    // Peace clears the start of the war.
+    state.players[0].treaty[1] = 0;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Extra()->war_since[0] == 0);
 }
 
 DOCTEST_TEST_CASE("the council's project: contributors by character, a push back, bonuses") {
@@ -412,6 +517,7 @@ DOCTEST_TEST_CASE("the council's project: contributors by character, a push back
     Setup_(&state);
     crises::crisis_front = true;
     crises::front_strength = 30;
+    MOX::stardate = 35190;
     MOX::settings.xenons_exist = 1;
     MOX::antarans.field6_0x3c = 0;
     MOX::antarans.resource_offensive = 0;
@@ -421,13 +527,13 @@ DOCTEST_TEST_CASE("the council's project: contributors by character, a push back
     state.players[1].bc = 300;
     state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;  // keeps its trophies
     state.players[0].research_accumulated = 0;
-    MOX::stardate = 35101;
+    MOX::stardate = 35191;
     crises::Turn();
     DOCTEST_CHECK(state.players[0].bc == 300 - crises::COUNCIL_GENEROUS);
     DOCTEST_CHECK(state.players[1].bc == 300);
     DOCTEST_CHECK(crises::Extra()->council_progress == crises::COUNCIL_GENEROUS);
     crises::Extra()->council_progress = crises::COUNCIL_GOAL - 10;
-    MOX::stardate = 35106;
+    MOX::stardate = 35196;
     crises::Turn();
     DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1)->value == 30 - crises::COUNCIL_PUSHBACK);
     DOCTEST_CHECK(MOX::antarans.resource_offensive == 500);
@@ -436,11 +542,11 @@ DOCTEST_TEST_CASE("the council's project: contributors by character, a push back
     // A front pushed to nothing is beaten for good.
     crises::Extra()->scale[0].value = 20;
     crises::Extra()->council_progress = crises::COUNCIL_GOAL;
-    MOX::stardate = 35111;
+    MOX::stardate = 35201;
     crises::Turn();
     DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) == nullptr);
     DOCTEST_CHECK(crises::Extra()->front_broken == 1);
-    MOX::stardate = 35120;
+    MOX::stardate = 35210;
     crises::Turn();
     DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) == nullptr);
 }
@@ -484,13 +590,15 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     extra->council_progress = 123;
     extra->given[0] = 77;
     extra->front_broken = 1;
+    extra->front_start = 183;
+    extra->war_since[1] = 35077;
     const uint32_t size = crises::Save_Size();
     DOCTEST_CHECK(size > 2 + crises::MAX_ACTIVE * 11);
     auto buffer = std::make_unique<uint8_t[]>(size);
     SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
     crises::Write_Save(&writer);
     DOCTEST_REQUIRE(writer.Length() == size);
-    DOCTEST_CHECK(buffer[0] == 3);
+    DOCTEST_CHECK(buffer[0] == 4);
     crises::Clear();
     SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
     std::string error;
@@ -509,6 +617,31 @@ DOCTEST_TEST_CASE("the extended save payload round-trips, version 1 still reads,
     DOCTEST_CHECK(extra->council_progress == 123);
     DOCTEST_CHECK(extra->given[0] == 77);
     DOCTEST_CHECK(extra->front_broken == 1);
+    DOCTEST_CHECK(extra->front_start == 183);
+    DOCTEST_CHECK(extra->war_since[1] == 35077);
+    // A version 3 payload (before the front's start and the war starts) still reads: the new fields stay empty.
+    {
+        const uint32_t v3_size = size - 4 - MAX_PLAYERS * 4;
+        auto v3 = std::make_unique<uint8_t[]>(v3_size);
+        for (uint32_t i = 0; i < v3_size; ++i) v3[i] = buffer[i];
+        v3[0] = 3;
+        crises::Clear();
+        SERIAL::Reader_ v3_reader(v3.get(), v3_size, "test underflow", true);
+        DOCTEST_REQUIRE(crises::Parse_Save(&v3_reader, &error));
+        crises::Commit_Save();
+        DOCTEST_CHECK(crises::Extra()->threat[1] == 75);
+        DOCTEST_CHECK(crises::Extra()->front_start == 0);
+        DOCTEST_CHECK(crises::Extra()->war_since[1] == 0);
+        // Bad values in the new fields are refused.
+        buffer[size - 4 - MAX_PLAYERS * 4 + 3] = 0x7f;  // front_start far too big
+        SERIAL::Reader_ bad_start(buffer.get(), size, "test underflow", true);
+        DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad_start, &error));
+        buffer[size - 4 - MAX_PLAYERS * 4 + 3] = 0;
+        buffer[size - 1] = 0x80;  // a negative war start (the last player's high byte)
+        SERIAL::Reader_ bad_war(buffer.get(), size, "test underflow", true);
+        DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad_war, &error));
+        buffer[size - 1] = 0;
+    }
     buffer[2 + crises::MAX_ACTIVE * 11] = 99;  // an unknown scale kind
     SERIAL::Reader_ bad(buffer.get(), size, "test underflow", true);
     DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad, &error));
@@ -568,7 +701,7 @@ DOCTEST_TEST_CASE("a version 2 payload of wave 4 still reads: its academies and 
     auto buffer3 = std::make_unique<uint8_t[]>(size3);
     SERIAL::Writer_ writer3(buffer3.get(), size3, "test overflow");
     crises::Write_Save(&writer3);
-    DOCTEST_CHECK(buffer3[0] == 3);
+    DOCTEST_CHECK(buffer3[0] == 4);
     const uint32_t threat_offset = 2 + crises::MAX_ACTIVE * 11 + crises::MAX_SCALES * 9 + 1 + 4 + MAX_PLAYERS * 2;
     buffer3[threat_offset + 1] = 0x7f;  // the high byte of threat 0
     SERIAL::Reader_ bad(buffer3.get(), size3, "test underflow", true);

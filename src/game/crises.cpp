@@ -404,10 +404,26 @@ namespace crises {
         return static_cast<int16_t>(std::min<int32_t>(pops, 30000));
     }
 
+    // Decision 5 (iterations.md): "сообщение о подходе — только при его смене" - logged only when the approach changes.
     void Pick_Approach_(s_scale& scale) {
+        const int8_t before = scale.approach;
         scale.approach = static_cast<int8_t>(Computer_(scale.player) ? Choose_Approach(scale.player) : 0);
+        if (scale.approach == before) return;
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: war weariness - it takes the approach: %s",
             (int)MOX::stardate, (int)scale.player, APPROACHES[scale.approach].name);
+    }
+
+    // Decision 5: the war presses ("только в долгой войне или против сильного"; header of crises.h).
+    bool War_Presses_(int16_t p, int32_t war_since) {
+        if (war_since != 0 && MOX::stardate - war_since >= WEARY_LONG_TURNS) return true;
+        const s_player& player = MOX::player[p];
+        for (int16_t o = 0; o < Players_(); ++o) {
+            if (o == p || !Alive_(o) || player.contact[o] == 0 || player.treaty[o] < TREATY_FIRST_WAR) continue;
+            const int64_t theirs = MOX::player[o].total_ship_strength[p];
+            const int64_t ours = player.total_ship_strength[o];
+            if (theirs > 0 && theirs * 100 >= ours * WEARY_STRONGER_PERCENT) return true;
+        }
+        return false;
     }
 
     // The scale of war weariness of every empire (events-catalog.md 3.9).
@@ -423,22 +439,28 @@ namespace crises {
                     MOX::colony[strike_capital].production_spent = 0;
                 }
             }
-            if (!Alive_(p)) continue;
+            if (!Alive_(p)) {
+                extra->war_since[p] = 0;
+                continue;
+            }
             s_player& player = MOX::player[p];
             bool at_war = false;
             for (int16_t o = 0; o < Players_(); ++o) {
                 if (o != p && Alive_(o) && player.contact[o] != 0 && player.treaty[o] >= TREATY_FIRST_WAR) at_war = true;
             }
+            if (!at_war) extra->war_since[p] = 0;
+            else if (extra->war_since[p] == 0) extra->war_since[p] = MOX::stardate;
+            const bool presses = at_war && War_Presses_(p, extra->war_since[p]);
             s_scale* scale = Mutable_Scale_(SCALE_WAR_WEARINESS, p);
             if (scale == nullptr) {
-                if (!at_war) continue;
+                if (!presses) continue;
                 scale = New_Scale_(SCALE_WAR_WEARINESS, p);
                 if (scale == nullptr) continue;
                 Log_Line_("war weariness: the scale starts", p, scale->value);
                 Pick_Approach_(*scale);
             }
             int32_t delta = -WEARY_PEACE;
-            if (at_war) {
+            if (presses) {
                 const s_approach& approach = APPROACHES[std::clamp<int32_t>(scale->approach, 0, APPROACH_COUNT - 1)];
                 delta = WEARY_WAR;
                 if (player.bc >= approach.cost_bc) {
@@ -575,6 +597,14 @@ namespace crises {
         if (front_strength <= 0 || MOX::settings.xenons_exist == 0 || MOX::antarans.field6_0x3c != 0) return;
         s_extra* extra = Extra();
         if (extra->front_broken != 0) return;
+        // Decision 1 (iterations.md): "на случайном ходу 180 ± 10"; drawn once, kept in the save.
+        if (extra->front_start == 0) {
+            extra->front_start = FRONT_START_TURN - FRONT_START_SPREAD
+                + static_cast<int32_t>(game_random::Random(2 * FRONT_START_SPREAD + 1));
+            Log_Line_("the Antaran front's start turn is drawn", -1, extra->front_start);
+        }
+        if (MOX::stardate - 35000 < extra->front_start) return;
+        const int32_t strength = std::clamp<int32_t>(front_strength, 1, SCALE_MAX);
         const auto add_resources = [](int32_t amount) {
             MOX::antarans.resource_offensive = static_cast<int16_t>(std::min<int32_t>(RESOURCE_CAP, MOX::antarans.resource_offensive + amount));
         };
@@ -583,14 +613,14 @@ namespace crises {
             front = New_Scale_(SCALE_ANTARAN_FRONT, -1);
             if (front == nullptr) return;
             front->value = static_cast<int16_t>(std::clamp<int32_t>(front_strength, 1, SCALE_MAX));
-            add_resources(front->value * FRONT_START_RESOURCE);
+            add_resources(front->value * FRONT_START_RESOURCE);  // grows with the strength
             Log_Line_("the Antaran front opens", -1, front->value);
             return;
         }
         if (MOX::stardate % FRONT_PERIOD == 0) {
             const int32_t stage = Scale_Move(*front, FRONT_STEP);
             if (stage > 0) {
-                add_resources(stage * FRONT_STAGE_RESOURCE);
+                add_resources(stage * FRONT_STAGE_RESOURCE * strength);
                 Log_Line_("the Antaran front advances: a new stage", -1, front->value);
             }
         }

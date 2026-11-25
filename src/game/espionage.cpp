@@ -97,6 +97,9 @@ namespace espionage {
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d jails its leader %d in a witch hunt",
                         (int)MOX::stardate, (int)p, (int)i);
                     hostages::Arrest(i, false);  // a false accusation: an honest leader is jailed (mechanics.md 3.2.3, ab-review 3.1)
+                    // Iteration 1, decision 2 (iterations.md): "каждый посаженный невиновный сильнее снижает лояльность
+                    // остальных лидеров" - the witch hunt jails innocents too, so the same cost applies.
+                    counterspy::On_Innocent_Jailed(p, i);
                 }
             }
             if (MOX::stardate % MODE_PERIOD != 0) return;

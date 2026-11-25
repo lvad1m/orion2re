@@ -6,6 +6,7 @@
 #include "game/events.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/crises.h"
 #include "game/reputation.h"
 #include "game/ships.h"
 #include "game/techdata.h"
@@ -335,6 +336,9 @@ namespace pirate_world {
             ++colony.n_pops;
             COLCALC::Colony_Calculation(place);
             reputation::Note_Deed(buyer);
+            // Iteration 1, decision 3 (iterations.md): "покупка у работорговцев" feeds the "become a crisis" threat
+            // (the buyer is remembered badly by everyone in contact, so others can know).
+            crises::Add_Threat(buyer);
             opinion::Add(victim, buyer, opinion::REASON_RAIDED_US, SLAVER_VICTIM_OPINION);
             for (int16_t o = 0; o < Players_(); ++o) {
                 if (o != buyer && o != victim && Alive_(o) && Contact_(o, buyer)) opinion::Add(o, buyer, opinion::REASON_BAD_RUMOURS, SLAVER_OPINION);

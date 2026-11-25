@@ -3,6 +3,7 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "game/colcalc.h"
+#include "game/crises.h"
 #include "game/events.h"
 #include "game/opinion.h"
 #include "game/pirate_world.h"
@@ -292,8 +293,11 @@ DOCTEST_TEST_CASE("slavers take people from an undefended colony and move on; wa
 DOCTEST_TEST_CASE("slavers: a buyer is remembered badly")
 {
     s_pirate_scope scope;
+    test::s_saved_value<bool> front{crises::crisis_front};
     test::s_game_state state;
     Setup_(&state);
+    crises::Clear();
+    crises::crisis_front = true;  // decision 3: the purchase feeds the threat of 'become a crisis'
     state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;
     state.players[2].personality = PLAYER_PERSONALITY_RUTHLESS;
     // Room for one more person at the buyer's colony (the engine's own limit for its planet, if any).
@@ -308,9 +312,12 @@ DOCTEST_TEST_CASE("slavers: a buyer is remembered badly")
         DOCTEST_CHECK(state.players[2].bc < 1000);
         DOCTEST_CHECK(opinion::Relations(0, 2) < 0);
         DOCTEST_CHECK(opinion::Relations(1, 2) < 0);
+        DOCTEST_CHECK(crises::Threat(2) >= crises::THREAT_ATROCITY);  // one purchase or more
+        DOCTEST_CHECK(crises::Threat(0) == 0);
     } else {
         DOCTEST_WARN_MESSAGE(false, "the test planet has no room: the sale is not checked");
     }
+    crises::Clear();
 }
 
 DOCTEST_TEST_CASE("lairs: start at a pirate cache, grow, raid, become a haven, fall to warships")

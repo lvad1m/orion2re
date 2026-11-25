@@ -11,13 +11,14 @@
 namespace crises {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 3;  // 1: the slots only; 2: the slots and s_extra; 3: s_extra of the threat and the contest
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 4;  // 1: the slots only; 2: the slots and s_extra; 3: s_extra of the threat and the contest; 4: the front's start and the war starts
         constexpr uint32_t SLOT_SIZE = 1 + 1 + 2 + 1 + 4 + 1 + 1;
         constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_ACTIVE * SLOT_SIZE;
         constexpr uint32_t SCALE_SIZE = 1 + 1 + 2 + 4 + 1;
         constexpr uint32_t EXTRA_SIZE_V2 = MAX_SCALES * SCALE_SIZE + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
-        constexpr uint32_t EXTRA_SIZE = MAX_SCALES * SCALE_SIZE + 1 + 4 + MAX_PLAYERS * 2 + MAX_PLAYERS * 2 + MAX_PLAYERS * 1
+        constexpr uint32_t EXTRA_SIZE_V3 = MAX_SCALES * SCALE_SIZE + 1 + 4 + MAX_PLAYERS * 2 + MAX_PLAYERS * 2 + MAX_PLAYERS * 1
             + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 4;
+        constexpr uint32_t EXTRA_SIZE = EXTRA_SIZE_V3 + 4 + MAX_PLAYERS * 4;
 
         s_active slots[MAX_ACTIVE];
         s_active pending[MAX_ACTIVE];
@@ -30,9 +31,9 @@ namespace crises {
                 if (s.kind != SCALE_NONE) return false;
             }
             for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                if (e.threat[p] != 0 || e.war_mask[p] != 0 || e.strike_until[p] != 0 || e.given[p] != 0) return false;
+                if (e.threat[p] != 0 || e.war_mask[p] != 0 || e.strike_until[p] != 0 || e.given[p] != 0 || e.war_since[p] != 0) return false;
             }
-            return e.front_broken == 0 && e.council_progress == 0 && e.contest_stage == 0;
+            return e.front_broken == 0 && e.council_progress == 0 && e.contest_stage == 0 && e.front_start == 0;
         }
     } // namespace
 
@@ -101,6 +102,8 @@ namespace crises {
         writer->Write_Uint8(extra.contest_stage);
         writer->Write_Int32(extra.contest_ends);
         for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.baseline[p]);
+        writer->Write_Int32(extra.front_start);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.war_since[p]);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -112,7 +115,7 @@ namespace crises {
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("crises save is truncated");
         const uint16_t version = reader->Read_Uint16();
         if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
-        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + (version == 2 ? EXTRA_SIZE_V2 : EXTRA_SIZE);
+        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + (version == 2 ? EXTRA_SIZE_V2 : version == 3 ? EXTRA_SIZE_V3 : EXTRA_SIZE);
         if (reader->Remaining() != expected - sizeof(uint16_t)) return fail("crises save has the wrong size");
         for (s_active& s : pending) {
             s.crisis = reader->Read_Uint8();
@@ -172,6 +175,14 @@ namespace crises {
                 for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
                     pending_extra.baseline[p] = reader->Read_Int32();
                     if (pending_extra.baseline[p] < -40000 || pending_extra.baseline[p] > 40000) return fail("crises save has a bad baseline");
+                }
+            }
+            if (version >= 4) {
+                pending_extra.front_start = reader->Read_Int32();
+                if (pending_extra.front_start < 0 || pending_extra.front_start > 10000) return fail("crises save has a bad front start");
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    pending_extra.war_since[p] = reader->Read_Int32();
+                    if (pending_extra.war_since[p] < 0) return fail("crises save has a bad war start");
                 }
             }
         }

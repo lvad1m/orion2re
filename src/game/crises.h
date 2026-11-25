@@ -110,11 +110,19 @@ namespace crises {
     // below, else 0.
     int32_t Scale_Move(s_scale& scale, int32_t delta);
 
-    // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn at war, -WEARY_PEACE otherwise.
+    // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn in a war that presses, -WEARY_PEACE otherwise.
+    // Iteration 1, decision 5 (iterations.md): "Решение автора: замедлить — рост +3 вместо +6 и только в долгой
+    // войне или против сильного; сообщение о подходе — только при его смене." A war presses (the scale grows)
+    // when it has lasted WEARY_LONG_TURNS turns without a break, or when an enemy at war with the empire has at
+    // least WEARY_STRONGER_PERCENT per cent of the empire's own fleet strength against that enemy
+    // (total_ship_strength). A shorter war against an equal or weaker enemy does not start the scale and lets
+    // an existing one fall like peace. The approach is logged when it is first taken and when it changes.
     // Stage 2: the capital's output of the turn is lost; stage 3: a fine in BC; stage 4: a general strike
     // (STRIKE_TURNS turns without the capital's output; ab-review.md 3.5 softened it from the loss of a building)
     // and the scale falls to WEARY_RESET. Three approaches.
-    constexpr int32_t WEARY_WAR = 6;
+    constexpr int32_t WEARY_WAR = 3;
+    constexpr int32_t WEARY_LONG_TURNS = 20;       // a "long" war
+    constexpr int32_t WEARY_STRONGER_PERCENT = 120;  // an enemy "stronger": its strength against us / ours against it
     constexpr int32_t WEARY_PEACE = 4;
     constexpr int32_t WEARY_FINE = 100;
     constexpr int32_t WEARY_RESET = 60;
@@ -145,6 +153,11 @@ namespace crises {
     bool Start_Academy();                     // false: flag off, a contest runs, fewer than two empires alive
     int32_t Academy_Output(int16_t player, int32_t stage);  // the stage's resource, the empire's per-turn output
 
+    // Iteration 1, decision 3 (iterations.md): "«Стать кризисом» — больше топлива: угрозу копят и «красная свадьба»,
+    // яд на пиру, покупка у работорговцев, захват разума (не только биооружие и разрушение планет). Механику не
+    // отключаем." Add_Threat is also called by reputation::On_Red_Wedding, by spy_ops for an exposed poison at a
+    // feast (through reputation::On_Atrocity), by pirate_world when an empire buys a captive from the slavers and by
+    // heroes when a mind control comes to light (the leader breaks free). Only a deed others can know counts.
     // Become a crisis (3.10) - row "����� ��������": "����� ����������� ������� ����������� (�������������
     // ������, ���������� ������) � ��������� ��������� ��� �����"; the author's decision (ab-review.md 1.1): a
     // threat scale fed by atrocities (reputation::On_Atrocity: biological weapons, a destroyed planet, poisoned
@@ -164,12 +177,20 @@ namespace crises {
     bool On_Strike(int16_t player);
 
     // The Antaran front (3.12): a galaxy scale that starts at front_strength, grows FRONT_STEP every
-    // FRONT_PERIOD turns and feeds the Antarans' offensive resources: FRONT_START_RESOURCE per point at the
-    // start and FRONT_STAGE_RESOURCE per stage each time a stage is reached. Needs the Antarans to exist.
+    // FRONT_PERIOD turns and feeds the Antarans' offensive resources. Needs the Antarans to exist.
+    // Iteration 1, decision 1 (iterations.md): "Фронт Антаран стартует позже — на случайном ходу 180 ± 10 (автор:
+    // «ход 190 сделай рандом, то есть 180 плюс минус 10 ходов»; беру 170–190); ресурсы фронта растут с его силой,
+    // чтобы 10 и 20 были разными уровнями (часть той же идеи)." The start turn is drawn once per game (game_random,
+    // only with the flag on and a front to come) in 180 - 10 .. 180 + 10 and kept in s_extra::front_start. The
+    // resources grow with the strength: FRONT_START_RESOURCE per point of the strength at the start and
+    // FRONT_STAGE_RESOURCE per point of front_strength per stage each time a stage is reached (strength 10: 150 a
+    // stage, strength 20: 300; at the start 400 and 800).
     constexpr int32_t FRONT_STEP = 1;
     constexpr int32_t FRONT_PERIOD = 5;
-    constexpr int32_t FRONT_START_RESOURCE = 4;
-    constexpr int32_t FRONT_STAGE_RESOURCE = 150;
+    constexpr int32_t FRONT_START_TURN = 180;
+    constexpr int32_t FRONT_START_SPREAD = 10;
+    constexpr int32_t FRONT_START_RESOURCE = 40;
+    constexpr int32_t FRONT_STAGE_RESOURCE = 15;
     constexpr int32_t RESOURCE_CAP = 30000;
 
     // The council's project (3.12): every COUNCIL_PERIOD turns each computer empire with COUNCIL_MIN_BC may
@@ -198,6 +219,8 @@ namespace crises {
         uint8_t front_broken = 0;                 // the council has beaten the front for good
         int32_t council_progress = 0;
         uint16_t given[MAX_PLAYERS] = {};
+        int32_t front_start = 0;                  // the turn (stardate - 35000) the front opens, 0 = not drawn yet
+        int32_t war_since[MAX_PLAYERS] = {};      // stardate the empire's present war began, 0 = at peace
     };
     s_extra* Extra();
     const s_scale* Find_Scale(e_scale kind, int16_t player);  // nullptr when there is none
@@ -226,6 +249,8 @@ namespace crises {
     // academies and the fallen and, after the council's gifts, adds the threats (MAX_PLAYERS uint16), the war masks
     // (MAX_PLAYERS uint8), the strikes (MAX_PLAYERS int32), the contest's stage (uint8) and end (int32) and the
     // baselines (MAX_PLAYERS int32); versions 1 and 2 are still read (the old academies and fallen are dropped).
+    // Version 4 (written when s_extra holds something) adds, after the baselines, the front's start turn (int32)
+    // and the war starts (MAX_PLAYERS int32); versions 1 to 3 are still read.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);

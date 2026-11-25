@@ -164,6 +164,10 @@ namespace heroes {
                     const int32_t chance = MIND_FREE * (1 + static_cast<int32_t>(espionage::Mode(r.player)));
                     const bool freed = static_cast<int32_t>(game_random::Random(1000)) <= chance;
                     if (freed || over) {
+                        // Iteration 1, decision 3 (iterations.md): "захват разума" feeds the "become a crisis" threat once
+                        // it is discovered - the leader breaking free is when it comes to light; a mind that merely
+                        // fades stays unknown.
+                        if (freed) crises::Add_Threat(r.other);
                         Log_Leader_(r.player, r.leader, freed ? "the leader breaks free of the alien mind" : "the alien mind fades");
                         Release_Bribe_(r);
                         Remove_Record_(index);

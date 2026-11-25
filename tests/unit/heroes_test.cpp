@@ -234,6 +234,33 @@ DOCTEST_TEST_CASE("mind control: tribute to the master, freed by chance, ends, l
     DOCTEST_CHECK(spy_ops::Bribed_By(VICTIM_LEADER) == -1);
 }
 
+DOCTEST_TEST_CASE("decision 3: a mind control that comes to light (the leader breaks free) feeds the threat; a fading one does not")
+{
+    s_scope scope;
+    test::s_saved_value<bool> front{crises::crisis_front};
+    test::s_game_state state;
+    Setup_(&state);
+    crises::crisis_front = true;
+    DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
+    heroes::State()->record[0].ends = MOX::stardate + 1;
+    Seed_For_({{1000, 400, 1000}});
+    Run_(1);  // it fades by itself, unseen
+    DOCTEST_CHECK(heroes::Empty());
+    DOCTEST_CHECK(crises::Threat(0) == 0);
+    DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
+    Seed_For_({{1000, 1, 25}});
+    Run_(1);  // the leader breaks free: the master is known for it
+    DOCTEST_CHECK_FALSE(heroes::Controlled(VICTIM_LEADER));
+    DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY);
+    DOCTEST_CHECK(crises::Threat(1) == 0);
+    crises::crisis_front = false;
+    crises::Clear();
+    DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
+    Seed_For_({{1000, 1, 25}});
+    Run_(1);
+    DOCTEST_CHECK(crises::Extra_Empty());  // flag off: nothing kept
+}
+
 DOCTEST_TEST_CASE("mind control ends by itself and when the leader is gone")
 {
     s_scope scope;

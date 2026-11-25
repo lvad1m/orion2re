@@ -106,7 +106,8 @@ namespace SAVEGAME {
         }
 
         bool Counterspy_Has_State_() {
-            return (counterspy::mole_hunt || counterspy::canary_trap || counterspy::interrogation || counterspy::guards) &&
+            return (counterspy::mole_hunt || counterspy::canary_trap || counterspy::interrogation || counterspy::guards ||
+                       espionage::counterintelligence) &&
                 !counterspy::Empty();
         }
 

@@ -159,6 +159,93 @@ DOCTEST_TEST_CASE("no hunt without suspicion, and a suspicion goes stale") {
     DOCTEST_CHECK_FALSE(counterspy::Suspects(0 + 4));  // a player that does not exist
 }
 
+DOCTEST_TEST_CASE("decision 2: one mole hunt per HUNT_COOLDOWN turns for an empire") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 6; i < 10; ++i) Leader_(&state, i, 2, 1);  // enough leaders for a few hunts
+    counterspy::On_Secret_Leaked(2);
+    counterspy::Turn();  // stardate 35006: phase 6, the hunt is held
+    DOCTEST_CHECK(counterspy::State()->last_hunt[2] == 35006);
+    MOX::stardate += counterspy::PERIOD;  // 35016: the next phase, 10 turns later
+    counterspy::On_Secret_Leaked(2);
+    counterspy::Turn();
+    DOCTEST_CHECK(counterspy::State()->last_hunt[2] == 35006);  // held back: less than 20 turns
+    DOCTEST_CHECK(counterspy::Suspects(2));                     // the suspicion waits
+    MOX::stardate += counterspy::PERIOD;  // 35026: 20 turns after
+    counterspy::On_Secret_Leaked(2);
+    counterspy::Turn();
+    DOCTEST_CHECK(counterspy::State()->last_hunt[2] == 35026);
+    DOCTEST_CHECK(counterspy::HUNT_COOLDOWN == 20);
+}
+
+DOCTEST_TEST_CASE("decision 2: each innocent jailed costs the other leaders more loyalty") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 6; i < 9; ++i) Leader_(&state, i, 2, 1);
+    loyalty::enabled = true;
+    for (int i = 4; i < 9; ++i) loyalty::Record(static_cast<int16_t>(i))->loyalty = 80;
+    counterspy::On_Innocent_Jailed(2, 4);
+    DOCTEST_CHECK(loyalty::Of(4) == 80 + counterspy::JAILED_LOYALTY);
+    DOCTEST_CHECK(loyalty::Of(5) == 80 + counterspy::WITCH_LOYALTY);  // the first innocent: the old cost
+    DOCTEST_CHECK(counterspy::State()->innocents[2] == 1);
+    counterspy::On_Innocent_Jailed(2, 6);
+    DOCTEST_CHECK(loyalty::Of(5) == 80 + 2 * counterspy::WITCH_LOYALTY + counterspy::INNOCENT_STEP);  // the second: more
+    for (int i = 0; i < 10; ++i) counterspy::On_Innocent_Jailed(2, 7);
+    loyalty::Record(8)->loyalty = 100;
+    counterspy::On_Innocent_Jailed(2, 7);
+    DOCTEST_CHECK(loyalty::Of(8) == 100 + counterspy::WITCH_LOYALTY + counterspy::INNOCENT_STEP * counterspy::INNOCENT_CAP);  // capped
+    DOCTEST_CHECK(counterspy::State()->innocents[2] == 13);
+    // The hunt's own jailing goes through the same cost.
+    counterspy::Clear();
+    loyalty::Record(5)->loyalty = 80;
+    loyalty::Record(4)->loyalty = 40;
+    *spy_ops::Bribed_Slot(4) = -1;
+    counterspy::On_Secret_Leaked(2);
+    DOCTEST_CHECK(counterspy::Hunt_With_Dice(2, CATASTROPHE) == counterspy::HUNT_JAILED);
+    DOCTEST_CHECK(counterspy::State()->innocents[2] == 1);
+    DOCTEST_CHECK(loyalty::Of(5) == 80 + counterspy::WITCH_LOYALTY);
+    hostages::Clear();
+}
+
+DOCTEST_TEST_CASE("decision 2: the payload of version 3 round-trips and version 2 is still read") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::State()->last_hunt[2] = 35006;
+    counterspy::State()->innocents[2] = 4;
+    counterspy::State()->canary[1] = 35010;
+    const uint32_t size = counterspy::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    counterspy::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    DOCTEST_CHECK(buffer[0] == 3);
+    counterspy::Clear();
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(counterspy::Parse_Save(&reader, &error));
+    counterspy::Commit_Save();
+    DOCTEST_CHECK(counterspy::State()->last_hunt[2] == 35006);
+    DOCTEST_CHECK(counterspy::State()->innocents[2] == 4);
+    const uint32_t v2_size = size - 8 * 5;
+    std::vector<uint8_t> old_buffer(buffer.get(), buffer.get() + v2_size);
+    old_buffer[0] = 2;
+    old_buffer[1] = 0;
+    counterspy::Clear();
+    SERIAL::Reader_ old_reader(old_buffer.data(), v2_size, "test underflow", true);
+    DOCTEST_REQUIRE(counterspy::Parse_Save(&old_reader, &error));
+    counterspy::Commit_Save();
+    DOCTEST_CHECK(counterspy::State()->canary[1] == 35010);
+    DOCTEST_CHECK(counterspy::State()->last_hunt[2] == 0);
+    DOCTEST_CHECK(counterspy::State()->innocents[2] == 0);
+    // A negative hunt stardate is refused.
+    buffer[size - 8 * 5 + 3] = 0x80;  // player 0's last hunt, high byte
+    SERIAL::Reader_ bad(buffer.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(counterspy::Parse_Save(&bad, &error));
+}
+
 DOCTEST_TEST_CASE("the canary trap springs on time and never on an innocent") {
     s_counterspy_scope scope;
     test::s_game_state state;
