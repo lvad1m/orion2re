@@ -2,6 +2,7 @@
 
 #include "game/reputation.h"
 #include "game/resolutions.h"
+#include "game/secrets.h"
 
 namespace CMBTMIS {
     void Reset_Fighter_Pursuit_History() {}
@@ -16,6 +17,11 @@ namespace resolutions {
 namespace reputation {
     void On_Atrocity(int16_t) {}
 } // namespace reputation
+
+// Secrets are not under test here.
+namespace secrets {
+    void On_Bio_Weapon(int16_t, int16_t) {}
+} // namespace secrets
 
 void Legacy_Qsort(void* base, size_t count, size_t width, legacy_qsort_compare compare) {
     uint8_t* bytes = static_cast<uint8_t*>(base);

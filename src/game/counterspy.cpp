@@ -111,6 +111,37 @@ namespace counterspy {
             }
         }
 
+        const char* False_Report_(int32_t report) {
+            static const char* const names[CANARY_SUSPECTS] = {"a hidden fleet", "a planned attack", "a technology under development"};
+            return report >= 0 && report < CANARY_SUSPECTS ? names[report] : "a report";
+        }
+
+        // The trap's choice (mechanics.md 3.5.5): up to CANARY_SUSPECTS assigned leaders, the least loyal
+        // first, each gets its own false report (the report's number is the suspect's slot).
+        void Plant_Canary_(int16_t owner) {
+            int16_t chosen[CANARY_SUSPECTS];
+            int32_t n = 0;
+            for (int16_t i = 0; i < MAX_LEADERS; ++i) {
+                const s_leader_data& l = MOX::leaders[i];
+                if (!Holds_(l, owner) || l.status != STATUS_ASSIGNED) continue;
+                // Insert by loyalty, the lower index first among equals; drop the most loyal when full.
+                int32_t at = n;
+                while (at > 0 && Loyalty_Or_Default_(i) < Loyalty_Or_Default_(chosen[at - 1])) --at;
+                if (at >= CANARY_SUSPECTS) continue;
+                const int32_t last = std::min(n, CANARY_SUSPECTS - 1);
+                for (int32_t k = last; k > at; --k) chosen[k] = chosen[k - 1];
+                chosen[at] = i;
+                n = std::min(n + 1, CANARY_SUSPECTS);
+            }
+            for (int32_t k = 0; k < CANARY_SUSPECTS; ++k) {
+                State()->canary_leader[owner][k] = k < n ? chosen[k] : static_cast<int16_t>(-1);
+                if (k < n) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d feeds leader %d the false report \"%s\"",
+                        (int)MOX::stardate, (int)owner, (int)chosen[k], False_Report_(k));
+                }
+            }
+        }
+
         // The plan `owner` has against a third empire (or against `victim`): the attacked empire, -1 if none.
         int16_t Planned_Against_(int16_t owner) {
             const s_player& p = MOX::player[owner];
@@ -181,6 +212,7 @@ namespace counterspy {
         if (mole_hunt) State()->suspicion[owner] = MOX::stardate;
         if (canary_trap && State()->canary[owner] == 0) {
             State()->canary[owner] = MOX::stardate + CANARY_TURNS;
+            Plant_Canary_(owner);
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d sets a canary trap",
                 (int)MOX::stardate, (int)owner);
         }
@@ -190,20 +222,35 @@ namespace counterspy {
         return owner >= 0 && owner < MAX_PLAYERS ? State()->canary[owner] : 0;
     }
 
+    int16_t Canary_Suspect(int16_t owner, int32_t report) {
+        if (owner < 0 || owner >= MAX_PLAYERS || report < 0 || report >= CANARY_SUSPECTS) return -1;
+        return State()->canary_leader[owner][report];
+    }
+
     bool Spring_Canary(int16_t owner) {
         if (!canary_trap || !Alive_(owner)) return false;
         State()->canary[owner] = 0;
-        for (int16_t i = 0; i < MAX_LEADERS; ++i) {
-            if (!Holds_(MOX::leaders[i], owner)) continue;
-            const int16_t briber = spy_ops::Bribed_By(i);
-            if (briber < 0 || !Alive_(briber)) continue;
-            if (BILL::Get_Their_Spy_Number(briber, owner) == 0 && spy_ranks::Residents(briber, owner) == 0) continue;
-            Uncover_(owner, i, "canary trap");
-            return true;
+        bool caught = false;
+        for (int32_t k = 0; k < CANARY_SUSPECTS; ++k) {
+            const int16_t leader = State()->canary_leader[owner][k];
+            State()->canary_leader[owner][k] = -1;
+            if (leader < 0 || !Holds_(MOX::leaders[leader], owner)) continue;
+            const int16_t briber = spy_ops::Bribed_By(leader);
+            // The report leaked only if the leader's briber is bribed in and can listen (spies or a resident).
+            if (briber < 0 || !Alive_(briber) ||
+                (BILL::Get_Their_Spy_Number(briber, owner) == 0 && spy_ranks::Residents(briber, owner) == 0)) {
+                continue;
+            }
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d: the false report \"%s\" given to leader %d leaked",
+                (int)MOX::stardate, (int)owner, False_Report_(k), (int)leader);
+            Uncover_(owner, leader, "canary trap");
+            caught = true;
         }
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d's canary trap catches no one",
-            (int)MOX::stardate, (int)owner);
-        return false;
+        if (!caught) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "counterspy: stardate %d, player %d's canary trap catches no one",
+                (int)MOX::stardate, (int)owner);
+        }
+        return caught;
     }
 
     void On_Spy_Caught(int16_t victim, int16_t owner) {

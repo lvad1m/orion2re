@@ -14,6 +14,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 
 namespace {
     struct s_counterspy_scope {
@@ -187,6 +188,93 @@ DOCTEST_TEST_CASE("the canary trap springs on time and never on an innocent") {
     DOCTEST_CHECK(spy_ops::Bribed_By(4) == 1);
     DOCTEST_CHECK(state.leaders[4].status == 1);
     DOCTEST_CHECK(state.leaders[5].status == 1);
+}
+
+// 3.5.5 "Ловушка канарейки": "разным подозреваемым - разная ложная информация; смотрим, какая утечёт".
+DOCTEST_TEST_CASE("the canary trap feeds each suspect its own false report; only a leaked one is caught") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::mole_hunt = false;
+    Leader_(&state, 6, 2, 1);
+    Leader_(&state, 7, 2, 1);
+    *spy_ops::Bribed_Slot(6) = 3;  // bribed by player 3, which has no spies in player 2: cannot listen
+    *spy_ops::Bribed_Slot(7) = 1;  // bribed, but the most loyal: not a suspect
+    loyalty::enabled = true;
+    loyalty::Record(4)->loyalty = 50;
+    loyalty::Record(5)->loyalty = 30;
+    loyalty::Record(6)->loyalty = 40;
+    loyalty::Record(7)->loyalty = 90;
+    counterspy::On_Secret_Leaked(2);
+    // Three suspects, the least loyal first, one report each.
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 0) == 5);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 1) == 6);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 2) == 4);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 3) == -1);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(1, 0) == -1);
+    MOX::stardate = counterspy::Canary_Turn(2);
+    counterspy::Turn();
+    DOCTEST_CHECK(spy_ops::Bribed_By(4) == -1);   // its report leaked through player 1
+    DOCTEST_CHECK(spy_ops::Bribed_By(6) == 3);    // its briber could not listen
+    DOCTEST_CHECK(state.leaders[5].status == 1);  // an innocent: untouched
+    DOCTEST_CHECK(spy_ops::Bribed_By(7) == 1);    // not fed a report
+    DOCTEST_CHECK(state.leaders[7].status == 1);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 0) == -1);  // the trap is spent
+    hostages::Clear();
+
+    // Two reports leak: both leaders are uncovered.
+    Leader_(&state, 4, 2, 1);
+    *spy_ops::Bribed_Slot(4) = 1;
+    state.players[3].spies[2] = 2;
+    counterspy::On_Secret_Leaked(2);
+    DOCTEST_CHECK(counterspy::Spring_Canary(2));
+    DOCTEST_CHECK(spy_ops::Bribed_By(4) == -1);
+    DOCTEST_CHECK(spy_ops::Bribed_By(6) == -1);
+    DOCTEST_CHECK(spy_ops::Bribed_By(7) == 1);
+    hostages::Clear();
+}
+
+DOCTEST_TEST_CASE("the canary trap payload: version 2 keeps the suspects, version 1 is still read") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::On_Secret_Leaked(2);
+    DOCTEST_REQUIRE(counterspy::Canary_Suspect(2, 0) == 4);
+    auto buffer = std::make_unique<uint8_t[]>(counterspy::Save_Size());
+    SERIAL::Writer_ writer(buffer.get(), counterspy::Save_Size(), "test overflow");
+    counterspy::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == counterspy::Save_Size());
+    counterspy::Clear();
+    SERIAL::Reader_ reader(buffer.get(), counterspy::Save_Size(), "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(counterspy::Parse_Save(&reader, &error));
+    counterspy::Commit_Save();
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 0) == 4);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 1) == 5);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 2) == -1);
+    buffer[2 + 13 * 0 + 13] = 0x0F;  // player 0's first suspect: 9999, no such leader
+    buffer[2 + 13 * 0 + 14] = 0x27;
+    SERIAL::Reader_ bad(buffer.get(), counterspy::Save_Size(), "test underflow", true);
+    DOCTEST_CHECK_FALSE(counterspy::Parse_Save(&bad, &error));
+
+    constexpr uint32_t V1_SIZE = 2 + 8 * 13;
+    std::vector<uint8_t> old_buffer(V1_SIZE);
+    {
+        SERIAL::Writer_ old_writer(old_buffer.data(), V1_SIZE, "test overflow");
+        old_writer.Write_Uint16(1);
+        for (int p = 0; p < 8; ++p) {
+            old_writer.Write_Int32(0);
+            old_writer.Write_Int32(p == 2 ? 35016 : 0);
+            old_writer.Write_Int32(0);
+            old_writer.Write_Uint8(0);
+        }
+    }
+    counterspy::Clear();
+    SERIAL::Reader_ old_reader(old_buffer.data(), V1_SIZE, "test underflow", true);
+    DOCTEST_REQUIRE(counterspy::Parse_Save(&old_reader, &error));
+    counterspy::Commit_Save();
+    DOCTEST_CHECK(counterspy::Canary_Turn(2) == 35016);
+    DOCTEST_CHECK(counterspy::Canary_Suspect(2, 0) == -1);
 }
 
 DOCTEST_TEST_CASE("a leak seen by the secrets module sets the trap") {

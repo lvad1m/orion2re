@@ -18,8 +18,12 @@ namespace SERIAL {
 //   secret of it sold or made public, within SUSPECT_TURNS, or heightened or witch-hunt
 //   counter-intelligence - checks its assigned leader of the lowest loyalty with a dice check: a bribed
 //   one is uncovered, an innocent one jailed when the check fails.
-// - Canary trap: an empire whose secret leaked sets a trap; CANARY_TURNS later a bribed leader whose
-//   briber has spies or a resident in it is uncovered, with certainty.
+// - Canary trap (mechanics.md 3.5.5, "Ловушка канарейки": "разным подозреваемым - разная ложная
+//   информация; смотрим, какая утечёт (событие с выбором)"): an empire whose secret leaked sets a
+//   trap. It picks up to CANARY_SUSPECTS suspects (assigned leaders, the least loyal first) and gives
+//   each its own false report; CANARY_TURNS later the reports that leaked name their leaders - a
+//   suspect that is bribed by an empire with spies or a resident in this one is uncovered, an innocent
+//   one leaks nothing and is not touched.
 // - Interrogation: a computer that catches a spy may learn the owner's plan of attack; the spy of a
 //   false-flag operation honestly names the framed empire.
 // - Guards: an empire threatened or rich pays guard_fee BC a turn; its key leaders are harder to kill.
@@ -43,6 +47,7 @@ namespace counterspy {
     constexpr int32_t WITCH_LOYALTY = -3;          // each other leader of the hunter
     constexpr int32_t DEFAULT_LOYALTY = 50;        // an untracked leader
     constexpr int32_t CANARY_TURNS = 10;
+    constexpr int32_t CANARY_SUSPECTS = 3;         // leaders fed a false report, one report each
     constexpr int32_t INTERROGATION_PERCENT = 30;
     constexpr int32_t GUARD_DIFFICULTY = 3;
     constexpr int32_t GUARD_THREAT_TURNS = 50;     // an attempt this recent calls for guards
@@ -70,8 +75,10 @@ namespace counterspy {
     void On_Secret_Leaked(int16_t owner);
     // The turn the canary trap of `owner` springs (0: none set).
     int32_t Canary_Turn(int16_t owner);
-    // Springs `owner`'s trap now: the first bribed leader whose briber has spies or a resident in
-    // the empire is uncovered. True when one was.
+    // The suspect fed false report `report` (0..CANARY_SUSPECTS-1) of `owner`'s trap, -1 if none.
+    int16_t Canary_Suspect(int16_t owner, int32_t report);
+    // Springs `owner`'s trap now: every suspect that is bribed by an empire with spies or a resident
+    // in this one has leaked its false report and is uncovered. True when one was.
     bool Spring_Canary(int16_t owner);
 
     // A spy of `owner` was caught by `victim` (espionage.cpp On_Spy_Caught): suspicion, and the
@@ -101,9 +108,10 @@ namespace counterspy {
     void Clear();
     bool Empty();
 
-    // Save section 'CSPY' (game/rules_sections.h): payload version 1, then per player the stardate the
+    // Save section 'CSPY' (game/rules_sections.h): payload version 2, then per player the stardate the
     // suspicion began (int32, 0 none), the turn the canary trap springs (int32, 0 none), the stardate
-    // of the last attempt on its leaders (int32, 0 none) and whether it guards (uint8).
+    // of the last attempt on its leaders (int32, 0 none), whether it guards (uint8) and the three
+    // leaders fed false reports (int16, -1 none). Version 1 (without the leaders) is still read.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
@@ -115,6 +123,12 @@ namespace counterspy {
         int32_t canary[8] = {};
         int32_t attempt[8] = {};
         uint8_t guarded[8] = {};
+        int16_t canary_leader[8][3];  // the suspects of each trap, -1 none (CANARY_SUSPECTS)
+        s_state() {
+            for (auto& row : canary_leader) {
+                for (int16_t& leader : row) leader = -1;
+            }
+        }
     };
     s_state* State();
 

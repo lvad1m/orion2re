@@ -3,12 +3,17 @@
 #include "game/secrets.h"
 
 #include "game/bill.h"
+#include "game/colcalc.h"
 #include "game/counterspy.h"
+#include "game/covenants.h"
 #include "game/dice.h"
 #include "game/espionage.h"
+#include "game/ambition.h"
 #include "game/intrigue.h"
 #include "game/opinion.h"
+#include "game/projects.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/rivalry.h"
 #include "game/spy.h"
 #include "game/spy_ops.h"
@@ -65,11 +70,42 @@ namespace secrets {
             } else if (s.kind == KIND_BRIBE && s.value >= 0 && s.value < MAX_LEADERS) {
                 *spy_ops::Bribed_Slot(s.value) = -1;
                 opinion::Add(victim, owner, opinion::REASON_BRIBED_OUR_LEADER, -25);
+            } else if (s.kind == KIND_TREATY) {
+                covenants::Reveal(covenants::Find_Clause(owner, s.value, victim), "a secret told");
+            } else if (s.kind == KIND_BIOWEAPON) {
+                opinion::Add(victim, owner, opinion::REASON_ATROCITY, reputation::ATROCITY_OPINION);  // the victim now knows the culprit
             }
         }
 
         const char* Kind_Name_(uint8_t kind) {
-            return kind == KIND_PLAN ? "a planned attack" : kind == KIND_BRIBE ? "a bribed governor" : "a secret";
+            switch (kind) {
+                case KIND_PLAN: return "a planned attack";
+                case KIND_BRIBE: return "a bribed governor";
+                case KIND_TREATY: return "a secret treaty";
+                case KIND_BIOWEAPON: return "the use of biological weapons";
+                default: return "a secret";
+            }
+        }
+
+        bool Knows_(int16_t holder, e_kind kind, int16_t owner, int16_t victim, int16_t value) {
+            for (int32_t k = 0; k < MAX_SECRETS; ++k) {
+                const s_secret& s = Slots()[k];
+                if (s.kind == kind && s.owner == owner && s.victim == victim && s.holder == holder && s.value == value) return true;
+            }
+            return false;
+        }
+
+        // The cheapest application `giver` knows and `taker` may get; -1 if none.
+        int16_t Gift_App_(int16_t giver, int16_t taker) {
+            s_player& from = MOX::player[giver];
+            s_player& to = MOX::player[taker];
+            int16_t best = -1;
+            for (int16_t app = TECH_APP_NO_TECH + 1; app < TECH_APP_COUNT; ++app) {
+                if (from.tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED) continue;
+                if (to.tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED || !COLCALC::Player_May_Get_Tech_App(&to, app)) continue;
+                if (best < 0 || projects::App_Cost(app) < projects::App_Cost(best)) best = app;
+            }
+            return best;
         }
 
         void Learn_All_() {
@@ -111,6 +147,22 @@ namespace secrets {
                             value = l;
                         }
                     }
+                    // A secret treaty `o` guarantees (covenants.h), unknown to its target and not revealed yet.
+                    const covenants::s_state* treaties = covenants::State();
+                    for (int32_t c = 0; c < treaties->count && kind == KIND_NONE; ++c) {
+                        const covenants::s_clause& clause = treaties->clauses[c];
+                        if (clause.guarantor != o || clause.revealed != 0 || clause.target == h || clause.protege == h) continue;
+                        if (Knows_(h, KIND_TREATY, o, clause.target, clause.protege)) continue;
+                        kind = KIND_TREATY;
+                        victim = clause.target;
+                        value = clause.protege;
+                    }
+                    // A use of biological weapons by `o` (On_Bio_Weapon), against a colony of another empire.
+                    const s_bio& deed = Bio()[o];
+                    if (kind == KIND_NONE && deed.turn != 0 && deed.victim >= 0 && deed.victim != h && !Knows_(h, KIND_BIOWEAPON, o, deed.victim, -1)) {
+                        kind = KIND_BIOWEAPON;
+                        victim = deed.victim;
+                    }
                     if (kind == KIND_NONE) continue;
                     if (static_cast<int32_t>(game_random::Random(1000)) > chance) continue;
                     if (Learn(h, kind, o, victim, value)) {
@@ -122,26 +174,38 @@ namespace secrets {
         }
 
         void Use_All_() {
+            bool fresh[MAX_SECRETS] = {};  // copies sold this turn wait for the next one
             for (int32_t i = 0; i < MAX_SECRETS; ++i) {
                 s_secret& s = Slots()[i];
-                if (s.kind == KIND_NONE) continue;
+                if (s.kind == KIND_NONE || fresh[i]) continue;
                 if (!Still_True(s) || !Computer_(s.holder) || !Alive_(s.owner) || !Alive_(s.victim)) {
                     s = s_secret{};
                     continue;
                 }
+                if (s.demanded != 0) continue;  // the owner pays with its council vote: kept for the vote
                 switch (MOX::player[s.holder].personality) {
                     case PLAYER_PERSONALITY_HONORABLE:
                     case PLAYER_PERSONALITY_PACIFIST:
                         if (!Sell(i)) Make_Public(i);
                         break;
                     case PLAYER_PERSONALITY_RUTHLESS:
+                        Blackmail_For(i, DEMAND_TRIBUTE);
+                        break;
                     case PLAYER_PERSONALITY_AGGRESSIVE:
+                        Blackmail_For(i, DEMAND_TECH);
+                        break;
                     case PLAYER_PERSONALITY_XENOPHOBIC:
-                        Blackmail(i);
+                        Blackmail_For(i, DEMAND_VOTE);
                         break;
-                    default:
-                        Make_Public(i);
+                    default: {  // erratic, dishonored: sell to whoever pays, else make it public
+                        int32_t copy = -1;
+                        if (Sell_To_Third(i, &copy)) {
+                            fresh[copy] = true;
+                        } else {
+                            Make_Public(i);
+                        }
                         break;
+                    }
                 }
             }
         }
@@ -164,7 +228,29 @@ namespace secrets {
         if (s.kind == KIND_NONE || MOX::stardate - s.learned >= SECRET_TURNS) return false;
         if (s.kind == KIND_PLAN) return Plans_(s.owner, s.victim);
         if (s.kind == KIND_BRIBE) return s.value >= 0 && s.value < MAX_LEADERS && spy_ops::Bribed_By(s.value) == s.owner;
+        if (s.kind == KIND_TREATY) {
+            const int32_t clause = covenants::Find_Clause(s.owner, s.value, s.victim);
+            return clause >= 0 && covenants::State()->clauses[clause].revealed == 0;
+        }
+        if (s.kind == KIND_BIOWEAPON) {
+            const s_bio& deed = Bio()[s.owner];
+            return deed.turn != 0 && deed.victim == s.victim;
+        }
         return false;
+    }
+
+    void On_Bio_Weapon(int16_t owner, int16_t star) {
+        if (!enabled || !Alive_(owner)) return;
+        for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+            const s_colony& colony = MOX::colony[c];
+            if (colony.owner == owner || !Alive_(colony.owner) || colony.planet < 0 || colony.planet >= MAX_PLANETS) continue;
+            if (MOX::planet[colony.planet].star_index != star) continue;
+            Bio()[owner].turn = MOX::stardate;
+            Bio()[owner].victim = static_cast<int8_t>(colony.owner);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d used biological weapons against player %d",
+                (int)MOX::stardate, (int)owner, (int)colony.owner);
+            return;
+        }
     }
 
     bool Sell(int32_t index) {
@@ -181,6 +267,10 @@ namespace secrets {
     }
 
     bool Blackmail(int32_t index) {
+        return Blackmail_For(index, DEMAND_TRIBUTE);
+    }
+
+    bool Blackmail_For(int32_t index, e_demand demand) {
         if (!enabled || index < 0 || index >= MAX_SECRETS) return false;
         s_secret& s = Slots()[index];
         if (s.kind == KIND_NONE) return false;
@@ -192,6 +282,26 @@ namespace secrets {
                 (int)MOX::stardate, (int)s.owner, (int)s.holder);
             Make_Public(index);
             return false;
+        }
+        if (demand == DEMAND_VOTE && ambition::council_bribery && Computer_(s.owner)) {
+            // The silence is paid for in the council: the secret is kept (ambition.cpp spends it when
+            // the holder stands as a nominee and the owner votes) until it goes stale.
+            s.demanded = 1;
+            opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d demands the council vote of player %d for its silence about %s",
+                (int)MOX::stardate, (int)s.holder, (int)s.owner, Kind_Name_(s.kind));
+            return true;
+        }
+        if (demand == DEMAND_TECH) {
+            const int16_t app = Gift_App_(s.owner, s.holder);
+            if (app >= 0) {
+                COLCALC::Player_Gets_Tech_App(&MOX::player[s.holder], app);
+                opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d gives player %d the application %d for its silence about %s",
+                    (int)MOX::stardate, (int)s.owner, (int)s.holder, (int)app, Kind_Name_(s.kind));
+                s = s_secret{};
+                return true;
+            }
         }
         const int32_t price = owner.bc * BLACKMAIL_PERCENT / 100;
         owner.bc -= price;
@@ -213,9 +323,54 @@ namespace secrets {
         opinion::Add(s.owner, s.holder, opinion::REASON_EXPOSED_US, EXPOSED_OPINION);
         for (int16_t o = 0; o < Players_(); ++o) {
             if (o == s.owner || o == s.holder || o == s.victim || !Computer_(o) || MOX::player[o].contact[s.owner] == 0) continue;
-            opinion::Add(o, s.owner, opinion::REASON_BAD_RUMOURS, RUMOUR_OPINION);
+            // Made public, the use of biological weapons is an atrocity in everyone's eyes.
+            if (s.kind == KIND_BIOWEAPON) {
+                opinion::Add(o, s.owner, opinion::REASON_ATROCITY, reputation::ATROCITY_OPINION);
+            } else {
+                opinion::Add(o, s.owner, opinion::REASON_BAD_RUMOURS, RUMOUR_OPINION);
+            }
         }
         s = s_secret{};
+    }
+
+    bool Sell_To_Third(int32_t index, int32_t* new_index) {
+        if (!enabled || index < 0 || index >= MAX_SECRETS) return false;
+        s_secret& s = Slots()[index];
+        if (s.kind == KIND_NONE) return false;
+        // The buyer: a computer empire that thinks ill of the owner (the most), is in contact with the
+        // seller, and can pay in BC or, being poor, in a favour.
+        int16_t buyer = -1;
+        for (int16_t b = 0; b < Players_(); ++b) {
+            if (b == s.owner || b == s.victim || b == s.holder || !Computer_(b) || MOX::player[b].contact[s.holder] == 0) continue;
+            if (Knows_(b, static_cast<e_kind>(s.kind), s.owner, s.victim, s.value)) continue;
+            if (opinion::Relations(b, s.owner) > THIRD_PARTY_MAX_RELATIONS) continue;
+            if (MOX::player[b].bc < SALE_PRICE && !intrigue::favours) continue;
+            if (buyer < 0 || opinion::Relations(b, s.owner) < opinion::Relations(buyer, s.owner)) buyer = b;
+        }
+        if (buyer < 0) return false;
+        const s_secret sold = s;
+        if (!Learn(buyer, static_cast<e_kind>(sold.kind), sold.owner, sold.victim, sold.value)) return false;
+        for (int32_t k = 0; k < MAX_SECRETS; ++k) {  // the buyer's copy is as old as the original
+            s_secret& copy = Slots()[k];
+            if (copy.kind == sold.kind && copy.holder == buyer && copy.owner == sold.owner && copy.victim == sold.victim && copy.value == sold.value) {
+                copy.learned = sold.learned;
+                if (new_index != nullptr) *new_index = k;
+            }
+        }
+        if (MOX::player[buyer].bc >= SALE_PRICE) {
+            MOX::player[buyer].bc -= SALE_PRICE;
+            MOX::player[sold.holder].bc += SALE_PRICE;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d sells player %d a secret of player %d for %d BC: %s",
+                (int)MOX::stardate, (int)sold.holder, (int)buyer, (int)sold.owner, (int)SALE_PRICE, Kind_Name_(sold.kind));
+        } else {
+            intrigue::Owe(buyer, sold.holder);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d sells player %d a secret of player %d for a favour: %s",
+                (int)MOX::stardate, (int)sold.holder, (int)buyer, (int)sold.owner, Kind_Name_(sold.kind));
+        }
+        opinion::Add(buyer, sold.owner, opinion::REASON_BAD_RUMOURS, RUMOUR_OPINION);
+        counterspy::On_Secret_Leaked(sold.owner);  // the owner suspects a mole, sets a canary trap (off by default)
+        Slots()[index] = s_secret{};
+        return true;
     }
 
     bool Smear(int16_t attacker, int16_t target) {
