@@ -36,6 +36,9 @@ namespace espionage {
     constexpr int32_t MODE_COST_PERCENT[MODE_COUNT] = {0, 2, 4};
     constexpr int32_t RECENT_TURNS = 20;    // spies caught this long ago still count
     constexpr int32_t MODE_PERIOD = 10;     // turns between the computers' choices of mode
+    // Решение автора (iterations.md, итерация 2, п. 2): «Охота на ведьм ограничена так же, как охота на крота: не больше одного ареста за 20 ходов на империю». A witch hunt
+    // jails at most one leader in WITCH_COOLDOWN turns for each empire (the same limit as the mole hunt's, counterspy.h).
+    constexpr int32_t WITCH_COOLDOWN = 20;
 
     // Network points of `owner`'s spies in `target` (0 with the flag off).
     int32_t Points(int16_t owner, int16_t target);
@@ -64,9 +67,10 @@ namespace espionage {
     void Clear();
     bool Empty();
 
-    // Save section 'SPYN' (game/rules_sections.h): payload version 1, then points (int16,
+    // Save section 'SPYN' (game/rules_sections.h): payload version 2, then points (int16,
     // MAX_PLAYERS x MAX_PLAYERS), modes (uint8 x MAX_PLAYERS), spies caught recently (uint8 x
-    // MAX_PLAYERS) and the turn of the last catch (int32 x MAX_PLAYERS).
+    // MAX_PLAYERS), the turn of the last catch (int32 x MAX_PLAYERS) and, new in version 2, the turn of
+    // the last witch-hunt arrest (int32 x MAX_PLAYERS, 0 none); version 1 is still read.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
@@ -79,6 +83,7 @@ namespace espionage {
         uint8_t mode[8] = {};
         uint8_t caught[8] = {};
         int32_t last_caught[8] = {};
+        int32_t last_arrest[8] = {};  // stardate of the empire's last witch-hunt arrest, 0 none
     };
     s_state* State();
 

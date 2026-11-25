@@ -293,11 +293,11 @@ DOCTEST_TEST_CASE("slavers take people from an undefended colony and move on; wa
 DOCTEST_TEST_CASE("slavers: a buyer is remembered badly")
 {
     s_pirate_scope scope;
-    test::s_saved_value<bool> front{crises::crisis_front};
+    test::s_saved_value<bool> front{crises::become_crisis};
     test::s_game_state state;
     Setup_(&state);
     crises::Clear();
-    crises::crisis_front = true;  // decision 3: the purchase feeds the threat of 'become a crisis'
+    crises::become_crisis = true;  // decision 3: the purchase feeds the threat of 'become a crisis'
     state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;
     state.players[2].personality = PLAYER_PERSONALITY_RUTHLESS;
     // Room for one more person at the buyer's colony (the engine's own limit for its planet, if any).

@@ -23,7 +23,8 @@ namespace crises {
     extern bool enabled;        // events crises
     extern int32_t chance;      // events crisis_chance: per mille a turn for each computer empire
     extern bool situations;     // events situations: the situation scale (war weariness) and the academy contest
-    extern bool crisis_front;   // events crisis_front: the threat of atrocities, the Antaran front, the council project
+    extern bool crisis_front;   // events crisis_front: the Antaran front, the council project
+    extern bool become_crisis;  // events become_crisis: the threat of atrocities and the galaxy's war on the culprit
     extern int32_t front_strength;  // events crisis_front_strength: the Antaran front's start, 0..100; 0 = no front
 
     enum e_crisis : uint8_t {
@@ -110,7 +111,10 @@ namespace crises {
     // below, else 0.
     int32_t Scale_Move(s_scale& scale, int32_t delta);
 
-    // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn in a war that presses, -WEARY_PEACE otherwise.
+    // War weariness (3.9, "the scale of a situation"): +WEARY_WAR a turn in a war that presses, -WEARY_FADE otherwise.
+    // Решение автора (iterations.md, итерация 2, п. 3): «Усталость от войны: шкала гаснет постепенно, а не падает в ноль, когда война не давит (нет «мигания»); порог долгой войны — 15 ходов вместо 20, чтобы стадии изредка наступали». The scale falls WEARY_FADE a turn whenever the war does not press (at peace too),
+    // and it ends only when it has faded to 0 while the war does not press - a scale that has just started (or
+    // whose approach takes off more than the growth) stays alive, so it no longer starts and ends every few turns.
     // Iteration 1, decision 5 (iterations.md): "Решение автора: замедлить — рост +3 вместо +6 и только в долгой
     // войне или против сильного; сообщение о подходе — только при его смене." A war presses (the scale grows)
     // when it has lasted WEARY_LONG_TURNS turns without a break, or when an enemy at war with the empire has at
@@ -121,9 +125,9 @@ namespace crises {
     // (STRIKE_TURNS turns without the capital's output; ab-review.md 3.5 softened it from the loss of a building)
     // and the scale falls to WEARY_RESET. Three approaches.
     constexpr int32_t WEARY_WAR = 3;
-    constexpr int32_t WEARY_LONG_TURNS = 20;       // a "long" war
+    constexpr int32_t WEARY_LONG_TURNS = 15;       // a "long" war (decision 3: 15 instead of 20)
     constexpr int32_t WEARY_STRONGER_PERCENT = 120;  // an enemy "stronger": its strength against us / ours against it
-    constexpr int32_t WEARY_PEACE = 4;
+    constexpr int32_t WEARY_FADE = 2;              // a few points a turn, gradual (decision 3)
     constexpr int32_t WEARY_FINE = 100;
     constexpr int32_t WEARY_RESET = 60;
     constexpr int32_t APPROACH_COUNT = 3;
@@ -164,7 +168,9 @@ namespace crises {
     // water); above the threshold every computer empire that knows the culprit declares war on it. Each atrocity
     // adds THREAT_ATROCITY (at most THREAT_MAX), the threat falls THREAT_DECAY a turn; at THREAT_WAR the galaxy
     // declares war (once for each empire, as long as the threat stays up). Any empire, a human too, can be the
-    // culprit. Under events crisis_front.
+    // culprit. Under events become_crisis.
+    // Решение автора (iterations.md, итерация 2, п. 1): «Стать кризисом» — свой флаг, отдельный от фронта Антаран, чтобы «всё включено» его включало (правка флагов, не дизайна). The threat and the war on the culprit have their own flag events become_crisis (off by
+    // default); the Antaran front and the council's project stay under events crisis_front.
     constexpr int32_t THREAT_ATROCITY = 25;
     constexpr int32_t THREAT_MAX = 100;
     constexpr int32_t THREAT_DECAY = 1;

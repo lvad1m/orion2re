@@ -338,7 +338,7 @@ namespace crises {
     void Turn() {
         if (enabled) Crisis_Turn_();
         if (situations) Situations_Turn_();
-        if (crisis_front) Front_Turn_();
+        if (crisis_front || become_crisis) Front_Turn_();
     }
 
     namespace {
@@ -427,6 +427,9 @@ namespace crises {
     }
 
     // The scale of war weariness of every empire (events-catalog.md 3.9).
+    // Решение автора (iterations.md, итерация 2, п. 3): «Усталость от войны: шкала гаснет постепенно, а не падает в ноль, когда война не давит (нет «мигания»); порог долгой войны — 15 ходов вместо 20, чтобы стадии изредка наступали».
+    // A war that does not press lets the scale fade by WEARY_FADE a turn; it ends (and is logged) only at 0 while
+    // the war does not press, and starts (logged) only when it is created.
     void War_Weariness_() {
         for (int16_t p = 0; p < Players_(); ++p) {
             s_extra* extra = Extra();
@@ -459,7 +462,7 @@ namespace crises {
                 Log_Line_("war weariness: the scale starts", p, scale->value);
                 Pick_Approach_(*scale);
             }
-            int32_t delta = -WEARY_PEACE;
+            int32_t delta = -WEARY_FADE;
             if (presses) {
                 const s_approach& approach = APPROACHES[std::clamp<int32_t>(scale->approach, 0, APPROACH_COUNT - 1)];
                 delta = WEARY_WAR;
@@ -470,7 +473,7 @@ namespace crises {
                 }
             }
             const int32_t stage = Scale_Move(*scale, delta);
-            if (scale->value == 0) {
+            if (scale->value == 0 && !presses) {
                 *scale = s_scale{};
                 Log_Line_("war weariness: the scale ends", p, 0);
                 continue;
@@ -655,8 +658,8 @@ namespace crises {
     }
 
     void Front_Turn_() {
-        Threat_();
-        Antaran_Front_();
+        if (become_crisis) Threat_();
+        if (crisis_front) Antaran_Front_();
     }
     } // namespace
 
@@ -700,7 +703,7 @@ namespace crises {
     }
 
     void Add_Threat(int16_t player) {
-        if (!crisis_front || !Alive_(player)) return;
+        if (!become_crisis || !Alive_(player)) return;
         uint16_t& threat = Extra()->threat[player];
         threat = static_cast<uint16_t>(std::min<int32_t>(THREAT_MAX, threat + THREAT_ATROCITY));
         Log_Line_("an atrocity raises the empire's threat to the galaxy", player, threat);

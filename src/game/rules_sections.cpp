@@ -90,7 +90,7 @@ namespace SAVEGAME {
         }
 
         bool Crises_Has_State_() {
-            return (crises::enabled || crises::situations || crises::crisis_front) && !crises::Empty();
+            return (crises::enabled || crises::situations || crises::crisis_front || crises::become_crisis) && !crises::Empty();
         }
 
         bool Reputation_Has_State_() {

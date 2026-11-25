@@ -249,18 +249,18 @@ DOCTEST_TEST_CASE("red wedding: an attack during talks is a stain that never exp
 DOCTEST_TEST_CASE("decision 3: a recognised red wedding feeds the threat of 'become a crisis'; flag off, nothing")
 {
     s_reputation_scope scope;
-    test::s_saved_value<bool> front{crises::crisis_front};
+    test::s_saved_value<bool> front{crises::become_crisis};
     test::s_game_state state;
     Setup_(&state);
     crises::Clear();
     reputation::red_wedding = true;
-    crises::crisis_front = false;
+    crises::become_crisis = false;
     reputation::On_Treaty_Signed(0, 1);
     reputation::On_Aggression(0, 1);
     DOCTEST_CHECK(reputation::Has(0, reputation::TITLE_HOSPITALITY_BREAKER));
     DOCTEST_CHECK(crises::Threat(0) == 0);  // crisis_front off: nothing kept
     DOCTEST_CHECK(crises::Extra_Empty());
-    crises::crisis_front = true;
+    crises::become_crisis = true;
     reputation::On_Treaty_Signed(2, 3);
     reputation::On_Aggression(2, 3);
     DOCTEST_CHECK(crises::Threat(2) == crises::THREAT_ATROCITY);

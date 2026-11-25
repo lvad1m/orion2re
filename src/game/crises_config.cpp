@@ -10,6 +10,7 @@ namespace crises {
     int32_t chance = 3;
     bool situations = false;
     bool crisis_front = false;
+    bool become_crisis = false;
     int32_t front_strength = 0;
 
 } // namespace crises

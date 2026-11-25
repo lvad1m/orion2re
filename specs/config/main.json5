@@ -10929,7 +10929,7 @@
 
     crisis_front: {
       title: "Crises with a front",
-      description: "Adds three crisis mechanics. Becoming a crisis: every atrocity of an empire (biological weapons, a destroyed planet, poisoned water or poison at a feast) adds 25 to its threat (at most 100; it falls 1 a turn), and at 50 every computer empire that knows it declares war on it, once. The culprit can be a human. The Antarans advance by themselves: with the Antarans in the game and events crisis_front_strength above 0, a galaxy scale starts at that value, grows by one every 5 turns and adds to the Antarans' offensive resources at the start and at each new stage. The council's project: every 5 turns each computer empire with 200 BC hands over trophies (40 BC when honorable, pacifist or a technologist, 20 BC otherwise, none when aggressive, ruthless or xenophobic); at 400 the Antaran front is pushed back by 25 and their offensive resources are halved, and every contributor gets research points worth twice its gift. A human gives nothing.",
+      description: "Adds two crisis mechanics. The Antarans advance by themselves: with the Antarans in the game and events crisis_front_strength above 0, a galaxy scale starts at that value, grows by one every 5 turns and adds to the Antarans' offensive resources at the start and at each new stage. The council's project: every 5 turns each computer empire with 200 BC hands over trophies (40 BC when honorable, pacifist or a technologist, 20 BC otherwise, none when aggressive, ruthless or xenophobic); at 400 the Antaran front is pushed back by 25 and their offensive resources are halved, and every contributor gets research points worth twice its gift. A human gives nothing.",
       remarks: "False preserves classic behavior. The front also needs events crisis_front_strength above 0 and the Antarans enabled. Kept in the optional crises save section that older builds skip.",
       examples: ["events crisis_front = true;"],
       group: "gameplay",
@@ -10937,6 +10937,18 @@
       type: "bool",
       default: false,
       bind_root: { header: "game/crises.h", symbol: "crises::crisis_front" },
+    },
+
+    become_crisis: {
+      title: "Become a crisis",
+      description: "Every atrocity of an empire (biological weapons, a destroyed planet, poisoned water, poison at a feast, a red wedding, a captive bought from slavers, a mind control that comes to light) adds 25 to its threat (at most 100; it falls 1 a turn), and at 50 every computer empire that knows it declares war on it, once. The culprit can be a human. Independent of events crisis_front.",
+      remarks: "False preserves classic behavior. Kept in the optional crises save section that older builds skip.",
+      examples: ["events become_crisis = true;"],
+      group: "gameplay",
+      namespace: "events",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/crises.h", symbol: "crises::become_crisis" },
     },
 
     crisis_front_strength: {

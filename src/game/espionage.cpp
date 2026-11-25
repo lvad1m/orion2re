@@ -87,6 +87,8 @@ namespace espionage {
                 const int32_t cost = std::max<int32_t>(0, player.surplus_bc) * MODE_COST_PERCENT[mode] / 100;
                 player.bc -= std::min<int32_t>(player.bc, cost);
                 if (mode != MODE_WITCH_HUNT) continue;
+                // Решение автора (iterations.md, итерация 2, п. 2): «Охота на ведьм ограничена так же, как охота на крота: не больше одного ареста за 20 ходов на империю».
+                if (s->last_arrest[p] != 0 && MOX::stardate - s->last_arrest[p] < WITCH_COOLDOWN) continue;  // no draws while it rests
                 for (int16_t i = 0; i < MAX_LEADERS; ++i) {
                     const s_leader_data& leader = MOX::leaders[i];
                     if (!Holds_(leader, p) || leader.status == STATUS_LIMBO) continue;
@@ -100,6 +102,8 @@ namespace espionage {
                     // Iteration 1, decision 2 (iterations.md): "каждый посаженный невиновный сильнее снижает лояльность
                     // остальных лидеров" - the witch hunt jails innocents too, so the same cost applies.
                     counterspy::On_Innocent_Jailed(p, i);
+                    s->last_arrest[p] = MOX::stardate;
+                    break;  // one arrest per cooldown
                 }
             }
             if (MOX::stardate % MODE_PERIOD != 0) return;

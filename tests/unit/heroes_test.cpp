@@ -237,10 +237,10 @@ DOCTEST_TEST_CASE("mind control: tribute to the master, freed by chance, ends, l
 DOCTEST_TEST_CASE("decision 3: a mind control that comes to light (the leader breaks free) feeds the threat; a fading one does not")
 {
     s_scope scope;
-    test::s_saved_value<bool> front{crises::crisis_front};
+    test::s_saved_value<bool> front{crises::become_crisis};
     test::s_game_state state;
     Setup_(&state);
-    crises::crisis_front = true;
+    crises::become_crisis = true;
     DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
     heroes::State()->record[0].ends = MOX::stardate + 1;
     Seed_For_({{1000, 400, 1000}});
@@ -253,7 +253,7 @@ DOCTEST_TEST_CASE("decision 3: a mind control that comes to light (the leader br
     DOCTEST_CHECK_FALSE(heroes::Controlled(VICTIM_LEADER));
     DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY);
     DOCTEST_CHECK(crises::Threat(1) == 0);
-    crises::crisis_front = false;
+    crises::become_crisis = false;
     crises::Clear();
     DOCTEST_REQUIRE(heroes::Start(heroes::KIND_MIND, 1, VICTIM_LEADER, 0));
     Seed_For_({{1000, 1, 25}});

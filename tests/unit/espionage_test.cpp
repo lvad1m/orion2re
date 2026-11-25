@@ -151,14 +151,84 @@ DOCTEST_TEST_CASE("decision 2: a witch hunt's innocents cost the other leaders l
     }
     espionage::Set_Mode(1, espionage::MODE_WITCH_HUNT);
     espionage::witch_hunt_accusation = 1000;  // everybody is accused
-    espionage::Turn();
-    DOCTEST_CHECK(counterspy::State()->innocents[1] >= 1);
-    // The leaders are jailed in turn: the later ones were shaken by the earlier ones, the last jailed most.
+    // Iteration 2, decision 2: one arrest per WITCH_COOLDOWN turns, so the leaders are jailed one hunt at a time.
+    for (int i = 0; i < 3; ++i) {
+        MOX::stardate = 35001 + i * espionage::WITCH_COOLDOWN;
+        espionage::Turn();
+    }
     DOCTEST_CHECK(counterspy::State()->innocents[1] == 3);
     DOCTEST_CHECK(loyalty::Of(6) < 10 + counterspy::WITCH_LOYALTY);
     hostages::Clear();
     counterspy::Clear();
     loyalty::Clear();
+}
+
+DOCTEST_TEST_CASE("decision 2: a witch hunt jails at most one leader per 20 turns for each empire") {
+    s_espionage_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    counterspy::Clear();
+    for (int i = 4; i < 7; ++i) {
+        s_leader_data& leader = state.leaders[i];
+        leader.player_index = 1;
+        leader.status = 0;
+        leader.location = -1;
+    }
+    espionage::Set_Mode(1, espionage::MODE_WITCH_HUNT);
+    espionage::witch_hunt_accusation = 1000;  // everybody is accused, every time
+    espionage::Turn();
+    DOCTEST_CHECK(counterspy::State()->innocents[1] == 1);  // three accused, one jailed
+    DOCTEST_CHECK(espionage::State()->last_arrest[1] == 35001);
+    DOCTEST_CHECK(espionage::State()->last_arrest[2] == 0);
+    MOX::stardate = 35001 + espionage::WITCH_COOLDOWN - 1;
+    espionage::Turn();
+    DOCTEST_CHECK(counterspy::State()->innocents[1] == 1);  // the cooldown holds
+    MOX::stardate = 35001 + espionage::WITCH_COOLDOWN;
+    espionage::Set_Mode(1, espionage::MODE_WITCH_HUNT);  // the turn before chose the mode anew (no spies caught: normal)
+    espionage::Turn();
+    DOCTEST_CHECK(counterspy::State()->innocents[1] == 2);
+    DOCTEST_CHECK(espionage::State()->last_arrest[1] == 35001 + espionage::WITCH_COOLDOWN);
+    hostages::Clear();
+    counterspy::Clear();
+}
+
+DOCTEST_TEST_CASE("decision 2: the payload keeps the last arrests; version 1 still reads, with none") {
+    s_espionage_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    espionage::Set_Mode(1, espionage::MODE_HEIGHTENED);
+    espionage::State()->last_arrest[2] = 35123;
+    auto buffer = std::make_unique<uint8_t[]>(espionage::Save_Size());
+    SERIAL::Writer_ writer(buffer.get(), espionage::Save_Size(), "test overflow");
+    espionage::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == espionage::Save_Size());
+    espionage::Clear();
+    SERIAL::Reader_ reader(buffer.get(), espionage::Save_Size(), "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(espionage::Parse_Save(&reader, &error));
+    espionage::Commit_Save();
+    DOCTEST_CHECK(espionage::State()->last_arrest[2] == 35123);
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);
+    // A bad (negative) stardate is refused.
+    const uint32_t last_arrest_row = espionage::Save_Size() - 8 * 4;
+    buffer[last_arrest_row + 3] = 0x80;  // player 0's arrest: the sign bit of a little-endian int32
+    SERIAL::Reader_ bad(buffer.get(), espionage::Save_Size(), "test underflow", true);
+    DOCTEST_CHECK_FALSE(espionage::Parse_Save(&bad, &error));
+    // Version 1: 2 + 64 int16 + 8 + 8 bytes + 8 int32, no arrests.
+    const uint32_t v1_size = 2 + 64 * 2 + 8 + 8 + 8 * 4;
+    auto old_buffer = std::make_unique<uint8_t[]>(v1_size);
+    SERIAL::Writer_ old_writer(old_buffer.get(), v1_size, "test overflow");
+    old_writer.Write_Uint16(1);
+    for (int i = 0; i < 64; ++i) old_writer.Write_Int16(0);
+    for (int i = 0; i < 8; ++i) old_writer.Write_Uint8(i == 1 ? 1 : 0);  // modes
+    for (int i = 0; i < 8; ++i) old_writer.Write_Uint8(0);
+    for (int i = 0; i < 8; ++i) old_writer.Write_Int32(0);
+    DOCTEST_REQUIRE(old_writer.Length() == v1_size);
+    SERIAL::Reader_ old_reader(old_buffer.get(), v1_size, "test underflow", true);
+    DOCTEST_REQUIRE(espionage::Parse_Save(&old_reader, &error));
+    espionage::Commit_Save();
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);
+    DOCTEST_CHECK(espionage::State()->last_arrest[2] == 0);
 }
 
 DOCTEST_TEST_CASE("computer empires choose their mode by the spies they caught lately") {

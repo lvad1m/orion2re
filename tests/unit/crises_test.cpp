@@ -18,6 +18,7 @@ namespace {
         test::s_saved_value<uint8_t> roll_kind{dice::roll_kind};
         test::s_saved_value<bool> situations{crises::situations};
         test::s_saved_value<bool> front{crises::crisis_front};
+        test::s_saved_value<bool> become{crises::become_crisis};
         test::s_saved_value<int32_t> strength{crises::front_strength};
         test::s_saved_value<decltype(MOX::settings.xenons_exist)> xenons{MOX::settings.xenons_exist};
         test::s_saved_value<int16_t> resource{MOX::antarans.resource_offensive};
@@ -31,6 +32,7 @@ namespace {
             dice::roll_kind = dice::ROLL_TWO_D10;
             crises::situations = false;
             crises::crisis_front = false;
+            crises::become_crisis = false;
             crises::front_strength = 0;
         }
         ~s_crises_scope() {
@@ -335,7 +337,11 @@ DOCTEST_TEST_CASE("become a crisis: atrocities build a threat, the galaxy declar
     Setup_(&state);
     crises::Add_Threat(0);  // flag off
     DOCTEST_CHECK(crises::Threat(0) == 0);
-    crises::crisis_front = true;
+    crises::crisis_front = true;  // the front's flag does not switch the threat on (iteration 2, decision 1)
+    crises::Add_Threat(0);
+    DOCTEST_CHECK(crises::Threat(0) == 0);
+    crises::crisis_front = false;
+    crises::become_crisis = true;
     crises::Add_Threat(0);
     DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY);
     state.players[1].treaty[0] = 0;
@@ -360,7 +366,7 @@ DOCTEST_TEST_CASE("become a crisis: a human culprit is declared war on, a human 
     s_crises_scope scope;
     test::s_game_state state;
     Setup_(&state);
-    crises::crisis_front = true;
+    crises::become_crisis = true;
     state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
     state.players[1].contact[0] = 0;
     state.players[0].contact[1] = 0;
@@ -500,7 +506,7 @@ DOCTEST_TEST_CASE("decision 5: war weariness grows by 3, only in a long war or a
     crises::Extra()->scale[0].approach = 2;
     MOX::stardate += 1;
     crises::Turn();
-    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == 40 - crises::WEARY_PEACE);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == 40 - crises::WEARY_FADE);
     MOX::stardate = 35020 + crises::WEARY_LONG_TURNS;
     crises::Extra()->scale[0].value = 40;
     crises::Turn();
@@ -509,6 +515,75 @@ DOCTEST_TEST_CASE("decision 5: war weariness grows by 3, only in a long war or a
     state.players[0].treaty[1] = 0;
     crises::Turn();
     DOCTEST_CHECK(crises::Extra()->war_since[0] == 0);
+}
+
+DOCTEST_TEST_CASE("decision 1: become a crisis has its own flag; the front's flag leaves the threat alone and the threat leaves the front alone") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::stardate = 35190;
+    MOX::settings.xenons_exist = 1;
+    MOX::antarans.field6_0x3c = 0;
+    crises::front_strength = 30;
+    crises::become_crisis = true;  // only the threat: no front opens
+    crises::Add_Threat(0);
+    crises::Turn();
+    DOCTEST_CHECK(crises::Threat(0) == crises::THREAT_ATROCITY - crises::THREAT_DECAY);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_ANTARAN_FRONT, -1) == nullptr);
+    DOCTEST_CHECK(crises::Extra()->front_start == 0);
+    crises::become_crisis = false;  // only the front: the threat is not kept
+    crises::Clear();
+    crises::crisis_front = true;
+    crises::Add_Threat(0);
+    DOCTEST_CHECK(crises::Threat(0) == 0);
+}
+
+DOCTEST_TEST_CASE("decision 3: war weariness fades gradually, ends only at zero in a war that does not press, and does not flicker") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::situations = true;
+    MOX::stardate = 35020;
+    DOCTEST_CHECK(crises::WEARY_LONG_TURNS == 15);
+    state.players[0].treaty[1] = 4;
+    state.players[0].bc = 0;
+    state.players[1].total_ship_strength[0] = 200;  // stronger: the war presses
+    crises::Turn();
+    const crises::s_scale* scale = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0);
+    DOCTEST_REQUIRE(scale != nullptr);
+    crises::Extra()->scale[0].approach = 2;  // carry on: no price, no relief
+    crises::Extra()->scale[0].value = 10;
+    // The war stops pressing: the scale falls WEARY_FADE a turn, it does not drop to zero and does not end at once.
+    state.players[1].total_ship_strength[0] = 0;
+    for (int i = 0; i < 4; ++i) {
+        MOX::stardate += 1;
+        crises::Turn();
+        scale = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0);
+        DOCTEST_REQUIRE(scale != nullptr);
+        DOCTEST_CHECK(scale->value == 10 - (i + 1) * crises::WEARY_FADE);
+    }
+    // The war presses again: the same scale grows, it did not restart.
+    const int32_t started = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->started;
+    state.players[1].total_ship_strength[0] = 200;
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == 10 - 4 * crises::WEARY_FADE + crises::WEARY_WAR);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->started == started);
+    // A scale at zero in a war that presses stays alive (an approach that takes off more than the growth).
+    crises::Extra()->scale[0].value = 0;
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0) != nullptr);
+    // No pressure: it fades to zero and only then ends.
+    state.players[1].total_ship_strength[0] = 0;
+    crises::Extra()->scale[0].value = 2 * crises::WEARY_FADE;
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0) != nullptr);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0)->value == crises::WEARY_FADE);
+    MOX::stardate += 1;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 0) == nullptr);
 }
 
 DOCTEST_TEST_CASE("the council's project: contributors by character, a push back, bonuses") {
