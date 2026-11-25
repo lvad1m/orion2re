@@ -7,6 +7,7 @@
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
+#include "game/reputation.h"
 #include "game/serialization.h"
 
 #include <memory>
@@ -240,6 +241,29 @@ DOCTEST_TEST_CASE("the save payload round-trips; a one-sided pact is refused") {
     buffer[2 + 1] = 0x01;  // player 1 bound to... player 0, who does not name it back
     SERIAL::Reader_ bad2(buffer.get(), pacts::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(pacts::Parse_Save(&bad2, &error));
+}
+
+
+DOCTEST_TEST_CASE("an aggression during talks is recognised as a red wedding (diplomacy red_wedding)") {
+    s_pacts_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> red_wedding{reputation::red_wedding};
+    reputation::Clear();
+    // Flag off: the hook returns at once and keeps nothing.
+    reputation::red_wedding = false;
+    reputation::On_Treaty_Signed(1, 2);
+    pacts::On_Aggression(1, 2);
+    DOCTEST_CHECK(reputation::Empty());
+    // Flag on: talks between 1 and 2 this turn; 1 attacks 2.
+    reputation::red_wedding = true;
+    reputation::On_Treaty_Signed(1, 2);
+    pacts::On_Aggression(3, 2);  // no talks between them
+    DOCTEST_CHECK_FALSE(reputation::Has(3, reputation::TITLE_HOSPITALITY_BREAKER));
+    pacts::On_Aggression(1, 2);
+    DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_HOSPITALITY_BREAKER));
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_VIOLATED_HOSPITALITY) == reputation::RED_WEDDING_VICTIM_OPINION);
+    reputation::Clear();
 }
 
 }

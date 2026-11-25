@@ -3,6 +3,7 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "game/colcalc.h"
+#include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/overtures.h"
 #include "game/random.h"
@@ -226,14 +227,17 @@ DOCTEST_TEST_CASE("leaked discovery: share, sell, suppress")
     DOCTEST_CHECK(overtures::Empty());
 }
 
-DOCTEST_TEST_CASE("peacekeepers: a mediator presses two warring computers; peace, or the patrols strike")
+DOCTEST_TEST_CASE("mediator: a third power makes peace between two warring computers; both owe it a favour, nothing is struck")
 {
     s_overtures_scope scope;
+    test::s_saved_value<bool> favours_flag{intrigue::favours};
+    intrigue::Clear();
+    intrigue::favours = true;
     test::s_game_state state;
     Setup_(&state);
     // A human at war is not driven.
     War_(&state, 1, 2);
-    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     Computers_(&state);
     // Ships for the strike: player 1 and 2 own ships of their own.
     MOX::NUM_SHIPS = 9;
@@ -245,19 +249,19 @@ DOCTEST_TEST_CASE("peacekeepers: a mediator presses two warring computers; peace
     // No mediator: the only others, 0 and 3, are at war with player 1.
     War_(&state, 0, 1);
     War_(&state, 3, 1);
-    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     DOCTEST_CHECK(overtures::Empty());
     state.players[0].treaty[1] = state.players[1].treaty[0] = 0;
     state.players[3].treaty[1] = state.players[1].treaty[3] = 0;
-    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     DOCTEST_REQUIRE(overtures::State()->count == 1);
     const overtures::s_record rec = overtures::State()->record[0];
-    DOCTEST_CHECK(rec.kind == overtures::KIND_PEACEKEEPERS);
+    DOCTEST_CHECK(rec.kind == overtures::KIND_MEDIATOR);
     DOCTEST_CHECK(rec.target == 1);
     DOCTEST_CHECK(rec.other == 2);
     DOCTEST_CHECK((rec.player == 0 || rec.player == 3));
     // The same pair is not pressed twice.
-    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_PEACEKEEPERS, 2));
+    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_MEDIATOR, 2));
     // A turn whose draw is above the chance: the war goes on, the record stays.
     Seed_For_(100, 100);
     overtures::Run_Records();
@@ -270,26 +274,29 @@ DOCTEST_TEST_CASE("peacekeepers: a mediator presses two warring computers; peace
     DOCTEST_CHECK(overtures::Empty());
     DOCTEST_CHECK(opinion::Relations(1, rec.player) == overtures::PEACE_OPINION);
     DOCTEST_CHECK(opinion::Relations(2, rec.player) == overtures::PEACE_OPINION);
-    // Pressed to the end of the turns without peace: the patrols strike each side.
+    // "Услуги от обоих": each side owes the mediator a favour.
+    DOCTEST_CHECK(intrigue::Favours(1, rec.player) == 1);
+    DOCTEST_CHECK(intrigue::Favours(2, rec.player) == 1);
+    DOCTEST_CHECK(intrigue::Favours(rec.player, 1) == 0);
+    // Pressed to the end of the turns without peace: the mediator gives up, nothing is struck and nothing owed.
     War_(&state, 1, 2);
-    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     const int16_t mediator = overtures::State()->record[0].player;
     MOX::stardate += overtures::PEACE_TURNS;
     Seed_For_(100, 100);
     overtures::Run_Records();
     DOCTEST_CHECK(overtures::Empty());
     DOCTEST_CHECK(At_War_(state, 1, 2));
-    DOCTEST_CHECK(state.ships[5].status == 5);  // the cheapest of player 1
-    DOCTEST_CHECK(state.ships[6].status != 5);
-    DOCTEST_CHECK(state.ships[7].status == 5);  // the cheapest of player 2
-    DOCTEST_CHECK(state.ships[8].status != 5);
-    DOCTEST_CHECK(opinion::Relations(1, mediator) < overtures::PEACE_OPINION);
-    // A war that ends by itself sends the patrols home.
+    for (int s = 5; s < 9; ++s) DOCTEST_CHECK(state.ships[s].status != 5);  // no patrol strike: every ship lives
+    DOCTEST_CHECK(opinion::Relations(1, mediator) == overtures::PEACE_OPINION);  // the old thanks only, no new grudge
+    DOCTEST_CHECK(intrigue::Favours(1, mediator) == 1);  // and no second favour
+    // A war that ends by itself closes the mediation.
     War_(&state, 1, 2);
-    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     state.players[1].treaty[2] = state.players[2].treaty[1] = 0;
     overtures::Run_Records();
     DOCTEST_CHECK(overtures::Empty());
+    intrigue::Clear();
 }
 
 DOCTEST_TEST_CASE("paid offensive: the payer pays an ally that declares war; the deal is judged later")
@@ -380,7 +387,7 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     state.players[3].treaty[1] = state.players[1].treaty[3] = TREATY_ALLIANCE;
     DOCTEST_REQUIRE(overtures::Start(overtures::KIND_OFFENSIVE, 0, overtures::OFFENSIVE_STANDARD));
     War_(&state, 1, 2);
-    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_PEACEKEEPERS, 1));
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_MEDIATOR, 1));
     DOCTEST_REQUIRE(overtures::State()->count == 2);
     const uint32_t size = overtures::Save_Size();
     auto buffer = std::make_unique<uint8_t[]>(size);
@@ -397,7 +404,7 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     DOCTEST_REQUIRE(overtures::State()->count == 2);
     DOCTEST_CHECK(overtures::State()->record[0].kind == overtures::KIND_OFFENSIVE);
     DOCTEST_CHECK(overtures::State()->record[0].target == 2);
-    DOCTEST_CHECK(overtures::State()->record[1].kind == overtures::KIND_PEACEKEEPERS);
+    DOCTEST_CHECK(overtures::State()->record[1].kind == overtures::KIND_MEDIATOR);
     DOCTEST_CHECK(overtures::State()->record[1].target == 1);
 
     // Layout: version (2), count (1), then 17 bytes a record: kind 0, player 1, target 2-3, other 4-5,

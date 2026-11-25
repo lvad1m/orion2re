@@ -12,11 +12,17 @@ namespace SERIAL {
 
 // Overtures: four events of diplomacy (docs/LocalLLM/events-catalog.md 3.5 and 3.12; README.md 10.9, wave 4):
 // an outstretched hand (scientists of all races offer help for a smaller fleet), a leaked discovery (share it,
-// sell it or suppress it), peacekeepers (a third power presses two warring empires to peace) and a paid
+// sell it or suppress it), a mediator (a third power makes peace between two warring empires) and a paid
 // offensive of the coalition (a computer at war pays an ally to fight the common enemy). The first two are
 // one-off effects; the last two are kept as records. A human-owned subject takes the first, safest option (no
-// interface step yet) and is never driven by the peacekeepers or the paid offensive (only computers are); a
+// interface step yet) and is never driven by the mediator or the paid offensive (only computers are); a
 // computer picks by its personality (Choose).
+// The mediator is the row "Посредник" of mechanics.md 3.5.3 (wave 6, ab-review.md 1.4 and 4.3; it was built
+// first, in wave 4, as "peacekeepers" with a patrol strike, which the author struck out on 25.11.2026: "патрули
+// не делаем"). The row, in its own words:
+//   "Посредник | третья империя мирит воюющих за услуги от обоих | услуги, `Declare_Peace`"
+// and the author's decision (4.3): "при мире каждая сторона должна посреднику услугу (`intrigue` favours);
+// удар «патрулей» по кораблям при провале убрать; переименовать в коде и документах в «Посредник»".
 // Off by default (events overtures); with the flag off nothing here draws from game_random, nothing is kept.
 namespace overtures {
 
@@ -31,7 +37,7 @@ namespace overtures {
         KIND_NONE = 0,
         KIND_HAND = 1,          // an outstretched hand; one-off
         KIND_LEAK = 2,          // a leaked discovery; one-off
-        KIND_PEACEKEEPERS = 3,  // record; player: the mediator, target and other: the warring empires
+        KIND_MEDIATOR = 3,      // record; player: the mediator, target and other: the warring empires (was "peacekeepers")
         KIND_OFFENSIVE = 4,     // record; player: the payer, target: the paid ally, other: the enemy, value: BC
         KIND_LAST = 4,
     };
@@ -59,17 +65,16 @@ namespace overtures {
     constexpr int32_t LEAK_SHARE_OPINION = 10;
     constexpr int32_t LEAK_PRICE = 100;
     constexpr int32_t LEAK_SUPPRESS_COST = 30;
-    // Peacekeepers (3.5): the mediator's robot patrols press two warring computer empires for PEACE_TURNS. Each
-    // turn the chance of peace, in percent, is PEACE_BASE plus the war weariness of both sides (each in
-    // percent, halved), at most PEACE_MAX. Peace is remembered gratefully (PEACE_OPINION, both of the mediator);
-    // when the turns pass with the war still on, the patrols strike: each side loses PATROL_LOSS of its
-    // cheapest ships and dislikes the mediator (PATROL_OPINION).
+    // Mediator (3.5.3): a third computer power in good standing with two warring computer empires works for peace
+    // for PEACE_TURNS. Each turn the chance of peace, in percent, is PEACE_BASE plus the war weariness of both
+    // sides (each in percent, halved), at most PEACE_MAX. When peace comes (Declare_Peace) each side owes the
+    // mediator a favour (intrigue::Owe, with `diplomacy favours`; "услуги от обоих") and remembers it gratefully
+    // (PEACE_OPINION, both of the mediator). When the turns pass with the war still on, the mediator gives up:
+    // nothing is struck, nothing is owed.
     constexpr int32_t PEACE_TURNS = 8;
     constexpr int32_t PEACE_BASE = 8;
     constexpr int32_t PEACE_MAX = 80;
     constexpr int32_t PEACE_OPINION = 8;
-    constexpr int32_t PATROL_LOSS = 1;
-    constexpr int32_t PATROL_OPINION = -10;
     // Paid offensive (3.12): the payer, at war, pays an ally (a computer in contact with both, not at war with
     // the payer, not allied to the enemy, not war-weary, liking the payer) PAYMENT_PERCENT[option] percent of
     // its treasury (at least PAYMENT_MIN BC). An ally not yet at war with the enemy declares war on it; one
@@ -101,7 +106,7 @@ namespace overtures {
     // The option a computer of `player` takes for `kind` by its personality; a human, or the flag off: 0.
     int32_t Choose(e_kind kind, int16_t player);
 
-    // Starts the event of `kind` for `player` (the subject: the empire the event happens to; for the peacekeepers
+    // Starts the event of `kind` for `player` (the subject: the empire the event happens to; for the mediator
     // an empire at war, for the paid offensive the payer) and applies the option Choose gives (`option` >= 0
     // overrides it). Draws from game_random only to pick among several candidates. False when it cannot start.
     bool Start(e_kind kind, int16_t player, int32_t option = -1);
@@ -114,7 +119,7 @@ namespace overtures {
     void Clear();
     bool Empty();
 
-    // Save section 'OVTR' (game/rules_sections.h): payload version 1, then the count (uint8), per record kind
+    // Save section 'OVTR' (game/rules_sections.h): payload version 1 (kind 3 is the mediator, once the peacekeepers), then the count (uint8), per record kind
     // (uint8), player (int8), target and other (int16), started and ends (int32), option (int8), value (int16).
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);

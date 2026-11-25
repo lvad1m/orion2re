@@ -2,14 +2,20 @@
 
 #include "game/reputation.h"
 
+#include "game/covenants.h"
 #include "game/crises.h"
+#include "game/diplomac.h"
+#include "game/diplomacy_memory.h"
 #include "game/opinion.h"
+#include "game/pacts.h"
+#include "game/random.h"
 
 #include <algorithm>
 
 // Deeds and reviews of stains and titles (mechanics.md 3.5.6, events-catalog.md 3.12); the state,
 // what titles add to relations and the save section are in reputation_state.cpp. Nothing here draws
-// from game_random.
+// from game_random, except Turn with `diplomacy red_wedding` on (a ruthless empire's chance to strike its
+// guest, and Declare_War as always); the header quotes the design row of the red wedding.
 namespace reputation {
 
     namespace {
@@ -33,6 +39,50 @@ namespace reputation {
             if (!had) {
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "reputation: stardate %d, player %d is now known as %s",
                     (int)MOX::stardate, (int)player, Title_Name(title));
+            }
+        }
+
+        // A stain that never expires (the red wedding).
+        void Grant_Forever_(int16_t player, e_title title) {
+            int32_t& until = State()->until[player][title];
+            const bool had = until > MOX::stardate;
+            until = INT32_MAX;
+            if (!had) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "reputation: stardate %d, player %d is now known as %s",
+                    (int)MOX::stardate, (int)player, Title_Name(title));
+            }
+        }
+
+        bool Computer_(int16_t player) {
+            return Alive_(player) && MOX::player[player].objectives != PLAYER_OBJECTIVE_HUMAN;
+        }
+
+        // `a` and `b` talk or marry now: a treaty of any kind was signed lately, or a marriage is young.
+        const char* Guest_Window_(int16_t a, int16_t b) {
+            const int32_t talks = State()->talks[a][b];
+            if (talks > 0 && MOX::stardate >= talks && MOX::stardate - talks < TALKS_TURNS) return "talks";
+            if (covenants::Spouse(a) == b) {
+                const int32_t since = covenants::State()->married_since[a];
+                if (since > 0 && MOX::stardate - since < WEDDING_TURNS) return "a wedding";
+            }
+            return nullptr;
+        }
+
+        // "Occasionally by ruthless AIs": a ruthless computer empire, not too weary, strikes its guest.
+        void Run_Red_Weddings_() {
+            for (int16_t a = 0; a < Players_(); ++a) {
+                if (!Computer_(a) || MOX::player[a].personality != PLAYER_PERSONALITY_RUTHLESS) continue;
+                if (diplomemory::Too_Weary_For_New_War(a)) continue;
+                for (int16_t v = 0; v < Players_(); ++v) {
+                    if (v == a || !Alive_(v) || MOX::player[a].treaty[v] >= TREATY_FIRST_WAR || MOX::player[a].contact[v] == 0) continue;
+                    if (Guest_Window_(a, v) == nullptr) continue;
+                    if (static_cast<int32_t>(game_random::Random(1000)) > RED_WEDDING_PER_MILLE) continue;
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "reputation: stardate %d, player %d turns on its guest, player %d",
+                        (int)MOX::stardate, (int)a, (int)v);
+                    diplomac::Declare_War(a, v);
+                    pacts::On_Aggression(a, v);
+                    break;
+                }
             }
         }
 
@@ -179,7 +229,54 @@ namespace reputation {
         if (d < 30000) ++d;
     }
 
+    void On_Treaty_Signed(int16_t a, int16_t b) {
+        if (!red_wedding || !Alive_(a) || !Alive_(b) || a == b) return;
+        State()->talks[a][b] = State()->talks[b][a] = MOX::stardate;
+    }
+
+    void On_Wedding_Broken(int16_t breaker, int16_t wronged) {
+        if (!red_wedding || !Alive_(breaker) || !Alive_(wronged) || breaker == wronged) return;
+        s_state* s = State();
+        s->wedding_breaker = breaker;
+        s->wedding_wronged = wronged;
+        s->wedding_stardate = MOX::stardate;
+    }
+
+    void On_Aggression(int16_t aggressor, int16_t victim) {
+        if (!red_wedding || !Alive_(aggressor) || !Alive_(victim) || aggressor == victim) return;
+        s_state* s = State();
+        const char* during = nullptr;
+        if (s->wedding_breaker == aggressor && s->wedding_wronged == victim && s->wedding_stardate == MOX::stardate) {
+            during = "a wedding";
+        } else {
+            const int32_t talks = s->talks[aggressor][victim];
+            if (talks > 0 && MOX::stardate >= talks && MOX::stardate - talks < TALKS_TURNS) during = "talks";
+        }
+        s->wedding_breaker = s->wedding_wronged = -1;
+        s->wedding_stardate = 0;
+        if (during != nullptr) On_Red_Wedding(aggressor, victim, during);
+    }
+
+    void On_Red_Wedding(int16_t aggressor, int16_t victim, const char* during) {
+        if (!red_wedding || !Alive_(aggressor) || !Alive_(victim) || aggressor == victim) return;
+        s_state* s = State();
+        if (s->last_red_aggressor == aggressor && s->last_red_victim == victim && s->last_red_stardate == MOX::stardate) return;
+        s->last_red_aggressor = aggressor;
+        s->last_red_victim = victim;
+        s->last_red_stardate = MOX::stardate;
+        Grant_Forever_(aggressor, TITLE_HOSPITALITY_BREAKER);
+        opinion::Add(victim, aggressor, opinion::REASON_VIOLATED_HOSPITALITY, RED_WEDDING_VICTIM_OPINION);
+        for (int16_t o = 0; o < Players_(); ++o) {
+            if (o != aggressor && o != victim && Alive_(o) && MOX::player[o].contact[aggressor] != 0) {
+                opinion::Add(o, aggressor, opinion::REASON_VIOLATED_HOSPITALITY, RED_WEDDING_OPINION);
+            }
+        }
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "reputation: stardate %d, player %d: RED WEDDING against player %d (during %s)",
+            (int)MOX::stardate, (int)aggressor, (int)victim, during != nullptr ? during : "");
+    }
+
     void Turn() {
+        if (red_wedding) Run_Red_Weddings_();
         if (!enabled) return;
         Note_Peaces_();
         if (MOX::stardate % PERIOD == 0) Review_Conduct_();

@@ -97,7 +97,7 @@ namespace NEXTTURN {
         wanderers::Turn();
         // Incidents (off by default): a disease, a drug, a treasury, a deposit, a general, a governor.
         incidents::Turn();
-        // Overtures (off by default): an outstretched hand, a leaked discovery, peacekeepers, paid offensives.
+        // Overtures (off by default): an outstretched hand, a leaked discovery, a mediator, paid offensives.
         overtures::Turn();
         // The pirate world (off by default): tribute, privateers, slavers, a syndicate, a smuggler, lairs and havens.
         pirate_world::Turn();

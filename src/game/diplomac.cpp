@@ -14,6 +14,7 @@
 #include "game/resolutions.h"
 #include "game/pacts.h"
 #include "game/rivalry.h"
+#include "game/ultimatums.h"
 
 #include "legacy_world.h"
 
@@ -568,6 +569,7 @@ namespace diplomac {
                         plr1->diplomacy_message[p2] = 0x69;
                         plr1->war_buildup_duration = (int8_t)game_random::Random(20) + 10;
                         Set_Demands(p1, p2);
+                        ultimatums::On_Demand(p1, p2);  // a deadline for the demand (off by default)
                     } else if (eval_results[p2] == 4) {
                         plr1->council_threat = (int8_t)p2;
                         Clear_Last_Threat_Turn(p1, p2);
@@ -576,6 +578,7 @@ namespace diplomac {
                         plr1->diplomacy_message[p2] = 0x7c;
                         plr1->war_buildup_duration = (int8_t)game_random::Random(20) + 20;
                         Set_Demands(p1, p2);
+                        ultimatums::On_Demand(p1, p2);  // a deadline for the ultimatum (off by default)
                     }
                 }
             } else if (plr1->war_buildup_duration == 0) {
@@ -842,6 +845,8 @@ namespace diplomac {
         vassals::Turn();
         // Secret clauses and marriages (off by default): spies learn clauses, clauses and marriages made and kept.
         covenants::Turn();
+        // Ultimatums with a deadline (off by default): demands run out into a lawful cause for war.
+        ultimatums::Turn();
         // Hostages and prisoners (off by default): hostages come home, prisoners escape, are ransomed or exchanged.
         hostages::Turn();
         // Ambitious governors (off by default): a restless governor defects with its colonies or deserts.
@@ -1097,6 +1102,7 @@ namespace diplomac {
     }
 
     void __cdecl Start_Treaty(int16_t p1, int16_t p2, int16_t treaty_type) {
+        reputation::On_Treaty_Signed(p1, p2);  // the talks of a red wedding (off by default)
         // The news ring (off by default).
         if (treaty_type == 1) news::Add(news::KIND_PEACE, p1, p2, 0);
         if (treaty_type == 2) news::Add(news::KIND_ALLIANCE, p1, p2, 0);
@@ -1467,8 +1473,12 @@ namespace diplomac {
         }
 
         uint8_t current_treaty = p1->treaty[p2_idx];
-        beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
-        reputation::On_Treaty_Broken(p1_idx, p2_idx, current_treaty);  // stains and titles (off by default)
+        // An ultimatum that ran out unmet is a lawful cause (off by default): the others do not hold the break against p1.
+        const bool lawful = ultimatums::Has_Cause(p1_idx, p2_idx);
+        if (!lawful) {
+            beliefs::On_Treaty_Broken(p1_idx, p2_idx);  // the neighbour model (off by default)
+            reputation::On_Treaty_Broken(p1_idx, p2_idx, current_treaty);  // stains and titles (off by default)
+        }
         covenants::On_Treaty_Broken(p1_idx, p2_idx);  // a marriage between them ends (off by default)
         hostages::On_Treaty_Broken(p1_idx, p2_idx);  // the holder decides the fate of a hostage (off by default)
 
@@ -1491,7 +1501,7 @@ namespace diplomac {
 
         p1->broken_treaties_modifier[p2_idx] -= (char)penalty;
 
-        for (int16_t other_idx = 0; other_idx < (int16_t)MOX::NUM_PLAYERS; ++other_idx) {
+        for (int16_t other_idx = 0; other_idx < (int16_t)MOX::NUM_PLAYERS && !lawful; ++other_idx) {
             if (other_idx == p1_idx || other_idx == p2_idx) {
                 continue;
             }
@@ -1788,6 +1798,7 @@ namespace diplomac {
                         if (Get_Demands(current_player, target_player, 6, 1, 1, 1, 1) == 1) {
                             plr->diplomacy_message[target_player] = incident + 0x1B;
                             Set_Demands(current_player, target_player);
+                            ultimatums::On_Demand(current_player, target_player);  // a deadline for the demand (off by default)
                             return;
                         }
                     }
@@ -1872,6 +1883,7 @@ namespace diplomac {
     }
 
     void __cdecl Declare_Peace(int16_t p1, int16_t p2) {
+        reputation::On_Treaty_Signed(p1, p2);  // the talks of a red wedding (off by default)
         MOX::player[p1].treaty[p2] = 3 /* PEACE */;
         MOX::player[p2].treaty[p1] = 3 /* PEACE */;
 
@@ -2673,6 +2685,7 @@ namespace diplomac {
     }
 
     void __cdecl Start_Trade_Treaty(int16_t player_idx, int16_t target_player_idx) {
+        reputation::On_Treaty_Signed(player_idx, target_player_idx);  // the talks of a red wedding (off by default)
         int16_t personality;
         int8_t bonus;
 
@@ -2688,6 +2701,7 @@ namespace diplomac {
     }
 
     void __cdecl Start_Research_Treaty(int16_t player_idx, int16_t other_idx) {
+        reputation::On_Treaty_Signed(player_idx, other_idx);  // the talks of a red wedding (off by default)
         int16_t personality_a;
         int16_t personality_b;
 

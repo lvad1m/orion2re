@@ -22,6 +22,7 @@
 #include "game/wanderers.h"
 #include "game/incidents.h"
 #include "game/overtures.h"
+#include "game/ultimatums.h"
 #include "game/pirate_world.h"
 #include "game/beasts.h"
 #include "game/discoveries.h"
@@ -558,12 +559,26 @@ namespace advisor {
             for (int32_t i = 0; i < os->count; ++i) {
                 const overtures::s_record& r = os->record[i];
                 if (r.player != self.player && r.target != self.player && r.other != self.player) continue;
-                if (r.kind == overtures::KIND_PEACEKEEPERS) {
-                    Append_Format(out, "Event: peacekeepers of player %d press players %d and %d to peace (until stardate %d).\n",
+                if (r.kind == overtures::KIND_MEDIATOR) {
+                    Append_Format(out, "Event: player %d mediates between players %d and %d for peace (until stardate %d).\n",
                         static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.ends));
                 } else {
                     Append_Format(out, "Event: player %d paid player %d for an offensive against player %d (judged at stardate %d).\n",
                         static_cast<int>(r.player), static_cast<int>(r.target), static_cast<int>(r.other), static_cast<int>(r.ends));
+                }
+            }
+        }
+        if (ultimatums::enabled) {
+            const ultimatums::s_state* us = ultimatums::State();
+            for (int32_t i = 0; i < us->count; ++i) {
+                const ultimatums::s_record& r = us->record[i];
+                if (r.demander != self.player && r.victim != self.player) continue;
+                if (r.state == ultimatums::STATE_OPEN) {
+                    Append_Format(out, "Ultimatum: player %d demands %s of player %d by stardate %d.\n", static_cast<int>(r.demander),
+                        r.amount > 0 ? "tribute" : "an answer", static_cast<int>(r.victim), static_cast<int>(r.deadline));
+                } else {
+                    Append_Format(out, "Ultimatum: player %d holds a lawful cause for war against player %d (until stardate %d).\n",
+                        static_cast<int>(r.demander), static_cast<int>(r.victim), static_cast<int>(r.deadline + ultimatums::CAUSE_TURNS));
                 }
             }
         }

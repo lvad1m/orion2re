@@ -12,9 +12,13 @@
 namespace reputation {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 1;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
+        constexpr int32_t TITLES_V1 = 8;
         constexpr uint32_t PLAYER_SIZE = TITLE_COUNT * 4 + 2 * 4 + 2 * 4 + 2 + 1;
-        constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + MAX_PLAYERS * PLAYER_SIZE + 4;
+        constexpr uint32_t TALKS_SIZE = 8 * 8 * 4;
+        constexpr uint32_t SAVE_SIZE = sizeof(uint16_t) + MAX_PLAYERS * PLAYER_SIZE + 4 + TALKS_SIZE;
+        constexpr uint32_t PLAYER_SIZE_V1 = TITLES_V1 * 4 + 2 * 4 + 2 * 4 + 2 + 1;
+        constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_PLAYERS * PLAYER_SIZE_V1 + 4;
 
         static_assert(MAX_PLAYERS == 8, "the reputation state is sized for 8 players");
 
@@ -41,12 +45,13 @@ namespace reputation {
             case TITLE_TRADE_PRINCE: return "trade prince";
             case TITLE_WARLORD: return "warlord";
             case TITLE_CORSAIR: return "corsair";
+            case TITLE_HOSPITALITY_BREAKER: return "breaker of hospitality";
             default: return "none";
         }
     }
 
     bool Has(int16_t player, e_title title) {
-        if (!enabled || !Valid_(player) || title >= TITLE_COUNT) return false;
+        if (!(enabled || red_wedding) || !Valid_(player) || title >= TITLE_COUNT) return false;
         return state.until[player][title] > MOX::stardate;
     }
 
@@ -74,6 +79,7 @@ namespace reputation {
         if (Has(target, TITLE_TRADE_PRINCE)) bias += 5;
         if (Has(target, TITLE_WARLORD)) bias -= warlike ? 0 : 5;
         if (Has(target, TITLE_CORSAIR)) bias -= 10;
+        // The red wedding's stain acts through its own memory (opinion::REASON_VIOLATED_HOSPITALITY), not here.
         return std::clamp<int32_t>(bias, -BIAS_LIMIT, BIAS_LIMIT);
     }
 
@@ -89,7 +95,8 @@ namespace reputation {
             std::equal(&state.peaces[0][0], &state.peaces[0][0] + 16, &empty.peaces[0][0]) &&
             std::all_of(std::begin(state.deeds), std::end(state.deeds), [](int16_t v) { return v == 0; }) &&
             std::all_of(std::begin(state.at_war), std::end(state.at_war), [](uint8_t v) { return v == 0; }) &&
-            state.deeds_window == 0;
+            state.deeds_window == 0 &&
+            std::all_of(&state.talks[0][0], &state.talks[0][0] + 64, [](int32_t v) { return v == 0; });
     }
 
     uint32_t Save_Size() {
@@ -106,6 +113,9 @@ namespace reputation {
             writer->Write_Uint8(state.at_war[p]);
         }
         writer->Write_Int32(state.deeds_window);
+        for (int p = 0; p < MAX_PLAYERS; ++p) {
+            for (int32_t v : state.talks[p]) writer->Write_Int32(v);
+        }
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -115,11 +125,14 @@ namespace reputation {
             return false;
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("reputation save is truncated");
-        if (reader->Read_Uint16() != SAVE_PAYLOAD_VERSION) return fail("unsupported reputation payload version");
-        if (reader->Remaining() != SAVE_SIZE - sizeof(uint16_t)) return fail("reputation save has the wrong size");
+        const uint16_t version = reader->Read_Uint16();
+        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported reputation payload version");
+        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE;
+        if (reader->Remaining() != expected - sizeof(uint16_t)) return fail("reputation save has the wrong size");
+        const int32_t titles_saved = version == 1 ? TITLES_V1 : TITLE_COUNT;
         pending = s_state{};
         for (int p = 0; p < MAX_PLAYERS; ++p) {
-            for (int32_t& v : pending.until[p]) v = reader->Read_Int32();
+            for (int32_t t = 0; t < titles_saved; ++t) pending.until[p][t] = reader->Read_Int32();
             for (int32_t& v : pending.breaches[p]) v = reader->Read_Int32();
             for (int32_t& v : pending.peaces[p]) v = reader->Read_Int32();
             pending.deeds[p] = reader->Read_Int16();
@@ -129,6 +142,14 @@ namespace reputation {
             if (bad) return fail("reputation save has a bad value");
         }
         pending.deeds_window = reader->Read_Int32();
+        if (version >= 2) {
+            for (int p = 0; p < MAX_PLAYERS; ++p) {
+                for (int32_t& v : pending.talks[p]) {
+                    v = reader->Read_Int32();
+                    if (v < 0) return fail("reputation save has a bad value");
+                }
+            }
+        }
         if (reader->Failed() || pending.deeds_window < 0) return fail("reputation save is truncated");
         has_pending = true;
         return true;

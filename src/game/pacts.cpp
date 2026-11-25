@@ -11,6 +11,7 @@
 #include "game/intrigue.h"
 #include "game/vassals.h"
 #include "game/opinion.h"
+#include "game/reputation.h"
 
 #include <algorithm>
 
@@ -138,6 +139,7 @@ namespace pacts {
     void On_Aggression(int16_t aggressor, int16_t victim) {
         vassals::On_Aggression(aggressor, victim);  // an overlord defends its vassal (off by default)
         covenants::On_Aggression(aggressor, victim);  // secret clauses answer, a marriage breaks (off by default)
+        reputation::On_Aggression(aggressor, victim);  // an attack during talks or a wedding is a red wedding (off by default)
         if (!enabled || responding || !Alive_(aggressor) || !Alive_(victim) || aggressor == victim) return;
         responding = true;
         for (int16_t p = 0; p < MOX::NUM_PLAYERS && p < MAX_PLAYERS; ++p) {

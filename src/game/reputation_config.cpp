@@ -7,5 +7,6 @@
 namespace reputation {
 
     bool enabled = false;
+    bool red_wedding = false;
 
 } // namespace reputation

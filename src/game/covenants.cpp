@@ -7,6 +7,7 @@
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/reputation.h"
 
 #include <algorithm>
 
@@ -204,12 +205,15 @@ namespace covenants {
         if (a < 0 || a >= MAX_PLAYERS || b < 0 || b >= MAX_PLAYERS) return;
         s_state* s = State();
         if (s->spouse[a] != b) return;
+        const int32_t married_for = MOX::stardate - s->married_since[a];
         s->spouse[a] = s->spouse[b] = -1;
         s->married_since[a] = s->married_since[b] = 0;
         opinion::Set(a, b, opinion::REASON_FAMILY_TIES, 0);
         opinion::Set(b, a, opinion::REASON_FAMILY_TIES, 0);
         if (breaker == a || breaker == b) {
             const int16_t wronged = breaker == a ? b : a;
+            // A marriage broken during the wedding: the next attack between them is a red wedding (reputation.h).
+            if (married_for < reputation::WEDDING_TURNS) reputation::On_Wedding_Broken(breaker, wronged);
             opinion::Add(wronged, breaker, opinion::REASON_BROKE_ITS_WORD, BROKEN_OPINION);
             for (int16_t o = 0; o < Players_(); ++o) {
                 if (o == breaker || o == wronged || !Computer_(o) || MOX::player[o].contact[breaker] == 0) continue;

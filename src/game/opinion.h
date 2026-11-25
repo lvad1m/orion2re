@@ -54,7 +54,7 @@ namespace opinion {
         REASON_FAMILY_TIES = 26,          // a dynastic marriage or a hostage kept well (+)
         REASON_OVERLORD = 27,             // our overlord: protection for tribute (+) or a harsh one (-)
         REASON_BAD_RUMOURS = 28,          // heard bad rumours about it: a smear, a secret made public
-        REASON_RESERVED_29 = 29,
+        REASON_VIOLATED_HOSPITALITY = 29, // a red wedding: an attack during talks or a wedding; never fades (reputation.h)
         REASON_RESERVED_30 = 30,
         REASON_RESERVED_31 = 31,
         REASON_COUNT = 32,

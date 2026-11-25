@@ -21,6 +21,7 @@
 #include "game/wanderers.h"
 #include "game/incidents.h"
 #include "game/overtures.h"
+#include "game/ultimatums.h"
 #include "game/pirate_world.h"
 #include "game/beasts.h"
 #include "game/discoveries.h"
@@ -93,7 +94,7 @@ namespace SAVEGAME {
         }
 
         bool Reputation_Has_State_() {
-            return reputation::enabled && !reputation::Empty();
+            return (reputation::enabled || reputation::red_wedding) && !reputation::Empty();
         }
 
         bool Vassals_Has_State_() {
@@ -136,6 +137,10 @@ namespace SAVEGAME {
 
         bool Overtures_Has_State_() {
             return overtures::enabled && !overtures::Empty();
+        }
+
+        bool Ultimatums_Has_State_() {
+            return ultimatums::enabled && !ultimatums::Empty();
         }
 
         bool Pirate_World_Has_State_() {
@@ -212,6 +217,8 @@ namespace SAVEGAME {
                 incidents::Parse_Save, incidents::Commit_Save, incidents::Discard_Save, incidents::Clear},
             {SECTION_TYPE_OVERTURES, 1, "overtures", Overtures_Has_State_, overtures::Save_Size, overtures::Write_Save,
                 overtures::Parse_Save, overtures::Commit_Save, overtures::Discard_Save, overtures::Clear},
+            {SECTION_TYPE_ULTIMATUMS, 1, "ultimatums", Ultimatums_Has_State_, ultimatums::Save_Size, ultimatums::Write_Save,
+                ultimatums::Parse_Save, ultimatums::Commit_Save, ultimatums::Discard_Save, ultimatums::Clear},
             {SECTION_TYPE_PIRATE_WORLD, 1, "pirate world", Pirate_World_Has_State_, pirate_world::Save_Size, pirate_world::Write_Save,
                 pirate_world::Parse_Save, pirate_world::Commit_Save, pirate_world::Discard_Save, pirate_world::Clear},
             {SECTION_TYPE_BEASTS, 1, "beasts", Beasts_Has_State_, beasts::Save_Size, beasts::Write_Save,

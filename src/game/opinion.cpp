@@ -5,6 +5,7 @@
 #include "game/beliefs.h"
 #include "game/reputation.h"
 #include "game/serialization.h"
+#include "game/ultimatums.h"
 
 #include <algorithm>
 #include <cstring>
@@ -111,6 +112,7 @@ namespace opinion {
             case REASON_FAMILY_TIES: return "family ties";
             case REASON_OVERLORD: return "our overlord";
             case REASON_BAD_RUMOURS: return "bad rumours about it";
+            case REASON_VIOLATED_HOSPITALITY: return "attacked its guest: a red wedding";
             default: return "unknown";
         }
     }
@@ -127,6 +129,7 @@ namespace opinion {
                     int8_t& value = reasons[r];
                     if (value == 0) continue;
                     if (r == REASON_ATROCITY && step % ATROCITY_FADE_STEPS != 0) continue;
+                    if (r == REASON_VIOLATED_HOSPITALITY) continue;  // a red wedding is never forgiven (the design row: without fading)
                     if (value < 0 && slow_grudges && step % 2 != 0) continue;
                     value = static_cast<int8_t>(value > 0 ? value - 1 : value + 1);
                 }
@@ -135,6 +138,7 @@ namespace opinion {
     }
 
     void On_Sneak_Attack(int16_t attacker, int16_t victim) {
+        if (ultimatums::Has_Cause(attacker, victim)) return;  // a lawful cause (an ultimatum unmet): not a sneak attack
         Add(victim, attacker, REASON_SNEAK_ATTACK, sneak_attack);
     }
 

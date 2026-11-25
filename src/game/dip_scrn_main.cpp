@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "game/pacts.h"
+#include "game/ultimatums.h"
 
 #include "legacy_world.h"
 
@@ -1848,6 +1849,7 @@ namespace DIP_SCRN {
     }
 
     void __cdecl Accepted_Npc_Demand_Resolution(int16_t player_id, int16_t ambassador_id) {
+        ultimatums::On_Demand_Met(ambassador_id, player_id);  // the demand is met in time (off by default)
         int16_t relation_change = game_random::Random(13) + 11;
         diplomac::Change_Relations(relation_change, player_id, ambassador_id, 0, 0, 0);
 

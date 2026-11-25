@@ -5,6 +5,7 @@
 #include "game/colcalc.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
+#include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/random.h"
 #include "game/ships.h"
@@ -207,7 +208,7 @@ namespace overtures {
             const s_state* s = State();
             for (int32_t i = 0; i < s->count; ++i) {
                 const s_record& r = s->record[i];
-                if (r.kind == KIND_PEACEKEEPERS && ((r.target == a && r.other == b) || (r.target == b && r.other == a))) return true;
+                if (r.kind == KIND_MEDIATOR && ((r.target == a && r.other == b) || (r.target == b && r.other == a))) return true;
             }
             return false;
         }
@@ -219,7 +220,7 @@ namespace overtures {
             return true;
         }
 
-        bool Start_Peacekeepers_(int16_t player) {
+        bool Start_Mediator_(int16_t player) {
             if (!Computer_(player)) return false;
             for (int16_t enemy = 0; enemy < Players_(); ++enemy) {
                 if (enemy == player || !Computer_(enemy) || !At_War_(player, enemy) || Pair_Busy_(player, enemy)) continue;
@@ -232,14 +233,14 @@ namespace overtures {
                 }
                 if (mediator < 0) continue;
                 s_record r;
-                r.kind = KIND_PEACEKEEPERS;
+                r.kind = KIND_MEDIATOR;
                 r.player = static_cast<int8_t>(mediator);
                 r.target = player;
                 r.other = enemy;
                 r.started = MOX::stardate;
                 r.ends = MOX::stardate + PEACE_TURNS;
                 if (!Record_(r)) return false;
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, player %d sends peacekeepers between players %d and %d",
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, player %d offers to mediate between players %d and %d",
                     (int)MOX::stardate, (int)mediator, (int)player, (int)enemy);
                 return true;
             }
@@ -289,11 +290,11 @@ namespace overtures {
 
         // Runs one record a turn; true when it ends.
         bool Run_(s_record& r) {
-            if (r.kind == KIND_PEACEKEEPERS) {
+            if (r.kind == KIND_MEDIATOR) {
                 const int16_t a = r.target;
                 const int16_t b = r.other;
                 if (!Alive_(r.player) || !Alive_(a) || !Alive_(b) || !At_War_(a, b)) {
-                    Log_(r.player, "the peacekeepers go home");
+                    Log_(r.player, "the mediation is void, the war or a party is gone");
                     return true;
                 }
                 const int32_t weariness = (diplomemory::War_Weariness(a, b) + diplomemory::War_Weariness(b, a)) / 2;
@@ -302,16 +303,15 @@ namespace overtures {
                     diplomac::Declare_Peace(a, b);
                     opinion::Add(a, r.player, opinion::REASON_DID_US_A_SERVICE, PEACE_OPINION);
                     opinion::Add(b, r.player, opinion::REASON_DID_US_A_SERVICE, PEACE_OPINION);
-                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, the peacekeepers of player %d bring peace between players %d and %d",
+                    // "за услуги от обоих": each side now owes the mediator a favour (nothing without diplomacy favours).
+                    intrigue::Owe(a, r.player);
+                    intrigue::Owe(b, r.player);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, the mediator, player %d, brings peace between players %d and %d; both owe it a favour",
                         (int)MOX::stardate, (int)r.player, (int)a, (int)b);
                     return true;
                 }
                 if (MOX::stardate < r.ends) return false;
-                Scrap_Cheapest_(a, PATROL_LOSS);
-                Scrap_Cheapest_(b, PATROL_LOSS);
-                opinion::Add(a, r.player, opinion::REASON_RAIDED_US, PATROL_OPINION);
-                opinion::Add(b, r.player, opinion::REASON_RAIDED_US, PATROL_OPINION);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, the patrols of player %d strike players %d and %d, the war goes on",
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, the mediator, player %d, gives up on players %d and %d, the war goes on",
                     (int)MOX::stardate, (int)r.player, (int)a, (int)b);
                 return true;
             }
@@ -355,7 +355,7 @@ namespace overtures {
         switch (kind) {
             case KIND_HAND: return Start_Hand_(player, chosen);
             case KIND_LEAK: return Start_Leak_(player, chosen);
-            case KIND_PEACEKEEPERS: return Start_Peacekeepers_(player);
+            case KIND_MEDIATOR: return Start_Mediator_(player);
             case KIND_OFFENSIVE: return Start_Offensive_(player, chosen);
             default: return false;
         }

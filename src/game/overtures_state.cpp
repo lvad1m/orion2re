@@ -4,7 +4,7 @@
 
 #include "game/serialization.h"
 
-// The records of the peacekeepers and the paid offensives and the save section; the behaviour is in
+// The records of the mediators and the paid offensives and the save section; the behaviour is in
 // overtures.cpp. Nothing here draws from game_random.
 namespace overtures {
 
@@ -73,7 +73,7 @@ namespace overtures {
             r.ends = reader->Read_Int32();
             r.option = reader->Read_Int8();
             r.value = reader->Read_Int16();
-            if (r.kind != KIND_PEACEKEEPERS && r.kind != KIND_OFFENSIVE) return fail("overtures save has a bad kind");
+            if (r.kind != KIND_MEDIATOR && r.kind != KIND_OFFENSIVE) return fail("overtures save has a bad kind");
             if (r.player < 0 || r.player >= MAX_PLAYERS) return fail("overtures save has a bad empire");
             if (r.target < 0 || r.target >= MAX_PLAYERS || r.other < 0 || r.other >= MAX_PLAYERS) return fail("overtures save has a bad party");
             if (r.target == r.other || r.target == r.player || r.other == r.player) return fail("overtures save has the same empire twice");
