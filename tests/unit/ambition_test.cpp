@@ -181,7 +181,7 @@ DOCTEST_TEST_CASE("a computer nominee bribes the voters that do not hate it; a b
     s_ambition_scope scope;
     test::s_game_state state;
     Council_Setup_(&state);
-    opinion::Add(3, 1, opinion::REASON_PLOTTED_AGAINST_US, -60);  // voter 3 hates nominee 1
+    opinion::Add(3, 1, opinion::REASON_PLOTTED_AGAINST_US, -90);  // voter 3 hates nominee 1
     ambition::Before_Council_Vote(1, 2);
     DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 1) == ambition::BRIBE_BIAS);
     DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 2) == 0);  // already bought by nominee 1
@@ -197,16 +197,31 @@ DOCTEST_TEST_CASE("a poor nominee does not bribe and keeps its reserve") {
     s_ambition_scope scope;
     test::s_game_state state;
     Council_Setup_(&state);
-    state.players[1].bc = 199;
-    state.players[2].bc = 200;
+    state.players[1].bc = ambition::MIN_BC_TO_BRIBE - 1;
+    state.players[2].bc = ambition::MIN_BC_TO_BRIBE;
     ambition::Before_Council_Vote(1, 2);
     DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 1) == 0);
     DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 2) == ambition::BRIBE_BIAS);
     DOCTEST_CHECK(ambition::Council_Vote_Bias(3, 2) == ambition::BRIBE_BIAS);
-    DOCTEST_CHECK(state.players[2].bc == 200 - 2 * ambition::BRIBE_PRICE);
-    state.players[2].bc = 120;
+    DOCTEST_CHECK(state.players[2].bc == ambition::MIN_BC_TO_BRIBE - 2 * ambition::BRIBE_PRICE);
+    state.players[2].bc = ambition::MIN_BC_TO_BRIBE - 1;
     ambition::Before_Council_Vote(1, 2);
-    DOCTEST_CHECK(state.players[2].bc == 120);  // below the 200 BC threshold
+    DOCTEST_CHECK(state.players[2].bc == ambition::MIN_BC_TO_BRIBE - 1);  // below the threshold
+}
+
+DOCTEST_TEST_CASE("iteration 1: a nominee with 100 BC buys a voter that thinks of it as -45 (it did not before)") {
+    s_ambition_scope scope;
+    test::s_game_state state;
+    Council_Setup_(&state);
+    state.players[1].bc = 100;
+    opinion::Add(0, 1, opinion::REASON_PLOTTED_AGAINST_US, -45);
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 1) == ambition::BRIBE_BIAS);
+    DOCTEST_CHECK(state.players[1].bc >= ambition::BRIBE_RESERVE);
+    ambition::After_Council_Vote();
+    ambition::council_bribery = false;
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 1) == 0);  // flag off: nothing
 }
 
 DOCTEST_TEST_CASE("a secret about a voter is spent on blackmail: +150, the secret is gone") {

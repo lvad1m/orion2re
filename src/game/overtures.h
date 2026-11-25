@@ -31,7 +31,9 @@ namespace overtures {
     constexpr int32_t MAX_RECORDS = 16;
     // A new event starts by chance, in per mille a turn for each empire (one draw each; at most one starts a
     // turn in the whole galaxy). The kind is drawn among the four.
-    constexpr int32_t EMPIRE_CHANCE = 6;
+    // Iteration 1, decision 4 (docs/LocalLLM/iterations.md): "Оживить редкие механики: подкуп совета, вассалы,
+    // тайны, события дипломатии." Only the chance is doubled (6 -> 12 per mille); the events are unchanged.
+    constexpr int32_t EMPIRE_CHANCE = 12;
 
     enum e_kind : uint8_t {
         KIND_NONE = 0,

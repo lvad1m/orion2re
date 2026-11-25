@@ -24,10 +24,14 @@ namespace ambition {
     constexpr int32_t DEFECT_PERCENT = 20;
     constexpr int32_t DISLIKE_RELATIONS = -20;     // a neighbour thought of this badly is preferred as a target
     constexpr int32_t DEFECTION_OPINION = -20;     // REASON_PLOTTED_AGAINST_US, the old owner toward the new one
-    constexpr int32_t MIN_BC_TO_BRIBE = 200;       // a nominee needs this much to start buying votes
+    // Iteration 1, decision 4 (docs/LocalLLM/iterations.md): "Оживить редкие механики: подкуп совета, вассалы,
+    // тайны, события дипломатии." Only the triggers of council bribery are loosened, not what it does: a
+    // nominee with half the money (200 -> 100 BC) buys, keeps a smaller reserve (100 -> 50 BC) and so pays
+    // more voters, and voters that think worse of it (-30 -> -60) are still bought. The price is unchanged.
+    constexpr int32_t MIN_BC_TO_BRIBE = 100;       // a nominee needs this much to start buying votes
     constexpr int32_t BRIBE_PRICE = 25;            // BC to each bought voter
-    constexpr int32_t BRIBE_RESERVE = 100;         // the briber keeps this many BC
-    constexpr int32_t BRIBE_MIN_RELATIONS = -30;   // only voters thinking of the nominee at least this well are bought
+    constexpr int32_t BRIBE_RESERVE = 50;          // the briber keeps this many BC
+    constexpr int32_t BRIBE_MIN_RELATIONS = -60;   // only voters thinking of the nominee at least this well are bought
     constexpr int32_t BRIBE_BIAS = 100;
     constexpr int32_t BLACKMAIL_BIAS = 150;
     constexpr int32_t EXPOSURE_PERCENT = 30;

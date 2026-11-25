@@ -22,9 +22,14 @@ namespace vassals {
     extern bool enabled;   // diplomacy vassals
 
     constexpr int32_t VASSAL_TRIBUTE = 10;          // percent (classic tribute_treaty value)
-    constexpr int32_t WEAK_PERCENT = 34;            // the vassal's fleet against the overlord's, at most
+    // Iteration 1, decision 4 (docs/LocalLLM/iterations.md): "Оживить редкие механики: подкуп совета, вассалы,
+    // тайны, события дипломатии." Only the triggers are loosened: a neighbour is a danger when it is merely
+    // as strong as we are (was: half again as strong, THREAT_STRENGTH_PERCENT 150 -> 100) and thinks of us
+    // only a little ill (-30 -> -10); an empire up to half of the overlord's fleet may be taken (34 -> 50).
+    constexpr int32_t WEAK_PERCENT = 50;            // the vassal's fleet against the overlord's, at most
     constexpr int32_t GROWN_PERCENT = 67;           // a vassal this strong goes free
-    constexpr int32_t THREAT_RELATIONS = -30;       // a stronger neighbour this hostile is a danger
+    constexpr int32_t THREAT_RELATIONS = -10;       // a stronger neighbour this hostile is a danger
+    constexpr int32_t THREAT_STRENGTH_PERCENT = 100;  // ... if its fleet is at least this percent of ours
     constexpr int32_t PROTECTED_OPINION = 15;       // opinion::REASON_OVERLORD on becoming a vassal and on a defence
     constexpr int32_t FAILED_OPINION = -30;         // an overlord that failed or attacked its vassal
     constexpr int32_t PERIOD = 10;

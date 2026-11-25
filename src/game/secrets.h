@@ -54,8 +54,11 @@ namespace secrets {
 
     // Programming choices (README.md 10.9: tuned on the big bench).
     constexpr int32_t MAX_SECRETS = 32;
-    constexpr int32_t LEARN_PER_SPY = 20;        // per mille a turn for each spy (at most 5)
-    constexpr int32_t LEARN_PER_RESIDENT = 100;
+    // Iteration 1, decision 4 (docs/LocalLLM/iterations.md): "Оживить редкие механики: подкуп совета, вассалы,
+    // тайны, события дипломатии." Only the learning rates are doubled (20 -> 40 per spy, 100 -> 200 per
+    // resident), so a spy finds a secret twice as fast; what a secret is and how it is used is unchanged.
+    constexpr int32_t LEARN_PER_SPY = 40;        // per mille a turn for each spy (at most 5)
+    constexpr int32_t LEARN_PER_RESIDENT = 200;
     constexpr int32_t SECRET_TURNS = 30;
     constexpr int32_t SALE_PRICE = 50;           // BC the victim pays for the secret
     constexpr int32_t BLACKMAIL_PERCENT = 15;    // of the owner's treasury

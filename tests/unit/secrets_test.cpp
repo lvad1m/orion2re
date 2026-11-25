@@ -9,6 +9,7 @@
 #include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/projects.h"
+#include "game/random.h"
 #include "game/secrets.h"
 #include "game/serialization.h"
 #include "game/spy_ops.h"
@@ -279,6 +280,25 @@ DOCTEST_TEST_CASE("sale to a third party: BC, or a favour when the buyer is poor
     intrigue::favours = false;
     DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
     DOCTEST_CHECK_FALSE(secrets::Sell_To_Third(0));
+}
+
+DOCTEST_TEST_CASE("iteration 1: one spy learns a secret on a roll of 30 per mille (needed 20 before)") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::stardate = 35102;  // neither the use phase nor the smear phase
+    state.players[1].spies[0] = 1;
+    uint32_t seed = 1;
+    for (; seed < 100000; ++seed) {
+        game_random::Set_Random_Seed(seed);
+        if (game_random::Random(1000) == 30) break;
+    }
+    DOCTEST_REQUIRE(seed < 100000);
+    game_random::Set_Random_Seed(seed);
+    secrets::Turn();
+    DOCTEST_CHECK_FALSE(secrets::Empty());
+    DOCTEST_CHECK(secrets::Slots()[0].holder == 1);
+    DOCTEST_CHECK(secrets::Slots()[0].owner == 0);
 }
 
 DOCTEST_TEST_CASE("off: nothing is learned, nothing smeared") {

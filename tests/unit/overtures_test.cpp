@@ -136,6 +136,20 @@ DOCTEST_TEST_CASE("flag off: nothing starts, nothing is kept, no draw from game_
     DOCTEST_CHECK(state.players[0].bc == 1000);
 }
 
+DOCTEST_TEST_CASE("iteration 1: an empire draw of 8 per mille now starts an attempt (it was calm at 6)")
+{
+    s_overtures_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Seed_For_(1000, 8);
+    const uint32_t start = game_random::Get_Random_Seed();
+    overtures::Turn();
+    const uint32_t after = game_random::Get_Random_Seed();
+    game_random::Set_Random_Seed(start);
+    for (int i = 0; i < 4; ++i) game_random::Random(1000);  // a calm turn: one draw for each of the four empires
+    DOCTEST_CHECK(after != game_random::Get_Random_Seed());
+}
+
 DOCTEST_TEST_CASE("a human takes the first option, a computer picks by personality")
 {
     s_overtures_scope scope;

@@ -55,14 +55,31 @@ DOCTEST_TEST_CASE("a weak empire at war becomes the vassal of the strongest frie
     s_vassals_scope scope;
     test::s_game_state state;
     Setup_(&state);
+    state.players[2].total_ship_strength[0] = 2000;  // two thirds of player 0's 3000: above WEAK_PERCENT (50)
     vassals::Turn();
     DOCTEST_CHECK(vassals::Overlord(1) == 0);
     DOCTEST_CHECK(state.players[1].tribute_treaty[0] == vassals::VASSAL_TRIBUTE);
     DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_OVERLORD) == vassals::PROTECTED_OPINION);
-    DOCTEST_CHECK(vassals::Overlord(2) == -1);  // not weak enough against player 0 (1100 vs 3000 > 34 %)
+    DOCTEST_CHECK(vassals::Overlord(2) == -1);  // not weak enough against player 0 (2000 vs 3000 > 50 %)
     MOX::stardate = 35106;
     vassals::Turn();  // only every 10 turns
     DOCTEST_CHECK_FALSE(vassals::Bind(2, 1));  // an overlord's vassal cannot be an overlord here, nor a vassal twice
+}
+
+DOCTEST_TEST_CASE("iteration 1: at peace, a slightly hostile neighbour 1.25 times as strong is danger enough") {
+    s_vassals_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 0;  // no war
+    state.players[1].total_ship_strength[2] = 800;                 // player 2's 1000 is 1.25 times that
+    opinion::Add(1, 2, opinion::REASON_PLOTTED_AGAINST_US, -15);   // too mild for the old -30
+    vassals::Turn();
+    DOCTEST_CHECK(vassals::Overlord(1) == 0);
+    vassals::Clear();
+    opinion::Clear();
+    state.players[1].total_ship_strength[2] = 1100;  // player 2 is the weaker one: no danger
+    vassals::Turn();
+    DOCTEST_CHECK(vassals::Overlord(1) == -1);
 }
 
 DOCTEST_TEST_CASE("the overlord defends its vassal, or fails it and the vassal goes free") {

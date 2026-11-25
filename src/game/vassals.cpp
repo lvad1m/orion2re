@@ -45,12 +45,12 @@ namespace vassals {
             return false;
         }
 
-        // In danger: at war, or beside a hostile neighbour half again as strong.
+        // In danger: at war, or beside a hostile neighbour at least THREAT_STRENGTH_PERCENT as strong.
         bool In_Danger_(int16_t v) {
             for (int16_t w = 0; w < Players_(); ++w) {
                 if (w == v || !Alive_(w) || MOX::player[v].contact[w] == 0) continue;
                 if (At_War_(v, w)) return true;
-                if (opinion::Relations(v, w) <= THREAT_RELATIONS && Strength_(w, v) * 2 >= Strength_(v, w) * 3 && Strength_(w, v) > 0) {
+                if (opinion::Relations(v, w) <= THREAT_RELATIONS && Strength_(w, v) * 100 >= Strength_(v, w) * THREAT_STRENGTH_PERCENT && Strength_(w, v) > 0) {
                     return true;
                 }
             }
