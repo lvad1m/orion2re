@@ -204,6 +204,35 @@ DOCTEST_TEST_CASE("outstretched hand: accept, bargain, seize")
     DOCTEST_CHECK(opinion::Relations(3, 0) < 0);
 }
 
+// 27.11.2026: scrapping a ship under construction left the colony's queue pointing at a reused slot, and the
+// colony later wrote MOX::star[-1] (heap corruption found with AddressSanitizer). A cut fleet spares the queue.
+DOCTEST_TEST_CASE("outstretched hand: the cut fleet spares ships being built or refitted")
+{
+    s_overtures_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::NUM_SHIPS = 7;
+    const int16_t cost[2] = {60, 70};  // two more ships in service, ships 5 and 6
+    for (int s = 5; s < 7; ++s) {
+        state.ships[s].owner = 0;
+        state.ships[s].status = 0;
+        state.ships[s].location = 0;
+        state.ships[s].officer_index = -1;
+        state.ships[s].d.cost = cost[s - 5];
+    }
+    state.ships[1].status = 6;  // the cheapest (10) is being built
+    state.ships[3].status = 4;  // the next (20) is being refitted
+    DOCTEST_REQUIRE(Some_App_(&state) > 0);
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_HAND, 0, overtures::HAND_ACCEPT));
+    DOCTEST_CHECK(state.ships[1].status == 6);  // the queue keeps its ships
+    DOCTEST_CHECK(state.ships[3].status == 4);
+    DOCTEST_CHECK(state.ships[2].status == 5);  // the three cheapest in service go: 30, 40, 50
+    DOCTEST_CHECK(state.ships[4].status == 5);
+    DOCTEST_CHECK(state.ships[0].status == 5);
+    DOCTEST_CHECK(state.ships[5].status == 0);
+    DOCTEST_CHECK(state.ships[6].status == 0);
+}
+
 DOCTEST_TEST_CASE("leaked discovery: share, sell, suppress")
 {
     s_overtures_scope scope;

@@ -71,9 +71,12 @@ namespace overtures {
             return field >= 0 && field < TECH_FIELD_COUNT ? static_cast<int64_t>(TECHDATA::technology_fields[field].cost) : INT64_MAX;
         }
 
-        // A ship that is still alive: SHIPS::Kill_Ship leaves the owner and sets status 5 (retired).
+        // A ship in service: SHIPS::Kill_Ship leaves the owner and sets status 5 (retired); 4 (a refit) and 6 (a new
+        // ship being built) stand in a colony's production queue, which refers to the slot - scrapping one let the
+        // slot be reused and the colony later finished someone else's ship at star -1 (heap corruption, 27.11.2026).
         bool Live_Ship_(int16_t ship, int16_t player) {
-            return MOX::ship[ship].owner == player && MOX::ship[ship].status != 5;
+            const int8_t status = MOX::ship[ship].status;
+            return MOX::ship[ship].owner == player && status != 5 && status != 4 && status != 6;
         }
 
         int32_t Ship_Count_(int16_t player) {

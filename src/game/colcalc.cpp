@@ -3794,11 +3794,20 @@ namespace COLCALC {
                         }
 
                         ship->just_built = 1;
-                        MOX::star[ship->location].ignore_combat_ships = 0;
+                        // A queued ship whose slot was taken over meanwhile (a ship under construction scrapped by
+                        // a newer mechanic, its slot reused) has no star: MOX::star[-1] corrupted the heap
+                        // (27.11.2026, found with AddressSanitizer). Leave the star alone and say so; a valid ship
+                        // goes on exactly as in 1.40.
+                        if (ship->location >= 0 && ship->location < MOX::NUM_STARS) {
+                            MOX::star[ship->location].ignore_combat_ships = 0;
 
-                        if (ship->d.ship_type == SHIP_TYPE_COLONY || ship->d.ship_type == SHIP_TYPE_OUTPOST) {
-                            MOX::star[ship->location].ignore_colony_ships |=
-                                static_cast<uint8_t>(1u << static_cast<uint8_t>(ship->owner));
+                            if (ship->d.ship_type == SHIP_TYPE_COLONY || ship->d.ship_type == SHIP_TYPE_OUTPOST) {
+                                MOX::star[ship->location].ignore_colony_ships |=
+                                    static_cast<uint8_t>(1u << static_cast<uint8_t>(ship->owner));
+                            }
+                        } else {
+                            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "colcalc: stardate %d, colony %d finishes ship %d, which has no star (status %d, owner %d)",
+                                (int)MOX::stardate, (int)colony_idx, (int)ship_idx, (int)ship->status, (int)ship->owner);
                         }
                     } else {
                         switch (current_product) {

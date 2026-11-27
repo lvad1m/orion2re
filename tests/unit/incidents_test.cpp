@@ -508,4 +508,19 @@ DOCTEST_TEST_CASE("rebel general: a coup takes his ship over to the enemy of the
     DOCTEST_CHECK(state.ships[0].officer_index == -1);
 }
 
+// 27.11.2026: a ship in a colony's production queue cannot leave the slip (the queue refers to its slot).
+DOCTEST_TEST_CASE("rebel general: a coup leaves a ship being refitted in the shipyard")
+{
+    s_incidents_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].treaty[1] = 4;  // at war with empire 1
+    state.ships[0].status = 4;       // the general's ship is being refitted
+    const int32_t bad[3] = {1, 1, 0};
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_REBEL_GENERAL, 0, incidents::GENERAL_REASON, bad));
+    DOCTEST_CHECK(state.leaders[0].status != 1);  // the general is gone
+    DOCTEST_CHECK(state.ships[0].owner == 0);     // the ship stays with the empire
+    DOCTEST_CHECK(state.ships[0].status == 4);    // still in the queue
+}
+
 }

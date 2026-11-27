@@ -136,7 +136,15 @@ namespace incidents {
         void Coup_(int16_t player, int16_t leader) {
             const int16_t ship = MOX::leaders[leader].location;
             OFFICER::Kill_Officer(leader);
-            const bool own_ship = ship >= 0 && ship < MAX_SHIPS && MOX::ship[ship].owner == player;
+            // A ship in a colony's production queue (4: a refit, 6: being built) cannot leave the slip: it stays, the
+            // general dies (the queue refers to the slot; scrapping or handing it over corrupted the heap, 27.11.2026).
+            const bool ours = ship >= 0 && ship < MAX_SHIPS && MOX::ship[ship].owner == player;
+            if (ours && (MOX::ship[ship].status == 4 || MOX::ship[ship].status == 6)) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d stages a coup and dies, his ship %d stays in the shipyard",
+                    (int)MOX::stardate, (int)player, (int)leader, (int)ship);
+                return;
+            }
+            const bool own_ship = ours;
             const int16_t enemy = own_ship ? Enemy_(player) : static_cast<int16_t>(-1);
             if (enemy >= 0) {
                 MOX::ship[ship].owner = static_cast<int8_t>(enemy);
