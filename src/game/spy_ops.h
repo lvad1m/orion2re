@@ -75,6 +75,14 @@ namespace spy_ops {
     constexpr int32_t POISON_WATER_MIN_POPS = 3;      // never wipes the colony out
     constexpr int32_t INSIDE_MAN_NUMERATOR = 1;       // the defenders' troops count 1/2
     constexpr int32_t INSIDE_MAN_DENOMINATOR = 2;
+    // Iteration 4, piece A ("все против всех"): the computers' target kinds. The new chooser applies only
+    // when a bit of 64-8192 is set.
+    constexpr int32_t NEW_OPERATION_BITS = 16383 & ~63;
+    constexpr int32_t BLOODLESS_SABOTAGE_MASK = (1 << OP_SABOTAGE_SHIPYARD) | (1 << OP_SABOTAGE_RESEARCH) | (1 << OP_SABOTAGE_TRADE);
+    constexpr int32_t FOE_RELATIONS = -50;       // a foe in peace: relations at or below this
+    constexpr int32_t GOOD_TERMS = 25;           // "ладят": relations of the pair at least this both ways (scale -100..100)
+    constexpr int32_t FRIEND_PERIOD_TURNS = 30;  // at most one operation against one friend in this many turns
+    constexpr int32_t BETRAYAL_FACTOR = 2;       // the opinion blow of an exposed operation against a friend
 
     bool Enabled(e_op op);
     int32_t Cost(e_op op);

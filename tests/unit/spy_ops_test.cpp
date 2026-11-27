@@ -268,7 +268,7 @@ DOCTEST_TEST_CASE("assassination kills the best non-scientist leader; plain succ
     state.leaders[7].status = 1;
     DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_ASSASSINATION, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
     DOCTEST_CHECK((state.players[1].spies[2] & 0x3F) == 3);
-    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -25);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -50);  // peace, a friend: the betrayal's doubled blow
     DOCTEST_CHECK_FALSE(reputation::Has(1, reputation::TITLE_ATROCITIES));
 }
 
@@ -291,7 +291,7 @@ DOCTEST_TEST_CASE("poison at a feast needs a treaty; an exposed poisoning is an 
 
     DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_POISON_FEAST, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
     DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_ATROCITIES));
-    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -50);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_TRIED_TO_KILL_OUR_LEADER) == -100);  // -25 twice, doubled: a friend betrayed
     DOCTEST_CHECK(state.leaders[7].status == 1);
 
     state.players[1].trade_treaty[2] = 0;
@@ -333,7 +333,7 @@ DOCTEST_TEST_CASE("sabotaging a shipyard wipes the progress and stalls the colon
     DOCTEST_CHECK(c.production_spent == 100);  // the stall is over
 
     DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_SABOTAGE_SHIPYARD, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
-    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_SABOTAGE) == -25);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_SABOTAGE) == -50);  // a friend betrayed: doubled
 }
 
 DOCTEST_TEST_CASE("sabotaged research loses three quarters; a strike stalls without wiping; sabotaged trade loses freighters") {
@@ -625,6 +625,215 @@ DOCTEST_TEST_CASE("a ruthless computer at war chooses an assassination") {
     MOX::stardate = 35010;
     spy_ops::Turn();
     DOCTEST_CHECK(espionage::Points(1, 2) == 60);  // 40 spent, whatever the dice said
+}
+
+// ---- Iteration 4, piece A: "все против всех" (every computer against everyone, by character).
+}  // the suite's block ends here: the helpers below live in an anonymous namespace
+
+namespace {
+    // Everything sabotage and assassination could bite: player 2 has a shipyard colony, research, freighters,
+    // industry and a leader; `scientist` adds a scientist. Player 1 has plenty of points.
+    void Arm_Target_(test::s_game_state* state, bool scientist) {
+        spy_ops::operations = ALL_OPS;
+        espionage::State()->points[1][2] = 1000;
+        state->players[2].research_accumulated = 100;
+        state->players[2].n_freighters = 20;
+        s_colony& c = state->colonies[0];
+        c.production[ECON_INDUSTRY] = 10;
+        c.production_spent = 50;
+        c.producing[0] = COLBLDG::Colony_Production_From_Ship_Design_Index(0);
+        Leader_(state, 7, 2, 1).xp = 1000;
+        if (scientist) Leader_(state, 5, 2, 1).special_skills = LEADER_COLONY_SKILL_SCIENCE_LEADER;
+    }
+
+    // The set of operations player 1 chooses against player 2 over `periods` computer turns (bit per e_op;
+    // bit OP_COUNT: the points were saved).
+    uint32_t Seen_(int periods) {
+        uint32_t seen = 0;
+        for (int i = 0; i < periods; ++i) {
+            MOX::stardate = 35000 + i * 10;
+            seen |= 1u << spy_ops::Choose_Operation(1, 2);
+        }
+        return seen;
+    }
+
+    constexpr uint32_t Bit_(spy_ops::e_op op) { return 1u << op; }
+    constexpr uint32_t SABOTAGE_SET = Bit_(spy_ops::OP_SABOTAGE_SHIPYARD) | Bit_(spy_ops::OP_SABOTAGE_RESEARCH) |
+        Bit_(spy_ops::OP_SABOTAGE_FOOD) | Bit_(spy_ops::OP_SABOTAGE_TRADE) | Bit_(spy_ops::OP_STRIKE);
+}
+
+DOCTEST_TEST_SUITE("spy operations, all against all") {
+
+DOCTEST_TEST_CASE("an aggressive computer sabotages a foe in peace and saves points instead of collecting data") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, true);
+    state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    state.players[1].relations[2] = -50;
+    const uint32_t seen = Seen_(12);
+    DOCTEST_CHECK((seen & ~SABOTAGE_SET) == 0);  // sabotage only in peace: no assassination, no data
+    DOCTEST_CHECK(seen != 0);
+    espionage::State()->points[1][2] = 10;  // not yet 25
+    MOX::stardate = 35010;
+    DOCTEST_CHECK(spy_ops::Choose_Operation(1, 2) == spy_ops::OP_COUNT);
+    spy_ops::operations = 63;  // the old bits: the old choice, data collection
+    DOCTEST_CHECK(spy_ops::Choose_Operation(1, 2) == spy_ops::OP_DATA);
+}
+
+DOCTEST_TEST_CASE("an aggressive computer at war assassinates and sabotages; a ruthless one also poisons the water") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, true);
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    uint32_t seen = Seen_(12);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_ASSASSINATION)) != 0);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_KILL_SCIENTIST)) != 0);  // a scientist is still killed at war
+    DOCTEST_CHECK((seen & SABOTAGE_SET) != 0);
+    DOCTEST_CHECK((seen & (Bit_(spy_ops::OP_POISON_WATER) | Bit_(spy_ops::OP_POISON_FEAST))) == 0);
+    state.players[1].personality = PLAYER_PERSONALITY_XENOPHOBIC;
+    seen = Seen_(12);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_POISON_WATER)) == 0);
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    seen = Seen_(24);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_POISON_WATER)) != 0);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_ASSASSINATION)) != 0);
+}
+
+DOCTEST_TEST_CASE("a ruthless computer takes everything against a foe in peace, poison at a feast needs a treaty") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, true);
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    state.players[1].relations[2] = -80;
+    state.players[1].treaty[2] = 1;  // a non-aggression pact: a seat at the table
+    const uint32_t seen = Seen_(30);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_POISON_FEAST)) != 0);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_ASSASSINATION)) != 0);
+    DOCTEST_CHECK((seen & SABOTAGE_SET) != 0);
+    DOCTEST_CHECK((seen & Bit_(spy_ops::OP_DATA)) == 0);
+}
+
+DOCTEST_TEST_CASE("a pacifist at war picks only bloodless sabotage; an honorable one sabotages only at war") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, true);
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    state.players[1].personality = PLAYER_PERSONALITY_PACIFIST;
+    const uint32_t bloodless = Bit_(spy_ops::OP_SABOTAGE_SHIPYARD) | Bit_(spy_ops::OP_SABOTAGE_RESEARCH) | Bit_(spy_ops::OP_SABOTAGE_TRADE);
+    uint32_t seen = Seen_(12);
+    DOCTEST_CHECK(seen != 0);
+    DOCTEST_CHECK((seen & ~bloodless) == 0);  // no famine, no strike, no poisoned water, no killing
+    state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;
+    seen = Seen_(12);
+    DOCTEST_CHECK((seen & ~SABOTAGE_SET) == 0);
+    DOCTEST_CHECK((seen & bloodless) != 0);
+    // In peace, even against a foe: nothing new, the old choice (data collection).
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 0;
+    state.players[1].relations[2] = -80;
+    MOX::stardate = 35010;
+    DOCTEST_CHECK(spy_ops::Choose_Operation(1, 2) == spy_ops::OP_DATA);
+    state.players[1].personality = PLAYER_PERSONALITY_PACIFIST;
+    DOCTEST_CHECK(spy_ops::Choose_Operation(1, 2) == spy_ops::OP_DATA);
+}
+
+DOCTEST_TEST_CASE("a friend weaker than us is left alone, a stronger one is sabotaged once in thirty turns") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, false);
+    state.players[1].personality = PLAYER_PERSONALITY_RUTHLESS;
+    state.players[1].relations[2] = 10;
+    // Weaker (equal): data collection as before, whatever the turn.
+    DOCTEST_CHECK((Seen_(30) & ~Bit_(spy_ops::OP_DATA)) == 0);
+    // Stronger than us: sabotage on the friend's turn, the points saved in between; every 30 turns.
+    state.players[2].total_ship_strength[1] = 100;
+    int last = -1;
+    int count = 0;
+    for (int i = 0; i < 30; ++i) {
+        MOX::stardate = 35000 + i * 10;
+        const spy_ops::e_op op = spy_ops::Choose_Operation(1, 2);
+        if (op == spy_ops::OP_COUNT) continue;
+        DOCTEST_CHECK((Bit_(op) & SABOTAGE_SET) != 0);
+        if (last >= 0) DOCTEST_CHECK(i - last == 3);
+        last = i;
+        ++count;
+    }
+    DOCTEST_CHECK(count == 10);
+    // The strongest empire, though not stronger than us at us: also a target.
+    state.players[2].total_ship_strength[1] = 0;
+    state.players[2].total_ship_strength[0] = 50;
+    DOCTEST_CHECK((Seen_(3) & SABOTAGE_SET) != 0);
+    // A friend in a common war is left alone.
+    state.players[1].treaty[0] = state.players[0].treaty[1] = 4;
+    state.players[2].treaty[0] = state.players[0].treaty[2] = 4;
+    DOCTEST_CHECK((Seen_(30) & ~Bit_(spy_ops::OP_DATA)) == 0);
+}
+
+DOCTEST_TEST_CASE("the false flag sets two empires that get on against each other, when one is stronger than us") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 1000;
+    state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    state.players[2].relations[0] = state.players[0].relations[2] = 30;
+    state.players[0].total_ship_strength[1] = 100;  // player 0 stronger than us
+    DOCTEST_CHECK((Seen_(30) & Bit_(spy_ops::OP_FALSE_FLAG)) != 0);
+    state.players[0].relations[2] = 10;  // they do not get on
+    DOCTEST_CHECK((Seen_(30) & Bit_(spy_ops::OP_FALSE_FLAG)) == 0);
+    state.players[0].relations[2] = 30;
+    state.players[2].treaty[0] = state.players[0].treaty[2] = 4;  // at war with each other
+    DOCTEST_CHECK((Seen_(30) & Bit_(spy_ops::OP_FALSE_FLAG)) == 0);
+    state.players[2].treaty[0] = state.players[0].treaty[2] = 0;
+    state.players[0].total_ship_strength[1] = 0;  // neither stronger than us
+    DOCTEST_CHECK((Seen_(30) & Bit_(spy_ops::OP_FALSE_FLAG)) == 0);
+    state.players[0].total_ship_strength[1] = 100;
+    state.players[1].personality = PLAYER_PERSONALITY_HONORABLE;  // honourable computers use no false flag
+    DOCTEST_CHECK((Seen_(30) & Bit_(spy_ops::OP_FALSE_FLAG)) == 0);
+}
+
+DOCTEST_TEST_CASE("an exposed operation against a friend is a betrayal: the blow to the relations is doubled") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    spy_ops::operations = ALL_OPS;
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_STIRRED_UNREST) == -50);
+    // At war or against a foe: the usual blow.
+    opinion::Clear();
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_STIRRED_UNREST) == -25);
+    // The old bits only: the usual blow, whatever the terms.
+    opinion::Clear();
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 0;
+    spy_ops::operations = 63;
+    DOCTEST_REQUIRE(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, CATASTROPHE) == spy_ops::RESULT_EXPOSED);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_STIRRED_UNREST) == -25);
+}
+
+DOCTEST_TEST_CASE("with only the old bits the chooser is the old one; with the bits off nothing runs") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Arm_Target_(&state, true);
+    spy_ops::operations = 63;
+    state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    state.players[1].relations[2] = -80;
+    state.players[2].total_ship_strength[1] = 100;
+    DOCTEST_CHECK(Seen_(12) == Bit_(spy_ops::OP_DATA));  // not at war, not the main rival: data, as before
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 4;
+    DOCTEST_CHECK((Seen_(12) & ~(Bit_(spy_ops::OP_KILL_SCIENTIST) | Bit_(spy_ops::OP_UNREST) | Bit_(spy_ops::OP_DATA))) == 0);
+    spy_ops::operations = 0;
+    MOX::stardate = 35010;
+    const int32_t before = espionage::Points(1, 2);
+    spy_ops::Turn();
+    DOCTEST_CHECK(espionage::Points(1, 2) == before);
 }
 
 }

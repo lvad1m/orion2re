@@ -222,8 +222,12 @@ namespace spy_ops {
         // Iteration 3: the computers rotate among the sabotage kinds that can bite now (a stalled colony or
         // a running famine is not hit again), by the turn, the attacker and the target: no dice, so the
         // chooser spreads over all kinds instead of always taking the first. OP_COUNT: none.
-        e_op Sabotage_Pick_(int16_t a, int16_t t) {
-            const auto ready = [&](e_op op) { return Enabled(op) && espionage::Points(a, t) >= Cost(op); };
+        // `mask`: the kinds allowed (bit per e_op); `need_points` false asks only whether a kind could bite
+        // (the iteration 4 chooser saves points for it).
+        e_op Sabotage_Pick_(int16_t a, int16_t t, int32_t mask = -1, bool need_points = true) {
+            const auto ready = [&](e_op op) {
+                return Enabled(op) && ((mask >> op) & 1) != 0 && (!need_points || espionage::Points(a, t) >= Cost(op));
+            };
             e_op list[5];
             int32_t n = 0;
             const int16_t yard = Shipyard_Colony_(t);
@@ -277,9 +281,165 @@ namespace spy_ops {
             return d != nullptr && advisor::Is_Active(d, MOX::stardate) && d->main_rival == t;
         }
 
+        // ---- Iteration 4, piece A: "все против всех" (docs/LocalLLM/iterations.md, the author's decision of
+        // 25.11.2026). No dice, no new game_random draws; used only when a bit of 64-8192 is set.
+        // Strength measure: the original AI's fleet strength (s_player::total_ship_strength, as vassals.cpp
+        // and crises.cpp read it). "Stronger than us": t's strength against us exceeds ours against t.
+        // "The strongest empire": the largest sum of an empire's fleet strengths against all others.
+        int32_t Fleet_(int16_t of, int16_t against) {
+            return MOX::player[of].total_ship_strength[against];
+        }
+
+        int64_t Total_Strength_(int16_t p) {
+            int64_t sum = 0;
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o != p && Alive_(o)) sum += std::max<int32_t>(0, Fleet_(p, o));
+            }
+            return sum;
+        }
+
+        bool Stronger_Than_(int16_t t, int16_t a) {
+            return Fleet_(t, a) > Fleet_(a, t);
+        }
+
+        bool Strongest_(int16_t t) {
+            const int64_t mine = Total_Strength_(t);
+            if (mine <= 0) return false;
+            for (int16_t o = 0; o < Players_(); ++o) {
+                if (o == t || !Alive_(o)) continue;
+                const int64_t theirs = Total_Strength_(o);
+                if (theirs > mine || (theirs == mine && o < t)) return false;
+            }
+            return true;
+        }
+
+        // Both at war (treaty >= TREATY_FIRST_WAR) with the same third empire.
+        bool Common_War_(int16_t a, int16_t t) {
+            for (int16_t k = 0; k < Players_(); ++k) {
+                if (k == a || k == t || !Alive_(k)) continue;
+                if (MOX::player[a].treaty[k] >= TREATY_FIRST_WAR && MOX::player[t].treaty[k] >= TREATY_FIRST_WAR) return true;
+            }
+            return false;
+        }
+
+        // Not at war and not a foe (relations above FOE_RELATIONS): the "friend" of the decision.
+        bool Friend_Ish_(int16_t a, int16_t t) {
+            return MOX::player[a].treaty[t] < TREATY_FIRST_WAR && opinion::Relations(a, t) > FOE_RELATIONS;
+        }
+
+        // "Not more than once in 30 turns against one friend", with no state: the computers act every
+        // AI_PERIOD turns, and a given (attacker, friend) pair gets its turn every third period.
+        bool Friend_Turn_(int16_t a, int16_t t) {
+            return (MOX::stardate / AI_PERIOD + a + 2 * t) % (FRIEND_PERIOD_TURNS / AI_PERIOD) == 0;
+        }
+
+        // False flag, "разделяй и властвуй": a pair `t` and k (k blamed) that get on (relations at least
+        // GOOD_TERMS both ways, no war between them, in contact), at least one of them stronger than `a`.
+        int16_t False_Flag_Third_(int16_t a, int16_t t) {
+            for (int16_t k = 0; k < Players_(); ++k) {
+                if (k == a || k == t || !Alive_(k) || MOX::player[t].contact[k] == 0) continue;
+                if (MOX::player[t].treaty[k] >= TREATY_FIRST_WAR || MOX::player[k].treaty[t] >= TREATY_FIRST_WAR) continue;
+                if (opinion::Relations(t, k) < GOOD_TERMS || opinion::Relations(k, t) < GOOD_TERMS) continue;
+                if (Stronger_Than_(t, a) || Stronger_Than_(k, a) || Strongest_(t) || Strongest_(k)) return k;
+            }
+            return -1;
+        }
+
+        // Whether an operation of the attacker against `t` now is a betrayal of a friend (a computer,
+        // new bits set, not at war, not a foe): its exposure costs twice the opinion.
+        bool Betrayal_(int16_t a, int16_t t) {
+            return (operations & NEW_OPERATION_BITS) != 0 && Computer_(a) && Friend_Ish_(a, t);
+        }
+
+        // The author's decision (iterations.md, "Решение автора (25.11.2026): «все против всех»"), quoted:
+        // "три вида цели: враг на войне; недруг в мире (отношение -50 и ниже); «друг» — любой другой, но только
+        // сильнее нас или сильнейшая империя; не тот, с кем мы вместе воюем против общего врага; не чаще раза в
+        // 30 ходов против одного «друга»; раскрытая операция против друга — предательство, удар по отношениям
+        // вдвое сильнее; против врага, недруга и сильного «друга» очки копятся на операцию, а не тратятся на
+        // сбор данных; false flag — «разделяй и властвуй»: подставить одну империю перед другой, когда они
+        // ладят между собой и хотя бы одна сильнее нас". By character: ruthless - war: all incl. poisoned
+        // water, foe: all, strong friend: sabotage, false flag; xenophobe - the same without poisoned water at
+        // war; aggressive and unpredictable - war: sabotage and assassination, foe and friend: sabotage,
+        // false flag; honourable - sabotage at open war only, no false flag; peaceable - bloodless sabotage
+        // (shipyard, research, trade) at war only, no false flag.
+        //
+        // The table of the decision, by personality (rows) and target kind (columns), as a rotating list
+        // of what is possible now; the rotation (by turn and pair, no dice) spreads the points over the kinds
+        // and a chosen kind that is not yet affordable is waited for (points are saved, no data collection).
+        // Returns true when it decided (`out`: the operation, OP_COUNT = save the points); false hands over
+        // to the old chooser (personalities and targets the table has no entry for).
+        bool Choose_New_(int16_t a, int16_t t, int16_t* third, e_op* out) {
+            const int32_t personality = MOX::player[a].personality;
+            const bool ruthless = personality == PLAYER_PERSONALITY_RUTHLESS;
+            const bool xenophobe = personality == PLAYER_PERSONALITY_XENOPHOBIC;
+            const bool aggressive = personality == PLAYER_PERSONALITY_AGGRESSIVE || personality == PLAYER_PERSONALITY_ERRATIC;
+            const bool honorable = personality == PLAYER_PERSONALITY_HONORABLE;
+            const bool pacifist = personality == PLAYER_PERSONALITY_PACIFIST;
+            if (!(ruthless || xenophobe || aggressive || honorable || pacifist)) return false;
+            const bool gentle = honorable || pacifist;
+            const bool at_war = MOX::player[a].treaty[t] >= TREATY_FIRST_WAR;
+            if (gentle && !at_war) return false;  // honourable and peaceable computers: open war only
+            const bool foe = !at_war && opinion::Relations(a, t) <= FOE_RELATIONS;
+            bool strong_friend = false;
+            if (!at_war && !foe) {
+                if (Common_War_(a, t)) return false;  // we fight a common enemy: no betrayal
+                strong_friend = Stronger_Than_(t, a) || Strongest_(t);
+                if (!Friend_Turn_(a, t)) {
+                    // Not the friend's turn: a strong friend is not collected data from, the points wait.
+                    if (!strong_friend || Sabotage_Pick_(a, t, -1, false) == OP_COUNT) return false;
+                    *out = OP_COUNT;
+                    return true;
+                }
+            }
+            const int32_t sabotage_mask = pacifist ? BLOODLESS_SABOTAGE_MASK : -1;
+            constexpr e_op SABOTAGE = OP_SABOTAGE_SHIPYARD;  // stands for "some sabotage kind"
+            e_op list[6];
+            int32_t n = 0;
+            const auto add = [&](e_op op, bool possible) { if (possible && Enabled(op)) list[n++] = op; };
+            const auto add_sabotage = [&]() { if (Sabotage_Pick_(a, t, sabotage_mask, false) != OP_COUNT) list[n++] = SABOTAGE; };
+            const bool kills = ruthless || xenophobe;  // "all": assassination, poison at a feast, a scientist
+            if (at_war) {
+                add(OP_ASSASSINATION, !gentle && Assassination_Subject_(t) >= 0);
+                add(OP_POISON_WATER, ruthless && Populous_Colony_(t, false, POISON_WATER_MIN_POPS) >= 0);
+                // A scientist is killed at war by the same ones who assassinate (not by the gentle ones, whose
+                // war is bloodless or open): the cheapest of the kinds, so it comes after the dearer ones in the rotation.
+                add(OP_KILL_SCIENTIST, !gentle && Scientist_(t) >= 0);
+                add_sabotage();
+            } else if (foe) {
+                add(OP_POISON_FEAST, kills && Feast_Allowed_(a, t) && Assassination_Subject_(t) >= 0);
+                add(OP_ASSASSINATION, kills && Assassination_Subject_(t) >= 0);
+                add(OP_POISON_WATER, ruthless && Populous_Colony_(t, false, POISON_WATER_MIN_POPS) >= 0);
+                add(OP_KILL_SCIENTIST, kills && Scientist_(t) >= 0);
+                add_sabotage();
+            } else {
+                if (strong_friend) add_sabotage();
+            }
+            if (!gentle) {
+                const int16_t k = Enabled(OP_FALSE_FLAG) ? False_Flag_Third_(a, t) : -1;
+                if (k >= 0) {
+                    list[n++] = OP_FALSE_FLAG;
+                    *third = k;
+                }
+            }
+            if (n == 0) {
+                if (!gentle) return false;
+                *out = Enabled(OP_DATA) && espionage::Points(a, t) >= Cost(OP_DATA) ? OP_DATA : OP_COUNT;
+                return true;
+            }
+            e_op op = list[(MOX::stardate / AI_PERIOD + a + t) % n];
+            if (op == SABOTAGE) op = Sabotage_Pick_(a, t, sabotage_mask, true);
+            if (op == OP_COUNT || espionage::Points(a, t) < Cost(op)) op = OP_COUNT;  // not yet affordable: save
+            *out = op;
+            return true;
+        }
+
         // The computer's choice against `t` (OP_COUNT: none); `third` gets the scapegoat.
         e_op Choose_(int16_t a, int16_t t, int16_t* third) {
             if (espionage::Points(a, t) <= 0) return OP_COUNT;
+            if ((operations & NEW_OPERATION_BITS) != 0) {
+                e_op chosen = OP_COUNT;
+                if (Choose_New_(a, t, third, &chosen)) return chosen;
+            }
             const auto ready = [&](e_op op) { return Enabled(op) && espionage::Points(a, t) >= Cost(op); };
             const bool at_war = MOX::player[a].treaty[t] >= TREATY_FIRST_WAR;
             const int32_t personality = MOX::player[a].personality;
@@ -515,12 +675,17 @@ namespace spy_ops {
         BILL::Set_Their_Spy_Number(attacker, target, static_cast<uint8_t>(spies - 1));
         // An interrogated spy of a false-flag operation names the framed empire (off by default).
         const int16_t blamed = counterspy::Blamed(target, attacker, op == OP_FALSE_FLAG ? subject : -1);
-        opinion::Add(target, blamed, Reason_(op), EXPOSED_OPINION);
+        // Iteration 4: an exposed operation of a computer against a "friend" is a betrayal: twice the blow
+        // (the same reason, a doubled amount; the reason's own limit still applies, no save format change).
+        const bool betrayal = op != OP_DATA && Betrayal_(attacker, target);
+        opinion::Add(target, blamed, Reason_(op), betrayal ? EXPOSED_OPINION * BETRAYAL_FACTOR : EXPOSED_OPINION);
         counterspy::On_Attempt(target, op);
         espionage::On_Spy_Caught(target, attacker);
         if (op == OP_FRAME_LEADER) *Immune_Slot(subject) = 1;
         if (op == OP_POISON_FEAST || op == OP_POISON_WATER) reputation::On_Atrocity(attacker);
-        if (op == OP_POISON_FEAST) opinion::Add(target, attacker, opinion::REASON_TRIED_TO_KILL_OUR_LEADER, EXPOSED_OPINION);
+        if (op == OP_POISON_FEAST) {
+            opinion::Add(target, attacker, opinion::REASON_TRIED_TO_KILL_OUR_LEADER, betrayal ? EXPOSED_OPINION * BETRAYAL_FACTOR : EXPOSED_OPINION);
+        }
         return RESULT_EXPOSED;
     }
 
