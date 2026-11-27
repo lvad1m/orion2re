@@ -5946,6 +5946,18 @@
       bind_root: { header: "game/secrets.h", symbol: "secrets::kompromat_scandal" },
     },
 
+    scandal_breaks_pacts: {
+      title: "A scandal breaks pacts",
+      description: "When a kompromat scandal breaks (spy kompromat_scandal), every computer empire with a non-aggression pact with the smearer, the smeared nominee included, cancels it: the treaty goes back to none, without a war, and the canceller bears none of the costs of breaking a treaty (no dishonour, no relations penalty, no oathbreaker stain) - it has a lawful cause.",
+      remarks: "False preserves classic behavior. Effective only while spy kompromat_scandal is true. A human's pacts are left to the human.",
+      examples: ["spy scandal_breaks_pacts = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/secrets.h", symbol: "secrets::scandal_breaks_pacts" },
+    },
+
     hired_pirates: {
       title: "Hired pirates",
       description: "Every 10 turns a computer empire with spies in an empire at war with it or disliked at -30 or worse (or knowing a pirate cache) pays pirates against it: the fierce (aggressive, ruthless, xenophobic) arm pirates at the star of its most populous colony - 20 percent of the treasury, 100 to 300 BC, adds half the price to the classic pirate strength; they take freighters and halve trade like the classic pirate activity until warships drive them off or 30 turns pass - the others pay 50 BC for a classic pirate raid. A dice check as for a spy's data gathering: failed, the pirates keep the money; exposed, a spy is caught and the target remembers who paid (raided us, -20).",

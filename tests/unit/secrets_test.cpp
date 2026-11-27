@@ -34,6 +34,7 @@ namespace {
         test::s_saved_value<bool> favours{intrigue::favours};
         test::s_saved_value<bool> kompromat{secrets::council_kompromat};
         test::s_saved_value<bool> scandal{secrets::kompromat_scandal};
+        test::s_saved_value<bool> pacts{secrets::scandal_breaks_pacts};
         test::s_saved_value<int16_t> council_flag{diplodef::COUNCIL_FLAG};
         test::s_saved_value<int16_t> next_session{diplodef::next_council_meeting_turn};
 
@@ -589,6 +590,41 @@ DOCTEST_TEST_CASE("kompromat: exposed against a nominee it is a public scandal; 
     diplodef::next_council_meeting_turn = 200;
     DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
     DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_BAD_RUMOURS) == 0);
+}
+
+// Iteration 10, «скандал рвёт пакты»: the smearer's non-aggression pacts with computers end, the victim's too.
+DOCTEST_TEST_CASE("kompromat: a scandal ends the smearer's non-aggression pacts, without a war or a stain") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 105);
+    state.players[3].treaty[2] = 4;  // at war with 2: opposes both nominees, its kompromat target is 0
+    state.players[2].treaty[3] = 4;
+    for (int o : {0, 1}) {           // pacts with the victim (0) and with a bystander (1)
+        state.players[3].treaty[o] = 1;
+        state.players[o].treaty[3] = 1;
+    }
+    secrets::kompromat_scandal = true;
+    secrets::scandal_breaks_pacts = true;
+    DOCTEST_REQUIRE(secrets::Kompromat_Target(3) == 0);
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
+    for (int o : {0, 1}) {
+        DOCTEST_CHECK(state.players[3].treaty[o] == 0);
+        DOCTEST_CHECK(state.players[o].treaty[3] == 0);
+        DOCTEST_CHECK(state.players[o].dishonored_flag[3] == 0);  // no 1.40 break: nobody is dishonoured
+    }
+    DOCTEST_CHECK(state.players[3].treaty[2] == 4);  // a war stays a war
+
+    // Without the setting the scandal leaves the pacts alone.
+    for (int o : {0, 1}) {
+        state.players[3].treaty[o] = 1;
+        state.players[o].treaty[3] = 1;
+    }
+    secrets::scandal_breaks_pacts = false;
+    state.players[3].spies[0] = 4;
+    espionage::State()->points[3][0] = 50;
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
+    DOCTEST_CHECK(state.players[3].treaty[1] == 1);
+    DOCTEST_CHECK(state.players[1].treaty[3] == 1);
 }
 
 }

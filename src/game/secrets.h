@@ -36,6 +36,7 @@ namespace secrets {
     extern bool smear;            // spy smear
     extern bool council_kompromat;  // spy council_kompromat
     extern bool kompromat_scandal;  // spy kompromat_scandal
+    extern bool scandal_breaks_pacts;  // spy scandal_breaks_pacts
     extern int32_t smear_cost;    // spy smear_cost: network points
 
     enum e_kind : uint8_t {

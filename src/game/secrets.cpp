@@ -28,6 +28,7 @@ namespace secrets {
 
     namespace {
         constexpr int8_t TREATY_FIRST_WAR = 4;
+        constexpr int8_t TREATY_PACT_ = 1;  // a non-aggression pact (advisor_view.cpp names the treaty kinds)
 
 
         int16_t Players_() {
@@ -445,6 +446,21 @@ namespace secrets {
                 for (int16_t o = 0; o < Players_(); ++o) {
                     if (o == attacker || o == target || !Computer_(o) || MOX::player[o].contact[attacker] == 0) continue;
                     opinion::Add(o, attacker, opinion::REASON_BAD_RUMOURS, SCANDAL_OPINION);
+                }
+                // Iteration 10, the author's decision of 27.11.2026 (iterations.md, «скандал рвёт пакты»): "все
+                // компьютеры, у которых с ним пакт о ненападении (и жертва тоже), расторгают пакт: договор
+                // возвращается в «нет договора», без объявления войны; расторгнувший не получает ни пятна «нарушил
+                // слово», ни штрафов разрыва договора". So not diplomac::Break_Treaties (the 1.40 break punishes the
+                // breaker): the pact is set to none both ways, as the engine ends a treaty in its special events.
+                if (scandal_breaks_pacts) {
+                    for (int16_t o = 0; o < Players_(); ++o) {
+                        if (o == attacker || !Computer_(o) || MOX::player[o].contact[attacker] == 0) continue;
+                        if (MOX::player[o].treaty[attacker] != TREATY_PACT_) continue;
+                        MOX::player[o].treaty[attacker] = 0;
+                        MOX::player[attacker].treaty[o] = 0;
+                        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d cancels its non-aggression pact with player %d over the scandal",
+                            (int)MOX::stardate, (int)o, (int)attacker);
+                    }
                 }
             }
         }
