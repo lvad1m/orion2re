@@ -19,6 +19,7 @@ namespace espionage {
     extern bool network;                    // spy network
     extern int32_t points_per_spy;          // spy network_points_per_spy
     extern int32_t network_cap;             // spy network_cap
+    extern int32_t network_size_step;       // spy network_size_step: colonies of the target per +1 point per spy; 0 = off
     extern int32_t free_spy_turns;          // spy free_spy_turns
     extern bool counterintelligence;        // spy counterintelligence
     extern int32_t witch_hunt_accusation;   // spy witch_hunt_accusation: per mille per leader per turn
@@ -36,6 +37,9 @@ namespace espionage {
     constexpr int32_t MODE_DEFENSE[MODE_COUNT] = {0, 10, 25};
     constexpr int32_t MODE_MORALE[MODE_COUNT] = {0, -1, -3};
     constexpr int32_t MODE_COST_PERCENT[MODE_COUNT] = {0, 2, 4};
+    // Author's decision of 27.11.2026 (iterations.md, iteration 5 bench, "щели большой империи"): the network gains
+    // +1 point per spy per turn for every network_size_step colonies of the target, at most +2.
+    constexpr int32_t SIZE_BONUS_MAX = 2;
     constexpr int32_t RECENT_TURNS = 20;    // spies caught this long ago still count
     constexpr int32_t MODE_PERIOD = 10;     // turns between the computers' choices of mode
     // Решение автора (iterations.md, итерация 2, п. 2): «Охота на ведьм ограничена так же, как охота на крота: не больше одного ареста за 20 ходов на империю». A witch hunt

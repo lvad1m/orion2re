@@ -5562,6 +5562,22 @@
       },
     },
 
+    network_size_step: {
+      title: "Spy network size step",
+      description: "Sets how many colonies of the target empire add one more network point per spy each turn (at most two more); 0 turns the bonus off.",
+      remarks: "Effective only while spy network is true.",
+      examples: ["spy network_size_step = 8;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "int32",
+      constraints: { min: 0 },
+      default: 0,
+      bind_root: {
+        header: "game/espionage.h",
+        symbol: "espionage::network_size_step",
+      },
+    },
+
     free_spy_turns: {
       title: "Free spy interval",
       description: "Sets how many turns pass between the free spies an empire with a spy master in its service or the neural scanner receives.",

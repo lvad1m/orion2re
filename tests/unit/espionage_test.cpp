@@ -75,6 +75,49 @@ DOCTEST_TEST_CASE("spies build network points up to the cap; without spies the p
     DOCTEST_CHECK(espionage::Points(1, 2) == 3);
 }
 
+DOCTEST_TEST_CASE("a big target empire gives the network extra points (spy network_size_step)") {
+    s_espionage_scope scope;
+    test::s_saved_value<int32_t> step{espionage::network_size_step};
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[1].spies[2] = 1;
+    const auto gain_vs_2 = [&](int owned_by_2, int owned_by_1) {
+        espionage::Clear();
+        MOX::NUM_COLONIES = static_cast<int16_t>(owned_by_2 + owned_by_1);
+        for (int i = 0; i < MOX::NUM_COLONIES; ++i) state.colonies[i].owner = i < owned_by_2 ? 2 : 1;
+        espionage::Turn();
+        return espionage::Points(1, 2);
+    };
+    espionage::network_size_step = 8;
+    DOCTEST_CHECK(gain_vs_2(7, 0) == 1);
+    DOCTEST_CHECK(gain_vs_2(8, 0) == 2);
+    DOCTEST_CHECK(gain_vs_2(15, 0) == 2);
+    DOCTEST_CHECK(gain_vs_2(16, 0) == 3);
+    DOCTEST_CHECK(gain_vs_2(40, 0) == 3);  // the limit
+    DOCTEST_CHECK(gain_vs_2(7, 40) == 1);  // the target's colonies count, not the owner's
+    DOCTEST_CHECK(gain_vs_2(16, 40) == 3);
+
+    state.players[1].spies[2] = 2;  // two spies double it
+    DOCTEST_CHECK(gain_vs_2(7, 0) == 2);
+    DOCTEST_CHECK(gain_vs_2(16, 0) == 6);
+
+    // the cap still holds
+    state.players[1].spies[2] = 20;
+    DOCTEST_CHECK(gain_vs_2(16, 0) == 30);
+
+    // no spies: the network still decays by 1
+    state.players[1].spies[2] = 0;
+    espionage::Turn();
+    DOCTEST_CHECK(espionage::Points(1, 2) == 29);
+
+    // step 0: as before, for every size
+    espionage::network_size_step = 0;
+    state.players[1].spies[2] = 1;
+    DOCTEST_CHECK(gain_vs_2(7, 0) == 1);
+    DOCTEST_CHECK(gain_vs_2(16, 0) == 1);
+    DOCTEST_CHECK(gain_vs_2(40, 0) == 1);
+}
+
 DOCTEST_TEST_CASE("a spy master or the neural scanner brings a free spy now and then") {
     s_espionage_scope scope;
     test::s_game_state state;

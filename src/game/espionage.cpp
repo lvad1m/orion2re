@@ -54,6 +54,24 @@ namespace espionage {
             return false;
         }
 
+        // Colonies owned by `target`, outposts included: the same definition as the advisor's
+        // "OUR STATE: N colonies" (advisor_view.cpp, Fill_Self: owner == player over all colonies).
+        int32_t Colonies_Of_(int16_t target) {
+            int32_t n = 0;
+            for (int16_t c = 0; c < MOX::NUM_COLONIES && c < MAX_COLONIES; ++c) {
+                if (MOX::colony[c].owner == static_cast<int8_t>(target)) ++n;
+            }
+            return n;
+        }
+
+        // "Сеть копит в цели +1 очко за шпиона в ход за каждые 8 колоний цели, но не больше +2 (до 7 колоний -
+        // как сейчас, 8-15 - вдвое быстрее, 16 и больше - втрое); для всех, включая человека" (iterations.md,
+        // решение автора 27.11.2026, «слабые против сильного»). The step is network_size_step; 0 = off.
+        int32_t Size_Bonus_(int16_t target) {
+            if (network_size_step < 1) return 0;
+            return std::min<int32_t>(SIZE_BONUS_MAX, Colonies_Of_(target) / network_size_step);
+        }
+
         void Network_Turn_() {
             s_state* s = State();
             for (int16_t owner = 0; owner < Players_(); ++owner) {
@@ -62,7 +80,8 @@ namespace espionage {
                     int16_t& points = s->points[owner][target];
                     const int32_t spies = Alive_(owner) && Alive_(target) ? BILL::Get_Their_Spy_Number(owner, target) : 0;
                     if (spies > 0) {
-                        points = static_cast<int16_t>(std::min<int32_t>(network_cap, points + spies * points_per_spy));
+                        const int32_t gain = spies * (points_per_spy + Size_Bonus_(target));
+                        points = static_cast<int16_t>(std::min<int32_t>(network_cap, points + gain));
                     } else if (points > 0) {
                         --points;
                     }
