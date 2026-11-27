@@ -35,6 +35,7 @@ namespace secrets {
     extern bool enabled;          // spy secrets
     extern bool smear;            // spy smear
     extern bool council_kompromat;  // spy council_kompromat
+    extern bool kompromat_scandal;  // spy kompromat_scandal
     extern int32_t smear_cost;    // spy smear_cost: network points
 
     enum e_kind : uint8_t {
@@ -79,6 +80,10 @@ namespace secrets {
     constexpr int32_t KOMPROMAT_TURNS = 10;
     // "Not going to vote for": Vote_Score (council.h) below an even chance of the Random(200) draw.
     constexpr int32_t KOMPROMAT_EVEN_SCORE = 100;
+    // Iteration 9, the author's decision of 27.11.2026 (iterations.md, «Уотергейт»): "Раскрытое очернение
+    // кандидата перед заседанием становится публичным скандалом: все избиратели думают хуже о самом
+    // очернителе." Every other computer that knows the smearer: the same as a believed rumour costs the nominee.
+    constexpr int32_t SCANDAL_OPINION = RUMOUR_OPINION;
 
     // The council nominee `holder` aims its kompromat at while a session is due within KOMPROMAT_TURNS
     // turns (council_kompromat on, a computer holder); -1 when there is none. A nominee: the other nominee;

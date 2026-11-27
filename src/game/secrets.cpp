@@ -437,6 +437,16 @@ namespace secrets {
             BILL::Set_Their_Spy_Number(attacker, target, static_cast<uint8_t>(spies - 1));
             opinion::Add(target, attacker, opinion::REASON_SMEARED_US, SMEARED_OPINION);
             espionage::On_Spy_Caught(target, attacker);
+            // «Уотергейт» (iteration 9): an exposed kompromat against a council nominee is a public scandal -
+            // every other computer that knows the smearer thinks worse of it (SCANDAL_OPINION, secrets.h).
+            if (kompromat_scandal && Kompromat_Target(attacker) == target) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d's kompromat against council nominee %d is a public scandal",
+                    (int)MOX::stardate, (int)attacker, (int)target);
+                for (int16_t o = 0; o < Players_(); ++o) {
+                    if (o == attacker || o == target || !Computer_(o) || MOX::player[o].contact[attacker] == 0) continue;
+                    opinion::Add(o, attacker, opinion::REASON_BAD_RUMOURS, SCANDAL_OPINION);
+                }
+            }
         }
         return false;
     }

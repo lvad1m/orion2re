@@ -33,6 +33,7 @@ namespace {
         test::s_saved_value<bool> council{ambition::council_bribery};
         test::s_saved_value<bool> favours{intrigue::favours};
         test::s_saved_value<bool> kompromat{secrets::council_kompromat};
+        test::s_saved_value<bool> scandal{secrets::kompromat_scandal};
         test::s_saved_value<int16_t> council_flag{diplodef::COUNCIL_FLAG};
         test::s_saved_value<int16_t> next_session{diplodef::next_council_meeting_turn};
 
@@ -558,6 +559,36 @@ DOCTEST_TEST_CASE("kompromat: before the session the operations keep the opposed
     diplodef::next_council_meeting_turn = 111;
     secrets::council_kompromat = false;  // the setting off: as usual
     DOCTEST_CHECK(spy_ops::Choose_Operation(3, 0) == spy_ops::OP_DATA);
+}
+
+// Iteration 9, «Уотергейт»: an exposed kompromat against a nominee is a public scandal for the smearer.
+DOCTEST_TEST_CASE("kompromat: exposed against a nominee it is a public scandal; otherwise only the victim remembers") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 105);  // a session in 4 turns
+    state.players[3].treaty[2] = 4;          // opposes both nominees: its kompromat target is 0
+    secrets::kompromat_scandal = true;
+    DOCTEST_REQUIRE(secrets::Kompromat_Target(3) == 0);
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
+    DOCTEST_CHECK(opinion::Modifier(0, 3, opinion::REASON_SMEARED_US) == secrets::SMEARED_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_BAD_RUMOURS) == secrets::SCANDAL_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(2, 3, opinion::REASON_BAD_RUMOURS) == secrets::SCANDAL_OPINION);
+    DOCTEST_CHECK(opinion::Modifier(0, 3, opinion::REASON_BAD_RUMOURS) == 0);  // the victim: its own memory only
+
+    opinion::Clear();  // a smear of the foe, not of the nominee: no scandal
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 2, CATASTROPHE));
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_BAD_RUMOURS) == 0);
+
+    opinion::Clear();  // the setting off: no scandal
+    secrets::kompromat_scandal = false;
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_BAD_RUMOURS) == 0);
+
+    opinion::Clear();  // outside the window: no scandal
+    secrets::kompromat_scandal = true;
+    diplodef::next_council_meeting_turn = 200;
+    DOCTEST_CHECK_FALSE(secrets::Smear_With_Dice(3, 0, CATASTROPHE));
+    DOCTEST_CHECK(opinion::Modifier(1, 3, opinion::REASON_BAD_RUMOURS) == 0);
 }
 
 }
