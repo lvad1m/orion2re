@@ -5922,6 +5922,18 @@
       bind_root: { header: "game/secrets.h", symbol: "secrets::smear_cost" },
     },
 
+    council_kompromat: {
+      title: "Kompromat before the council",
+      description: "In the 10 turns before a council session each computer empire aims its smear campaign at the council nominee it does not intend to vote for (the one with more votes when it opposes both, the other nominee when it is a nominee itself; an empire that supports both smears as usual), and its held secrets about that nominee are made public instead of sold or used for blackmail. The effect is the usual one: believed rumours make the other computers think worse of the nominee (-10), a made-public secret makes the owner remember the holder (-30), an exposed campaign hits the smearer; the price is the usual smear cost in network points.",
+      remarks: "False preserves classic behavior. Effective only while spy smear or spy secrets is true.",
+      examples: ["spy council_kompromat = true;"],
+      group: "gameplay",
+      namespace: "spy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/secrets.h", symbol: "secrets::council_kompromat" },
+    },
+
     hired_pirates: {
       title: "Hired pirates",
       description: "Every 10 turns a computer empire with spies in an empire at war with it or disliked at -30 or worse (or knowing a pirate cache) pays pirates against it: the fierce (aggressive, ruthless, xenophobic) arm pirates at the star of its most populous colony - 20 percent of the treasury, 100 to 300 BC, adds half the price to the classic pirate strength; they take freighters and halve trade like the classic pirate activity until warships drive them off or 30 turns pass - the others pay 50 BC for a classic pirate raid. A dice check as for a spy's data gathering: failed, the pirates keep the money; exposed, a spy is caught and the target remembers who paid (raided us, -20).",

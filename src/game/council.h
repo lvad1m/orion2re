@@ -87,6 +87,21 @@ namespace council {
        opponent_idx: Player index of the opposing nominee. */
     bool __cdecl Vote_Check(int16_t candidate_idx, int16_t voter_idx, int16_t opponent_idx);
 
+    /* The voter's score for the candidate: Vote_Check casts the vote when Random(200) <= score. No side
+       effects and no draw (every bias it adds is a pure read); an even chance is a score of 100. */
+    int16_t __cdecl Vote_Score(int16_t candidate_idx, int16_t voter_idx, int16_t opponent_idx);
+
+    /* Picks the two nominees by votes as the council does; an earlier value in nominees stays when nobody
+       has a vote. */
+    void Pick_Nominees(uint8_t* nominees);
+
+    /* The nominees as the next session would pick them (no side effects); false when there are not two. */
+    bool Predict_Nominees(uint8_t* nominees);
+
+    /* A session is due within the next `turns` turns (0 < turns until it <= turns) and the council could
+       sit by its other conditions (more than two empires alive, half the stars owned). */
+    bool Session_Due_Within(int32_t turns);
+
     /* Rebuilds council assets, nominees, voter ordering, and localized text for the screen. */
     void __cdecl Reload_Main_Council_Screen();
 

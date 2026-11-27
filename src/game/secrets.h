@@ -34,6 +34,7 @@ namespace secrets {
 
     extern bool enabled;          // spy secrets
     extern bool smear;            // spy smear
+    extern bool council_kompromat;  // spy council_kompromat
     extern int32_t smear_cost;    // spy smear_cost: network points
 
     enum e_kind : uint8_t {
@@ -70,6 +71,20 @@ namespace secrets {
     constexpr int32_t RUMOUR_OPINION = -10;      // each other empire's memory of a smeared or exposed empire
     constexpr int32_t SMEARED_OPINION = -30;
     constexpr int32_t PERIOD = 10;
+    // Iteration 7, piece A (docs/LocalLLM/iterations.md, the author's decision of 27.11.2026, "компромат
+    // накануне совета"): "за 10 ходов до заседания совета каждый компьютер с сетью в одном из двух
+    // кандидатов ведёт кампанию очернения против кандидата, за которого не собирается голосовать (если
+    // против обоих - против того, у кого больше голосов); кандидаты очерняют друг друга; держатели тайн
+    // кандидата раскрывают их публично перед заседанием, а не продают и не шантажируют." The window:
+    constexpr int32_t KOMPROMAT_TURNS = 10;
+    // "Not going to vote for": Vote_Score (council.h) below an even chance of the Random(200) draw.
+    constexpr int32_t KOMPROMAT_EVEN_SCORE = 100;
+
+    // The council nominee `holder` aims its kompromat at while a session is due within KOMPROMAT_TURNS
+    // turns (council_kompromat on, a computer holder); -1 when there is none. A nominee: the other nominee;
+    // otherwise the nominee it would not vote for, the one with more votes when it opposes both, none when
+    // it supports both. No dice, no state.
+    int16_t Kompromat_Target(int16_t holder);
 
     struct s_secret {
         uint8_t kind = KIND_NONE;

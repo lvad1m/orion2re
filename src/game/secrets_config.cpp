@@ -8,6 +8,7 @@ namespace secrets {
 
     bool enabled = false;
     bool smear = false;
+    bool council_kompromat = false;
     int32_t smear_cost = 20;
 
 } // namespace secrets

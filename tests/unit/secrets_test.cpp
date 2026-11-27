@@ -3,7 +3,9 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "game/ambition.h"
+#include "game/council.h"
 #include "game/covenants.h"
+#include "game/diplodef.h"
 #include "game/dice.h"
 #include "game/espionage.h"
 #include "game/intrigue.h"
@@ -30,6 +32,9 @@ namespace {
         test::s_saved_value<uint8_t> roll_kind{dice::roll_kind};
         test::s_saved_value<bool> council{ambition::council_bribery};
         test::s_saved_value<bool> favours{intrigue::favours};
+        test::s_saved_value<bool> kompromat{secrets::council_kompromat};
+        test::s_saved_value<int16_t> council_flag{diplodef::COUNCIL_FLAG};
+        test::s_saved_value<int16_t> next_session{diplodef::next_council_meeting_turn};
 
         s_secrets_scope() {
             covenants::Clear();
@@ -49,6 +54,7 @@ namespace {
             intrigue::favours = true;
         }
         ~s_secrets_scope() {
+            intrigue::Clear();
             covenants::Clear();
             secrets::Clear();
             espionage::Clear();
@@ -387,6 +393,150 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     SERIAL::Reader_ bad(buffer.get(), secrets::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(secrets::Parse_Save(&bad, &error));
     DOCTEST_CHECK(secrets::Slots()[0].kind == secrets::KIND_PLAN);
+}
+
+
+// Iteration 7, piece A: "компромат накануне совета". Nominees are 0 (10 votes) and 1 (6); 2 and 3 are members.
+namespace {
+    void Kompromat_Setup_(test::s_game_state* state, int32_t stardate, int16_t next_session) {
+        Setup_(state);
+        intrigue::Clear();  // no favours owed from an earlier case: they add to a vote
+        MOX::stardate = stardate;
+        const int16_t population[4] = {100, 60, 30, 20};
+        for (int i = 0; i < 4; ++i) {
+            state->players[i].total_pop = population[i];
+            state->players[i].council_voted_for = -1;
+            for (int j = 0; j < 4; ++j) {  // a neutral opinion of everyone: no trust, no history
+                state->players[i].trust_worthiness[j] = 0;
+                state->players[i].broken_treaties_modifier[j] = 0;
+                state->players[i].diplomacy_proposal_rejection[j] = 0;
+                state->players[i].trade_treaty[j] = 0;
+                state->players[i].research_treaty[j] = 0;
+            }
+            for (int j = 0; j < 4; ++j) state->players[i].treaty[j] = 0;
+        }
+        diplodef::COUNCIL_FLAG = 1;
+        diplodef::next_council_meeting_turn = next_session;
+        secrets::council_kompromat = true;
+        secrets::enabled = false;  // the smear only: nothing else draws
+        for (int from = 0; from < 4; ++from) {
+            for (int to = 0; to < 4; ++to) {
+                if (from == to) continue;
+                state->players[from].spies[to] = 4;
+                espionage::State()->points[from][to] = 50;
+            }
+        }
+    }
+
+    // The empire `a` ran a campaign at `t` this turn (the points were spent).
+    bool Smeared_(int a, int t) {
+        return espionage::Points(a, t) < 50;
+    }
+}
+
+DOCTEST_TEST_CASE("kompromat: a member smears the nominee it does not vote for, not the foe") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 105);  // a session in 4 turns
+    state.players[3].treaty[2] = 4;  // a foe of 3 - the usual target
+    state.players[3].treaty[0] = 2;  // supports nominee 0: an ally always votes for its ally
+    // treaty with 1 is none: the score is far below an even chance
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == 1);
+    secrets::Turn();
+    DOCTEST_CHECK(Smeared_(3, 1));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 2));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 0));
+}
+
+DOCTEST_TEST_CASE("kompromat: against both nominees the one with more votes; for both nobody") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 105);
+    state.players[3].treaty[2] = 4;
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == 0);  // opposes both: 0 has 10 votes against 6
+    secrets::Turn();
+    DOCTEST_CHECK(Smeared_(3, 0));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 2));
+
+    espionage::Clear();
+    for (int from = 0; from < 4; ++from) {
+        for (int to = 0; to < 4; ++to) {
+            if (from != to) espionage::State()->points[from][to] = 50;
+        }
+    }
+    state.players[3].treaty[0] = 2;  // supports both: an ally always votes for its ally
+    state.players[3].treaty[1] = 2;
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == -1);
+    secrets::Turn();
+    DOCTEST_CHECK_FALSE(Smeared_(3, 0));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 1));
+    DOCTEST_CHECK(Smeared_(3, 2));  // the usual foe rule applies
+}
+
+DOCTEST_TEST_CASE("kompromat: a nominee smears the other nominee") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 105);
+    state.players[1].treaty[2] = 4;  // a foe of nominee 1
+    DOCTEST_CHECK(secrets::Kompromat_Target(1) == 0);
+    DOCTEST_CHECK(secrets::Kompromat_Target(0) == 1);
+    secrets::Turn();
+    DOCTEST_CHECK(Smeared_(1, 0));
+    DOCTEST_CHECK_FALSE(Smeared_(1, 2));
+}
+
+DOCTEST_TEST_CASE("kompromat: outside the window or with the setting off the usual foe") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35101, 200);  // the session is 99 turns away
+    state.players[3].treaty[2] = 4;
+    state.players[3].treaty[0] = 2;
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == -1);
+    secrets::Turn();
+    DOCTEST_CHECK(Smeared_(3, 2));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 1));
+
+    espionage::Clear();
+    for (int from = 0; from < 4; ++from) {
+        for (int to = 0; to < 4; ++to) {
+            if (from != to) espionage::State()->points[from][to] = 50;
+        }
+    }
+    diplodef::next_council_meeting_turn = 105;  // in the window, but the setting is off
+    secrets::council_kompromat = false;
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == -1);
+    secrets::Turn();
+    DOCTEST_CHECK(Smeared_(3, 2));
+    DOCTEST_CHECK_FALSE(Smeared_(3, 1));
+}
+
+DOCTEST_TEST_CASE("kompromat: a held secret of the opposed nominee is made public, not blackmailed") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35109, 115);  // the use phase; a session in 6 turns
+    secrets::enabled = true;
+    secrets::smear = false;
+    for (int i = 0; i < 4; ++i) {
+        for (int j = 0; j < 4; ++j) state.players[i].spies[j] = 0;  // nobody learns anything new
+    }
+    for (int i = 0; i < 4; ++i) state.players[i].personality = PLAYER_PERSONALITY_RUTHLESS;
+    state.players[3].treaty[0] = 4;  // 3 will not vote for nominee 0, supports 1
+    state.players[3].treaty[1] = 2;
+    state.players[0].bc = 1000;
+    DOCTEST_REQUIRE(secrets::Learn(3, secrets::KIND_PLAN, 0, 2, -1));
+    secrets::Turn();
+    DOCTEST_CHECK(secrets::Empty());
+    DOCTEST_CHECK(opinion::Modifier(0, 3, opinion::REASON_EXPOSED_US) == secrets::EXPOSED_OPINION);
+    DOCTEST_CHECK(state.players[0].bc == 1000);  // no tribute
+
+    // Setting off: the ruthless holder blackmails as before.
+    opinion::Clear();
+    state.players[0].sneak_attack_planet = 5;  // telling the victim spoiled the plan
+    state.players[0].sneak_attack_player = 2;
+    secrets::council_kompromat = false;
+    DOCTEST_REQUIRE(secrets::Learn(3, secrets::KIND_PLAN, 0, 2, -1));
+    secrets::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 1000 - 1000 * secrets::BLACKMAIL_PERCENT / 100);
 }
 
 }

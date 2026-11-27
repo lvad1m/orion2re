@@ -4,6 +4,7 @@
 
 #include "game/bill.h"
 #include "game/colcalc.h"
+#include "game/council.h"
 #include "game/counterspy.h"
 #include "game/covenants.h"
 #include "game/dice.h"
@@ -175,6 +176,8 @@ namespace secrets {
 
         void Use_All_() {
             bool fresh[MAX_SECRETS] = {};  // copies sold this turn wait for the next one
+            int16_t kompromat[MAX_PLAYERS];  // each holder's kompromat target in the pre-council window (-1: none)
+            for (int16_t h = 0; h < MAX_PLAYERS; ++h) kompromat[h] = Kompromat_Target(h);
             for (int32_t i = 0; i < MAX_SECRETS; ++i) {
                 s_secret& s = Slots()[i];
                 if (s.kind == KIND_NONE || fresh[i]) continue;
@@ -183,6 +186,13 @@ namespace secrets {
                     continue;
                 }
                 if (s.demanded != 0) continue;  // the owner pays with its council vote: kept for the vote
+                // The kompromat rule: a secret of the nominee the holder opposes is made public before the session.
+                if (kompromat[s.holder] >= 0 && kompromat[s.holder] == s.owner) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d aims its kompromat at council nominee %d",
+                        (int)MOX::stardate, (int)s.holder, (int)s.owner);
+                    Make_Public(i);
+                    continue;
+                }
                 switch (MOX::player[s.holder].personality) {
                     case PLAYER_PERSONALITY_HONORABLE:
                     case PLAYER_PERSONALITY_PACIFIST:
@@ -213,6 +223,14 @@ namespace secrets {
         void Smear_All_() {
             for (int16_t a = 0; a < Players_(); ++a) {
                 if (!Computer_(a)) continue;
+                // The kompromat rule: before a council session the campaign goes against the nominee `a` opposes.
+                const int16_t nominee = Kompromat_Target(a);
+                if (nominee >= 0 && nominee != a && Alive_(nominee) && Spies_(a, nominee) != 0 && espionage::Points(a, nominee) >= smear_cost) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d aims its kompromat at council nominee %d",
+                        (int)MOX::stardate, (int)a, (int)nominee);
+                    Smear(a, nominee);
+                    continue;
+                }
                 for (int16_t t = 0; t < Players_(); ++t) {
                     if (t == a || !Alive_(t) || Spies_(a, t) == 0 || espionage::Points(a, t) < smear_cost) continue;
                     const bool foe = MOX::player[a].treaty[t] >= TREATY_FIRST_WAR || rivalry::Rival_Of(a) == t || opinion::Relations(a, t) <= -30;
@@ -223,6 +241,22 @@ namespace secrets {
             }
         }
     } // namespace
+
+    int16_t Kompromat_Target(int16_t holder) {
+        if (!council_kompromat || !Computer_(holder) || !council::Session_Due_Within(KOMPROMAT_TURNS)) return -1;
+        uint8_t nominees[2];
+        if (!council::Predict_Nominees(nominees)) return -1;
+        for (int i = 0; i < 2; ++i) {
+            if (nominees[i] == holder) return nominees[1 - i];
+        }
+        const bool against0 = council::Vote_Score(nominees[0], holder, nominees[1]) < KOMPROMAT_EVEN_SCORE;
+        const bool against1 = council::Vote_Score(nominees[1], holder, nominees[0]) < KOMPROMAT_EVEN_SCORE;
+        if (against0 && against1) {
+            return council::Get_Num_Votes(nominees[1]) > council::Get_Num_Votes(nominees[0]) ? nominees[1] : nominees[0];
+        }
+        if (against0) return nominees[0];
+        return against1 ? nominees[1] : -1;
+    }
 
     bool Still_True(const s_secret& s) {
         if (s.kind == KIND_NONE || MOX::stardate - s.learned >= SECRET_TURNS) return false;

@@ -39,21 +39,35 @@ namespace council {
     char* council_votes_total_message;
     uint8_t council_vote_for;
 
+    namespace {
+        // The conditions of a council session other than the schedule (Check_For_Council_Meeting): more than
+        // two empires alive and half the stars owned.
+        bool Session_Possible_() {
+            int16_t active_players = 0;
+            for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
+                if (MOX::player[i].eliminated == 0) {
+                    active_players++;
+                }
+            }
+
+            int16_t owned_stars = 0;
+            for (int16_t i = 0; i < MOX::NUM_STARS; ++i) {
+                if (MOX::star[i].owner != -1) {
+                    owned_stars++;
+                }
+            }
+
+            if (active_players <= 2) {
+                return false;
+            }
+
+            int32_t num_stars = MOX::NUM_STARS;
+            int16_t half_stars = (int16_t)((num_stars - (num_stars >> 31)) >> 1);
+            return owned_stars >= half_stars;
+        }
+    } // namespace
+
     void Check_For_Council_Meeting() {
-        int16_t active_players = 0;
-        for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
-            if (MOX::player[i].eliminated == 0) {
-                active_players++;
-            }
-        }
-
-        int16_t owned_stars = 0;
-        for (int16_t i = 0; i < MOX::NUM_STARS; ++i) {
-            if (MOX::star[i].owner != -1) {
-                owned_stars++;
-            }
-        }
-
         int32_t current_turn_offset = MOX::stardate - 35000;
         if (current_turn_offset < meeting_schedule.first_meeting_delay) {
             return;
@@ -64,13 +78,7 @@ namespace council {
             return;
         }
 
-        if (active_players <= 2) {
-            return;
-        }
-
-        int32_t num_stars = MOX::NUM_STARS;
-        int16_t half_stars = (int16_t)((num_stars - (num_stars >> 31)) >> 1);
-        if (owned_stars < half_stars) {
+        if (!Session_Possible_()) {
             return;
         }
 
@@ -335,26 +343,33 @@ namespace council {
         }
     } // namespace
 
-    int16_t Hold_Council_Without_Humans() {
-        // Nominees and members as Reload_Main_Council_Screen.
+    // The two nominees: the living empires with the most votes (the first the most, the second the most of
+    // the rest; an earlier value stays when nobody has a vote). The one pick for the council screen, the
+    // council without humans and Predict_Nominees.
+    void Pick_Nominees(uint8_t* nominees) {
         int16_t max_votes = 0;
         for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
             if (MOX::player[i].eliminated != 0) continue;
             const int16_t votes = Get_Num_Votes((uint8_t)i);
             if (max_votes < votes) {
                 max_votes = votes;
-                council_nominee_[0] = (uint8_t)i;
+                nominees[0] = (uint8_t)i;
             }
         }
         max_votes = 0;
         for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
-            if (MOX::player[i].eliminated != 0 || (uint8_t)i == council_nominee_[0]) continue;
+            if (MOX::player[i].eliminated != 0 || (uint8_t)i == nominees[0]) continue;
             const int16_t votes = Get_Num_Votes((uint8_t)i);
             if (max_votes < votes) {
                 max_votes = votes;
-                council_nominee_[1] = (uint8_t)i;
+                nominees[1] = (uint8_t)i;
             }
         }
+    }
+
+    int16_t Hold_Council_Without_Humans() {
+        // Nominees and members as Reload_Main_Council_Screen.
+        Pick_Nominees(council_nominee_);
         council_total_members = 0;
         for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
             if (MOX::player[i].eliminated == 0 && (uint8_t)i != council_nominee_[0] && (uint8_t)i != council_nominee_[1]) {
@@ -448,6 +463,24 @@ namespace council {
         return (total_pop / 10) + 1;
     }
 
+    bool Predict_Nominees(uint8_t* nominees) {
+        nominees[0] = 0xFF;
+        nominees[1] = 0xFF;
+        Pick_Nominees(nominees);
+        return nominees[0] < MOX::NUM_PLAYERS && nominees[1] < MOX::NUM_PLAYERS;
+    }
+
+    bool Session_Due_Within(int32_t turns) {
+        // The turn of the next session: the scheduled one, but not before the first-meeting delay; until the
+        // first session is held the delay alone (Check_For_Council_Meeting).
+        const int32_t offset = MOX::stardate - 35000;
+        int32_t due = meeting_schedule.first_meeting_delay;
+        if (diplodef::COUNCIL_FLAG != 0 && (int32_t)diplodef::next_council_meeting_turn > due) {
+            due = diplodef::next_council_meeting_turn;
+        }
+        return due - offset > 0 && due - offset <= turns && Session_Possible_();
+    }
+
     void __cdecl Next_Council_State() {
         switch (council::council_state) {
             case 0:
@@ -530,9 +563,7 @@ namespace council {
 
     void __cdecl Reload_Main_Council_Screen() {
         s_animation_header* mouse_h;
-        int16_t max_votes;
         int16_t cur_votes;
-        int16_t player_idx;
 
         council_mouse_bitmap = allocate::Allocate_First_Block(MOX::screen_seg, 917 /* 0x395 */);
         mouse_h = (s_animation_header*)farload::Far_Reload_Next(council::LBX_00559a74, 0, MOX::screen_seg);
@@ -545,35 +576,7 @@ namespace council {
         graphics::Fill(0, 0, 639, 479, 0);
         bitmap::Draw_Bitmap_To_Mouse(0, 0, (s_animation_header*)council_mouse_bitmap, 0);
 
-        max_votes = 0;
-        player_idx = 0;
-        if (MOX::NUM_PLAYERS > 0) {
-            do {
-                if (MOX::player[player_idx].eliminated == 0) {
-                    cur_votes = Get_Num_Votes((uint8_t)player_idx);
-                    if (max_votes < cur_votes) {
-                        max_votes = cur_votes;
-                        council_nominee_[0] = (uint8_t)player_idx;
-                    }
-                }
-                player_idx++;
-            } while (player_idx < MOX::NUM_PLAYERS);
-        }
-
-        max_votes = 0;
-        player_idx = 0;
-        if (MOX::NUM_PLAYERS > 0) {
-            do {
-                if (MOX::player[player_idx].eliminated == 0 && (uint8_t)player_idx != council_nominee_[0]) {
-                    cur_votes = Get_Num_Votes((uint8_t)player_idx);
-                    if (max_votes < cur_votes) {
-                        max_votes = cur_votes;
-                        council_nominee_[1] = (uint8_t)player_idx;
-                    }
-                }
-                player_idx++;
-            } while (player_idx < MOX::NUM_PLAYERS);
-        }
+        Pick_Nominees(council_nominee_);
 
         council_total_members = 0;
         for (int16_t i = 0; i < MOX::NUM_PLAYERS; ++i) {
@@ -829,7 +832,7 @@ namespace council {
         JIM::Get_Text_Message(DIP_SCRN::s_jimtext_lbx_00552360, 14, council_votes_total_message, 30);
     }
 
-    bool __cdecl Vote_Check(int16_t candidate_idx, int16_t voter_idx, int16_t opponent_idx) {
+    int16_t __cdecl Vote_Score(int16_t candidate_idx, int16_t voter_idx, int16_t opponent_idx) {
         int16_t vote_score;
         int8_t treaty_type = MOX::player[voter_idx].treaty[candidate_idx];
 
@@ -898,8 +901,14 @@ namespace council {
             }
         }
 
-        /* Determine whether the vote is cast based on the final score. */
-        return (int32_t)game_random::Random(200) <= (int32_t)vote_score;
+        return vote_score;
+    }
+
+    bool __cdecl Vote_Check(int16_t candidate_idx, int16_t voter_idx, int16_t opponent_idx) {
+        /* Determine whether the vote is cast based on the final score (one draw, as always). The score first,
+           then the draw, as in 1.40 (the operands of <= have no fixed order of evaluation). */
+        const int32_t vote_score = Vote_Score(candidate_idx, voter_idx, opponent_idx);
+        return (int32_t)game_random::Random(200) <= vote_score;
     }
 
     void __cdecl Get_Player_Voted_Winner_Message(int16_t unused_callback_arg) {
