@@ -8,7 +8,7 @@ namespace espionage {
 
     bool network = false;
     int32_t points_per_spy = 1;
-    int32_t network_cap = 30;
+    int32_t network_cap = 50;
     int32_t free_spy_turns = 20;
     bool counterintelligence = false;
     int32_t witch_hunt_accusation = 20;

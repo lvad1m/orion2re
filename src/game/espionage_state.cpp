@@ -13,10 +13,12 @@ namespace espionage {
     static_assert(MAX_PLAYERS == 8, "the state holds 8 players");
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 2;
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 3;
         constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_PLAYERS * MAX_PLAYERS * sizeof(int16_t) +
             MAX_PLAYERS * (2 * sizeof(uint8_t) + sizeof(int32_t));
-        constexpr uint32_t SAVE_SIZE = SAVE_SIZE_V1 + MAX_PLAYERS * sizeof(int32_t);  // version 2: the last arrests
+        constexpr uint32_t SAVE_SIZE_V2 = SAVE_SIZE_V1 + MAX_PLAYERS * sizeof(int32_t);  // version 2: the last arrests
+        // Version 3: the catch ring and the last harm.
+        constexpr uint32_t SAVE_SIZE = SAVE_SIZE_V2 + MAX_PLAYERS * (WITCH_CATCHES + 1) * sizeof(int32_t);
 
         s_state state;
         s_state pending;
@@ -69,9 +71,13 @@ namespace espionage {
 
     bool Empty() {
         for (int i = 0; i < MAX_PLAYERS; ++i) {
-            if (state.mode[i] != 0 || state.caught[i] != 0 || state.last_caught[i] != 0 || state.last_arrest[i] != 0) return false;
+            if (state.mode[i] != 0 || state.caught[i] != 0 || state.last_caught[i] != 0 || state.last_arrest[i] != 0 ||
+                state.last_harm[i] != 0) return false;
             for (int j = 0; j < MAX_PLAYERS; ++j) {
                 if (state.points[i][j] != 0) return false;
+            }
+            for (int32_t t : state.catch_ring[i]) {
+                if (t != 0) return false;
             }
         }
         return true;
@@ -90,6 +96,10 @@ namespace espionage {
         for (uint8_t c : state.caught) writer->Write_Uint8(c);
         for (int32_t t : state.last_caught) writer->Write_Int32(t);
         for (int32_t t : state.last_arrest) writer->Write_Int32(t);
+        for (const auto& row : state.catch_ring) {
+            for (int32_t t : row) writer->Write_Int32(t);
+        }
+        for (int32_t t : state.last_harm) writer->Write_Int32(t);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -100,8 +110,8 @@ namespace espionage {
         };
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("spy network save is truncated");
         const uint16_t version = reader->Read_Uint16();
-        if (version != 1 && version != SAVE_PAYLOAD_VERSION) return fail("unsupported spy network payload version");
-        if (reader->Remaining() != (version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE) - sizeof(uint16_t)) return fail("spy network save has the wrong size");
+        if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported spy network payload version");
+        if (reader->Remaining() != (version == 1 ? SAVE_SIZE_V1 : version == 2 ? SAVE_SIZE_V2 : SAVE_SIZE) - sizeof(uint16_t)) return fail("spy network save has the wrong size");
         pending = s_state{};
         for (auto& row : pending.points) {
             for (int16_t& p : row) {
@@ -119,6 +129,24 @@ namespace espionage {
             for (int32_t& t : pending.last_arrest) {
                 t = reader->Read_Int32();
                 if (t < 0) return fail("spy network save has a bad arrest stardate");
+            }
+        }
+        if (version >= 3) {
+            for (auto& row : pending.catch_ring) {
+                for (int32_t& t : row) {
+                    t = reader->Read_Int32();
+                    if (t < 0) return fail("spy network save has a bad catch stardate");
+                }
+            }
+            for (int32_t& t : pending.last_harm) {
+                t = reader->Read_Int32();
+                if (t < 0) return fail("spy network save has a bad harm stardate");
+            }
+        } else {
+            // Versions 1 and 2 kept no ring: rebuild it from the catch count and the turn of the last catch.
+            for (int i = 0; i < MAX_PLAYERS; ++i) {
+                const int32_t n = std::min<int32_t>(pending.caught[i], WITCH_CATCHES);
+                for (int32_t k = 0; k < n; ++k) pending.catch_ring[i][k] = pending.last_caught[i];
             }
         }
         if (reader->Failed()) return fail("spy network save is truncated");

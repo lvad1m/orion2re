@@ -5555,7 +5555,7 @@
       namespace: "spy",
       type: "int32",
       constraints: { min: 0, max: 1000 },
-      default: 30,
+      default: 50,
       bind_root: {
         header: "game/espionage.h",
         symbol: "espionage::network_cap",

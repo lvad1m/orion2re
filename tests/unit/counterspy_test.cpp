@@ -525,4 +525,17 @@ DOCTEST_TEST_CASE("a hostile operation the victim sees makes it suspect a mole; 
     DOCTEST_CHECK_FALSE(counterspy::Suspects(2));
 }
 
+DOCTEST_TEST_CASE("iteration 5: the suspicion list is unchanged for every kind of operation") {
+    s_counterspy_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int op = 0; op < spy_ops::OP_COUNT; ++op) {
+        counterspy::State()->suspicion[2] = 0;
+        counterspy::On_Harm(2, static_cast<spy_ops::e_op>(op));
+        const bool unseen = op == spy_ops::OP_DATA || op == spy_ops::OP_BRIBERY || op == spy_ops::OP_FRAME_LEADER ||
+            op == spy_ops::OP_FALSE_FLAG;
+        DOCTEST_CHECK_MESSAGE(counterspy::Suspects(2) == !unseen, "op " << op);
+    }
+}
+
 }

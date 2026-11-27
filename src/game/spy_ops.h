@@ -87,6 +87,15 @@ namespace spy_ops {
     bool Enabled(e_op op);
     int32_t Cost(e_op op);
 
+    // What a victim sees as the work of foreign spies, for the mole hunt's suspicion (counterspy::On_Harm):
+    // a successful operation except data collection, bribery, framing a leader and the false-flag operation
+    // itself, whose building is destroyed through spy.cpp and counts there. OP_COUNT stands for the classic
+    // 1.40 theft and sabotage of spy.cpp, which count. (The witch hunt, espionage::On_Harm, counts every
+    // operation but data collection: the author's words for it name bribery.)
+    constexpr bool Is_Visible_Harm(e_op op) {
+        return op != OP_DATA && op != OP_BRIBERY && op != OP_FRAME_LEADER && op != OP_FALSE_FLAG;
+    }
+
     // The result of an operation (for the journal and the tests).
     enum e_result : uint8_t {
         RESULT_NOT_POSSIBLE = 0,   // off, too few points, no target for it

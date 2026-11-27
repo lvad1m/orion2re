@@ -486,6 +486,7 @@ namespace spy {
             ERICNET::Remove_Building(target_colony, (int16_t)target_building);
             spy_ranks::Note_Sabotage(target_colony);
             counterspy::On_Harm(victim_player_idx);  // sabotage makes the victim suspect a mole (off by default)
+            espionage::On_Harm(victim_player_idx);   // ... and call a witch hunt (off by default)
 
             int16_t planet_idx = MOX::colony[target_colony].planet;
             int32_t diplomacy_mode = (acting_player_idx == (int16_t)framed_player_idx) ? 3 : 4;

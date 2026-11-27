@@ -303,15 +303,7 @@ namespace counterspy {
 
     void On_Harm(int16_t victim, spy_ops::e_op op) {
         if (!mole_hunt || !Computer_(victim)) return;
-        switch (op) {
-            case spy_ops::OP_DATA:
-            case spy_ops::OP_BRIBERY:
-            case spy_ops::OP_FRAME_LEADER:
-            case spy_ops::OP_FALSE_FLAG:  // its building, destroyed through spy.cpp, counts there
-                return;
-            default:
-                break;
-        }
+        if (!spy_ops::Is_Visible_Harm(op)) return;  // the mole hunt's list, spy_ops.h
         State()->suspicion[victim] = MOX::stardate;
     }
 

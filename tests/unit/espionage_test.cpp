@@ -210,7 +210,7 @@ DOCTEST_TEST_CASE("decision 2: the payload keeps the last arrests; version 1 sti
     DOCTEST_CHECK(espionage::State()->last_arrest[2] == 35123);
     DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);
     // A bad (negative) stardate is refused.
-    const uint32_t last_arrest_row = espionage::Save_Size() - 8 * 4;
+    const uint32_t last_arrest_row = espionage::Save_Size() - 8 * 4 - 8 * 6 * 4 - 8 * 4;  // before the ring and the harm
     buffer[last_arrest_row + 3] = 0x80;  // player 0's arrest: the sign bit of a little-endian int32
     SERIAL::Reader_ bad(buffer.get(), espionage::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(espionage::Parse_Save(&bad, &error));
@@ -231,23 +231,128 @@ DOCTEST_TEST_CASE("decision 2: the payload keeps the last arrests; version 1 sti
     DOCTEST_CHECK(espionage::State()->last_arrest[2] == 0);
 }
 
-DOCTEST_TEST_CASE("computer empires choose their mode by the spies they caught lately") {
+DOCTEST_TEST_CASE("iteration 5: computers choose their mode by the catches of a real 20-turn window") {
     s_espionage_scope scope;
     test::s_game_state state;
     Setup_(&state);
+    MOX::stardate = 35005;
+    espionage::On_Spy_Caught(1, 2);
     espionage::On_Spy_Caught(1, 2);
     MOX::stardate = 35010;
     espionage::Turn();
-    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);
-    DOCTEST_CHECK(espionage::Mode(2) == espionage::MODE_NORMAL);
-    espionage::On_Spy_Caught(1, 2);
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_NORMAL);  // two catches
+    MOX::stardate = 35011;
     espionage::On_Spy_Caught(1, 0);
     MOX::stardate = 35020;
     espionage::Turn();
-    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_WITCH_HUNT);
-    MOX::stardate = 35050;  // the catches are old now
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);  // three
+    DOCTEST_CHECK(espionage::Mode(2) == espionage::MODE_NORMAL);
+    MOX::stardate = 35025;
+    for (int i = 0; i < 5; ++i) espionage::On_Spy_Caught(1, 2);
+    MOX::stardate = 35030;
+    espionage::Turn();
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_WITCH_HUNT);  // six within 20 turns
+    MOX::stardate = 35040;  // 35011 is older than 20 turns now: five left
+    espionage::Turn();
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_HEIGHTENED);
+    MOX::stardate = 35050;  // all old
     espionage::Turn();
     DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_NORMAL);
+}
+
+DOCTEST_TEST_CASE("iteration 5: a catch every 12 turns never leaves the normal mode") {
+    s_espionage_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int32_t turn = 35001; turn < 35101; ++turn) {
+        MOX::stardate = turn;
+        if ((turn - 35001) % 12 == 0) espionage::On_Spy_Caught(1, 2);
+        espionage::Turn();
+        if (turn % 10 == 0) DOCTEST_CHECK_MESSAGE(espionage::Mode(1) != espionage::MODE_WITCH_HUNT, "turn " << turn);
+        if (turn % 10 == 0) DOCTEST_CHECK_MESSAGE(espionage::Mode(1) != espionage::MODE_HEIGHTENED, "turn " << turn);
+    }
+}
+
+DOCTEST_TEST_CASE("iteration 5: a real operation of the last 20 turns calls a witch hunt, an older one does not") {
+    s_espionage_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    MOX::stardate = 35000;
+    espionage::On_Harm(1, spy_ops::OP_UNREST);
+    espionage::On_Harm(2, spy_ops::OP_UNREST);
+    MOX::stardate = 35001;
+    espionage::On_Harm(2, spy_ops::OP_DATA);  // data collection is no harm: the 35000 mark of player 2 stays
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 35000);
+    espionage::On_Harm(0, spy_ops::OP_DATA);
+    DOCTEST_CHECK(espionage::State()->last_harm[0] == 0);
+    // "настоящая операция (саботаж, убийство лидера или учёного, яд, подкуп)": every operation but data
+    // collection counts, the secret ones too.
+    for (const spy_ops::e_op op : {spy_ops::OP_BRIBERY, spy_ops::OP_FRAME_LEADER, spy_ops::OP_FALSE_FLAG}) {
+        espionage::State()->last_harm[0] = 0;
+        espionage::On_Harm(0, op);
+        DOCTEST_CHECK(espionage::State()->last_harm[0] == 35001);
+    }
+    espionage::State()->last_harm[0] = 0;
+    MOX::stardate = 35020;  // 20 turns after
+    espionage::Turn();
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_WITCH_HUNT);
+    DOCTEST_CHECK(espionage::Mode(0) == espionage::MODE_NORMAL);
+    MOX::stardate = 35030;  // 30 turns after: stale
+    espionage::State()->last_harm[1] = 35009;  // 21 turns before 35030
+    espionage::Turn();
+    DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_NORMAL);
+    espionage::On_Harm(1);  // a classic theft or a destroyed building
+    DOCTEST_CHECK(espionage::State()->last_harm[1] == 35030);
+    espionage::counterintelligence = false;
+    espionage::State()->last_harm[1] = 0;
+    espionage::On_Harm(1);
+    DOCTEST_CHECK(espionage::State()->last_harm[1] == 0);
+}
+
+DOCTEST_TEST_CASE("iteration 5: the version 3 payload round-trips the ring and the harm; version 2 rebuilds the ring") {
+    s_espionage_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 0; i < 8; ++i) {
+        MOX::stardate = 35001 + i;
+        espionage::On_Spy_Caught(1, 2);
+    }
+    espionage::On_Harm(2);
+    DOCTEST_CHECK(espionage::State()->catch_ring[1][0] == 35008);
+    DOCTEST_CHECK(espionage::State()->catch_ring[1][5] == 35003);  // only the last six are kept
+    auto buffer = std::make_unique<uint8_t[]>(espionage::Save_Size());
+    SERIAL::Writer_ writer(buffer.get(), espionage::Save_Size(), "test overflow");
+    espionage::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == espionage::Save_Size());
+    espionage::Clear();
+    SERIAL::Reader_ reader(buffer.get(), espionage::Save_Size(), "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(espionage::Parse_Save(&reader, &error));
+    espionage::Commit_Save();
+    DOCTEST_CHECK(espionage::State()->catch_ring[1][0] == 35008);
+    DOCTEST_CHECK(espionage::State()->catch_ring[1][5] == 35003);
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 35008);
+    // A version 2 payload: 2 + 64 int16 + 8 + 8 bytes + 8 int32 + 8 int32, caught 4 at 35100 for player 1.
+    const uint32_t v2_size = 2 + 64 * 2 + 8 + 8 + 8 * 4 + 8 * 4;
+    auto old_buffer = std::make_unique<uint8_t[]>(v2_size);
+    SERIAL::Writer_ old_writer(old_buffer.get(), v2_size, "test overflow");
+    old_writer.Write_Uint16(2);
+    for (int i = 0; i < 64; ++i) old_writer.Write_Int16(0);
+    for (int i = 0; i < 8; ++i) old_writer.Write_Uint8(0);
+    for (int i = 0; i < 8; ++i) old_writer.Write_Uint8(i == 1 ? 4 : i == 2 ? 9 : 0);  // caught
+    for (int i = 0; i < 8; ++i) old_writer.Write_Int32(i == 1 || i == 2 ? 35100 : 0);  // last caught
+    for (int i = 0; i < 8; ++i) old_writer.Write_Int32(0);
+    DOCTEST_REQUIRE(old_writer.Length() == v2_size);
+    SERIAL::Reader_ old_reader(old_buffer.get(), v2_size, "test underflow", true);
+    DOCTEST_REQUIRE(espionage::Parse_Save(&old_reader, &error));
+    espionage::Commit_Save();
+    int ring1 = 0;
+    for (int32_t t : espionage::State()->catch_ring[1]) ring1 += t == 35100 ? 1 : 0;
+    int ring2 = 0;
+    for (int32_t t : espionage::State()->catch_ring[2]) ring2 += t == 35100 ? 1 : 0;
+    DOCTEST_CHECK(ring1 == 4);
+    DOCTEST_CHECK(ring2 == 6);  // min(caught, 6)
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 0);
 }
 
 DOCTEST_TEST_CASE("off: no points, no modes, no incidents") {
@@ -264,7 +369,8 @@ DOCTEST_TEST_CASE("off: no points, no modes, no incidents") {
     DOCTEST_CHECK(espionage::Mode(1) == espionage::MODE_NORMAL);
     DOCTEST_CHECK(espionage::Defense_Bonus(1) == 0);
     DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_CAUGHT_SPYING) == 0);
-    DOCTEST_CHECK(espionage::Empty());
+    espionage::On_Harm(1);
+    DOCTEST_CHECK(espionage::Empty());  // no catch ring, no harm either
 }
 
 DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {

@@ -622,6 +622,7 @@ namespace spy_ops {
             }
             counterspy::On_Attempt(target, op);  // guards (off by default)
             counterspy::On_Harm(target, op);     // the victim sees the harm and suspects a mole (off by default)
+            espionage::On_Harm(target, op);      // ... and may call a witch hunt (off by default)
             switch (op) {
                 case OP_UNREST: {
                     uint8_t* unrest = Unrest_Slot(subject);

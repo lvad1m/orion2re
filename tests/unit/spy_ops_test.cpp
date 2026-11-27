@@ -7,7 +7,9 @@
 #include "game/dice.h"
 #include "game/colbldg.h"
 #include "game/espionage.h"
+#include "game/beliefs.h"
 #include "game/hostages.h"
+#include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/reputation.h"
 #include "game/serialization.h"
@@ -155,6 +157,44 @@ DOCTEST_TEST_CASE("a scientist is killed, a leader bribed or framed; a framed le
     DOCTEST_CHECK(hostages::State()->held[hostages::Find(6)].kind == hostages::KIND_JAIL);
     hostages::Clear();
     DOCTEST_CHECK(honest.status == 0);
+}
+
+DOCTEST_TEST_CASE("iteration 5: no price may exceed the network cap again") {
+    DOCTEST_CHECK(espionage::network_cap == 50);  // the default configuration
+    for (int op = 0; op < spy_ops::OP_COUNT; ++op) {
+        DOCTEST_CHECK_MESSAGE(spy_ops::Cost(static_cast<spy_ops::e_op>(op)) <= espionage::network_cap, "op " << op);
+    }
+    DOCTEST_CHECK(intrigue::forged_letter_cost <= espionage::network_cap);
+    DOCTEST_CHECK(beliefs::disinformation_cost <= espionage::network_cap);
+}
+
+DOCTEST_TEST_CASE("iteration 5: a real operation is remembered for the witch hunt; data collection is not") {
+    s_spy_ops_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Leader_(&state, 6, 2, 1).type = 1;  // a governor at a post (bribery)
+    Leader_(&state, 7, 2, 0);           // an honest leader (framing)
+    spy_ops::operations = ALL_OPS;
+    espionage::State()->points[1][2] = 50;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_DATA, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 0);
+    // The author's words name bribery: the secret operations count too.
+    for (spy_ops::e_op op : {spy_ops::OP_BRIBERY, spy_ops::OP_FRAME_LEADER}) {
+        espionage::State()->last_harm[2] = 0;
+        espionage::State()->points[1][2] = 50;
+        DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, op, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+        DOCTEST_CHECK_MESSAGE(espionage::State()->last_harm[2] == 35001, "op " << op);
+    }
+    espionage::State()->last_harm[2] = 0;
+    espionage::State()->points[1][2] = 50;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 35001);
+    // The flag off: nothing recorded.
+    espionage::State()->last_harm[2] = 0;
+    espionage::counterintelligence = false;
+    espionage::State()->points[1][2] = 50;
+    DOCTEST_CHECK(spy_ops::Execute_With_Dice(1, spy_ops::OP_UNREST, 2, -1, TRIUMPH) == spy_ops::RESULT_DONE);
+    DOCTEST_CHECK(espionage::State()->last_harm[2] == 0);
 }
 
 DOCTEST_TEST_CASE("data collection fills the intel memory; a false flag needs someone to blame") {

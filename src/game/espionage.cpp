@@ -109,7 +109,17 @@ namespace espionage {
             if (MOX::stardate % MODE_PERIOD != 0) return;
             for (int16_t p = 0; p < Players_(); ++p) {
                 if (!Computer_(p)) continue;
-                e_mode wanted = s->caught[p] >= 3 ? MODE_WITCH_HUNT : s->caught[p] >= 1 ? MODE_HEIGHTENED : MODE_NORMAL;
+                // Решение автора (iterations.md, итерация 4, «варианты 0 и 1»): "Компьютер переходит в повышенную
+                // бдительность после трёх поимок за последние 20 ходов ... Охота на ведьм - только если за последние
+                // 20 ходов против империи удалась операция, которую жертва видит как дело чужих шпионов, или
+                // поймано шесть шпионов и больше." (the old caught / last_caught fields are no longer read here)
+                int32_t catches = 0;
+                for (int32_t t : s->catch_ring[p]) {
+                    if (t != 0 && t > MOX::stardate - CATCH_WINDOW) ++catches;
+                }
+                const bool harmed = s->last_harm[p] != 0 && MOX::stardate - s->last_harm[p] <= HARM_TURNS;
+                e_mode wanted = harmed || catches >= WITCH_CATCHES ? MODE_WITCH_HUNT
+                    : catches >= HEIGHTENED_CATCHES ? MODE_HEIGHTENED : MODE_NORMAL;
                 if (advisor::enabled && ((advisor::active_players >> p) & 1) != 0) {
                     const advisor::s_directive* d = advisor::Get_Directive(static_cast<uint8_t>(p));
                     if (d != nullptr && advisor::Is_Active(d, MOX::stardate) && d->spy_mission == advisor::SPY_COUNTERINTEL &&
@@ -134,9 +144,19 @@ namespace espionage {
         if (s->caught[victim] != 0 && MOX::stardate - s->last_caught[victim] > RECENT_TURNS) s->caught[victim] = 0;
         if (s->caught[victim] < 255) ++s->caught[victim];
         s->last_caught[victim] = MOX::stardate;
+        for (int32_t k = WITCH_CATCHES - 1; k > 0; --k) s->catch_ring[victim][k] = s->catch_ring[victim][k - 1];
+        s->catch_ring[victim][0] = MOX::stardate;  // newest first; the oldest of the last WITCH_CATCHES falls out
         opinion::Add(victim, attacker, opinion::REASON_CAUGHT_SPYING, caught_opinion);
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "espionage: stardate %d, player %d catches a spy of player %d",
             (int)MOX::stardate, (int)victim, (int)attacker);
+    }
+
+    // The option the author chose (27.11.2026, «варианты 0 и 1»): "Охота на ведьм включается, только если за
+    // 20 ходов против империи прошла настоящая операция (саботаж, убийство лидера или учёного, яд, подкуп) ...
+    // Пойманный сборщик данных — не повод сажать своих": every successful operation but data collection.
+    void On_Harm(int16_t victim, spy_ops::e_op op) {
+        if (!counterintelligence || !Alive_(victim) || op == spy_ops::OP_DATA) return;
+        State()->last_harm[victim] = MOX::stardate;
     }
 
     void Turn() {
