@@ -242,8 +242,8 @@ namespace secrets {
         }
     } // namespace
 
-    int16_t Kompromat_Target(int16_t holder) {
-        if (!council_kompromat || !Computer_(holder) || !council::Session_Due_Within(KOMPROMAT_TURNS)) return -1;
+    int16_t Kompromat_Target(int16_t holder, int32_t lookahead) {
+        if (!council_kompromat || !Computer_(holder) || !council::Session_Due_Within(KOMPROMAT_TURNS + lookahead)) return -1;
         uint8_t nominees[2];
         if (!council::Predict_Nominees(nominees)) return -1;
         for (int i = 0; i < 2; ++i) {

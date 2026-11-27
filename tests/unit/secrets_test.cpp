@@ -539,4 +539,25 @@ DOCTEST_TEST_CASE("kompromat: a held secret of the opposed nominee is made publi
     DOCTEST_CHECK(state.players[0].bc == 1000 - 1000 * secrets::BLACKMAIL_PERCENT / 100);
 }
 
+// Iteration 8, «А: беречь очки»: before the session the spy operations keep the points of the network in the
+// nominee the computer runs its kompromat against; their window reaches a turn further than the smear's.
+DOCTEST_TEST_CASE("kompromat: before the session the operations keep the opposed nominee's points") {
+    s_secrets_scope scope;
+    test::s_game_state state;
+    Kompromat_Setup_(&state, 35100, 111);  // the operations' turn; the session in 11 turns, the smear's next turn in 10
+    state.players[3].treaty[2] = 4;          // opposes both nominees: its target is 0, the one with more votes
+    spy_ops::operations = 1 << spy_ops::OP_DATA;
+    DOCTEST_CHECK(secrets::Kompromat_Target(3) == -1);    // the smear's own window: 11 turns is outside
+    DOCTEST_CHECK(secrets::Kompromat_Target(3, 1) == 0);  // the operations look a turn further
+    DOCTEST_CHECK(spy_ops::Choose_Operation(3, 0) == spy_ops::OP_COUNT);  // the points wait for the smear
+    DOCTEST_CHECK(spy_ops::Choose_Operation(3, 1) == spy_ops::OP_DATA);   // the other nominee: as usual
+
+    diplodef::next_council_meeting_turn = 200;  // no session near: as usual
+    DOCTEST_CHECK(spy_ops::Choose_Operation(3, 0) == spy_ops::OP_DATA);
+
+    diplodef::next_council_meeting_turn = 111;
+    secrets::council_kompromat = false;  // the setting off: as usual
+    DOCTEST_CHECK(spy_ops::Choose_Operation(3, 0) == spy_ops::OP_DATA);
+}
+
 }

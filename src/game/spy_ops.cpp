@@ -22,6 +22,7 @@
 #include "game/random.h"
 #include "game/reputation.h"
 #include "game/rivalry.h"
+#include "game/secrets.h"
 #include "game/spy.h"
 #include "game/spy_ranks.h"
 #include "game/stability.h"
@@ -436,6 +437,11 @@ namespace spy_ops {
         // The computer's choice against `t` (OP_COUNT: none); `third` gets the scapegoat.
         e_op Choose_(int16_t a, int16_t t, int16_t* third) {
             if (espionage::Points(a, t) <= 0) return OP_COUNT;
+            // Iteration 8, the author's decision of 27.11.2026 (iterations.md, «А: беречь очки»): "В окне перед
+            // заседанием компьютер не тратит очки сети в кандидате, против которого ведёт компромат, ни на какие
+            // шпионские операции (и на сбор данных) — копит их на очернение." The operations run a turn before the
+            // smear (stardate % 10 == 0 against == 1), so their window reaches one turn further.
+            if (secrets::Kompromat_Target(a, 1) == t) return OP_COUNT;
             if ((operations & NEW_OPERATION_BITS) != 0) {
                 e_op chosen = OP_COUNT;
                 if (Choose_New_(a, t, third, &chosen)) return chosen;

@@ -83,8 +83,9 @@ namespace secrets {
     // The council nominee `holder` aims its kompromat at while a session is due within KOMPROMAT_TURNS
     // turns (council_kompromat on, a computer holder); -1 when there is none. A nominee: the other nominee;
     // otherwise the nominee it would not vote for, the one with more votes when it opposes both, none when
-    // it supports both. No dice, no state.
-    int16_t Kompromat_Target(int16_t holder);
+    // it supports both. No dice, no state. `lookahead`: extra turns the window reaches - the spy operations,
+    // which run a turn before the smear, ask with 1 so that the points they keep are there for it.
+    int16_t Kompromat_Target(int16_t holder, int32_t lookahead = 0);
 
     struct s_secret {
         uint8_t kind = KIND_NONE;
