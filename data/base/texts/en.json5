@@ -288,7 +288,7 @@
     ambition: {
       bribe: {
         title: "A bribe for your vote",
-        body: "The council is about to vote between two nominees. The {race} empire, which stands against the {rival}, offers you {price} BC for your vote. If you accept, you receive the money now and your vote goes to the {race} without a further prompt.",
+        body: "The council is about to vote between two nominees. The {race} empire, which stands against the {rival}, offers you {price} BC for your vote. If you accept, you receive the money now and your vote goes to the {race} without a further prompt. The {rival} may find out, and then they will think worse of both of you.",
         option1: "Accept {price} BC (your vote goes to the {race})",
         option2: "Refuse (you vote as you wish)",
       },
@@ -332,7 +332,7 @@
     title: "Mentat",
     collapsed: "Mentat: {count} new",
     collapsed_none: "Mentat",
-    hint: "F9 closes",
+    hint: "F11 closes",
     waiting: "The summary appears at the start of your turn.",
     none_threats: "No threats.",
     advice_later: "Advice will appear in the next version.",
@@ -372,6 +372,7 @@
     },
     council: {
       nominee: "Council session in {turns} turns, you are a nominee: about {votes} votes expected, {needed} needed to be elected.",
+      public: "Council session in {turns} turns; the nominees are {first} ({first_votes} votes) and {second} ({second_votes} votes).",
       member: "Council session in {turns} turns: you hold {mine} of {total} votes; the nominees are {first} and {second}.",
     },
     pending: "Waiting for your decision: {count}.",
@@ -406,7 +407,7 @@
       none: "No foreign warships near your colonies.",
     },
     alert: {
-      box: "Mentat: {alert}{more} (F9 for details)",
+      box: "Mentat: {alert}{more} (F11 for details)",
       war: "War: {name} is at war with you now.",
       wars: "War: {name} and {count} more are at war with you now.",
       fleet: "A fleet of {name} near {star} is stronger than your ships there.",

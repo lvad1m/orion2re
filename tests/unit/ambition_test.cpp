@@ -289,6 +289,37 @@ DOCTEST_TEST_CASE("off: no defection, no bribes, no draws") {
 
 } // DOCTEST_TEST_SUITE
 
+DOCTEST_TEST_CASE("council_bribery_exposes_voters: the same roll also lowers the rival's opinion of the bought voters") {
+    s_ambition_scope scope;
+    test::s_saved_value<bool> flag{ambition::council_bribery_exposes_voters};
+    test::s_game_state state;
+    Council_Setup_(&state);
+    state.players[2].bc = 0;  // only nominee 1 bribes; voters 0 and 3 are bought
+    state.players[2].spies[1] = 2;
+    for (const bool on : {false, true}) {
+        ambition::council_bribery_exposes_voters = on;
+        int hits = 0;
+        for (uint32_t seed = 1; seed < 60; ++seed) {
+            opinion::Clear();
+            state.players[1].bc = 1000;
+            game_random::Set_Random_Seed(seed);
+            ambition::Before_Council_Vote(1, 2);
+            const uint32_t after = game_random::Get_Random_Seed();
+            game_random::Set_Random_Seed(seed);
+            (void)game_random::Random(100);
+            DOCTEST_CHECK(game_random::Get_Random_Seed() == after);  // one draw whatever the setting
+            const bool hit = opinion::Modifier(2, 1, opinion::REASON_PLOTTED_AGAINST_US) == ambition::EXPOSURE_OPINION;
+            hits += hit ? 1 : 0;
+            for (const int voter : {0, 3}) {
+                const int expected = (hit && on) ? ambition::EXPOSURE_OPINION : 0;
+                DOCTEST_CHECK(opinion::Modifier(2, voter, opinion::REASON_PLOTTED_AGAINST_US) == expected);
+            }
+            ambition::After_Council_Vote();
+        }
+        DOCTEST_CHECK(hits > 0);
+    }
+}
+
 // R2, piece C (human-ui.md section 5): a computer nominee offers a human voter the bribe it would give a computer
 // voter; accepting binds the human's council vote.
 namespace {
@@ -355,6 +386,54 @@ DOCTEST_TEST_CASE("a nominee that would bribe a computer voter offers the human 
     ambition::Choice_Apply(offer, 0);
     ambition::Before_Council_Vote(1, 2);
     DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == -1);
+}
+
+DOCTEST_TEST_CASE("the human who sells its vote may be found out: one roll, both opinions drop on a hit") {
+    s_ambition_scope scope;
+    s_bribe_choice_scope cscope;
+    test::s_game_state state;
+    Council_Setup_(&state);
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::s_choice offer;
+    offer.module = choices::MODULE_AMBITION;
+    offer.kind = ambition::CHOICE_BRIBE;
+    offer.player = 0;
+    offer.target = 1;
+    offer.other = 2;
+    offer.value = ambition::BRIBE_PRICE;
+    // The rival has no spies on either: no roll at all.
+    game_random::Set_Random_Seed(77);
+    ambition::Choice_Apply(offer, 0);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == 77);
+    DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_PLOTTED_AGAINST_US) == 0);
+    DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_PLOTTED_AGAINST_US) == 0);
+    (void)ambition::Take_Human_Vote_Promise();
+    // Spies on the human only: one roll; a hit lowers the rival's opinion of the briber and of the human, a miss nothing.
+    state.players[2].spies[0] = 1;
+    int hits = 0;
+    int misses = 0;
+    for (uint32_t seed = 1; seed < 100 && (hits == 0 || misses == 0); ++seed) {
+        opinion::Clear();
+        game_random::Set_Random_Seed(seed);
+        const bool will_hit = static_cast<int32_t>(game_random::Random(100)) < ambition::EXPOSURE_PERCENT;
+        const uint32_t after_one = game_random::Get_Random_Seed();
+        game_random::Set_Random_Seed(seed);
+        ambition::Choice_Apply(offer, 0);
+        (void)ambition::Take_Human_Vote_Promise();
+        DOCTEST_CHECK(game_random::Get_Random_Seed() == after_one);  // exactly one draw
+        const int expected = will_hit ? ambition::EXPOSURE_OPINION : 0;
+        DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_PLOTTED_AGAINST_US) == expected);
+        DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_PLOTTED_AGAINST_US) == expected);
+        (will_hit ? hits : misses)++;
+    }
+    DOCTEST_CHECK(hits > 0);
+    DOCTEST_CHECK(misses > 0);
+    // Refusing never rolls.
+    state.players[2].spies[0] = 0;
+    state.players[2].spies[1] = 1;
+    game_random::Set_Random_Seed(5);
+    ambition::Choice_Apply(offer, 1);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == 5);
 }
 
 DOCTEST_TEST_CASE("no offer with the setting off, a poor briber, a hated briber, a human nominee, a network game; none to computers") {

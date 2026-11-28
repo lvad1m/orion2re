@@ -560,7 +560,7 @@ namespace debug_overlay {
             return false;
         }
 
-        if (event.down && !event.repeat && event.key == SDLK_F9 && Mentat_Available()) {
+        if (event.down && !event.repeat && event.key == SDLK_F11 && Mentat_Available()) {
             Set_Mentat_Visible(SDL_GetAtomicInt(&g_mentat_visible) == 0);
             return true;
         }

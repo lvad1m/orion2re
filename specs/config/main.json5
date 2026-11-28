@@ -136,7 +136,7 @@
     mentat_mode: {
       title: "Mentat mode",
       description: "Selects what the mentat, the player's advisor panel, shows.",
-      remarks: "off shows nothing and leaves F9 to the game. summary shows the turn summary and the critical situations. advice is the summary now; the advice for the next move comes in a later version.",
+      remarks: "off shows nothing and leaves F11 to the game. summary shows the turn summary and the critical situations. advice is the summary now; the advice for the next move comes in a later version.",
       kind: "enum",
       base_type: "uint8",
       values: { off: 0, summary: 1, advice: 2 },
@@ -144,7 +144,7 @@
     mentat_detail_level: {
       title: "Mentat detail",
       description: "Selects how much the mentat tells.",
-      remarks: "brief is three to six lines, medium goes by field (economy, research, espionage, diplomacy, military), detailed adds the reasons behind each threat and what the neighbours remember.",
+      remarks: "brief is three to six lines, medium goes by field (economy, research, espionage, diplomacy, military), detailed adds the reasons behind each threat and what the neighbours remember, and only at this level the mentat shows what other empires reckon (their opinion reasons, the expected council votes and the council alerts that rest on them); brief and medium name only public facts of the council (the session, the two nominees and their votes).",
       kind: "enum",
       base_type: "uint8",
       values: { brief: 0, medium: 1, detailed: 2 },
@@ -152,7 +152,7 @@
     mentat_open_when: {
       title: "When the mentat panel opens",
       description: "Selects when the mentat panel opens by itself at the start of the player's turn.",
-      remarks: "turn opens it every turn, period every mentat_period turns, critical when a critical situation stands, key never (only the F9 key).",
+      remarks: "turn opens it every turn, period every mentat_period turns, critical when a critical situation stands, key never (only the F11 key).",
       kind: "enum",
       base_type: "uint8",
       values: { turn: 0, period: 1, critical: 2, key: 3 },
@@ -4227,8 +4227,8 @@
 
     mentat: {
       title: "Mentat",
-      description: "Turns on the mentat, the player's advisor panel (F9): a summary of the turn and the critical situations (a war declared on you, an enemy fleet at your colony, a council vote going against you, unrest, a caught spy, an ultimatum, bankruptcy, war weariness, a crisis, Antarans). It reads only what the player knows and changes nothing in the game.",
-      remarks: "off preserves classic behavior: no panel, F9 is left to the game. Local to this machine: not saved, not synchronized with other players. The mentat is off in a network game whatever this says. advice behaves as summary until the advice comes in a later version.",
+      description: "Turns on the mentat, the player's advisor panel (F11): a summary of the turn and the critical situations (a war declared on you, an enemy fleet at your colony, a council vote going against you, unrest, a caught spy, an ultimatum, bankruptcy, war weariness, a crisis, Antarans). It reads only what the player knows and changes nothing in the game.",
+      remarks: "off preserves classic behavior: no panel, F11 is left to the game. Local to this machine: not saved, not synchronized with other players. The mentat is off in a network game whatever this says. advice behaves as summary until the advice comes in a later version.",
       examples: ["interface mentat = summary;"],
       group: "interface",
       namespace: "interface",
@@ -4251,7 +4251,7 @@
 
     mentat_open: {
       title: "When the mentat panel opens",
-      description: "Sets when the mentat panel opens by itself at the start of your turn: every turn, every mentat_period turns, when a critical situation stands, or only on F9.",
+      description: "Sets when the mentat panel opens by itself at the start of your turn: every turn, every mentat_period turns, when a critical situation stands, or only on F11.",
       remarks: "Local to this machine. Has no effect while the mentat is off.",
       examples: ["interface mentat_open = critical;"],
       group: "interface",
@@ -5046,6 +5046,18 @@
       type: "bool",
       default: false,
       bind_root: { header: "game/ambition.h", symbol: "ambition::council_bribery" },
+    },
+
+    council_bribery_exposes_voters: {
+      title: "Council bribery punishes the bribed",
+      description: "When the other nominee learns of the council bribes (the exposure roll of council_bribery), it also thinks worse (-20) of every voter that sold its vote, computers and blackmailed voters included, not only of the briber. The same roll decides: no new draw.",
+      remarks: "False keeps the exposure on the briber only. Effective only while diplomacy council_bribery is true.",
+      examples: ["diplomacy council_bribery_exposes_voters = true;"],
+      group: "gameplay",
+      namespace: "diplomacy",
+      type: "bool",
+      default: false,
+      bind_root: { header: "game/ambition.h", symbol: "ambition::council_bribery_exposes_voters" },
     },
 
     ultimatums: {

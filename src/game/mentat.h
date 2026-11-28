@@ -5,7 +5,7 @@
 #include <utility>
 #include <vector>
 
-// The mentat: the human's advisor (docs/LocalLLM/mentat.md, stage M1; the author's answers of 28.11.2026: F9, a summary,
+// The mentat: the human's advisor (docs/LocalLLM/mentat.md, stage M1; the author's answers of 28.11.2026: F11 (F9 stays the game's star distances), a summary,
 // no rule numbers, off in a network game). It only reads: it never draws from game_random, never changes the game and
 // writes nothing to a save. Everything it says comes from what the human knows: the empire's own numbers, the message
 // queue the game itself shows the player at the start of the turn, the news the empire may read (news.h Recent_For), the
@@ -36,7 +36,7 @@ namespace mentat {
         OPEN_TURN = 0,      // at the start of every turn
         OPEN_PERIOD = 1,    // every `period` turns
         OPEN_CRITICAL = 2,  // when a critical situation stands
-        OPEN_KEY = 3,       // only on F9
+        OPEN_KEY = 3,       // only on F11
     };
     extern uint8_t mode;        // interface mentat
     extern uint8_t detail;      // interface mentat_detail
@@ -95,9 +95,10 @@ namespace mentat {
     };
 
     // Whether `kind` stands for `player` now; fills `out` when it does. Pure over the game state.
-    bool Check(e_alert kind, int16_t player, s_alert* out);
+    // The council alerts rest on other empires' reckoning (Vote_Score) and stand only at DETAIL_DETAILED.
+    bool Check(e_alert kind, int16_t player, s_alert* out, uint8_t level = DETAIL_DETAILED);
     // Every kind that stands, in the order of e_alert.
-    std::vector<s_alert> Find_Alerts(int16_t player);
+    std::vector<s_alert> Find_Alerts(int16_t player, uint8_t level = DETAIL_DETAILED);
 
     // The summary of the turn (built once at the start of the human's turn).
     struct s_section {
@@ -134,7 +135,7 @@ namespace mentat {
 
     // The game-style alert in the chain of the turn's reports (report.cpp, after the choice window): non-zero while
     // there is one to show (the setting is on, the panel is closed and will not open itself, a critical situation stands,
-    // it has not been shown this turn); with `show_ui` it shows a message box with one or two lines and "F9" and
+    // it has not been shown this turn); with `show_ui` it shows a message box with one or two lines and "F11" and
     // marks it shown.
     int8_t Alert_Step(int16_t player, bool show_ui);
     // The text of that alert in the game's bytes.

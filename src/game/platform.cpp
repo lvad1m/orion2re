@@ -1349,7 +1349,7 @@ namespace platform {
             if (event.type == SDL_EVENT_KEY_DOWN || event.type == SDL_EVENT_KEY_UP) {
                 const bool overlay_captures_keyboard =
                     debug_overlay::Handle_Key_Event(event.key, g_sdl_window);
-                if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_F10 || event.key.key == SDLK_F9)) {
+                if (event.type == SDL_EVENT_KEY_DOWN && (event.key.key == SDLK_F10 || event.key.key == SDLK_F11)) {
                     Request_Present_Refresh();
                     Sync_Mouse_State_From_SDL();
                 }

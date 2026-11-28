@@ -8,5 +8,6 @@ namespace ambition {
 
     bool ambitious_governors = false;
     bool council_bribery = false;
+    bool council_bribery_exposes_voters = false;
 
 } // namespace ambition

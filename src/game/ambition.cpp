@@ -182,6 +182,7 @@ namespace ambition {
             const bool rich = MOX::player[briber].bc >= MIN_BC_TO_BRIBE;  // checked once, before the first purchase
             rich_at_start[n] = rich;
             int32_t bought = 0;
+            std::vector<int16_t> bought_from;  // the voters bought or blackmailed this session
             for (int16_t voter = 0; voter < Players_(); ++voter) {
                 if (voter == nominee0 || voter == nominee1 || !Computer_(voter)) continue;
                 if (bias[voter][nominee0] != 0 || bias[voter][nominee1] != 0) continue;  // already bought
@@ -190,6 +191,7 @@ namespace ambition {
                     secrets::Slots()[secret] = secrets::s_secret{};
                     bias[voter][briber] = static_cast<int16_t>(BLACKMAIL_BIAS);
                     ++bought;
+                    bought_from.push_back(voter);
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d blackmails player %d for its council vote",
                         (int)MOX::stardate, (int)briber, (int)voter);
                     continue;
@@ -203,6 +205,7 @@ namespace ambition {
                 MOX::player[voter].bc += BRIBE_PRICE;
                 bias[voter][briber] = static_cast<int16_t>(BRIBE_BIAS);
                 ++bought;
+                bought_from.push_back(voter);
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d bribes player %d with %d BC for its council vote",
                     (int)MOX::stardate, (int)briber, (int)voter, (int)BRIBE_PRICE);
             }
@@ -211,6 +214,14 @@ namespace ambition {
                 opinion::Add(rival, briber, opinion::REASON_PLOTTED_AGAINST_US, EXPOSURE_OPINION);
                 SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d learns of the council bribes of player %d",
                     (int)MOX::stardate, (int)rival, (int)briber);
+                // With the setting on the same roll also turns the rival against the voters that sold their votes.
+                if (council_bribery_exposes_voters) {
+                    for (const int16_t voter : bought_from) {
+                        opinion::Add(rival, voter, opinion::REASON_PLOTTED_AGAINST_US, EXPOSURE_OPINION);
+                        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d learns that player %d sold its council vote to player %d",
+                            (int)MOX::stardate, (int)rival, (int)voter, (int)briber);
+                    }
+                }
             }
         }
     }
@@ -284,6 +295,15 @@ namespace ambition {
         MOX::player[c.target].bc -= c.value;
         MOX::player[c.player].bc += c.value;
         human_promise = c.target;
+        // The author, 28.11.2026: a human who sells its vote risks the same exposure as the computers' bribes: the rival
+        // nominee, with spies on the briber or on the human, may find out and think worse of both.
+        if ((BILL::Get_Their_Spy_Number(c.other, c.target) > 0 || BILL::Get_Their_Spy_Number(c.other, c.player) > 0) &&
+            static_cast<int32_t>(game_random::Random(100)) < EXPOSURE_PERCENT) {
+            opinion::Add(c.other, c.target, opinion::REASON_PLOTTED_AGAINST_US, EXPOSURE_OPINION);
+            opinion::Add(c.other, c.player, opinion::REASON_PLOTTED_AGAINST_US, EXPOSURE_OPINION);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d learns that player %d sold its council vote to player %d",
+                (int)MOX::stardate, (int)c.other, (int)c.player, (int)c.target);
+        }
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d bribes player %d with %d BC for its council vote",
             (int)MOX::stardate, (int)c.target, (int)c.player, (int)c.value);
     }

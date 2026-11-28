@@ -8,7 +8,7 @@
 #include <imgui.h>
 
 // The mentat's window (docs/LocalLLM/mentat.md section 4): a Dear ImGui window of the overlay that works with the debugger
-// off. F9 toggles it (debug_overlay.cpp), it opens itself as the settings say (mentat::Take_Open_Request), it can be
+// off. F11 toggles it (debug_overlay.cpp), it opens itself as the settings say (mentat::Take_Open_Request), it can be
 // moved, scrolled, closed with its X and collapsed to a one-line bar "Mentat: N new". It only draws what mentat.cpp
 // built; it changes nothing in the game. The window's place and state are kept in memory for the session only.
 namespace mentat {

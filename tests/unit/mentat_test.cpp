@@ -250,6 +250,52 @@ DOCTEST_TEST_CASE("council: the expected vote goes against you, or you fall a fe
     DOCTEST_CHECK_FALSE(Stands_(mentat::ALERT_COUNCIL_LOSE));
 }
 
+DOCTEST_TEST_CASE("other empires' reckoning (the vote prediction, the council alerts) only at the detailed level") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Council_(&state);
+    state.players[2].treaty[0] = 2;
+    state.players[2].treaty[1] = 4;
+    state.players[3].treaty[0] = 4;
+    state.players[3].treaty[1] = 2;
+    mentat::s_alert standing;
+    DOCTEST_CHECK(mentat::Check(mentat::ALERT_COUNCIL_SHORT, 0, &standing, mentat::DETAIL_DETAILED));
+    for (const uint8_t level : {mentat::DETAIL_BRIEF, mentat::DETAIL_MEDIUM}) {
+        mentat::s_alert alert;
+        DOCTEST_CHECK_FALSE(mentat::Check(mentat::ALERT_COUNCIL_SHORT, 0, &alert, level));
+        DOCTEST_CHECK_FALSE(mentat::Check(mentat::ALERT_COUNCIL_LOSE, 0, &alert, level));
+        for (const mentat::s_alert& found : mentat::Find_Alerts(0, level)) {
+            DOCTEST_CHECK(found.kind != mentat::ALERT_COUNCIL_SHORT);
+            DOCTEST_CHECK(found.kind != mentat::ALERT_COUNCIL_LOSE);
+        }
+        mentat::s_summary summary;
+        mentat::Build_Summary(0, level, &summary);
+        const std::string all = All_Lines_(summary);
+        DOCTEST_CHECK(Has_Text_(all, "Council session in 3 turns; the nominees are Aaaa (10 votes) and Bbbb (6 votes)."));
+        DOCTEST_CHECK_FALSE(Has_Text_(all, "expected"));  // no prediction
+        DOCTEST_CHECK_FALSE(Has_Text_(all, "needed"));
+        DOCTEST_CHECK(summary.why.empty());
+    }
+    mentat::s_summary detailed;
+    mentat::Build_Summary(0, mentat::DETAIL_DETAILED, &detailed);
+    DOCTEST_CHECK(Has_Text_(All_Lines_(detailed), "you are a nominee"));
+    bool short_alert = false;
+    for (const mentat::s_alert& found : detailed.alerts) short_alert = short_alert || found.kind == mentat::ALERT_COUNCIL_SHORT;
+    DOCTEST_CHECK(short_alert);
+    // The opinion reasons likewise.
+    opinion::enabled = true;
+    opinion::Add(1, 0, opinion::REASON_EMBARGO, -20);
+    for (const uint8_t level : {mentat::DETAIL_BRIEF, mentat::DETAIL_MEDIUM}) {
+        mentat::s_summary summary;
+        mentat::Build_Summary(0, level, &summary);
+        DOCTEST_CHECK_FALSE(Has_Text_(All_Lines_(summary), "remembers"));
+    }
+    mentat::s_summary reasons;
+    mentat::Build_Summary(0, mentat::DETAIL_DETAILED, &reasons);
+    DOCTEST_CHECK(Has_Text_(All_Lines_(reasons), "remembers: an embargo -20."));
+}
+
 DOCTEST_TEST_CASE("unrest: rebels in a colony, or a colony in unrest") {
     s_scope scope;
     test::s_game_state state;
@@ -556,7 +602,7 @@ DOCTEST_TEST_CASE("the start of the turn: the panel opens as the settings say, t
     mentat::Turn_Start(0);
     DOCTEST_CHECK_FALSE(mentat::Take_Open_Request());
     DOCTEST_CHECK(mentat::Alert_Step(0, false) == 1);
-    DOCTEST_CHECK(mentat::Alert_Text(*mentat::Current()) == "Mentat: The treasury runs out in 2 turns at the present income. (F9 for details)");
+    DOCTEST_CHECK(mentat::Alert_Text(*mentat::Current()) == "Mentat: The treasury runs out in 2 turns at the present income. (F11 for details)");
     mentat::alerts = false;  // the setting of the alert line
     DOCTEST_CHECK(mentat::Alert_Step(0, false) == 0);
     mentat::alerts = true;

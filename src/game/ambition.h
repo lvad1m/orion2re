@@ -17,6 +17,7 @@ namespace ambition {
 
     extern bool ambitious_governors;  // loyalty ambitious_governors (needs loyalty leaders)
     extern bool council_bribery;      // diplomacy council_bribery
+    extern bool council_bribery_exposes_voters;  // diplomacy council_bribery_exposes_voters (the author, 28.11.2026: "Yes, everyone")
 
     // Programming choices (README.md 10.9: tuned on the big bench).
     constexpr int32_t PERIOD = 10;                 // governors are looked at on stardate % PERIOD == PHASE

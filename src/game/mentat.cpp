@@ -562,6 +562,18 @@ namespace mentat {
             return Text_(any_contact ? "mentat.war.none" : "mentat.war.nocontact");
         }
 
+        // Only public facts below the detailed level (the author, 28.11.2026: other empires' reckoning, such as the
+        // expected votes, only at the highest level): the session, the two nominees and their votes as the council
+        // screen shows them.
+        s_text Council_Public_Line_() {
+            const int32_t turns = Session_In_(COUNCIL_LOOKAHEAD);
+            if (turns == 0) return Text_("");
+            uint8_t nominee[2] = {};
+            if (!council::Session_Due_Within(COUNCIL_LOOKAHEAD) || !council::Predict_Nominees(nominee)) return Text_("");
+            return Text_("mentat.council.public", {{"turns", Num_(turns)}, {"first", Name_(nominee[0])}, {"first_votes", Num_(council::Get_Num_Votes(nominee[0]))},
+                                                      {"second", Name_(nominee[1])}, {"second_votes", Num_(council::Get_Num_Votes(nominee[1]))}});
+        }
+
         s_text Council_Line_(int16_t player) {
             const int32_t turns = Session_In_(COUNCIL_LOOKAHEAD);
             if (turns == 0) return Text_("");
@@ -594,7 +606,7 @@ namespace mentat {
         }
 
         // The brief summary: wars, the turn's diplomacy, colonies, the council, decisions waiting, the ranking.
-        void Fill_Brief_(int16_t player, const s_memory& mem, s_section* section) {
+        void Fill_Brief_(int16_t player, uint8_t level, const s_memory& mem, s_section* section) {
             std::vector<s_text>& lines = section->lines;
             lines.push_back(Wars_Line_(player));
             std::vector<s_text> events;
@@ -611,7 +623,7 @@ namespace mentat {
                 if (lost > 0) parts.push_back(texts::Expand("mentat.colonies_part.lost", {{"count", Num_(lost)}}, false));
                 lines.push_back(Text_("mentat.colonies_line", {{"parts", Join_(parts)}}));
             }
-            const s_text council = Council_Line_(player);
+            const s_text council = level >= DETAIL_DETAILED ? Council_Line_(player) : Council_Public_Line_();
             if (!council.key.empty()) lines.push_back(council);
             const int32_t pending = choices::Count(player);
             if (pending > 0) lines.push_back(Text_("mentat.pending", {{"count", Num_(pending)}}));
@@ -752,15 +764,15 @@ namespace mentat {
         return texts::Expand(text.key.c_str(), args, true);
     }
 
-    bool Check(e_alert kind, int16_t player, s_alert* out) {
+    bool Check(e_alert kind, int16_t player, s_alert* out, uint8_t level) {
         if (out == nullptr || player < 0 || player >= Players_() || MOX::player == nullptr) return false;
         s_alert found;
         bool stands = false;
         switch (kind) {
             case ALERT_WAR: stands = Check_War_(player, &found); break;
             case ALERT_FLEET: stands = Check_Fleet_(player, &found); break;
-            case ALERT_COUNCIL_LOSE: stands = Check_Council_Lose_(player, &found); break;
-            case ALERT_COUNCIL_SHORT: stands = Check_Council_Short_(player, &found); break;
+            case ALERT_COUNCIL_LOSE: stands = level >= DETAIL_DETAILED && Check_Council_Lose_(player, &found); break;
+            case ALERT_COUNCIL_SHORT: stands = level >= DETAIL_DETAILED && Check_Council_Short_(player, &found); break;
             case ALERT_UNREST: stands = Check_Unrest_(player, &found); break;
             case ALERT_SPY: stands = Check_Spy_(player, &found); break;
             case ALERT_ULTIMATUM: stands = Check_Ultimatum_(player, &found); break;
@@ -777,11 +789,11 @@ namespace mentat {
         return true;
     }
 
-    std::vector<s_alert> Find_Alerts(int16_t player) {
+    std::vector<s_alert> Find_Alerts(int16_t player, uint8_t level) {
         std::vector<s_alert> found;
         for (int32_t kind = 0; kind < ALERT_COUNT; ++kind) {
             s_alert alert;
-            if (Check(static_cast<e_alert>(kind), player, &alert)) found.push_back(std::move(alert));
+            if (Check(static_cast<e_alert>(kind), player, &alert, level)) found.push_back(std::move(alert));
         }
         return found;
     }
@@ -794,15 +806,15 @@ namespace mentat {
         out->player = player;
         out->detail = detail_level;
         out->advice_pending = mode == MODE_ADVICE;
-        out->alerts = Find_Alerts(player);
+        out->alerts = Find_Alerts(player, detail_level);
         if (detail_level == DETAIL_BRIEF) {
             s_section section{"mentat.section.summary", {}};
-            Fill_Brief_(player, mem, &section);
+            Fill_Brief_(player, detail_level, mem, &section);
             out->sections.push_back(std::move(section));
             return;
         }
         s_section summary{"mentat.section.summary", {}};
-        Fill_Brief_(player, mem, &summary);
+        Fill_Brief_(player, detail_level, mem, &summary);
         // The medium level goes by field; the brief's first lines stay the opening of the turn.
         out->sections.push_back(std::move(summary));
         s_section economy{"mentat.section.economy", {}};

@@ -25,6 +25,7 @@
         { namespace: "diplomacy", name: "prisoners" },
         { namespace: "diplomacy", name: "spy_prison" },
         { namespace: "diplomacy", name: "council_bribery" },
+        { namespace: "diplomacy", name: "council_bribery_exposes_voters" },
         { namespace: "diplomacy", name: "ultimatums" },
         { namespace: "diplomacy", name: "red_wedding" },
         { namespace: "diplomacy", name: "titles" },
