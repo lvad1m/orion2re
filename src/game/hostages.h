@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/choices.h"
+
 #include <cstdint>
 #include <string>
 
@@ -14,8 +16,12 @@ struct s_colony;
 // README.md 10.9, the A and B scope). A hostage: the weaker partner of a new alliance gives one of its
 // leaders to the stronger. A prisoner: the governor of a colony taken by invasion is captured by the
 // invader. A held leader is out of service (status -2, as for a dead one) until it is returned, ransomed,
-// exchanged, escapes or is executed. Only computer empires decide; a human's leader may be captured, but
-// a human owner never pays and a human holder never executes or releases (no interface step yet).
+// exchanged, escapes or is executed. Computer empires decide at once. A human owner (pays the ransom,
+// offers an exchange, or leaves the leader or spies where they are) and a human holder (executes, releases,
+// exchanges or keeps holding) choose in the choice window (choices.h) when events human_choices is on, on the
+// module's own phase (stardate % PERIOD == PHASE) and, for a holder, once the prisoner has been held the
+// number of turns after which a computer holder decides; otherwise a human owner never pays and a human
+// holder never executes or releases, as before. Hostages between computers never involve a human.
 // Both flags off by default; with them off nothing here draws from game_random and nothing is kept.
 //
 // Wave 6 (ab-review 3.1, 2.2, 2.3). The jail: an arrest (a framed or innocent leader, an uncovered bribe,
@@ -128,6 +134,18 @@ namespace hostages {
     int32_t Ransom_Of(int16_t leader);
     // `index` escapes home when `roll` (0-99) is under ESCAPE_PERCENT; only prisoners.
     bool Escape_With_Roll(int32_t index, int32_t roll);
+
+    // The choice window (choices.h, MODULE_HOSTAGES; `kind` is one of CHOICE_*, `player` the human, `other`
+    // the other empire, `target` the leader (-1 for spies), `value` the ransom). Both are false/no-ops when
+    // the subject is gone.
+    enum e_choice : uint8_t {
+        CHOICE_LEADER_OWNER = 0,   // pay the ransom / exchange / leave
+        CHOICE_LEADER_HOLDER = 1,  // execute / release or exchange / keep
+        CHOICE_SPY_OWNER = 2,
+        CHOICE_SPY_HOLDER = 3,
+    };
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // Once a turn (diplomac.cpp End_Of_Turn_Diplomacy_Adjustments): hostages come home, prisoners escape
     // (the only draws from game_random) and, on PHASE, are exchanged or ransomed; old prisoners are executed or released.

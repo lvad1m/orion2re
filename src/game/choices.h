@@ -34,7 +34,8 @@ namespace choices {
         MODULE_MOO_WORLD = 8,
         MODULE_INTRIGUE = 9,   // the fate of a caught spy, a forged letter about an ally (R2, piece A)
         MODULE_SECRETS = 10,   // a blackmailer's demand
-        MODULE_LAST = 10,
+        MODULE_HOSTAGES = 11,  // a human's held leader or spies, a human holder of prisoners (R2, piece B)
+        MODULE_LAST = 11,
     };
 
     // One pending choice. What target, other and value mean is the module's business (incidents: the colony,

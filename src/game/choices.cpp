@@ -4,6 +4,7 @@
 
 #include "game/crises.h"
 #include "game/discoveries.h"
+#include "game/hostages.h"
 #include "game/incidents.h"
 #include "game/intrigue.h"
 #include "game/moo_world.h"
@@ -37,6 +38,7 @@ namespace choices {
                 case MODULE_WORLD_EVENTS: return world_events::Choice_Text(c, text);
                 case MODULE_INTRIGUE: return intrigue::Choice_Text(c, text);
                 case MODULE_SECRETS: return secrets::Choice_Text(c, text);
+                case MODULE_HOSTAGES: return hostages::Choice_Text(c, text);
                 default: return false;
             }
         }
@@ -53,6 +55,7 @@ namespace choices {
                 case MODULE_WORLD_EVENTS: world_events::Choice_Apply(c, option); break;
                 case MODULE_INTRIGUE: intrigue::Choice_Apply(c, option); break;
                 case MODULE_SECRETS: secrets::Choice_Apply(c, option); break;
+                case MODULE_HOSTAGES: hostages::Choice_Apply(c, option); break;
                 default: break;
             }
         }

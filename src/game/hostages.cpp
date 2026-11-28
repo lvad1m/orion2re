@@ -3,11 +3,14 @@
 #include "game/hostages.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
+#include "game/reputation.h"
 #include "game/spy_ops.h"
+#include "game/texts.h"
 
 #include <algorithm>
 
@@ -96,6 +99,98 @@ namespace hostages {
                 (int)MOX::stardate, (int)c.owner, (int)c.jailer, how);
         }
 
+        // The record of a prisoner that `index`'s holder could be exchanged for: one the owner holds of the holder's.
+        int32_t Exchange_Partner_(int32_t index) {
+            const s_state* s = State();
+            const s_held a = s->held[index];
+            for (int32_t j = 0; j < s->count; ++j) {
+                const s_held& b = s->held[j];
+                if (j != index && b.kind == KIND_PRISONER && b.owner == a.holder && b.holder == a.owner) return j;
+            }
+            return -1;
+        }
+
+        // One for one: both leaders go home, the higher index first (the records move up).
+        void Exchange_Leaders_(int32_t i, int32_t j) {
+            const int32_t lo = std::min(i, j);
+            const int32_t hi = std::max(i, j);
+            const int16_t hi_owner = State()->held[hi].owner;
+            const int16_t lo_owner = State()->held[lo].owner;
+            Release(hi, hi_owner, "exchanged");
+            Release(lo, lo_owner, "exchanged");
+        }
+
+        // The owner buys its prisoner back (the caller checked the sum).
+        void Pay_Ransom_(int32_t index) {
+            const s_held h = State()->held[index];
+            const int32_t ransom = Ransom_Of(h.leader);
+            MOX::player[h.owner].bc -= ransom;
+            MOX::player[h.holder].bc += ransom;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d pays %d BC to player %d for leader %d",
+                (int)MOX::stardate, (int)h.owner, (int)ransom, (int)h.holder, (int)h.leader);
+            Release(index, h.owner, "ransomed");
+        }
+
+        int32_t Spy_Cell_(int16_t jailer, int16_t owner) {
+            const s_state* s = State();
+            for (int32_t i = 0; i < s->spy_count; ++i) {
+                if (s->spies[i].jailer == jailer && s->spies[i].owner == owner) return i;
+            }
+            return -1;
+        }
+
+        void Exchange_Spies_(int32_t i, int32_t j) {
+            Free_Spy_(std::max(i, j), "exchanged", true);  // the higher cell first: the cells move up
+            Free_Spy_(std::min(i, j), "exchanged", true);
+        }
+
+        void Pay_Spy_Ransom_(int32_t cell) {
+            const s_spies c = State()->spies[cell];
+            MOX::player[c.owner].bc -= SPY_RANSOM;
+            MOX::player[c.jailer].bc += SPY_RANSOM;
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d pays %d BC to player %d for a spy",
+                (int)MOX::stardate, (int)c.owner, (int)SPY_RANSOM, (int)c.jailer);
+            Free_Spy_(cell, "ransomed", true);
+        }
+
+        // Queues a window of the human (one of a kind for the same subject at a time; a full queue: nothing).
+        void Queue_Choice_(uint8_t kind, int16_t player, int16_t target, int16_t other, int32_t value) {
+            const choices::s_state* s = choices::State();
+            for (int32_t i = 0; i < s->count; ++i) {
+                const choices::s_choice& c = s->choice[i];
+                if (c.module == choices::MODULE_HOSTAGES && c.kind == kind && c.player == player && c.target == target && c.other == other) return;
+            }
+            choices::s_choice c;
+            c.module = choices::MODULE_HOSTAGES;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.target = target;
+            c.other = other;
+            c.value = value;
+            c.asked = MOX::stardate;
+            choices::Add(c);
+        }
+
+        // A human owner of prisoner `index`: asked when the ransom is affordable or an exchange is possible.
+        void Ask_Leader_Owner_(int32_t index) {
+            const s_held h = State()->held[index];
+            const int32_t ransom = Ransom_Of(h.leader);
+            const bool exchange = Computer_(h.holder) && Exchange_Partner_(index) >= 0;
+            if (MOX::player[h.owner].bc < ransom && !exchange) return;
+            Queue_Choice_(CHOICE_LEADER_OWNER, h.owner, h.leader, h.holder, ransom);
+        }
+
+        void Ask_Leader_Holder_(int32_t index) {
+            const s_held h = State()->held[index];
+            Queue_Choice_(CHOICE_LEADER_HOLDER, h.holder, h.leader, h.owner, Ransom_Of(h.leader));
+        }
+
+        void Ask_Spy_Owner_(const s_spies& c) {
+            const bool exchange = Computer_(c.jailer) && Spy_Cell_(c.owner, c.jailer) >= 0;
+            if (MOX::player[c.owner].bc < SPY_RANSOM && !exchange) return;
+            Queue_Choice_(CHOICE_SPY_OWNER, c.owner, -1, c.jailer, SPY_RANSOM);
+        }
+
         void Spy_Prison_Turn_() {
             s_state* s = State();
             for (int32_t i = 0; i < s->spy_count;) {
@@ -114,6 +209,9 @@ namespace hostages {
                     }
                     continue;
                 }
+                if (MOX::stardate - c.since >= SPY_PRISON_TURNS && MOX::stardate % PERIOD == PHASE && choices::Ask_Human(c.jailer)) {
+                    Queue_Choice_(CHOICE_SPY_HOLDER, c.jailer, -1, c.owner, c.count);
+                }
                 ++i;
             }
         }
@@ -130,24 +228,28 @@ namespace hostages {
                     if (b.owner != a.jailer || b.jailer != a.owner) continue;
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange a spy each",
                         (int)MOX::stardate, (int)a.owner, (int)a.jailer);
-                    Free_Spy_(j, "exchanged", true);  // the higher index first: the cells move up
-                    Free_Spy_(i, "exchanged", true);
+                    Exchange_Spies_(i, j);
                     i = -1;  // start over: the cells moved
                     break;
                 }
             }
             for (int32_t i = 0; i < s->spy_count;) {
                 const s_spies c = s->spies[i];
-                if (!Computer_(c.owner) || !Alive_(c.jailer) || MOX::player[c.owner].bc - SPY_RANSOM < RANSOM_RESERVE) {
+                if (!Alive_(c.jailer)) {
                     ++i;
                     continue;
                 }
-                MOX::player[c.owner].bc -= SPY_RANSOM;
-                MOX::player[c.jailer].bc += SPY_RANSOM;
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d pays %d BC to player %d for a spy",
-                    (int)MOX::stardate, (int)c.owner, (int)SPY_RANSOM, (int)c.jailer);
+                if (!Computer_(c.owner)) {
+                    if (choices::Ask_Human(c.owner)) Ask_Spy_Owner_(c);
+                    ++i;
+                    continue;
+                }
+                if (MOX::player[c.owner].bc - SPY_RANSOM < RANSOM_RESERVE) {
+                    ++i;
+                    continue;
+                }
                 const int32_t before = s->spy_count;
-                Free_Spy_(i, "ransomed", true);
+                Pay_Spy_Ransom_(i);
                 if (s->spy_count == before) ++i;  // the cell still holds spies: one a period
             }
         }
@@ -183,8 +285,7 @@ namespace hostages {
                     if (b.kind != KIND_PRISONER || b.owner != a.holder || b.holder != a.owner) continue;
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange leaders %d and %d",
                         (int)MOX::stardate, (int)a.owner, (int)a.holder, (int)a.leader, (int)b.leader);
-                    Release(j, b.owner, "exchanged");  // the higher index first: the records move up
-                    Release(i, a.owner, "exchanged");
+                    Exchange_Leaders_(i, j);  // the higher index first: the records move up
                     --i;  // the record at i is a new one now
                     break;
                 }
@@ -192,17 +293,20 @@ namespace hostages {
             // Ransom: a computer owner that keeps a reserve buys its leader back.
             for (int32_t i = 0; i < s->count;) {
                 const s_held h = s->held[i];
-                const int32_t ransom = Ransom_Of(h.leader);
-                if (h.kind != KIND_PRISONER || !Computer_(h.owner) || !Alive_(h.holder) ||
-                    MOX::player[h.owner].bc - ransom < RANSOM_RESERVE) {
+                if (h.kind != KIND_PRISONER || !Alive_(h.holder)) {
                     ++i;
                     continue;
                 }
-                MOX::player[h.owner].bc -= ransom;
-                MOX::player[h.holder].bc += ransom;
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, player %d pays %d BC to player %d for leader %d",
-                    (int)MOX::stardate, (int)h.owner, (int)ransom, (int)h.holder, (int)h.leader);
-                Release(i, h.owner, "ransomed");
+                if (!Computer_(h.owner)) {
+                    if (choices::Ask_Human(h.owner)) Ask_Leader_Owner_(i);
+                    ++i;
+                    continue;
+                }
+                if (MOX::player[h.owner].bc - Ransom_Of(h.leader) < RANSOM_RESERVE) {
+                    ++i;
+                    continue;
+                }
+                Pay_Ransom_(i);
             }
         }
     } // namespace
@@ -374,6 +478,150 @@ namespace hostages {
         return true;
     }
 
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        const int16_t other = c.other;
+        if (!Alive_(player) || !Alive_(other) || player == other) return false;
+        const auto Short = [](const char* name) { return std::string(name, strnlen(name, 14)); };
+        const auto N = [](int32_t v) { return std::to_string(v); };
+        const std::string race = Short(MOX::player[other].race_name);
+        const auto Option = [&](const char* key, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), (std::string("choices.hostages.") + key).c_str(), args);
+            ++t->count;
+        };
+        const auto Head = [&](const char* title, const char* body, std::initializer_list<std::pair<const char*, std::string>> args) {
+            *t = choices::s_text{};
+            texts::Format(t->title, sizeof(t->title), (std::string("choices.hostages.") + title).c_str(), {});
+            texts::Format(t->body, sizeof(t->body), (std::string("choices.hostages.") + body).c_str(), args);
+        };
+        if (c.kind == CHOICE_LEADER_OWNER || c.kind == CHOICE_LEADER_HOLDER) {
+            if (!prisoners) return false;
+            const bool owner_side = c.kind == CHOICE_LEADER_OWNER;
+            const int32_t index = Find(c.target);
+            if (index < 0) return false;
+            const s_held h = State()->held[index];
+            if (h.kind != KIND_PRISONER || h.owner != (owner_side ? player : other) || h.holder != (owner_side ? other : player)) return false;
+            const int32_t price = Ransom_Of(h.leader);
+            const int32_t partner = Exchange_Partner_(index);
+            const bool exchange = partner >= 0 && Computer_(other);
+            const std::string theirs = exchange ? Short(MOX::leaders[State()->held[partner].leader].name) : std::string();
+            const std::string name = Short(MOX::leaders[h.leader].name);
+            if (owner_side) {
+                Head("owner_leader.title", "owner_leader.body",
+                    {{"leader", name}, {"race", race}, {"turns", N(MOX::stardate - h.since)}, {"price", N(price)},
+                     {"escape", N(ESCAPE_PERCENT)}, {"limit", N(PRISONER_TURNS)}});
+                Option(MOX::player[player].bc >= price ? "owner_leader.option1" : "owner_leader.option1_poor", {{"price", N(price)}});
+                if (exchange) Option("owner_leader.option2", {{"theirs", theirs}});
+                Option("owner_leader.option3", {});
+            } else {
+                Head("holder_leader.title", "holder_leader.body",
+                    {{"leader", name}, {"race", race}, {"turns", N(MOX::stardate - h.since)}, {"price", N(price)}});
+                Option("holder_leader.option1", {{"opinion", N(EXECUTED_PRISONER_OPINION)}});
+                if (exchange) {
+                    Option("holder_leader.option2_exchange", {{"theirs", theirs}, {"race", race}});
+                } else {
+                    Option("holder_leader.option2_release", {{"race", race}});
+                }
+                Option("holder_leader.option3", {});
+            }
+            return true;
+        }
+        if (c.kind == CHOICE_SPY_OWNER || c.kind == CHOICE_SPY_HOLDER) {
+            if (!spy_prison) return false;
+            const bool owner_side = c.kind == CHOICE_SPY_OWNER;
+            const int32_t cell = owner_side ? Spy_Cell_(other, player) : Spy_Cell_(player, other);
+            if (cell < 0) return false;
+            const s_spies cs = State()->spies[cell];
+            const int32_t reverse = owner_side ? Spy_Cell_(player, other) : Spy_Cell_(other, player);
+            const bool exchange = reverse >= 0 && Computer_(other);
+            if (owner_side) {
+                Head("owner_spy.title", "owner_spy.body",
+                    {{"race", race}, {"count", N(cs.count)}, {"turns", N(MOX::stardate - cs.since)}, {"price", N(SPY_RANSOM)}});
+                Option(MOX::player[player].bc >= SPY_RANSOM ? "owner_spy.option1" : "owner_spy.option1_poor", {{"price", N(SPY_RANSOM)}});
+                if (exchange) Option("owner_spy.option2", {{"theirs", N(State()->spies[reverse].count)}});
+                Option("owner_spy.option3", {});
+            } else {
+                Head("holder_spy.title", "holder_spy.body",
+                    {{"race", race}, {"count", N(cs.count)}, {"turns", N(MOX::stardate - cs.since)}, {"price", N(SPY_RANSOM)}});
+                Option("holder_spy.option1", {{"opinion", N(EXECUTED_SPY_OPINION)}});
+                if (exchange) {
+                    Option("holder_spy.option2_exchange", {{"theirs", N(State()->spies[reverse].count)}, {"race", race}});
+                } else {
+                    Option("holder_spy.option2_release", {{"race", race}});
+                }
+                Option("holder_spy.option3", {});
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        const int16_t other = c.other;
+        if (!Alive_(player) || !Alive_(other) || player == other) return;
+        if (c.kind == CHOICE_LEADER_OWNER || c.kind == CHOICE_LEADER_HOLDER) {
+            if (!prisoners) return;
+            const bool owner_side = c.kind == CHOICE_LEADER_OWNER;
+            const int32_t index = Find(c.target);
+            if (index < 0) return;
+            const s_held h = State()->held[index];
+            if (h.kind != KIND_PRISONER || h.owner != (owner_side ? player : other) || h.holder != (owner_side ? other : player)) return;
+            const int32_t partner = Exchange_Partner_(index);
+            const bool exchange = partner >= 0 && Computer_(other);
+            if (owner_side) {
+                if (option == 0) {
+                    if (MOX::player[player].bc >= Ransom_Of(h.leader)) Pay_Ransom_(index);
+                } else if (option == 1 && exchange) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange leaders %d and %d",
+                        (int)MOX::stardate, (int)player, (int)other, (int)h.leader, (int)State()->held[partner].leader);
+                    Exchange_Leaders_(index, partner);
+                }
+            } else if (option == 0) {
+                opinion::Add(h.owner, h.holder, opinion::REASON_HARMED_A_HOSTAGE, EXECUTED_PRISONER_OPINION);
+                reputation::On_Leader_Killed(h.holder);  // stains and titles (off by default)
+                Execute(index, "the human holder executes the prisoner");
+            } else if (option == 1) {
+                if (exchange) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange leaders %d and %d",
+                        (int)MOX::stardate, (int)player, (int)other, (int)h.leader, (int)State()->held[partner].leader);
+                    Exchange_Leaders_(index, partner);
+                } else {
+                    Release(index, h.owner, "the human holder releases the prisoner");
+                }
+            }
+            return;
+        }
+        if (c.kind == CHOICE_SPY_OWNER || c.kind == CHOICE_SPY_HOLDER) {
+            if (!spy_prison) return;
+            const bool owner_side = c.kind == CHOICE_SPY_OWNER;
+            const int32_t cell = owner_side ? Spy_Cell_(other, player) : Spy_Cell_(player, other);
+            if (cell < 0) return;
+            const int32_t reverse = owner_side ? Spy_Cell_(player, other) : Spy_Cell_(other, player);
+            const bool exchange = reverse >= 0 && Computer_(other);
+            if (owner_side) {
+                if (option == 0) {
+                    if (MOX::player[player].bc >= SPY_RANSOM) Pay_Spy_Ransom_(cell);
+                } else if (option == 1 && exchange) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange a spy each",
+                        (int)MOX::stardate, (int)player, (int)other);
+                    Exchange_Spies_(cell, reverse);
+                }
+            } else if (option == 0) {
+                opinion::Add(other, player, opinion::REASON_TREATED_OUR_SPY, EXECUTED_SPY_OPINION);
+                Free_Spy_(cell, "executed by the human jailer", false);
+            } else if (option == 1) {
+                if (exchange) {
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "hostages: stardate %d, players %d and %d exchange a spy each",
+                        (int)MOX::stardate, (int)player, (int)other);
+                    Exchange_Spies_(cell, reverse);
+                } else {
+                    Free_Spy_(cell, "released by the human jailer", true);
+                }
+            }
+        }
+    }
+
     void Turn() {
         s_state* s = State();
         for (int32_t i = 0; i < s->count;) {
@@ -422,6 +670,9 @@ namespace hostages {
                     Release(i, h.owner, "held too long, released");
                 }
                 continue;
+            }
+            if (MOX::stardate - h.since >= PRISONER_TURNS && MOX::stardate % PERIOD == PHASE && choices::Ask_Human(h.holder)) {
+                Ask_Leader_Holder_(i);
             }
             ++i;
         }

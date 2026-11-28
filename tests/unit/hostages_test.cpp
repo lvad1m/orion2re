@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/espionage.h"
 #include "game/hostages.h"
 #include "game/intrigue.h"
@@ -614,6 +616,350 @@ DOCTEST_TEST_CASE("the payload with jail records and spy cells round-trips; vers
     DOCTEST_CHECK(hostages::State()->count == 1);
     DOCTEST_CHECK(hostages::State()->held[0].leader == 3);
     DOCTEST_CHECK(hostages::State()->spy_count == 0);
+}
+
+}
+
+// R2, piece B (human-ui.md section 5): a human owner or holder of prisoners and imprisoned spies chooses in
+// the choice window.
+namespace {
+    struct s_choice_scope {
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        test::s_saved_value<uint8_t> language{text_language::language};
+        test::s_saved_value<int8_t> game_type{MOX::game_type};
+        test::s_saved_value<decltype(NETMOX::net.is_network_active)> network{NETMOX::net.is_network_active};
+
+        s_choice_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            MOX::game_type = 0;
+            NETMOX::net.is_network_active = 0;
+        }
+        ~s_choice_scope() { choices::Clear(); }
+    };
+
+    // Every text of a choice in both languages: no placeholder left and no '?' (CP866 clean).
+    void Check_Texts_(const choices::s_choice& c, int expected_options) {
+        for (const uint8_t language : {text_language::LANGUAGE_EN, text_language::LANGUAGE_RU}) {
+            text_language::language = language;
+            choices::s_text t;
+            DOCTEST_REQUIRE(hostages::Choice_Text(c, &t));
+            DOCTEST_CHECK(t.count == expected_options);
+            std::string all = std::string(t.title) + t.body;
+            for (int i = 0; i < t.count; ++i) all += t.option[i];
+            DOCTEST_CHECK(all.find('{') == std::string::npos);
+            DOCTEST_CHECK(all.find('?') == std::string::npos);
+        }
+    }
+} // namespace
+
+DOCTEST_TEST_SUITE("hostages human choices") {
+
+DOCTEST_TEST_CASE("a human owner of a prisoner chooses: pay the ransom, exchange, or leave; off and computers as before")
+{
+    s_hostages_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    DOCTEST_REQUIRE(hostages::Hold(0, 1, hostages::KIND_PRISONER));  // level 3: 125 BC
+    state.players[0].bc = 500;
+    // Setting off: the human is not asked and does not pay.
+    choices::enabled = false;
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    // Not the phase: nothing; on the phase: one pending choice and no effect.
+    choices::enabled = true;
+    MOX::stardate = 35107;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    DOCTEST_CHECK(state.players[0].bc == 500);
+    Calm_();
+    hostages::Turn();  // asked once, not again while it waits
+    DOCTEST_CHECK(choices::Count(0) == 1);
+    const choices::s_choice ask = choices::State()->choice[0];
+    DOCTEST_CHECK(ask.module == choices::MODULE_HOSTAGES);
+    DOCTEST_CHECK(ask.value == 125);
+    Check_Texts_(ask, 2);
+    text_language::language = text_language::LANGUAGE_EN;
+    choices::s_text en;
+    DOCTEST_REQUIRE(hostages::Choice_Text(ask, &en));
+    DOCTEST_CHECK(std::string(en.option[0]) == "Pay 125 BC (the leader returns to your pool)");
+    // Pay: the computer's ransom path.
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.players[0].bc == 375);
+    DOCTEST_CHECK(state.players[1].bc == 1125);
+    DOCTEST_CHECK(state.leaders[0].status == 0);
+    DOCTEST_CHECK(state.leaders[0].player_index == 0);
+    // Leave: nothing changes.
+    DOCTEST_REQUIRE(hostages::Hold(1, 1, hostages::KIND_PRISONER));  // level 1: 75 BC
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 1));
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    DOCTEST_CHECK(state.players[0].bc == 375);
+    // Too poor and no exchange: not asked; asked but the sum gone by the time: nothing happens.
+    state.players[0].bc = 10;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    state.players[0].bc = 500;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    const choices::s_choice stale = choices::State()->choice[0];
+    state.players[0].bc = 10;
+    choices::s_text poor;
+    DOCTEST_REQUIRE(hostages::Choice_Text(stale, &poor));
+    DOCTEST_CHECK(std::string(poor.option[0]).find("not enough BC") != std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    DOCTEST_CHECK(state.players[0].bc == 10);
+    // A gone leader (released elsewhere) makes the text false.
+    state.players[0].bc = 500;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    const choices::s_choice gone = choices::State()->choice[0];
+    hostages::Release(0, 0, "test");
+    DOCTEST_CHECK_FALSE(hostages::Choice_Text(gone, &en));
+    choices::Clear();
+    // A full queue: nothing, as today.
+    DOCTEST_REQUIRE(hostages::Hold(1, 1, hostages::KIND_PRISONER));
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.player = 2;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Count(0) == 0);
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    choices::Clear();
+    // A computer owner pays at once and queues nothing.
+    state.players[0].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[0].bc = 1000;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(hostages::Empty());
+}
+
+DOCTEST_TEST_CASE("a human owner may offer an exchange when it holds a leader of the holder")
+{
+    s_hostages_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    DOCTEST_REQUIRE(hostages::Hold(0, 1, hostages::KIND_PRISONER));   // ours, held by player 1
+    DOCTEST_REQUIRE(hostages::Hold(10, 0, hostages::KIND_PRISONER));  // theirs, held by us
+    state.players[0].bc = 10;                                         // cannot pay, can exchange
+    state.players[1].bc = 10;                                         // a computer owner would buy its own back first
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) >= 1);
+    const choices::s_choice ask = choices::State()->choice[0];
+    DOCTEST_CHECK(ask.kind == hostages::CHOICE_LEADER_OWNER);
+    Check_Texts_(ask, 3);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 1));
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[0].player_index == 0);
+    DOCTEST_CHECK(state.leaders[0].status == 0);
+    DOCTEST_CHECK(state.leaders[10].player_index == 1);
+    DOCTEST_CHECK(state.leaders[10].status == 0);
+    DOCTEST_CHECK(state.players[0].bc == 10);
+    DOCTEST_CHECK(state.players[1].bc == 10);
+}
+
+DOCTEST_TEST_CASE("a human holder of a prisoner chooses after the term: execute, release, exchange or keep")
+{
+    s_hostages_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;  // player 1 holds player 0's leaders
+    state.players[0].bc = 0;                               // a computer owner buys its leaders back at once if it can
+    MOX::stardate = 35058;
+    DOCTEST_REQUIRE(hostages::Hold(0, 1, hostages::KIND_PRISONER));
+    DOCTEST_REQUIRE(hostages::Hold(1, 1, hostages::KIND_PRISONER));
+    // Before the term nothing is asked; off: nothing at the term; a human never executes by itself.
+    MOX::stardate = 35098;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    MOX::stardate = 35108;
+    choices::enabled = false;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(hostages::State()->count == 2);
+    choices::enabled = true;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 2);
+    DOCTEST_CHECK(hostages::State()->count == 2);
+    const choices::s_choice first = choices::State()->choice[0];
+    DOCTEST_CHECK(first.kind == hostages::CHOICE_LEADER_HOLDER);
+    Check_Texts_(first, 3);
+    // Execute: the computer holder's executing path (opinion of the owner), the record is gone.
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_HARMED_A_HOSTAGE) == hostages::EXECUTED_PRISONER_OPINION);
+    DOCTEST_CHECK(state.leaders[0].status == -2);
+    // Release: the leader goes home.
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[1].status == 0);
+    DOCTEST_CHECK(state.leaders[1].player_index == 0);
+    // Keep: nothing changes, and the question comes again on the next phase.
+    DOCTEST_REQUIRE(hostages::Hold(2, 1, hostages::KIND_PRISONER));
+    state.players[0].bc = 0;  // a computer owner could not pay
+    MOX::stardate = 35058;
+    hostages::State()->held[0].since = 35058;
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 2));
+    DOCTEST_CHECK(hostages::State()->count == 1);
+    Calm_();
+    MOX::stardate = 35118;
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Count(1) == 1);
+    choices::Clear();
+    hostages::Clear();
+    state.leaders[2].status = 0;  // back in the pool
+    // Exchange: the computer owner holds a leader of ours too; the pair is offered once and goes home together.
+    MOX::stardate = 35058;
+    DOCTEST_REQUIRE(hostages::Hold(2, 1, hostages::KIND_PRISONER));
+    MOX::stardate = 35107;
+    DOCTEST_REQUIRE(hostages::Hold(10, 0, hostages::KIND_PRISONER));
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 2);
+    const choices::s_choice holder_ask = choices::State()->choice[0];
+    const choices::s_choice owner_ask = choices::State()->choice[1];
+    DOCTEST_CHECK(holder_ask.kind == hostages::CHOICE_LEADER_HOLDER);
+    Check_Texts_(holder_ask, 3);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));
+    DOCTEST_CHECK(hostages::Empty());
+    DOCTEST_CHECK(state.leaders[2].player_index == 0);
+    DOCTEST_CHECK(state.leaders[2].status == 0);
+    DOCTEST_CHECK(state.leaders[10].player_index == 1);
+    DOCTEST_CHECK(state.leaders[10].status == 0);
+    choices::s_text gone;
+    DOCTEST_CHECK_FALSE(hostages::Choice_Text(owner_ask, &gone));
+}
+
+DOCTEST_TEST_CASE("imprisoned spies: a human owner pays or exchanges, a human jailer executes, releases or keeps")
+{
+    s_hostages_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].spies[0] = 0;
+    MOX::stardate = 35108;
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    state.players[0].bc = 500;
+    // Off: not asked.
+    choices::enabled = false;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    // Owner: pay for one spy.
+    choices::enabled = true;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    const choices::s_choice ask = choices::State()->choice[0];
+    DOCTEST_CHECK(ask.kind == hostages::CHOICE_SPY_OWNER);
+    Check_Texts_(ask, 2);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK(state.players[0].bc == 500 - hostages::SPY_RANSOM);
+    DOCTEST_CHECK(state.players[1].bc == 1000 + hostages::SPY_RANSOM);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 1);
+    // Owner: exchange one spy each when it holds one of theirs.
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(0, 1));
+    state.players[0].bc = 10;
+    state.players[1].bc = 10;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    Check_Texts_(choices::State()->choice[0], 3);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 1));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 0);
+    DOCTEST_CHECK(hostages::Spies_Held(0, 1) == 0);
+    DOCTEST_CHECK(state.players[0].bc == 10);
+    DOCTEST_CHECK(state.players[1].bc == 10);
+    // A gone cell makes the text false.
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    state.players[0].bc = 500;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    const choices::s_choice stale = choices::State()->choice[0];
+    hostages::Clear();
+    choices::s_text t;
+    DOCTEST_CHECK_FALSE(hostages::Choice_Text(stale, &t));
+    choices::Clear();
+    // Jailer: after the term (40 turns) a human is asked; execute (the owner's opinion), release (home), keep.
+    state.players[0].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].bc = 0;  // a computer owner cannot pay
+    state.players[0].spies[0] = 0;
+    MOX::stardate = 35068;
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    DOCTEST_REQUIRE(hostages::Imprison_Spy(1, 0));
+    MOX::stardate = 35108;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 3);
+    const choices::s_choice hold = choices::State()->choice[0];
+    DOCTEST_CHECK(hold.kind == hostages::CHOICE_SPY_HOLDER);
+    Check_Texts_(hold, 3);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 2);
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_TREATED_OUR_SPY) == hostages::EXECUTED_SPY_OPINION);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 0);
+    hostages::State()->spies[0].since = 35068;  // a spy leaving restarts the term
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
+    DOCTEST_CHECK((state.players[0].spies[0] & 0x3F) == 1);
+    hostages::State()->spies[0].since = 35068;
+    Calm_();
+    hostages::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 2));
+    DOCTEST_CHECK(hostages::Spies_Held(1, 0) == 1);
 }
 
 }
