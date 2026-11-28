@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/events.h"
 #include "game/mox.h"
@@ -1147,4 +1149,385 @@ DOCTEST_TEST_CASE("the pretender record round-trips (no star) and bad pretenders
     DOCTEST_CHECK(refuse(32, 2));     // a bad war flag
 }
 
+}
+
+
+// ---- The choice window (human-ui.md section 5, slice R1, part C): a human's option is chosen later.
+
+namespace {
+    // What a scenario leaves behind: money, population, opinions, the council's mask, the table and the draws.
+    std::string Ch_Signature_(const test::s_game_state& state) {
+        char buffer[512];
+        int n = snprintf(buffer, sizeof(buffer), "bc %d/%d/%d fr %d/%d/%d pops %d/%d/%d mask %d records %d op %d %d %d %d %d, leader %d", (int)state.players[0].bc,
+            (int)state.players[1].bc, (int)state.players[2].bc, (int)state.players[0].n_freighters, (int)state.players[1].n_freighters,
+            (int)state.players[2].n_freighters, (int)state.colonies[0].n_pops, (int)state.colonies[1].n_pops, (int)state.colonies[2].n_pops,
+            (int)moo_world::State()->agreed_mask, (int)moo_world::State()->count, (int)opinion::Modifier(1, 2, opinion::REASON_BAD_RUMOURS),
+            (int)opinion::Modifier(0, 2, opinion::REASON_ABANDONED_US), (int)opinion::Modifier(1, 0, opinion::REASON_DID_US_A_SERVICE),
+            (int)opinion::Modifier(1, 0, opinion::REASON_BAD_RUMOURS), (int)opinion::Modifier(2, 0, opinion::REASON_DID_US_A_SERVICE),
+            (int)state.leaders[7].player_index);
+        snprintf(buffer + n, sizeof(buffer) - n, ", seed %u", (unsigned)game_random::Get_Random_Seed());
+        return buffer;
+    }
+
+    // Only player 1 is within reach of the king (star 3).
+    void Ch_Tribute_Setup_(test::s_game_state* state) {
+        Setup_(state);
+        state->stars[0].x = 5000;
+        state->stars[2].x = 5000;
+    }
+
+    // 0: a computer of the personality of the option; 1: a human with the setting on, the option picked later;
+    // 2: a human with the setting off.
+    std::string Ch_Tribute_(int option, int mode) {
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Ch_Tribute_Setup_(&state);
+        state.players[1].personality = option == 0 ? PLAYER_PERSONALITY_HONORABLE : option == 1 ? PLAYER_PERSONALITY_ERRATIC : PLAYER_PERSONALITY_RUTHLESS;
+        if (mode != 0) state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+        DOCTEST_REQUIRE(moo_world::Raise_King(3, 20));
+        Run_(moo_world::KING_PERIOD - 1);
+        Seed_For_({{100, 1, 100}, {100, 1, 50}});
+        choices::enabled = mode == 1;
+        Run_(1);
+        if (mode == 1) {
+            DOCTEST_REQUIRE(choices::Apply_Pending(1, option));
+        } else {
+            DOCTEST_CHECK(choices::Empty());
+        }
+        const std::string result = Ch_Signature_(state);
+        choices::Clear();
+        return result;
+    }
+
+    // Empire 2 holds a colony with room; the colony of empire 0 is taken by empire 1; the refugees arrive.
+    std::string Ch_Refugees_(int option, int mode) {
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        state.planets[2].size = 4;
+        state.colonies[2].climate = 8;
+        const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+        DOCTEST_REQUIRE(cap >= 2);
+        state.colonies[2].n_pops = static_cast<uint8_t>(cap - 1);
+        state.players[2].personality = option == 0 ? PLAYER_PERSONALITY_HONORABLE : PLAYER_PERSONALITY_RUTHLESS;
+        if (mode != 0) state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+        POP::Set_Race(&state.colonies[0].pop[0], 0);
+        game_random::Set_Random_Seed(4242);
+        moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+        choices::enabled = mode == 1;
+        Run_(moo_world::REFUGEE_DELAY);
+        if (mode == 1) {
+            DOCTEST_REQUIRE(choices::Apply_Pending(2, option));
+        } else {
+            DOCTEST_CHECK(choices::Empty());
+        }
+        const std::string result = Ch_Signature_(state);
+        choices::Clear();
+        return result;
+    }
+
+    std::string Ch_Council_(int option, int mode) {
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        state.players[0].personality = option == 0 ? PLAYER_PERSONALITY_HONORABLE : PLAYER_PERSONALITY_RUTHLESS;
+        if (mode != 0) state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        state.players[0].biological_weapons_flag[2] = 1;
+        game_random::Set_Random_Seed(4242);
+        choices::enabled = mode == 1;
+        DOCTEST_REQUIRE(moo_world::Council_Demand(0));
+        if (mode == 1) {
+            DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        } else {
+            DOCTEST_CHECK(choices::Empty());
+        }
+        const std::string result = Ch_Signature_(state);
+        choices::Clear();
+        return result;
+    }
+
+    // The leader of empire 0 who would defect (to the human 2, which it likes best).
+    int Ch_Defection_Setup_(test::s_game_state* state) {
+        Setup_(state);
+        s_leader_data& sci = state->leaders[7];
+        sci.player_index = 0;
+        sci.status = 0;
+        sci.type = LEADER_TYPE_COLONY;
+        sci.general_skills = LEADER_GENERAL_SKILL_RESEARCHER;
+        sci.skill_value = 1;
+        sci.location = -1;
+        int app = -1;
+        for (int a = 1; a < TECH_APP_COUNT && app < 0; ++a) {
+            if (COLCALC::Player_May_Get_Tech_App(&state->players[1], a)) app = a;
+        }
+        DOCTEST_REQUIRE(app > 0);
+        state->players[0].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+        state->players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+        state->players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+        state->colonies[0].morale = static_cast<int8_t>(moo_world::DEFECT_MORALE);
+        opinion::Add(0, 2, opinion::REASON_DEFENDED_US, 30);
+        return app;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("choices: Choice_Apply with each option equals the computer's path; the setting off leaves the human as before")
+{
+    for (int option = 0; option < 3; ++option) {
+        DOCTEST_CAPTURE(option);
+        DOCTEST_CHECK(Ch_Tribute_(option, 1) == Ch_Tribute_(option, 0));
+    }
+    DOCTEST_CHECK(Ch_Tribute_(0, 2) == Ch_Tribute_(0, 0));
+    for (int option = 0; option < 2; ++option) {
+        DOCTEST_CAPTURE(option);
+        DOCTEST_CHECK(Ch_Refugees_(option, 1) == Ch_Refugees_(option, 0));
+        DOCTEST_CHECK(Ch_Council_(option, 1) == Ch_Council_(option, 0));
+    }
+    DOCTEST_CHECK(Ch_Refugees_(0, 2) == Ch_Refugees_(0, 0));
+    DOCTEST_CHECK(Ch_Council_(0, 2) == Ch_Council_(0, 0));
+    // The paths really differ.
+    DOCTEST_CHECK(Ch_Tribute_(0, 1) != Ch_Tribute_(2, 1));
+    DOCTEST_CHECK(Ch_Refugees_(0, 1) != Ch_Refugees_(1, 1));
+    DOCTEST_CHECK(Ch_Council_(0, 1) != Ch_Council_(1, 1));
+}
+
+DOCTEST_TEST_CASE("choices: a human with the setting on gets pending choices and no effect")
+{
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Ch_Tribute_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::enabled = true;
+    // The king's tribute: nothing is paid until the human answers; a poor human is raided at once, with no window.
+    DOCTEST_REQUIRE(moo_world::Raise_King(3, 20));
+    Run_(moo_world::KING_PERIOD);
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+    DOCTEST_CHECK(choices::Count(1) == 1);
+    {
+        const choices::s_choice c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_MOO_WORLD);
+        DOCTEST_CHECK(c.kind == moo_world::CHOICE_TRIBUTE);
+        choices::s_text text;
+        DOCTEST_REQUIRE(moo_world::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 3);
+        DOCTEST_CHECK(std::string(text.option[0]) == "Pay 200 BC (the king leaves you in peace this time)");
+        choices::Clear();
+    }
+    state.players[1].bc = moo_world::KING_TRIBUTE_MIN - 1;
+    Run_(moo_world::KING_PERIOD);
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].n_freighters == 5 - moo_world::KING_FREIGHTERS);
+    // The council's demand, with the human guilty.
+    state.players[1].biological_weapons_flag[2] = 1;
+    DOCTEST_REQUIRE(moo_world::Council_Demand(1));
+    DOCTEST_CHECK(choices::Count(1) == 1);
+    DOCTEST_CHECK(moo_world::State()->agreed_mask == 0);
+    {
+        const choices::s_choice c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.kind == moo_world::CHOICE_COUNCIL);
+        choices::s_text text;
+        DOCTEST_REQUIRE(moo_world::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 2);
+        DOCTEST_CHECK(std::string(text.option[0]) == "Promise to stop (goodwill +4; breaking the promise later: -20)");
+    }
+    choices::Clear();
+    // A repeat after an agreement is a broken word at once, with no window.
+    moo_world::State()->agreed_mask = 2;
+    DOCTEST_REQUIRE(moo_world::Council_Demand(1));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(opinion::Modifier(0, 1, opinion::REASON_BROKE_ITS_WORD) == moo_world::COUNCIL_BROKE_OPINION);
+    // The flag off: the demand does nothing and nothing is queued.
+    moo_world::enabled = false;
+    DOCTEST_CHECK_FALSE(moo_world::Council_Demand(1));
+    DOCTEST_CHECK(choices::Empty());
+}
+
+DOCTEST_TEST_CASE("choices: the refugees window names the people; a full queue accepts as before; a computer is unaffected")
+{
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.planets[2].size = 4;
+    state.colonies[2].climate = 8;
+    const int cap = COLCALC::Planet_Max_Population_For_Player(&state.planets[2], 2);
+    DOCTEST_REQUIRE(cap >= 2);
+    state.colonies[2].n_pops = static_cast<uint8_t>(cap - 1);
+    std::snprintf(state.players[0].race_name, sizeof(state.players[0].race_name), "Sakkra");
+    std::snprintf(state.players[1].race_name, sizeof(state.players[1].race_name), "Klackon");
+    POP::Set_Race(&state.colonies[0].pop[0], 0);
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::enabled = true;
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(Find_(moo_world::KIND_REFUGEES) == nullptr);  // the record is done: the choice carries on
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap - 1);
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    DOCTEST_CHECK(c.kind == moo_world::CHOICE_REFUGEES);
+    choices::s_text en;
+    text_language::language = text_language::LANGUAGE_EN;
+    DOCTEST_REQUIRE(moo_world::Choice_Text(c, &en));
+    DOCTEST_CHECK(en.count == 2);
+    DOCTEST_CHECK(std::string(en.option[0]) == "Take them in (+1 Sakkra person; the Klackon think worse of you)");
+    DOCTEST_CHECK(std::string(en.option[1]) == "Turn them away (the Sakkra will remember it)");
+    DOCTEST_CHECK(std::string(en.body).find("Sakkra") != std::string::npos);
+    text_language::language = text_language::LANGUAGE_RU;
+    choices::s_text ru;
+    DOCTEST_REQUIRE(moo_world::Choice_Text(c, &ru));
+    std::string all = std::string(ru.title) + ru.body;
+    for (int i = 0; i < ru.count; ++i) all += ru.option[i];
+    DOCTEST_CHECK(all.find('{') == std::string::npos);
+    DOCTEST_CHECK(all.find('?') == std::string::npos);
+    choices::Clear();
+    // A full queue: the human accepts, as before.
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.kind = 1;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(choices::Count(2) == 0);
+    DOCTEST_CHECK(state.colonies[2].n_pops == cap);
+    choices::Clear();
+    // A computer host never asks.
+    state.players[2].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.colonies[2].n_pops = 1;  // (the planet's limit may have moved with the refugees' race)
+    moo_world::On_Colony_Taken(&state.colonies[0], 0, 1);
+    Run_(moo_world::REFUGEE_DELAY);
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.colonies[2].n_pops == 2);
+}
+
+DOCTEST_TEST_CASE("choices: a scientist who asks to defect to a human waits for the human; take in or send back")
+{
+    int app = 0;
+    {
+        // The computer's path: the scientist goes over at once.
+        s_scope scope;
+        test::s_game_state state;
+        app = Ch_Defection_Setup_(&state);
+        DOCTEST_REQUIRE(moo_world::Start_Defection(0));
+        DOCTEST_CHECK(state.leaders[7].player_index == 2);
+        DOCTEST_CHECK(state.players[2].tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED);
+    }
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    app = Ch_Defection_Setup_(&state);
+    test::Load_Base_Texts();
+    std::snprintf(state.players[0].race_name, sizeof(state.players[0].race_name), "Mrrshan");
+    std::snprintf(state.leaders[7].name, sizeof(state.leaders[7].name), "Vexa");
+    choices::enabled = true;
+    const std::string before = Ch_Signature_(state);
+    DOCTEST_REQUIRE(moo_world::Start_Defection(0));
+    DOCTEST_CHECK(Ch_Signature_(state) == before);  // nothing happened yet (the leader stays, no technology)
+    DOCTEST_CHECK(state.players[2].tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED);
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    DOCTEST_CHECK(c.kind == moo_world::CHOICE_DEFECTION);
+    choices::s_text text;
+    DOCTEST_REQUIRE(moo_world::Choice_Text(c, &text));
+    DOCTEST_CHECK(text.count == 2);
+    DOCTEST_CHECK(std::string(text.body).find("Vexa") != std::string::npos);
+    DOCTEST_CHECK(std::string(text.option[1]) == "Send home (Mrrshan will think better of you: +6)");
+    // Take in: the same as the computer's path.
+    choices::s_choice take = c;
+    moo_world::Choice_Apply(take, 0);
+    DOCTEST_CHECK(state.leaders[7].player_index == 2);
+    DOCTEST_CHECK(state.players[2].tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED);
+    // The leader is not the old owner's any more: the window is gone.
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(c, &text));
+    choices::Clear();
+    // Send back: the scientist stays and the old owner thinks better of the human.
+    state.leaders[7].player_index = 0;
+    state.players[2].tech_applications[app] = 0;
+    moo_world::Choice_Apply(c, 1);
+    DOCTEST_CHECK(state.leaders[7].player_index == 0);
+    DOCTEST_CHECK(state.players[2].tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED);
+    DOCTEST_CHECK(opinion::Modifier(0, 2, opinion::REASON_DID_US_A_SERVICE) == moo_world::DEFECT_RETURN_OPINION);
+    // The application learned elsewhere meanwhile: gone.
+    state.players[2].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(c, &text));
+    state.players[2].tech_applications[app] = 0;
+    // With the setting off a human takes the scientist as before.
+    choices::enabled = false;
+    DOCTEST_REQUIRE(moo_world::Start_Defection(0));
+    DOCTEST_CHECK(state.leaders[7].player_index == 2);
+    DOCTEST_CHECK(choices::Empty());
+}
+
+DOCTEST_TEST_CASE("choices: a gone subject makes Choice_Text false and Choice_Apply do nothing")
+{
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Ch_Tribute_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::enabled = true;
+    DOCTEST_REQUIRE(moo_world::Raise_King(3, 20));
+    Run_(moo_world::KING_PERIOD);
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    const choices::s_choice tribute = choices::State()->choice[0];
+    choices::s_text text;
+    // The king is gone: no tribute.
+    moo_world::State()->count = 0;
+    moo_world::State()->record[0] = moo_world::s_record{};
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(tribute, &text));
+    moo_world::Choice_Apply(tribute, 0);
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+    // Refugees: the colony changed hands.
+    choices::s_choice refugees;
+    refugees.module = choices::MODULE_MOO_WORLD;
+    refugees.kind = moo_world::CHOICE_REFUGEES;
+    refugees.player = 1;
+    refugees.target = 1;
+    refugees.other = 0;
+    refugees.value = 2 * 256;
+    state.planets[1].size = 4;
+    state.colonies[1].climate = 8;
+    state.colonies[1].n_pops = 1;
+    DOCTEST_CHECK(moo_world::Choice_Text(refugees, &text));
+    state.colonies[1].owner = 2;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(refugees, &text));
+    moo_world::Choice_Apply(refugees, 0);
+    DOCTEST_CHECK(state.colonies[1].n_pops == 1);
+    refugees.target = 99;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(refugees, &text));
+    // The council: not guilty any more.
+    choices::s_choice council;
+    council.module = choices::MODULE_MOO_WORLD;
+    council.kind = moo_world::CHOICE_COUNCIL;
+    council.player = 1;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(council, &text));
+    moo_world::Choice_Apply(council, 0);
+    DOCTEST_CHECK((moo_world::State()->agreed_mask & 2) == 0);
+    // A dead empire; a kind that does not exist.
+    state.players[1].biological_weapons_flag[2] = 1;
+    DOCTEST_CHECK(moo_world::Choice_Text(council, &text));
+    state.players[1].eliminated = 1;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(council, &text));
+    state.players[1].eliminated = 0;
+    council.kind = 77;
+    DOCTEST_CHECK_FALSE(moo_world::Choice_Text(council, &text));
+    choices::Clear();
 }

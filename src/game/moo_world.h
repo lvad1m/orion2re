@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/consts.h"
+#include "game/choices.h"
 
 #include <cstdint>
 #include <string>
@@ -15,8 +16,11 @@ namespace SERIAL {
 // Events of the MOO2 world (docs/LocalLLM/events-catalog.md 4.2; README.md 10.9, wave 5): the pirate king, the
 // epidemic in a fleet, the spy scandal, the famous exile, the scientist who defects, the council's demand, the
 // Antaran scout and the refugees. The module's record table is general (kind, players, a star, a value,
-// timers) so that the later events of the world can join it. A human-owned subject takes the first, safest option
-// (no interface step yet); a computer picks by its personality (Choose). The shared pirate effects are reused
+// timers) so that the later events of the world can join it. A human-owned subject chooses in the choice window when
+// events human_choices is on (choices.h: the king's tribute, the refugees, the council's demand and the scientist
+// who defects to a human; otherwise it takes the first, safest option as before); a computer picks by its
+// personality (Choose). The spy scandal, the epidemic, the exile, the scout and the pretender have no option to
+// choose and stay as they are. The shared pirate effects are reused
 // (events.h: Pirates_At_Star_Turn, Pirate_Raid_Amount, Pirate_Raid_Loss).
 // Off by default (events moo_world); with the flag off nothing here draws from game_random, nothing is kept.
 namespace moo_world {
@@ -86,6 +90,9 @@ namespace moo_world {
     constexpr int32_t DEFECT_STABILITY = -3;
     constexpr int32_t DEFECT_MORALE = -5;
     constexpr int32_t DEFECT_OPINION = -15;
+    // A human may send the scientist who asks to defect to it back home: the old owner remembers the kindness
+    // (REASON_DID_US_A_SERVICE, DEFECT_RETURN_OPINION).
+    constexpr int32_t DEFECT_RETURN_OPINION = 6;
 
     // Design row (mechanics.md 3.5.6): "Претендент в изгнании | лидер погибшей империи претендует на её бывшие
     // колонии; поддержка даёт повод для войны и снижает стабильность там"; ab-review 4.5: "включить вместе с
@@ -221,6 +228,20 @@ namespace moo_world {
     // owner of a colony at the star, else the attacker's own slot) so that the council's demand sees it.
     // Nothing with the flag off.
     void On_Bio_Weapon(int16_t attacker, int16_t star);
+
+    // What a human's pending choice is about (s_choice::kind; module choices::MODULE_MOO_WORLD):
+    //   CHOICE_TRIBUTE   the pirate king's tribute; target: the king's star
+    //   CHOICE_REFUGEES  refugees reach a colony; target: that colony, other: the old owner, value: the race of the
+    //                    refugees + 256 * the aggressor
+    //   CHOICE_COUNCIL   the council's demand to stop using biological weapons
+    //   CHOICE_DEFECTION a scientist of a computer empire asks to defect to the human; target: the leader, other:
+    //                    the old owner, value: the technology application it brings
+    enum e_choice : uint8_t { CHOICE_TRIBUTE = 1, CHOICE_REFUGEES = 2, CHOICE_COUNCIL = 3, CHOICE_DEFECTION = 4 };
+    // The text of a pending choice and its application (the option 0 or 1; 0 is what a human takes without the
+    // window: pays, accepts, agrees; for the defection it takes the scientist in); the text is false when the
+    // subject is gone. The application re-checks and does what the computer's path does.
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // Once a turn after the other events (nextturn.cpp): the records run and end, the pirates unite, a new
     // event may start (at most one a turn).

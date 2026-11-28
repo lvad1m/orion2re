@@ -3,10 +3,12 @@
 #include "game/moo_world.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 #include "game/events.h"
+#include "game/haccess.h"
 #include "game/mox.h"
 #include "game/officer.h"
 #include "game/opinion.h"
@@ -17,6 +19,7 @@
 #include "game/reputation.h"
 #include "game/stability.h"
 #include "game/techdata.h"
+#include "game/texts.h"
 #include "game/world_events.h"
 
 #include <algorithm>
@@ -130,6 +133,45 @@ namespace moo_world {
                 (int)MOX::stardate, (int)target, why, (int)loss);
         }
 
+        choices::s_choice Choice_(e_choice kind, int16_t player, int16_t target, int16_t other, int32_t value) {
+            choices::s_choice c;
+            c.module = choices::MODULE_MOO_WORLD;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.target = target;
+            c.other = other;
+            c.value = value;
+            c.asked = MOX::stardate;
+            return c;
+        }
+
+        // `option` 0 pays, 1 haggles, 2 refuses; an empire too poor for the minimum is raided.
+        void Apply_Tribute_(int16_t p, int32_t option) {
+            s_player& me = MOX::player[p];
+            if (me.bc < KING_TRIBUTE_MIN) {
+                Raid_(p, "too poor for tribute");
+                return;
+            }
+            int32_t fee = std::max(KING_TRIBUTE_MIN, me.bc / 100 * KING_TRIBUTE_PERCENT);
+            if (option == 2) {
+                Log_(p, "refuses the tribute of the pirate king");
+                Raid_(p, "tribute refused");
+                return;
+            }
+            if (option == 1) {
+                fee /= 2;
+                if (!Chance_(KING_HAGGLE_PERCENT)) {
+                    Log_(p, "haggles over the tribute, the pirate king will not hear of it");
+                    Raid_(p, "haggling failed");
+                    return;
+                }
+            }
+            fee = std::min(fee, me.bc);
+            Add_Bc_(p, -fee);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: pays %d BC of tribute to the pirate king",
+                (int)MOX::stardate, (int)p, (int)fee);
+        }
+
         // The king asks every empire with a colony within his reach for tribute.
         void Demand_(const s_record& r) {
             bool near_king[MAX_PLAYERS] = {};
@@ -141,30 +183,9 @@ namespace moo_world {
             }
             for (int16_t p = 0; p < Players_(); ++p) {
                 if (!near_king[p] || !Alive_(p)) continue;
-                s_player& me = MOX::player[p];
-                if (me.bc < KING_TRIBUTE_MIN) {
-                    Raid_(p, "too poor for tribute");
-                    continue;
-                }
-                const int32_t option = Choose(p);
-                int32_t fee = std::max(KING_TRIBUTE_MIN, me.bc / 100 * KING_TRIBUTE_PERCENT);
-                if (option == 2) {
-                    Log_(p, "refuses the tribute of the pirate king");
-                    Raid_(p, "tribute refused");
-                    continue;
-                }
-                if (option == 1) {
-                    fee /= 2;
-                    if (!Chance_(KING_HAGGLE_PERCENT)) {
-                        Log_(p, "haggles over the tribute, the pirate king will not hear of it");
-                        Raid_(p, "haggling failed");
-                        continue;
-                    }
-                }
-                fee = std::min(fee, me.bc);
-                Add_Bc_(p, -fee);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: pays %d BC of tribute to the pirate king",
-                    (int)MOX::stardate, (int)p, (int)fee);
+                // A human with events human_choices on chooses in the window (an empire too poor is raided at once).
+                if (MOX::player[p].bc >= KING_TRIBUTE_MIN && choices::Ask_Human(p) && choices::Add(Choice_(CHOICE_TRIBUTE, p, r.target, -1, 0))) continue;
+                Apply_Tribute_(p, Choose(p));
             }
         }
 
@@ -394,7 +415,54 @@ namespace moo_world {
             return best;
         }
 
+        // The scientist `leader` of `owner` goes over to `target` and brings the application `app`; false when the
+        // leader cannot be taken over.
+        bool Defect_(int16_t owner, int16_t leader, int16_t target, int16_t app) {
+            OFFICER::Deassign_Officer(leader);
+            OFFICER::Set_Officer_To_Player(leader, target, 1);
+            if (MOX::leaders[leader].player_index != target) return false;
+            COLCALC::Player_Gets_Tech_App(&MOX::player[target], app);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: scientist %d defects to player %d and brings application %d",
+                (int)MOX::stardate, (int)owner, (int)leader, (int)target, (int)app);
+            if (BILL::Get_Their_Spy_Number(owner, target) > 0) opinion::Add(owner, target, opinion::REASON_PLOTTED_AGAINST_US, DEFECT_OPINION);
+            return true;
+        }
+
+        // A pending defection to a human still stands: the old owner holds the leader, the human has room for it and
+        // lacks the application.
+        bool Defection_Valid_(const choices::s_choice& c) {
+            const int16_t player = c.player;
+            const int16_t owner = c.other;
+            const int16_t leader = c.target;
+            const int32_t app = c.value;
+            if (!Alive_(player) || !Alive_(owner) || owner == player) return false;
+            if (leader < 0 || leader >= MAX_LEADERS || !Holds_(MOX::leaders[leader], owner)) return false;
+            if (app <= TECH_APP_NO_TECH || app >= TECH_APP_COUNT) return false;
+            s_player* taker = &MOX::player[player];
+            return taker->tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED && COLCALC::Player_May_Get_Tech_App(taker, app) &&
+                   OFFICER::Player_Can_Hire_More_Officers(player);
+        }
+
         // Council's demand -----------------------------------------------------------------------------------
+
+        // The answer to the council: it agrees (the agreement is remembered, a small good memory) or refuses (everyone
+        // in contact hears bad rumours).
+        void Council_Answer_(int16_t player, bool refuses) {
+            s_state* s = State();
+            const uint16_t bit = static_cast<uint16_t>(1u << player);
+            if (refuses) {
+                for (int16_t o = 0; o < Players_(); ++o) {
+                    if (o != player && Alive_(o) && Contact_(o, player)) opinion::Add(o, player, opinion::REASON_BAD_RUMOURS, COUNCIL_REFUSE_OPINION);
+                }
+                Log_(player, "refuses the council's demand to stop using biological weapons");
+            } else {
+                s->agreed_mask = static_cast<uint16_t>(s->agreed_mask | bit);
+                for (int16_t o = 0; o < Players_(); ++o) {
+                    if (o != player && Alive_(o) && Contact_(o, player)) opinion::Add(o, player, opinion::REASON_DID_US_A_SERVICE, COUNCIL_AGREE_OPINION);
+                }
+                Log_(player, "agrees to the council's demand to stop using biological weapons");
+            }
+        }
 
         bool Guilty_(int16_t player) {
             for (int16_t j = 0; j < MAX_PLAYERS; ++j) {
@@ -467,6 +535,38 @@ namespace moo_world {
 
         // Refugees ----------------------------------------------------------------------------------------------
 
+        // A colony of `host` that can take a unit of population more.
+        bool Has_Room_(int16_t colony_index, int16_t host) {
+            if (colony_index < 0 || colony_index >= MOX::NUM_COLONIES || colony_index >= MAX_COLONIES) return false;
+            const s_colony& colony = MOX::colony[colony_index];
+            if (colony.owner != host || !Alive_(host) || colony.outpost_flag != 0 || colony.planet < 0 || colony.planet >= MAX_PLANETS) return false;
+            return colony.n_pops > 0 && colony.n_pops < MAX_COLONY_POPULATION &&
+                   colony.n_pops < COLCALC::Planet_Max_Population_For_Player(&MOX::planet[colony.planet], host);
+        }
+
+        // The colony takes the refugees in (a unit of their race joins it, the aggressor remembers it) or turns them
+        // away (the old owner remembers it).
+        void Settle_Refugees_(int16_t colony_index, int16_t old_owner, int16_t aggressor, int32_t race, bool accept) {
+            s_colony& colony = MOX::colony[colony_index];
+            const int16_t host = colony.owner;
+            if (accept) {
+                uint32_t pop = 0;
+                POP::Set_Race(&pop, static_cast<uint32_t>(race));
+                POP::Set_Original_Owner(&pop, race < MAX_PLAYERS ? static_cast<uint32_t>(race) : static_cast<uint32_t>(old_owner));
+                POP::Set_Prof(&pop, POP::PROF_WORKER);
+                colony.pop[colony.n_pops] = pop;
+                ++colony.n_pops;
+                COLCALC::Colony_Calculation(colony_index);
+                opinion::Add(aggressor, host, opinion::REASON_BAD_RUMOURS, REFUGEE_AGGRESSOR_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d takes in the refugees of player %d (driven out by player %d)",
+                    (int)MOX::stardate, (int)host, (int)old_owner, (int)aggressor);
+            } else {
+                if (Alive_(old_owner)) opinion::Add(old_owner, host, opinion::REASON_ABANDONED_US, REFUGEE_REFUSED_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d turns the refugees of player %d away",
+                    (int)MOX::stardate, (int)host, (int)old_owner);
+            }
+        }
+
         // The refugees of `r` reach the nearest colony of a third empire with room for them; true when done.
         bool Run_Refugees_(const s_record& r) {
             if (MOX::stardate < r.ends) return false;
@@ -488,24 +588,10 @@ namespace moo_world {
                 Log_(r.player, "its refugees find nobody to take them in");
                 return true;
             }
-            s_colony& colony = MOX::colony[best];
-            const int16_t host = colony.owner;
-            if (Refugee_Choice(host) == 0) {
-                uint32_t pop = 0;
-                POP::Set_Race(&pop, static_cast<uint32_t>(r.value));
-                POP::Set_Original_Owner(&pop, r.value < MAX_PLAYERS ? static_cast<uint32_t>(r.value) : static_cast<uint32_t>(r.player));
-                POP::Set_Prof(&pop, POP::PROF_WORKER);
-                colony.pop[colony.n_pops] = pop;
-                ++colony.n_pops;
-                COLCALC::Colony_Calculation(best);
-                opinion::Add(r.option, host, opinion::REASON_BAD_RUMOURS, REFUGEE_AGGRESSOR_OPINION);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d takes in the refugees of player %d (driven out by player %d)",
-                    (int)MOX::stardate, (int)host, (int)r.player, (int)r.option);
-            } else {
-                if (Alive_(r.player)) opinion::Add(r.player, host, opinion::REASON_ABANDONED_US, REFUGEE_REFUSED_OPINION);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d turns the refugees of player %d away",
-                    (int)MOX::stardate, (int)host, (int)r.player);
-            }
+            const int16_t host = MOX::colony[best].owner;
+            // A human with events human_choices on chooses in the window; the queue full: it accepts, as before.
+            if (choices::Ask_Human(host) && choices::Add(Choice_(CHOICE_REFUGEES, host, best, r.player, r.value + 256 * r.option))) return true;
+            Settle_Refugees_(best, r.player, r.option, r.value, Refugee_Choice(host) == 0);
             return true;
         }
 
@@ -632,14 +718,9 @@ namespace moo_world {
             }
         }
         if (target < 0) return false;
-        OFFICER::Deassign_Officer(leader);
-        OFFICER::Set_Officer_To_Player(leader, target, 1);
-        if (MOX::leaders[leader].player_index != target) return false;
-        COLCALC::Player_Gets_Tech_App(&MOX::player[target], app);
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: scientist %d defects to player %d and brings application %d",
-            (int)MOX::stardate, (int)owner, (int)leader, (int)target, (int)app);
-        if (BILL::Get_Their_Spy_Number(owner, target) > 0) opinion::Add(owner, target, opinion::REASON_PLOTTED_AGAINST_US, DEFECT_OPINION);
-        return true;
+        // A human with events human_choices on chooses in the window (the scientist stays until then).
+        if (choices::Ask_Human(target) && choices::Add(Choice_(CHOICE_DEFECTION, target, leader, owner, app))) return true;
+        return Defect_(owner, leader, target, app);
     }
 
     bool Council_Demand(int16_t player) {
@@ -657,17 +738,12 @@ namespace moo_world {
             Log_(player, "uses biological weapons again after promising the council to stop");
             return true;
         }
+        // A human with events human_choices on chooses in the window.
+        if (choices::Ask_Human(player) && choices::Add(Choice_(CHOICE_COUNCIL, player, -1, -1, 0))) return true;
         const int8_t personality = MOX::player[player].personality;
         const bool refuses = Computer_(player) && (personality == PLAYER_PERSONALITY_XENOPHOBIC || personality == PLAYER_PERSONALITY_RUTHLESS ||
                                                    personality == PLAYER_PERSONALITY_AGGRESSIVE);
-        if (refuses) {
-            tell_all(opinion::REASON_BAD_RUMOURS, COUNCIL_REFUSE_OPINION);
-            Log_(player, "refuses the council's demand to stop using biological weapons");
-        } else {
-            s->agreed_mask = static_cast<uint16_t>(s->agreed_mask | bit);
-            tell_all(opinion::REASON_DID_US_A_SERVICE, COUNCIL_AGREE_OPINION);
-            Log_(player, "agrees to the council's demand to stop using biological weapons");
-        }
+        Council_Answer_(player, refuses);
         return true;
     }
 
@@ -766,6 +842,116 @@ namespace moo_world {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "moo_world: stardate %d, player %d: a spy scandal, its network in player %d is exposed and lost",
             (int)MOX::stardate, (int)owner, (int)target);
         return true;
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player)) return false;
+        auto N = [](int32_t v) { return std::to_string(v); };
+        auto Short = [](const char* name) { return std::string(name, strnlen(name, 14)); };
+        const char* part = nullptr;
+        switch (c.kind) {
+            case CHOICE_TRIBUTE: {
+                // The king still rules at that star and the empire can pay the minimum.
+                bool king = false;
+                const s_state* s = State();
+                for (int32_t i = 0; i < s->count; ++i) king = king || (s->record[i].kind == KIND_PIRATE_KING && s->record[i].target == c.target);
+                if (!king || MOX::player[player].bc < KING_TRIBUTE_MIN) return false;
+                part = "tribute";
+                break;
+            }
+            case CHOICE_REFUGEES:
+                if (!Has_Room_(c.target, player)) return false;
+                part = "refugees";
+                break;
+            case CHOICE_COUNCIL:
+                if (!Guilty_(player)) return false;
+                part = "council";
+                break;
+            case CHOICE_DEFECTION:
+                if (!Defection_Valid_(c)) return false;
+                part = "defection";
+                break;
+            default: return false;
+        }
+        const std::string prefix = std::string("choices.moo_world.") + part + ".";
+        *t = choices::s_text{};
+        texts::Format(t->title, sizeof(t->title), (prefix + "title").c_str(), {});
+        auto Option = [&](const char* name, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), (prefix + name).c_str(), args);
+            ++t->count;
+        };
+        const auto Body = [&](std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->body, sizeof(t->body), (prefix + "body").c_str(), args);
+        };
+        switch (c.kind) {
+            case CHOICE_TRIBUTE: {
+                const int32_t bc = MOX::player[player].bc;
+                const int32_t fee = std::max(KING_TRIBUTE_MIN, bc / 100 * KING_TRIBUTE_PERCENT);
+                Body({});
+                Option("option1", {{"fee", N(std::min(fee, bc))}});
+                Option("option2", {{"half", N(std::min(fee / 2, bc))}, {"percent", N(KING_HAGGLE_PERCENT)}});
+                Option("option3", {{"ships", N(KING_FREIGHTERS)}});
+                break;
+            }
+            case CHOICE_REFUGEES: {
+                const int32_t race = c.value & 255;
+                const int32_t aggressor = c.value >> 8;
+                char place[64] = {};
+                HACCESS::Do_Get_Planet_Name(MOX::colony[c.target].planet, place, 0);
+                const int16_t refugee_race = static_cast<int16_t>(race < MAX_PLAYERS ? race : c.other);
+                const std::string aggressor_name = aggressor >= 0 && aggressor < MAX_PLAYERS ? Short(MOX::player[aggressor].race_name) : std::string("?");
+                Body({{"race", Short(MOX::player[refugee_race].race_name)}, {"aggressor", aggressor_name}, {"place", std::string(place)}});
+                Option("option1", {{"race", Short(MOX::player[refugee_race].race_name)}, {"aggressor", aggressor_name}});
+                Option("option2", {{"owner", c.other >= 0 && c.other < MAX_PLAYERS ? Short(MOX::player[c.other].race_name) : std::string("?")}});
+                break;
+            }
+            case CHOICE_COUNCIL:
+                Body({});
+                Option("option1", {{"good", N(COUNCIL_AGREE_OPINION)}, {"broke", N(COUNCIL_BROKE_OPINION)}});
+                Option("option2", {{"loss", N(COUNCIL_REFUSE_OPINION)}});
+                break;
+            default: {
+                const std::string race = Short(MOX::player[c.other].race_name);
+                Body({{"name", Short(MOX::leaders[c.target].name)}, {"race", race}});
+                Option("option1", {{"race", race}});
+                Option("option2", {{"race", race}, {"good", N(DEFECT_RETURN_OPINION)}});
+                break;
+            }
+        }
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player)) return;
+        const bool second = option >= 1;
+        switch (c.kind) {
+            case CHOICE_TRIBUTE: {
+                // The king must still rule at that star; the option is the computer's (0 pay, 1 haggle, 2 refuse).
+                bool king = false;
+                const s_state* s = State();
+                for (int32_t i = 0; i < s->count; ++i) king = king || (s->record[i].kind == KIND_PIRATE_KING && s->record[i].target == c.target);
+                if (king) Apply_Tribute_(player, std::clamp<int32_t>(option, 0, 2));
+                break;
+            }
+            case CHOICE_REFUGEES:
+                if (Has_Room_(c.target, player)) Settle_Refugees_(c.target, c.other, static_cast<int16_t>(c.value >> 8), c.value & 255, !second);
+                break;
+            case CHOICE_COUNCIL:
+                if (Guilty_(player)) Council_Answer_(player, second);
+                break;
+            case CHOICE_DEFECTION:
+                if (!Defection_Valid_(c)) break;
+                if (!second) {
+                    Defect_(c.other, c.target, player, static_cast<int16_t>(c.value));
+                } else {
+                    opinion::Add(c.other, player, opinion::REASON_DID_US_A_SERVICE, DEFECT_RETURN_OPINION);
+                    Log_(player, "sends the scientist who asked to defect back to its old empire");
+                }
+                break;
+            default: break;
+        }
     }
 
     void Run_Records() {

@@ -2,6 +2,7 @@
 
 #include "game/pirate_world.h"
 
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/events.h"
 #include "game/opinion.h"
@@ -10,6 +11,7 @@
 #include "game/reputation.h"
 #include "game/ships.h"
 #include "game/techdata.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -473,6 +475,17 @@ namespace pirate_world {
             return false;
         }
 
+        // Whether the haven's option can be carried out now (the money, a technology to get, no flag held yet).
+        bool Haven_Possible_(int16_t player, int32_t option) {
+            if (!Has_Haven()) return false;
+            const s_player& me = MOX::player[player];
+            switch (option) {
+                case HAVEN_DEFECTORS: return me.bc >= HAVEN_DEFECTORS_BC && Cheapest_Unknown_App_(player) >= 0;
+                case HAVEN_FLAG: return me.bc >= HAVEN_FLAG_BC && !Licensed(player) && State()->count < MAX_RECORDS;
+                default: return me.bc >= HAVEN_MARKET_BC && Cheapest_Unknown_App_(player) >= 0;
+            }
+        }
+
         bool Start_Haven_(int16_t player, int32_t option) {
             if (!Has_Haven()) return false;
             s_player& me = MOX::player[player];
@@ -603,6 +616,18 @@ namespace pirate_world {
             }
         }
 
+        // The events a human may be asked about, and when they can happen (the first option works, or, for the
+        // haven, any option).
+        bool Can_Ask_(e_kind kind, int16_t player) {
+            switch (kind) {
+                case KIND_TRIBUTE: return MOX::player[player].bc >= TRIBUTE_MIN;
+                case KIND_SYNDICATE:
+                case KIND_SMUGGLER: return true;
+                case KIND_HAVEN: return Haven_Possible_(player, HAVEN_DEFECTORS) || Haven_Possible_(player, HAVEN_FLAG) || Haven_Possible_(player, HAVEN_BLACK_MARKET);
+                default: return false;
+            }
+        }
+
         // One turn of a record; true when it ends.
         bool Run_(s_record& r) {
             switch (r.kind) {
@@ -655,6 +680,16 @@ namespace pirate_world {
         if (kind == KIND_LAIR) return Start_Lair_();
         if (!Alive_(player)) return false;
         const int32_t chosen = std::clamp(option >= 0 ? option : Choose(kind, player), 0, 2);
+        // A human with events human_choices on chooses later (choices.h): the event is queued when it could happen
+        // (no game_random draw before the option is applied).
+        if (option < 0 && choices::Ask_Human(player) && Can_Ask_(kind, player)) {
+            choices::s_choice c;
+            c.module = choices::MODULE_PIRATE_WORLD;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.asked = MOX::stardate;
+            if (choices::Add(c)) return true;
+        }
         switch (kind) {
             case KIND_TRIBUTE: return Start_Tribute_(player, chosen);
             case KIND_PRIVATEERS: return Start_Privateers_(player);
@@ -663,6 +698,70 @@ namespace pirate_world {
             case KIND_SMUGGLER: return Start_Smuggler_(player, chosen);
             case KIND_HAVEN: return Start_Haven_(player, chosen);
             default: return false;
+        }
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player)) return false;
+        const s_player& me = MOX::player[player];
+        auto N = [](int32_t v) { return std::to_string(v); };
+        constexpr const char* P = "choices.pirate_world.";
+        const char* part = c.kind == KIND_TRIBUTE ? "tribute" : c.kind == KIND_SYNDICATE ? "syndicate" : c.kind == KIND_SMUGGLER ? "smuggler" : c.kind == KIND_HAVEN ? "haven" : nullptr;
+        if (part == nullptr) return false;
+        const std::string prefix = std::string(P) + part + ".";
+        // The subject: a tribute needs a treasury worth the raiders' trouble, a haven must still exist.
+        if (c.kind == KIND_TRIBUTE && me.bc < TRIBUTE_MIN) return false;
+        if (c.kind == KIND_HAVEN && !Has_Haven()) return false;
+        *t = choices::s_text{};
+        texts::Format(t->title, sizeof(t->title), (prefix + "title").c_str(), {});
+        texts::Format(t->body, sizeof(t->body), (prefix + "body").c_str(), {});
+        auto Option = [&](const std::string& name, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), (prefix + name).c_str(), args);
+            ++t->count;
+        };
+        switch (c.kind) {
+            case KIND_TRIBUTE: {
+                const int32_t fee = std::max(TRIBUTE_MIN, me.bc / 100 * TRIBUTE_PERCENT);
+                Option("option1", {{"fee", N(std::min(fee, me.bc))}});
+                Option("option2", {{"half", N(std::min(fee / 2, me.bc))}, {"percent", N(TRIBUTE_HAGGLE_PERCENT)}});
+                Option("option3", {{"ships", N(RAID_FREIGHTERS)}});
+                break;
+            }
+            case KIND_SYNDICATE: {
+                const bool busy = Has_Record_(KIND_SYNDICATE, player);
+                Option("option1", {{"loot", N(SYNDICATE_LOOT)}});
+                Option(busy ? "option2_busy" : "option2", {{"bc", N(STUDY_BC)}, {"turns", N(SYNDICATE_TURNS)}, {"percent", N(STUDY_LEAK_PERCENT)}, {"loot", N(SYNDICATE_LOOT)}});
+                Option(busy ? "option3_busy" : "option3", {{"bc", N(SEIZE_BC)}, {"turns", N(SYNDICATE_TURNS)}, {"loot", N(SYNDICATE_LOOT)}});
+                break;
+            }
+            case KIND_SMUGGLER:
+                Option("option1", {{"bc", N(SMUGGLER_FINE)}});
+                Option("option2", {{"bc", N(AMNESTY_BC)}, {"loss", N(CRACKDOWN_LOSS)}, {"percent", N(AMNESTY_LAIR_PERCENT)}});
+                Option("option3", {{"bc", N(USE_BC)}});
+                break;
+            default:
+                Option(Haven_Possible_(player, HAVEN_DEFECTORS) ? "option1" : "option1_no", {{"cost", N(HAVEN_DEFECTORS_BC)}});
+                Option(Haven_Possible_(player, HAVEN_FLAG) ? "option2" : "option2_no", {{"cost", N(HAVEN_FLAG_BC)}, {"turns", N(HAVEN_FLAG_TURNS)}});
+                Option(Haven_Possible_(player, HAVEN_BLACK_MARKET) ? "option3" : "option3_no", {{"cost", N(HAVEN_MARKET_BC)}, {"apps", N(HAVEN_MARKET_APPS)}});
+                break;
+        }
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player)) return;
+        option = std::clamp(option, 0, 2);
+        switch (c.kind) {
+            case KIND_TRIBUTE: Start_Tribute_(player, option); break;
+            case KIND_SYNDICATE:
+                // A second base is not taken (the text says so): the base is arrested instead.
+                Start_Syndicate_(player, option != SYNDICATE_ARREST && Has_Record_(KIND_SYNDICATE, player) ? SYNDICATE_ARREST : option);
+                break;
+            case KIND_SMUGGLER: Start_Smuggler_(player, option); break;
+            case KIND_HAVEN: Start_Haven_(player, option); break;
+            default: break;
         }
     }
 

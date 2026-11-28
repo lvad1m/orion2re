@@ -1,6 +1,7 @@
 #pragma once
 
 #include "game/consts.h"
+#include "game/choices.h"
 
 #include <cstdint>
 #include <string>
@@ -14,9 +15,9 @@ namespace SERIAL {
 // wave 4): raiders who demand tribute, privateers, slavers, a secret base of the syndicate, a repentant
 // smuggler, pirate lairs in neutral systems and the havens that the grown lairs become (defectors, a flag of
 // convenience, a black market of technologies). Tribute, the smuggler and the haven's offer are one-off
-// choices; the others are kept as records. A human-owned subject takes the first, safest option (no interface
-// step yet) and is never driven by the privateers (only computers hire them); a computer picks by its
-// personality (Choose). The shared pirate effects of the classic events and the hired pirates are reused
+// choices; the others are kept as records. A human-owned subject chooses in the choice window when events
+// human_choices is on (choices.h; otherwise it takes the first, safest option as before) and is never driven by
+// the privateers (only computers hire them); a computer picks by its personality (Choose). The shared pirate effects of the classic events and the hired pirates are reused
 // (events.h: Pirates_At_Star_Turn, Pirate_Raid_Amount, Pirate_Raid_Loss).
 // Off by default (events pirate_world); with the flag off nothing here draws from game_random, nothing is kept.
 namespace pirate_world {
@@ -160,6 +161,13 @@ namespace pirate_world {
     // overrides it). Draws from game_random only to pick among several candidates and for the chances. False
     // when it cannot start.
     bool Start(e_kind kind, int16_t player, int32_t option = -1);
+
+    // The window of a human (choices.h): the text of a pending tribute, syndicate, smuggler or haven choice
+    // (the kind is in s_choice::kind) and its application; the text is false when the subject is gone (the raiders
+    // lose interest in a poor empire, no haven is left). The application re-checks and does what a computer's
+    // option does.
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // True while `player` holds a flag of convenience.
     bool Licensed(int16_t player);

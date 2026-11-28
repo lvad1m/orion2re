@@ -4,7 +4,9 @@
 
 #include "game/discoveries.h"
 #include "game/incidents.h"
+#include "game/moo_world.h"
 #include "game/overtures.h"
+#include "game/pirate_world.h"
 
 #include <algorithm>
 
@@ -23,6 +25,8 @@ namespace choices {
                 case MODULE_INCIDENTS: return incidents::Choice_Text(c, text);
                 case MODULE_OVERTURES: return overtures::Choice_Text(c, text);
                 case MODULE_DISCOVERIES: return discoveries::Choice_Text(c, text);
+                case MODULE_PIRATE_WORLD: return pirate_world::Choice_Text(c, text);
+                case MODULE_MOO_WORLD: return moo_world::Choice_Text(c, text);
                 default: return false;
             }
         }
@@ -32,6 +36,8 @@ namespace choices {
                 case MODULE_INCIDENTS: incidents::Choice_Apply(c, option); break;
                 case MODULE_OVERTURES: overtures::Choice_Apply(c, option); break;
                 case MODULE_DISCOVERIES: discoveries::Choice_Apply(c, option); break;
+                case MODULE_PIRATE_WORLD: pirate_world::Choice_Apply(c, option); break;
+                case MODULE_MOO_WORLD: moo_world::Choice_Apply(c, option); break;
                 default: break;
             }
         }

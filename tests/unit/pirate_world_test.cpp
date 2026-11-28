@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/crises.h"
 #include "game/events.h"
@@ -540,6 +542,237 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     SERIAL::Reader_ r4(buffer.get(), size - 1, "test underflow", true);
     DOCTEST_CHECK_FALSE(pirate_world::Parse_Save(&r4, &error));
     DOCTEST_CHECK(pirate_world::State()->count == 3);  // the failed parses left the state alone
+}
+
+// ---- The choice window (human-ui.md section 5, slice R1, part C): a human's option is chosen later.
+
+namespace {
+    std::string Signature_(const test::s_game_state& state) {
+        char buffer[512];
+        int n = 0;
+        for (int p = 0; p < 3; ++p) {
+            n += snprintf(buffer + n, sizeof(buffer) - n, "%d/%d/%d/%d ", (int)state.players[p].bc, (int)state.players[p].n_freighters, Known_(state, p),
+                pirate_world::Licensed(p) ? 1 : 0);
+        }
+        const pirate_world::s_state* ps = pirate_world::State();
+        n += snprintf(buffer + n, sizeof(buffer) - n, "records %d:", (int)ps->count);
+        for (int32_t i = 0; i < ps->count; ++i) n += snprintf(buffer + n, sizeof(buffer) - n, " %d/%d/%d", (int)ps->record[i].kind, (int)ps->record[i].option, (int)ps->record[i].value);
+        n += snprintf(buffer + n, sizeof(buffer) - n, ", seed %u", (unsigned)game_random::Get_Random_Seed());
+        return buffer;
+    }
+
+    // The haven needs a lair of HAVEN_STRENGTH at a neutral star.
+    void Choice_Setup_(test::s_game_state* state) {
+        Setup_(state);
+        Put_Lair_(4, pirate_world::HAVEN_STRENGTH + 2);
+    }
+
+    // 0: Start with the option; 1: a human with the setting on, then the choice applied; 2: a human with
+    // the setting off (takes the first option; `option` is ignored).
+    std::string Choice_Run_(pirate_world::e_kind kind, int option, int mode) {
+        s_pirate_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Choice_Setup_(&state);
+        // A human in every mode (a computer that gets a technology needs the ship design allocator, which the fixture lacks);
+        // mode 0 gives the option, so no window is asked.
+        state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        game_random::Set_Random_Seed(4242);
+        if (mode == 1) {
+            choices::enabled = true;
+            DOCTEST_REQUIRE(pirate_world::Start(kind, 0));
+            DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        } else if (mode == 2) {
+            choices::enabled = false;
+            DOCTEST_REQUIRE(pirate_world::Start(kind, 0));
+            DOCTEST_CHECK(choices::Empty());
+        } else {
+            DOCTEST_REQUIRE(pirate_world::Start(kind, 0, option));
+        }
+        const std::string result = Signature_(state);
+        choices::Clear();
+        return result;
+    }
+
+    constexpr pirate_world::e_kind CHOICE_KINDS[4] = {pirate_world::KIND_TRIBUTE, pirate_world::KIND_SYNDICATE, pirate_world::KIND_SMUGGLER,
+        pirate_world::KIND_HAVEN};
+} // namespace
+
+DOCTEST_TEST_CASE("choices: a human with the setting on gets a pending choice, no effect and no draw")
+{
+    for (const pirate_world::e_kind kind : CHOICE_KINDS) {
+        s_pirate_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Choice_Setup_(&state);
+        test::Load_Base_Texts();
+        state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        game_random::Set_Random_Seed(99);
+        const std::string before = Signature_(state);
+        choices::enabled = true;
+        DOCTEST_REQUIRE(pirate_world::Start(kind, 0));
+        DOCTEST_CHECK(choices::Count(0) == 1);
+        DOCTEST_REQUIRE(choices::State()->count == 1);
+        const choices::s_choice& c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_PIRATE_WORLD);
+        DOCTEST_CHECK(c.kind == kind);
+        DOCTEST_CHECK(Signature_(state) == before);  // nothing applied, nothing drawn
+        choices::s_text text;
+        DOCTEST_REQUIRE(pirate_world::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 3);
+        DOCTEST_CHECK(std::string(text.title).size() > 0);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        for (int i = 0; i < text.count; ++i) DOCTEST_CHECK(std::string(text.option[i]).size() > 5);
+        choices::Clear();
+    }
+}
+
+DOCTEST_TEST_CASE("choices: Choice_Apply with each option equals Start with that option; the draws are the same")
+{
+    for (const pirate_world::e_kind kind : CHOICE_KINDS) {
+        for (int option = 0; option < 3; ++option) {
+            DOCTEST_CAPTURE(kind);
+            DOCTEST_CAPTURE(option);
+            DOCTEST_CHECK(Choice_Run_(kind, option, 1) == Choice_Run_(kind, option, 0));
+        }
+        // With the setting off a human takes the first option, as before.
+        DOCTEST_CHECK(Choice_Run_(kind, 0, 2) == Choice_Run_(kind, 0, 0));
+    }
+}
+
+DOCTEST_TEST_CASE("choices: a computer is unaffected by the setting; a full queue and an impossible event fall back")
+{
+    s_pirate_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Choice_Setup_(&state);
+    choices::enabled = true;
+    state.players[0].personality = PLAYER_PERSONALITY_RUTHLESS;
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_TRIBUTE, 0));  // a computer refuses: a raid, no pending choice
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[0].n_freighters == 5 - pirate_world::RAID_FREIGHTERS);
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    // A poor human is not worth the raiders' trouble: no event, no choice.
+    state.players[0].bc = pirate_world::TRIBUTE_MIN - 1;
+    DOCTEST_CHECK_FALSE(pirate_world::Start(pirate_world::KIND_TRIBUTE, 0));
+    DOCTEST_CHECK(choices::Empty());
+    // A haven none of whose options can be carried out: nothing.
+    state.players[0].bc = pirate_world::HAVEN_DEFECTORS_BC - 1;
+    DOCTEST_CHECK_FALSE(pirate_world::Start(pirate_world::KIND_HAVEN, 0));
+    DOCTEST_CHECK(choices::Empty());
+    // A privateer contract never reaches a human, with or without the setting.
+    state.players[0].bc = 1000;
+    War_(&state, 0, 1);
+    DOCTEST_CHECK_FALSE(pirate_world::Start(pirate_world::KIND_PRIVATEERS, 0));
+    DOCTEST_CHECK(choices::Empty());
+    // A full queue: the human gets the first option (pays the tribute).
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.kind = 1;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_TRIBUTE, 0));
+    DOCTEST_CHECK(choices::Count(0) == 0);
+    DOCTEST_CHECK(state.players[0].bc == 1000 - 150);
+    choices::Clear();
+}
+
+DOCTEST_TEST_CASE("choices: a gone subject makes Choice_Text false and Choice_Apply do nothing")
+{
+    s_pirate_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Choice_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::enabled = true;
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_TRIBUTE, 0));
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_HAVEN, 0));
+    const choices::s_choice tribute = choices::State()->choice[0];
+    const choices::s_choice haven = choices::State()->choice[1];
+    choices::s_text text;
+    state.players[0].bc = pirate_world::TRIBUTE_MIN - 1;  // the raiders lose interest
+    DOCTEST_CHECK_FALSE(pirate_world::Choice_Text(tribute, &text));
+    pirate_world::Choice_Apply(tribute, pirate_world::TRIBUTE_REFUSE);
+    DOCTEST_CHECK(state.players[0].bc == pirate_world::TRIBUTE_MIN - 1);
+    DOCTEST_CHECK(state.players[0].n_freighters == 5);
+    pirate_world::State()->count = 0;  // the haven is gone
+    pirate_world::State()->record[0] = pirate_world::s_record{};
+    DOCTEST_CHECK_FALSE(pirate_world::Choice_Text(haven, &text));
+    pirate_world::Choice_Apply(haven, pirate_world::HAVEN_DEFECTORS);
+    DOCTEST_CHECK(state.players[0].bc == pirate_world::TRIBUTE_MIN - 1);
+    DOCTEST_CHECK(choices::Has_Pending(0, false) == 0);  // the step drops both
+    DOCTEST_CHECK(choices::Empty());
+    state.players[0].bc = 1000;
+    DOCTEST_CHECK(pirate_world::Choice_Text(tribute, &text));  // a rich empire again: the raiders are back
+    state.players[0].eliminated = 1;  // a dead empire
+    DOCTEST_CHECK_FALSE(pirate_world::Choice_Text(tribute, &text));
+}
+
+DOCTEST_TEST_CASE("choices: the lines say what an impossible haven option and a second base do; Russian fills every placeholder")
+{
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_pirate_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Choice_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::enabled = true;
+    state.players[0].bc = pirate_world::HAVEN_FLAG_BC;  // defectors and the flag are affordable, the black market is not
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_HAVEN, 0));
+    const choices::s_choice haven = choices::State()->choice[0];
+    text_language::language = text_language::LANGUAGE_EN;
+    choices::s_text en;
+    DOCTEST_REQUIRE(pirate_world::Choice_Text(haven, &en));
+    DOCTEST_CHECK(std::string(en.option[0]) == "Defectors (40 BC for one technology)");
+    DOCTEST_CHECK(std::string(en.option[2]) == "Black market (150 BC): impossible now, nothing happens");
+    pirate_world::Choice_Apply(haven, pirate_world::HAVEN_BLACK_MARKET);
+    DOCTEST_CHECK(state.players[0].bc == pirate_world::HAVEN_FLAG_BC);  // nothing happens
+    // A second base: study and seize arrest it instead.
+    choices::Clear();
+    state.players[0].bc = 1000;
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_SYNDICATE, 0));
+    const choices::s_choice base = choices::State()->choice[0];
+    choices::Clear();
+    DOCTEST_REQUIRE(pirate_world::Start(pirate_world::KIND_SYNDICATE, 0, pirate_world::SYNDICATE_STUDY));
+    choices::s_text again;
+    DOCTEST_REQUIRE(pirate_world::Choice_Text(base, &again));
+    DOCTEST_CHECK(std::string(again.option[1]).find("arrest it instead") != std::string::npos);
+    DOCTEST_CHECK(std::string(again.option[2]).find("arrest it instead") != std::string::npos);
+    pirate_world::Choice_Apply(base, pirate_world::SYNDICATE_SEIZE);
+    DOCTEST_CHECK(state.players[0].bc == 1000 + pirate_world::SYNDICATE_LOOT);
+    DOCTEST_REQUIRE(Find_(pirate_world::KIND_SYNDICATE) != nullptr);
+    DOCTEST_CHECK(Find_(pirate_world::KIND_SYNDICATE)->option == pirate_world::SYNDICATE_STUDY);  // still the first base
+    // Russian: the same options, no placeholder left, no lost letter.
+    for (const pirate_world::e_kind kind : CHOICE_KINDS) {
+        choices::s_choice c;
+        c.module = choices::MODULE_PIRATE_WORLD;
+        c.kind = kind;
+        c.player = 0;
+        choices::s_text a;
+        choices::s_text b;
+        text_language::language = text_language::LANGUAGE_EN;
+        DOCTEST_REQUIRE(pirate_world::Choice_Text(c, &a));
+        text_language::language = text_language::LANGUAGE_RU;
+        DOCTEST_REQUIRE(pirate_world::Choice_Text(c, &b));
+        DOCTEST_CHECK(a.count == b.count);
+        std::string all = std::string(b.title) + b.body;
+        for (int i = 0; i < b.count; ++i) all += b.option[i];
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+        DOCTEST_CHECK(all != std::string(a.title) + a.body + a.option[0] + a.option[1] + a.option[2]);
+    }
+    choices::Clear();
 }
 
 }

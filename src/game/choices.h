@@ -27,7 +27,9 @@ namespace choices {
         MODULE_INCIDENTS = 1,
         MODULE_OVERTURES = 2,
         MODULE_DISCOVERIES = 3,
-        MODULE_LAST = 3,
+        MODULE_PIRATE_WORLD = 7,
+        MODULE_MOO_WORLD = 8,
+        MODULE_LAST = 8,
     };
 
     // One pending choice. What target, other and value mean is the module's business (incidents: the colony,
