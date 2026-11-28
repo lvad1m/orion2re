@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/dice.h"
 #include "game/events.h"
 #include "game/intrigue.h"
@@ -716,4 +718,116 @@ DOCTEST_TEST_CASE("a mutiny puts the colony through the engine's rebellion; the 
         }
     }
     DOCTEST_CHECK(taken > 0);
+}
+
+// ---- The choice window (human-ui.md section 5, slice R1, part D): a human under a bounty is offered protection.
+
+namespace {
+    struct s_protection_scope {
+        test::s_saved_value<bool> on{choices::enabled};
+        s_protection_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            test::Load_Base_Texts();
+        }
+        ~s_protection_scope() {
+            choices::Clear();
+        }
+    };
+
+    // The bounty of the test above, with player 1 the human; the pirates raid at stardate 35007.
+    void Raid_The_Human_(test::s_game_state* state) {
+        Setup_(state);
+        state->players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+        state->players[0].treaty[1] = state->players[1].treaty[0] = 4;
+        state->players[0].bc = 2000;
+        state->players[1].bc = 500;
+        state->players[1].n_freighters = 5;
+        MOX::stardate = 35002;
+        world_events::Turn();
+        MOX::stardate = 35007;
+        world_events::Turn();
+    }
+}
+
+DOCTEST_TEST_CASE("choices: a raided human is offered protection and pays only when it agrees") {
+    for (int option = 0; option < 2; ++option) {
+        DOCTEST_CAPTURE(option);
+        s_events_scope scope;
+        s_protection_scope window;
+        test::s_game_state state;
+        Raid_The_Human_(&state);
+        const int32_t after_raid = state.players[1].bc;
+        DOCTEST_CHECK(after_raid < 500);  // the raid, as for a computer
+        DOCTEST_CHECK(state.players[1].n_freighters == 3);
+        DOCTEST_CHECK(world_events::Find(world_events::KIND_PROTECTION, 1) == nullptr);  // nothing agreed yet
+        DOCTEST_REQUIRE(choices::Count(1) == 1);
+        const choices::s_choice c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_WORLD_EVENTS);
+        choices::s_text text;
+        DOCTEST_REQUIRE(world_events::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 2);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        DOCTEST_REQUIRE(choices::Apply_Pending(1, option));
+        const world_events::s_entry* protection = world_events::Find(world_events::KIND_PROTECTION, 1);
+        if (option == 0) {
+            DOCTEST_REQUIRE(protection != nullptr);
+            DOCTEST_CHECK(protection->value == world_events::PROTECTION_FEE);
+            DOCTEST_CHECK(protection->ends == 35007 + world_events::PROTECTION_TURNS);
+            MOX::stardate = 35008;
+            world_events::Turn();
+            DOCTEST_CHECK(state.players[1].bc == after_raid - world_events::PROTECTION_FEE);  // paid as a computer pays
+        } else {
+            DOCTEST_CHECK(protection == nullptr);
+        }
+    }
+}
+
+DOCTEST_TEST_CASE("choices: an unaffordable protection says so and does nothing; a gone subject drops the offer") {
+    s_events_scope scope;
+    s_protection_scope window;
+    test::s_game_state state;
+    Raid_The_Human_(&state);
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    state.players[1].bc = world_events::PROTECTION_FEE - 1;
+    choices::s_text text;
+    DOCTEST_REQUIRE(world_events::Choice_Text(c, &text));
+    DOCTEST_CHECK(std::string(text.option[0]).find("not enough") != std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_PROTECTION, 1) == nullptr);
+    state.players[1].bc = 500;
+    world_events::s_entry protection;
+    protection.kind = world_events::KIND_PROTECTION;
+    protection.player = 1;
+    protection.value = world_events::PROTECTION_FEE;
+    DOCTEST_REQUIRE(world_events::Add(protection));
+    DOCTEST_CHECK_FALSE(world_events::Choice_Text(c, &text));  // already protected
+}
+
+DOCTEST_TEST_CASE("choices: with the setting off a raided human gets neither the offer nor the fee") {
+    s_events_scope scope;
+    test::s_game_state state;
+    test::s_saved_value<bool> on{choices::enabled};
+    choices::Clear();
+    choices::enabled = false;
+    Raid_The_Human_(&state);
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_PROTECTION, 1) == nullptr);
+}
+
+DOCTEST_TEST_CASE("choices: a raided computer pays for protection at once and is not asked") {
+    s_events_scope scope;
+    s_protection_scope window;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].treaty[1] = state.players[1].treaty[0] = 4;
+    state.players[0].bc = 2000;
+    state.players[1].bc = 500;
+    MOX::stardate = 35002;
+    world_events::Turn();
+    MOX::stardate = 35007;
+    world_events::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(world_events::Find(world_events::KIND_PROTECTION, 1) != nullptr);
 }

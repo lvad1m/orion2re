@@ -8,6 +8,7 @@
 #include "game/diplomac.h"
 #include "game/dice.h"
 #include "game/events.h"
+#include "game/haccess.h"
 #include "game/heroes.h"
 #include "game/invasion.h"
 #include "game/news.h"
@@ -15,6 +16,7 @@
 #include "game/random.h"
 #include "game/stability.h"
 #include "game/techdata.h"
+#include "game/texts.h"
 
 #include <algorithm>
 
@@ -192,14 +194,61 @@ namespace crises {
             }
         }
 
-        void Choose_(s_active& s) {
-            s.option = static_cast<int8_t>(Choose_Option(s.player, static_cast<e_crisis>(s.crisis)));
+        // A human with events human_choices on is asked instead of being skipped (choices.h).
+        bool Human_Asks_(int16_t player) {
+            return Alive_(player) && choices::Ask_Human(player);
+        }
+
+        choices::s_choice Choice_(e_choice kind, int16_t player, int16_t target, int16_t other) {
+            choices::s_choice c;
+            c.module = choices::MODULE_CRISES;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.target = target;
+            c.other = other;
+            c.asked = MOX::stardate;
+            return c;
+        }
+
+        bool Pending_(int16_t player, e_choice kind) {
+            const choices::s_state* state = choices::State();
+            for (int32_t i = 0; i < state->count; ++i) {
+                const choices::s_choice& c = state->choice[i];
+                if (c.module == choices::MODULE_CRISES && c.kind == kind && c.player == player) return true;
+            }
+            return false;
+        }
+
+        // Queues the choice of the option of the crisis in `s` (a human); the record waits with option -1 and
+        // `roll` = 1 marks that it has been asked.
+        bool Queue_Crisis_(s_active& s) {
+            if (!choices::Add(Choice_(CHOICE_CRISIS, s.player, s.colony, s.crisis))) return false;
+            s.roll = 1;
+            return true;
+        }
+
+        // The crisis of `player` that waits for a human's option.
+        s_active* Waiting_(int16_t player, int32_t crisis) {
+            for (int32_t i = 0; i < MAX_ACTIVE; ++i) {
+                s_active& s = Slots()[i];
+                if (s.crisis == crisis && s.player == player && s.option < 0) return &s;
+            }
+            return nullptr;
+        }
+
+        // Takes `option` for the open crisis in `s`: pays for it, sets the date of the check, marks a cruel choice.
+        void Take_Option_(s_active& s, int32_t chosen) {
+            s.option = static_cast<int8_t>(chosen);
             const s_option& option = Options(static_cast<e_crisis>(s.crisis))[s.option];
             MOX::player[s.player].bc -= option.cost_bc;
             s.due = MOX::stardate + CHECK_DELAY;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: %s at colony %d - it chooses to %s",
                 (int)MOX::stardate, (int)s.player, Name(static_cast<e_crisis>(s.crisis)), (int)s.colony, option.name);
             if (option.cruel) Mark_Reputation_(s.player);
+        }
+
+        void Choose_(s_active& s) {
+            Take_Option_(s, Choose_Option(s.player, static_cast<e_crisis>(s.crisis)));
         }
     } // namespace
 
@@ -281,7 +330,7 @@ namespace crises {
     }
 
     bool Open(int16_t player, e_crisis crisis, int16_t colony, int32_t delay) {
-        if (!enabled || !Computer_(player) || crisis == CRISIS_NONE || crisis >= CRISIS_COUNT) return false;
+        if (!enabled || !(Computer_(player) || Human_Asks_(player)) || crisis == CRISIS_NONE || crisis >= CRISIS_COUNT) return false;
         if (colony < 0) colony = Capital_(player);
         if (colony < 0) return false;
         s_active* free_slot = nullptr;
@@ -298,6 +347,15 @@ namespace crises {
         free_slot->result = RESULT_PENDING;
         free_slot->roll = 0;
         free_slot->due = MOX::stardate + delay;
+        if (!Computer_(player)) {
+            // A human: the option waits for the window (a follow-up asks when it is due).
+            if (delay == 0 && !Queue_Crisis_(*free_slot)) {
+                *free_slot = s_active{};
+                return false;
+            }
+            news::Add(news::KIND_CRISIS_START, player, -1, crisis);
+            return true;
+        }
         news::Add(news::KIND_CRISIS_START, player, -1, crisis);  // the news ring (off by default)
         if (delay == 0) Choose_(*free_slot);
         return true;
@@ -352,7 +410,15 @@ namespace crises {
             }
             if (s.due > MOX::stardate) continue;
             if (s.option < 0) {
-                Choose_(s);  // a follow-up opens
+                if (Computer_(s.player)) {
+                    Choose_(s);  // a follow-up opens
+                } else if (!Human_Asks_(s.player)) {
+                    s = s_active{};  // the setting went off
+                } else if (s.roll == 0) {
+                    if (!Queue_Crisis_(s)) s = s_active{};  // a human's follow-up opens: ask
+                } else if (!Pending_(s.player, CHOICE_CRISIS)) {
+                    s = s_active{};  // the choice was dropped (its colony is gone)
+                }
             } else {
                 Resolve_With_Dice(i, nullptr);
             }
@@ -360,7 +426,7 @@ namespace crises {
         const int32_t turn = MOX::stardate - 35000;
         if (chance <= 0 || turn < MIN_TURN) return;
         for (int16_t p = 0; p < Players_(); ++p) {
-            if (!Computer_(p) || static_cast<int32_t>(game_random::Random(1000)) > chance) continue;
+            if (!(Computer_(p) || Human_Asks_(p)) || static_cast<int32_t>(game_random::Random(1000)) > chance) continue;
             const e_crisis crisis = static_cast<e_crisis>(1 + Pick_(3));
             const int16_t colony = crisis == CRISIS_ASTEROID ? Capital_(p) : Random_Colony_(p, crisis == CRISIS_REVOLUTIONARIES);
             if (colony >= 0) Open(p, crisis, colony);
@@ -402,6 +468,12 @@ namespace crises {
             if (MOX::colony[c].owner == player) pops += MOX::colony[c].n_pops;
         }
         return static_cast<int16_t>(std::min<int32_t>(pops, 30000));
+    }
+
+    // A human (events human_choices on) picks the approach in the window; until then it stands at 0.
+    void Ask_Approach_(int16_t player) {
+        if (Pending_(player, CHOICE_APPROACH)) return;
+        choices::Add(Choice_(CHOICE_APPROACH, player, -1, -1));
     }
 
     // Decision 5 (iterations.md): "сообщение о подходе — только при его смене" - logged only when the approach changes.
@@ -461,6 +533,7 @@ namespace crises {
                 if (scale == nullptr) continue;
                 Log_Line_("war weariness: the scale starts", p, scale->value);
                 Pick_Approach_(*scale);
+                if (Human_Asks_(p)) Ask_Approach_(p);
             }
             int32_t delta = -WEARY_FADE;
             if (presses) {
@@ -493,6 +566,7 @@ namespace crises {
                 Log_Line_("war weariness: a general strike begins - the capital's output is lost for some turns", p, STRIKE_TURNS);
             }
             if (Computer_(p)) Pick_Approach_(*scale);
+            else if (Human_Asks_(p)) Ask_Approach_(p);
         }
     }
 
@@ -596,6 +670,16 @@ namespace crises {
         }
     }
 
+    // `p` hands `gift` BC of trophies to the council's project.
+    void Give_To_Council_(int16_t p, int32_t gift) {
+        s_extra* extra = Extra();
+        MOX::player[p].bc -= gift;
+        extra->given[p] = static_cast<uint16_t>(std::min<int32_t>(65535, extra->given[p] + gift));
+        extra->council_progress += gift;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: hands %d BC of trophies to the council's project (%d of %d)",
+            (int)MOX::stardate, (int)p, (int)gift, (int)extra->council_progress, (int)COUNCIL_GOAL);
+    }
+
     void Antaran_Front_() {
         if (front_strength <= 0 || MOX::settings.xenons_exist == 0 || MOX::antarans.field6_0x3c != 0) return;
         s_extra* extra = Extra();
@@ -631,12 +715,14 @@ namespace crises {
         if (MOX::stardate % COUNCIL_PERIOD != 1) return;
         for (int16_t p = 0; p < Players_(); ++p) {
             const int32_t gift = Council_Gift(p);
-            if (gift == 0) continue;
-            MOX::player[p].bc -= gift;
-            extra->given[p] = static_cast<uint16_t>(std::min<int32_t>(65535, extra->given[p] + gift));
-            extra->council_progress += gift;
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: hands %d BC of trophies to the council's project (%d of %d)",
-                (int)MOX::stardate, (int)p, (int)gift, (int)extra->council_progress, (int)COUNCIL_GOAL);
+            if (gift == 0) {
+                // A human is asked (the gift is given when the window answers).
+                if (Human_Asks_(p) && MOX::player[p].bc >= COUNCIL_MIN_BC && !Pending_(p, CHOICE_COUNCIL)) {
+                    choices::Add(Choice_(CHOICE_COUNCIL, p, -1, -1));
+                }
+                continue;
+            }
+            Give_To_Council_(p, gift);
         }
         if (extra->council_progress < COUNCIL_GOAL) return;
         for (int16_t p = 0; p < Players_(); ++p) {
@@ -728,6 +814,107 @@ namespace crises {
             default: break;
         }
         return MOX::player[player].objectives == PLAYER_OBJECTIVE_TECHNOLOGIST ? COUNCIL_GENEROUS : COUNCIL_SHARE;
+    }
+
+    // ---- The window of a human (choices.h) ----
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!Alive_(player)) return false;
+        const s_player& me = MOX::player[player];
+        auto N = [](int32_t v) { return std::to_string(v); };
+        *t = choices::s_text{};
+        const auto Add_Option = [&](const std::string& key, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), key.c_str(), args);
+            ++t->count;
+        };
+        switch (c.kind) {
+            case CHOICE_CRISIS: {
+                if (!enabled || Waiting_(player, c.other) == nullptr) return false;
+                if (c.target < 0 || c.target >= MOX::NUM_COLONIES || c.target >= MAX_COLONIES || MOX::colony[c.target].owner != player) return false;
+                const e_crisis crisis = static_cast<e_crisis>(c.other);
+                static const char* const PARTS[CRISIS_COUNT] = {"", "asteroid", "parasites", "revolutionaries", "parasites_return", "revolution"};
+                static const char* const OPTION_PARTS[CRISIS_COUNT] = {"", "asteroid", "parasites", "revolutionaries", "parasites", "revolutionaries"};
+                static const char* const FIELDS[CHECK_COUNT] = {"science", "diplomacy", "army", "espionage"};
+                if (crisis <= CRISIS_NONE || crisis >= CRISIS_COUNT) return false;
+                const std::string prefix = std::string("choices.crises.") + PARTS[crisis] + ".";
+                const std::string option_prefix = std::string("choices.crises.") + OPTION_PARTS[crisis] + ".";
+                char place[64] = {};
+                HACCESS::Do_Get_Planet_Name(MOX::colony[c.target].planet, place, 0);
+                texts::Format(t->title, sizeof(t->title), (prefix + "title").c_str(), {});
+                texts::Format(t->body, sizeof(t->body), (prefix + "body").c_str(), {{"place", std::string(place)}});
+                const s_option* options = Options(crisis);
+                for (int32_t i = 0; i < OPTION_COUNT; ++i) {
+                    const s_option& o = options[i];
+                    char field[48] = {};
+                    texts::Format(field, sizeof(field), (std::string("choices.crises.field.") + FIELDS[o.check]).c_str(), {});
+                    const int32_t chance = dice::Success_Chance_Percent(static_cast<dice::e_roll_kind>(dice::roll_kind),
+                        Check_Bonus(player, static_cast<e_check>(o.check)), DIFFICULTY);
+                    const bool poor = o.cost_bc > 0 && me.bc < o.cost_bc;
+                    Add_Option(option_prefix + "option" + std::to_string(i + 1) + (poor ? "_poor" : ""),
+                        {{"cost", N(o.cost_bc)}, {"field", std::string(field)}, {"chance", N(chance)}});
+                }
+                return true;
+            }
+            case CHOICE_APPROACH: {
+                const s_scale* scale = Find_Scale(SCALE_WAR_WEARINESS, player);
+                if (!situations || scale == nullptr) return false;
+                texts::Format(t->title, sizeof(t->title), "choices.crises.approach.title", {});
+                texts::Format(t->body, sizeof(t->body), "choices.crises.approach.body",
+                    {{"value", N(scale->value)}, {"max", N(SCALE_MAX)}, {"fine", N(WEARY_FINE)}, {"turns", N(STRIKE_TURNS)}, {"growth", N(WEARY_WAR)}});
+                const s_approach* approaches = Approaches();
+                Add_Option("choices.crises.approach.option1", {{"bc", N(approaches[0].cost_bc)}, {"net", N(WEARY_WAR - approaches[0].relief)}});
+                Add_Option("choices.crises.approach.option2", {{"rp", N(approaches[1].cost_research)}, {"net", N(WEARY_WAR - approaches[1].relief)}});
+                Add_Option("choices.crises.approach.option3", {{"net", N(WEARY_WAR - approaches[2].relief)}});
+                return true;
+            }
+            case CHOICE_COUNCIL: {
+                if (!crisis_front || Find_Scale(SCALE_ANTARAN_FRONT, -1) == nullptr || Extra()->front_broken != 0) return false;
+                texts::Format(t->title, sizeof(t->title), "choices.crises.council.title", {});
+                texts::Format(t->body, sizeof(t->body), "choices.crises.council.body",
+                    {{"progress", N(Extra()->council_progress)}, {"goal", N(COUNCIL_GOAL)}, {"given", N(Extra()->given[player])},
+                        {"bonus", N(COUNCIL_BONUS)}, {"push", N(COUNCIL_PUSHBACK)}});
+                Add_Option("choices.crises.council.option1", {});
+                Add_Option(me.bc >= COUNCIL_SHARE ? "choices.crises.council.option2" : "choices.crises.council.option2_poor",
+                    {{"gift", N(COUNCIL_SHARE)}});
+                Add_Option(me.bc >= COUNCIL_GENEROUS ? "choices.crises.council.option3" : "choices.crises.council.option3_poor",
+                    {{"gift", N(COUNCIL_GENEROUS)}});
+                return true;
+            }
+            default: return false;
+        }
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!Alive_(player)) return;
+        option = std::clamp<int32_t>(option, 0, 2);
+        switch (c.kind) {
+            case CHOICE_CRISIS: {
+                s_active* s = enabled ? Waiting_(player, c.other) : nullptr;
+                if (s == nullptr || c.target < 0 || c.target >= MOX::NUM_COLONIES || MOX::colony[c.target].owner != player) return;
+                const s_option& o = Options(static_cast<e_crisis>(s->crisis))[option];
+                // An option the empire cannot pay for becomes the last, free one (a computer's fallback).
+                if (o.cost_bc > 0 && MOX::player[player].bc < o.cost_bc) option = OPTION_COUNT - 1;
+                Take_Option_(*s, option);
+                break;
+            }
+            case CHOICE_APPROACH: {
+                s_scale* scale = situations ? Mutable_Scale_(SCALE_WAR_WEARINESS, player) : nullptr;
+                if (scale == nullptr || scale->approach == option) return;
+                scale->approach = static_cast<int8_t>(option);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "crises: stardate %d, player %d: war weariness - it takes the approach: %s",
+                    (int)MOX::stardate, (int)player, APPROACHES[option].name);
+                break;
+            }
+            case CHOICE_COUNCIL: {
+                if (!crisis_front || Find_Scale(SCALE_ANTARAN_FRONT, -1) == nullptr || Extra()->front_broken != 0) return;
+                const int32_t gift = option == 1 ? COUNCIL_SHARE : option == 2 ? COUNCIL_GENEROUS : 0;
+                if (gift > 0 && MOX::player[player].bc >= gift) Give_To_Council_(player, gift);
+                break;
+            }
+            default: break;
+        }
     }
 
 } // namespace crises

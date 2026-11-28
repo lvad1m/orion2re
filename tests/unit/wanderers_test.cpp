@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/projects.h"
 #include "game/random.h"
 #include "game/serialization.h"
@@ -314,4 +316,120 @@ DOCTEST_TEST_CASE("a lightning rod (a planetary shield) lowers the storm's hit c
     DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_STORM, route, 2, 2) >= 0);
     DOCTEST_CHECK((state.colonies[1].n_pops < 4 || state.colonies[1].buildings[BUILDING_FLUX_SHIELD] == 0));
 }
+}
+
+// ---- The choice window (human-ui.md section 5, slice R1, part D): a human is offered what the trader sells.
+
+namespace {
+    struct s_trader_scope {
+        test::s_saved_value<bool> on{choices::enabled};
+        s_trader_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            test::Load_Base_Texts();
+        }
+        ~s_trader_scope() {
+            choices::Clear();
+        }
+    };
+}
+
+DOCTEST_TEST_CASE("choices: a human at the trader's star is offered the application at the computer's price")
+{
+    s_wanderers_scope scope;
+    s_trader_scope window;
+    test::s_game_state state;
+    Setup_(&state, true);  // player 1 is a human
+    Calm_(10);
+    const int16_t app = projects::Cheapest_Unknown_App(1);
+    DOCTEST_REQUIRE(app >= 0);
+    const int32_t price = std::clamp(projects::App_Cost(app) / 2, wanderers::TRADER_MIN_PRICE, wanderers::TRADER_MAX_PRICE);
+    const int16_t route[3] = {3, 5, 4};
+    const uint32_t seed = game_random::Get_Random_Seed();
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 3, wanderers::TRADER_MOVE_TURNS) >= 0);
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);  // no draw
+    DOCTEST_CHECK(state.players[1].bc == 1000);             // nothing bought yet
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    DOCTEST_CHECK(c.module == choices::MODULE_WANDERERS);
+    DOCTEST_CHECK(c.value == price);
+    choices::s_text text;
+    DOCTEST_REQUIRE(wanderers::Choice_Text(c, &text));
+    DOCTEST_CHECK(text.count == 2);
+    DOCTEST_CHECK(std::string(text.body).size() > 40);
+    DOCTEST_CHECK(std::string(text.option[0]).find(std::to_string(price)) != std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));  // buy
+    DOCTEST_CHECK(state.players[1].bc == 1000 - price);
+    DOCTEST_CHECK(state.players[1].tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED);
+    DOCTEST_CHECK(wanderers::State()->wanderer[0].value == price);
+}
+
+DOCTEST_TEST_CASE("choices: declining buys nothing; an unaffordable offer says so and buys nothing")
+{
+    s_wanderers_scope scope;
+    s_trader_scope window;
+    test::s_game_state state;
+    Setup_(&state, true);
+    Calm_(10);
+    const int16_t app = projects::Cheapest_Unknown_App(1);
+    const int16_t route[2] = {3, 4};
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 2, 4) >= 0);
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));  // decline
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+    DOCTEST_CHECK(state.players[1].tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED);
+    wanderers::Clear();
+    wanderers::enabled = true;
+    state.players[1].bc = 5;
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 2, 4) >= 0);
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    choices::s_text text;
+    DOCTEST_REQUIRE(wanderers::Choice_Text(choices::State()->choice[0], &text));
+    DOCTEST_CHECK(std::string(text.option[0]).find("not enough") != std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));
+    DOCTEST_CHECK(state.players[1].bc == 5);
+    DOCTEST_CHECK(state.players[1].tech_applications[app] != TECH_RESEARCH_STATUS_RESEARCHED);
+}
+
+DOCTEST_TEST_CASE("choices: a trader that has left makes the offer's text false; the setting off keeps the old rule")
+{
+    s_wanderers_scope scope;
+    s_trader_scope window;
+    test::s_game_state state;
+    Setup_(&state, true);
+    Calm_(10);
+    const int16_t route[3] = {3, 5, 4};
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 3, wanderers::TRADER_MOVE_TURNS) >= 0);
+    const choices::s_choice c = choices::State()->choice[0];
+    choices::s_text text;
+    DOCTEST_CHECK(wanderers::Choice_Text(c, &text));
+    MOX::stardate += wanderers::TRADER_MOVE_TURNS;
+    wanderers::Turn();  // the trader is at star 5 now
+    DOCTEST_CHECK_FALSE(wanderers::Choice_Text(c, &text));
+    DOCTEST_CHECK(choices::Has_Pending(1, false) == 0);  // dropped
+    // Setting off: a human buys nothing and nothing is queued.
+    choices::Clear();
+    choices::enabled = false;
+    wanderers::Clear();
+    wanderers::enabled = true;
+    MOX::stardate = 35001;
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 3, wanderers::TRADER_MOVE_TURNS) >= 0);
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+}
+
+DOCTEST_TEST_CASE("choices: a computer at the trader's star is not asked and buys as before")
+{
+    s_wanderers_scope scope;
+    s_trader_scope window;
+    test::s_game_state state;
+    Setup_(&state, false);
+    Calm_(10);
+    const int16_t app = projects::Cheapest_Unknown_App(1);
+    DOCTEST_REQUIRE(app >= 0);
+    const int32_t price = std::clamp(projects::App_Cost(app) / 2, wanderers::TRADER_MIN_PRICE, wanderers::TRADER_MAX_PRICE);
+    const int16_t route[2] = {3, 4};
+    DOCTEST_REQUIRE(wanderers::Add(wanderers::KIND_TRADER, route, 2, 4) >= 0);
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].bc == 1000 - price);
 }

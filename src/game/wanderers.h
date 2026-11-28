@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/choices.h"
 #include "game/consts.h"
 
 #include <cstdint>
@@ -22,8 +23,9 @@ namespace SERIAL {
 // planetary shield (radiation, barrier or flux: Has_Lightning_Rod) is hit by the storm with STORM_ROD_HIT_PERCENT
 // instead of STORM_HIT_PERCENT (no new building, no extra draw).
 // Off by default (events wanderers); with the flag off nothing here draws from game_random, nothing is
-// kept and Star_Grounded is false. A human-owned subject takes the first, safest option: a human empire
-// never buys from the trader (no interface step yet).
+// kept and Star_Grounded is false. A human empire buys from the trader only through the choice window, when events
+// human_choices is on (choices.h: it is offered what a computer may buy, at the same price, or nothing);
+// otherwise it buys nothing, as before.
 namespace wanderers {
 
     extern bool enabled;  // events wanderers
@@ -102,6 +104,14 @@ namespace wanderers {
     // game_random). False when none can start.
     bool Start_Storm();
     bool Start_Trader();
+
+    // The window of a human (choices.h; module choices::MODULE_WANDERERS, kind CHOICE_TRADER, target the
+    // application, other the star, value the price): the text is false when the trader has left, the human has
+    // learned the application, or the human is gone; the application buys it (when the treasury covers the price)
+    // or does nothing, through the code a computer's purchase uses.
+    enum e_choice : uint8_t { CHOICE_TRADER = 1 };
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // Once a turn after projects::Turn() (nextturn.cpp): wanderers move, act and dissolve; a new one may
     // start (the draws from game_random, with the flag on).

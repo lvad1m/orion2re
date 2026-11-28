@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/choices.h"
 #include "game/consts.h"
 
 #include <cstdint>
@@ -16,7 +17,8 @@ namespace SERIAL {
 // later the engine rolls the check - 2d10 + the empire's standing in that field + a leader's skill
 // against the difficulty - and builds the outcome (success, partial, failure) from the classic
 // primitives; some outcomes start a follow-up crisis some turns later. Computer empires choose by
-// personality and objective; a human's crises wait for the interface step (none start for a human).
+// personality and objective; a human meets crises (and picks an option in the choice window) only when events
+// human_choices is on (choices.h); otherwise none start for a human, as before.
 // Off by default; with the flag off nothing here draws from game_random and no state is kept.
 namespace crises {
 
@@ -77,7 +79,9 @@ namespace crises {
     int32_t Choose_Option(int16_t player, e_crisis crisis);
 
     // Opens `crisis` for `player` at `colony` (-1: the capital); the option is chosen at once for a
-    // computer empire. False when it cannot open (flag off, a human, no colony, the table full).
+    // computer empire; a human (events human_choices on) gets a pending choice instead (the option is taken when
+    // the window answers; the record waits with option -1). False when it cannot open (flag off, a human
+    // without the choice window or with its queue full, no colony, the table full).
     bool Open(int16_t player, e_crisis crisis, int16_t colony, int32_t delay = 0);
     // The check of an open crisis with the dice given (for the tests); the game rolls.
     e_result Resolve_With_Dice(int32_t slot, const int32_t* dice_values);
@@ -138,7 +142,8 @@ namespace crises {
         int16_t relief;         // taken off the scale's growth every turn
     };
     const s_approach* Approaches();  // APPROACH_COUNT approaches: propaganda, martial law, carry on
-    // The approach a computer takes for its scale of war weariness (a human takes 0).
+    // The approach a computer takes for its scale of war weariness (a human takes 0 until the choice window
+    // answers, when events human_choices is on: asked when the scale starts and at each stage).
     int32_t Choose_Approach(int16_t player);
 
     // Academy (3.9) - events-catalog.md row "Академия": "империи соревнуются за лучший результат в ресурсе на
@@ -203,7 +208,8 @@ namespace crises {
     // hand over trophies (BC): COUNCIL_GENEROUS for the honorable, pacifists and technologists, COUNCIL_SHARE
     // for most, nothing for the aggressive, ruthless and xenophobic. At COUNCIL_GOAL the project pushes the
     // front back by COUNCIL_PUSHBACK (and halves the Antarans' offensive resources); every contributor
-    // gets research points worth COUNCIL_BONUS times what it gave. A human gives nothing (the safe choice).
+    // gets research points worth COUNCIL_BONUS times what it gave. A human gives nothing (the safe choice)
+    // unless events human_choices is on and the choice window asks.
     constexpr int32_t COUNCIL_PERIOD = 5;
     constexpr int32_t COUNCIL_MIN_BC = 200;
     constexpr int32_t COUNCIL_SHARE = 20;
@@ -211,8 +217,23 @@ namespace crises {
     constexpr int32_t COUNCIL_GOAL = 400;
     constexpr int32_t COUNCIL_PUSHBACK = 25;
     constexpr int32_t COUNCIL_BONUS = 2;
-    // BC `player` gives at a handover (0: none), by character.
+    // BC `player` gives at a handover (0: none), by character. A human with events human_choices on is asked
+    // each COUNCIL_PERIOD turns (with at least COUNCIL_MIN_BC): nothing, COUNCIL_SHARE or COUNCIL_GENEROUS BC.
     int32_t Council_Gift(int16_t player);
+
+    // What a human's pending choice is about (s_choice::kind; module choices::MODULE_CRISES). The crisis: target
+    // the colony, other the crisis; the approach to war weariness and the council's handover: the player only.
+    enum e_choice : uint8_t {
+        CHOICE_CRISIS = 1,
+        CHOICE_APPROACH = 2,
+        CHOICE_COUNCIL = 3,
+    };
+    // The window of a human (choices.h): the text of a pending choice (false when its subject is gone: the crisis
+    // no longer waits or its colony is lost, the scale ended, the front is gone) and its application, which
+    // re-checks and does what a computer's option does (a crisis option the empire cannot pay for becomes the
+    // last, free one, as a computer's fallback).
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     struct s_extra {
         s_scale scale[MAX_SCALES];

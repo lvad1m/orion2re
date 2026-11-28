@@ -2,10 +2,12 @@
 
 #include "game/wanderers.h"
 
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/events.h"
 #include "game/projects.h"
 #include "game/random.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -93,6 +95,42 @@ namespace wanderers {
             }
         }
 
+        int32_t Trader_Price_(int16_t app) {
+            return std::clamp(projects::App_Cost(app) / 2, TRADER_MIN_PRICE, TRADER_MAX_PRICE);
+        }
+
+        void Buy_(int16_t p, s_wanderer* w, int16_t app, int32_t price) {
+            MOX::player[p].bc -= price;
+            if (w != nullptr) w->value += price;
+            COLCALC::Player_Gets_Tech_App(&MOX::player[p], app);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: buys application %d from the trader for %d BC",
+                (int)MOX::stardate, (int)p, (int)app, (int)price);
+        }
+
+        s_wanderer* Trader_At_(int16_t star) {
+            for (int32_t i = 0; i < State()->count; ++i) {
+                s_wanderer& w = State()->wanderer[i];
+                if (w.kind == KIND_TRADER && w.star == star) return &w;
+            }
+            return nullptr;
+        }
+
+        // A human (events human_choices on) is offered the application; false when there is nothing to offer or
+        // the queue is full (the trader sells it nothing, as before).
+        bool Offer_To_Human_(int16_t p, const s_wanderer& w) {
+            const int16_t app = projects::Cheapest_Unknown_App(p);
+            if (app < 0) return false;
+            choices::s_choice c;
+            c.module = choices::MODULE_WANDERERS;
+            c.kind = CHOICE_TRADER;
+            c.player = static_cast<int8_t>(p);
+            c.target = app;
+            c.other = w.star;
+            c.value = Trader_Price_(app);
+            c.asked = MOX::stardate;
+            return choices::Add(c);
+        }
+
         // Trader: every computer empire with a colony here may buy its cheapest unknown application.
         void Trader_Arrives_(s_wanderer& w) {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, the galaxy: a wandering trader stops at star %d", (int)MOX::stardate,
@@ -105,23 +143,20 @@ namespace wanderers {
                 }
                 if (!here) continue;
                 if (MOX::player[p].objectives == PLAYER_OBJECTIVE_HUMAN) {
-                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: a human buys nothing from the trader (no screen yet)",
+                    if (choices::Ask_Human(p) && Offer_To_Human_(p, w)) continue;
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: a human buys nothing from the trader",
                         (int)MOX::stardate, (int)p);
                     continue;
                 }
                 const int16_t app = projects::Cheapest_Unknown_App(p);
                 if (app < 0) continue;
-                const int32_t price = std::clamp(projects::App_Cost(app) / 2, TRADER_MIN_PRICE, TRADER_MAX_PRICE);
+                const int32_t price = Trader_Price_(app);
                 if (MOX::player[p].bc - price < TRADER_RESERVE) {
                     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: cannot afford application %d from the trader (%d BC)",
                         (int)MOX::stardate, (int)p, (int)app, (int)price);
                     continue;
                 }
-                MOX::player[p].bc -= price;
-                w.value += price;
-                COLCALC::Player_Gets_Tech_App(&MOX::player[p], app);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, player %d: buys application %d from the trader for %d BC",
-                    (int)MOX::stardate, (int)p, (int)app, (int)price);
+                Buy_(p, &w, app, price);
             }
         }
 
@@ -243,6 +278,34 @@ namespace wanderers {
         SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "wanderers: stardate %d, the galaxy: a wandering trader sets out from star %d with %d stops",
             (int)MOX::stardate, (int)route[0], (int)length);
         return Add(KIND_TRADER, route, length, TRADER_MOVE_TURNS) >= 0;
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!enabled || c.kind != CHOICE_TRADER || !Alive_(player) || Trader_At_(c.other) == nullptr) return false;
+        if (c.target < 0 || projects::Cheapest_Unknown_App(player) != c.target) return false;
+        const int32_t price = c.value;
+        *t = choices::s_text{};
+        const s_star_data& star = MOX::star[c.other];
+        texts::Format(t->title, sizeof(t->title), "choices.wanderers.trader.title", {});
+        texts::Format(t->body, sizeof(t->body), "choices.wanderers.trader.body",
+            {{"place", std::string(star.name, strnlen(star.name, sizeof(star.name)))}, {"price", std::to_string(price)}});
+        const bool poor = MOX::player[player].bc < price;
+        texts::Format(t->option[0], sizeof(t->option[0]), poor ? "choices.wanderers.trader.option1_poor" : "choices.wanderers.trader.option1",
+            {{"price", std::to_string(price)}});
+        texts::Format(t->option[1], sizeof(t->option[1]), "choices.wanderers.trader.option2", {});
+        t->count = 2;
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!enabled || c.kind != CHOICE_TRADER || !Alive_(player) || option != 0) return;
+        s_wanderer* trader = Trader_At_(c.other);
+        if (trader == nullptr || c.target < 0 || projects::Cheapest_Unknown_App(player) != c.target) return;
+        const int32_t price = Trader_Price_(c.target);
+        if (MOX::player[player].bc < price) return;
+        Buy_(player, trader, c.target, price);
     }
 
     void Turn() {

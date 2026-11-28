@@ -3,6 +3,7 @@
 #include "game/world_events.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/diplomac.h"
@@ -19,6 +20,7 @@
 #include "game/spy_ranks.h"
 #include "game/ships.h"
 #include "game/techdata.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -229,6 +231,17 @@ namespace world_events {
                 (int)MOX::stardate, (int)target, why, (int)loss);
         }
 
+        // The pirates' protection for `target`: PROTECTION_FEE a turn for PROTECTION_TURNS turns.
+        void Start_Protection_(int16_t target) {
+            s_entry protection;
+            protection.kind = KIND_PROTECTION;
+            protection.player = static_cast<int8_t>(target);
+            protection.started = MOX::stardate;
+            protection.ends = MOX::stardate + PROTECTION_TURNS;
+            protection.value = PROTECTION_FEE;
+            if (Add(protection)) Log_("pays the pirates for protection", target);
+        }
+
         // Bounties (events-catalog.md 3.6): every 10 turns computers at war put a price on their
         // enemy's head; pirates strike the empire with the highest price, then offer it protection.
         void Bounties_() {
@@ -272,13 +285,16 @@ namespace world_events {
                 Raid_(target, "a price on its head");
                 const bool computer = MOX::player[target].objectives != PLAYER_OBJECTIVE_HUMAN;
                 if (computer && MOX::player[target].bc >= 2 * PROTECTION_FEE) {
-                    s_entry protection;
-                    protection.kind = KIND_PROTECTION;
-                    protection.player = static_cast<int8_t>(target);
-                    protection.started = MOX::stardate;
-                    protection.ends = MOX::stardate + PROTECTION_TURNS;
-                    protection.value = PROTECTION_FEE;
-                    if (Add(protection)) Log_("pays the pirates for protection", target);
+                    Start_Protection_(target);
+                } else if (!computer && choices::Ask_Human(target)) {
+                    // A human is offered the protection (events human_choices): the window asks, nothing is paid yet.
+                    choices::s_choice c;
+                    c.module = choices::MODULE_WORLD_EVENTS;
+                    c.kind = CHOICE_PROTECTION;
+                    c.player = static_cast<int8_t>(target);
+                    c.value = PROTECTION_FEE;
+                    c.asked = MOX::stardate;
+                    choices::Add(c);
                 }
             }
         }
@@ -1004,6 +1020,29 @@ namespace world_events {
             const e_kind kind = EMPIRE[Pick_(6)];
             if (Start_Empire_Event(kind, p)) news::Add(news::KIND_EVENT, p, -1, kind);
         }
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!enabled || c.kind != CHOICE_PROTECTION || !Alive_(player) || Find(KIND_PROTECTION, player) != nullptr) return false;
+        *t = choices::s_text{};
+        texts::Format(t->title, sizeof(t->title), "choices.world_events.protection.title", {});
+        texts::Format(t->body, sizeof(t->body), "choices.world_events.protection.body",
+            {{"fee", std::to_string(PROTECTION_FEE)}, {"turns", std::to_string(PROTECTION_TURNS)}});
+        const bool poor = MOX::player[player].bc < PROTECTION_FEE;
+        texts::Format(t->option[0], sizeof(t->option[0]),
+            poor ? "choices.world_events.protection.option1_poor" : "choices.world_events.protection.option1",
+            {{"fee", std::to_string(PROTECTION_FEE)}, {"turns", std::to_string(PROTECTION_TURNS)}});
+        texts::Format(t->option[1], sizeof(t->option[1]), "choices.world_events.protection.option2", {});
+        t->count = 2;
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!enabled || c.kind != CHOICE_PROTECTION || !Alive_(player) || option != 0) return;
+        if (Find(KIND_PROTECTION, player) != nullptr || MOX::player[player].bc < PROTECTION_FEE) return;
+        Start_Protection_(player);
     }
 
 } // namespace world_events

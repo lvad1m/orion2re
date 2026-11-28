@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/choices.h"
+
 #include <cstdint>
 #include <string>
 
@@ -18,6 +20,8 @@ namespace SERIAL {
 // territorial beast), empire events (an ambassador killed, a discoverer, an ancient wreck, a colony
 // mutiny, a warm place for a leader, an outbreak) and one rare event for each of the 13 stock races.
 // Off by default; with the flag off nothing here draws from game_random and no state is kept.
+// A computer under a bounty pays the pirates for protection; a human is asked in the choice window when events
+// human_choices is on (choices.h: pay or refuse), otherwise it is offered nothing and pays nothing, as before.
 namespace world_events {
 
     extern bool enabled;           // events new_events
@@ -147,6 +151,14 @@ namespace world_events {
     const s_entry* Find(e_kind kind, int16_t player, int32_t race_event = -1);
     // Adds an entry; false when the table is full.
     bool Add(const s_entry& entry);
+
+    // The window of a human (choices.h; module choices::MODULE_WORLD_EVENTS, kind CHOICE_PROTECTION, value the
+    // fee): the pirates' offer of protection after a raid for a price on the empire's head. The text is false when
+    // the empire is gone or already pays for protection; the application (option 0 pays) re-checks, needs a
+    // treasury that covers one fee and then starts the protection as a computer's.
+    enum e_choice : uint8_t { CHOICE_PROTECTION = 1 };
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // Modifiers the engine reads (0 / false with the flag off or nothing active).
     int32_t Speed_Bonus(int16_t player);           // initship.cpp Calc_Player_FTL_Speed

@@ -2,11 +2,14 @@
 
 #include "game/choices.h"
 
+#include "game/crises.h"
 #include "game/discoveries.h"
 #include "game/incidents.h"
 #include "game/moo_world.h"
 #include "game/overtures.h"
 #include "game/pirate_world.h"
+#include "game/wanderers.h"
+#include "game/world_events.h"
 
 #include <algorithm>
 
@@ -27,6 +30,9 @@ namespace choices {
                 case MODULE_DISCOVERIES: return discoveries::Choice_Text(c, text);
                 case MODULE_PIRATE_WORLD: return pirate_world::Choice_Text(c, text);
                 case MODULE_MOO_WORLD: return moo_world::Choice_Text(c, text);
+                case MODULE_CRISES: return crises::Choice_Text(c, text);
+                case MODULE_WANDERERS: return wanderers::Choice_Text(c, text);
+                case MODULE_WORLD_EVENTS: return world_events::Choice_Text(c, text);
                 default: return false;
             }
         }
@@ -38,6 +44,9 @@ namespace choices {
                 case MODULE_DISCOVERIES: discoveries::Choice_Apply(c, option); break;
                 case MODULE_PIRATE_WORLD: pirate_world::Choice_Apply(c, option); break;
                 case MODULE_MOO_WORLD: moo_world::Choice_Apply(c, option); break;
+                case MODULE_CRISES: crises::Choice_Apply(c, option); break;
+                case MODULE_WANDERERS: wanderers::Choice_Apply(c, option); break;
+                case MODULE_WORLD_EVENTS: world_events::Choice_Apply(c, option); break;
                 default: break;
             }
         }

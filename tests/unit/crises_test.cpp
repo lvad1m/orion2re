@@ -2,7 +2,9 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/beliefs.h"
+#include "game/choices.h"
 #include "game/crises.h"
 #include "game/dice.h"
 #include "game/random.h"
@@ -804,6 +806,268 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
     SERIAL::Reader_ bad(buffer.get(), crises::Save_Size(), "test underflow", true);
     DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad, &error));
     DOCTEST_CHECK(crises::Slots()[0].crisis == crises::CRISIS_REVOLUTIONARIES);
+}
+
+
+// ---- The choice window (human-ui.md section 5, slice R1, part D): a human's crisis, approach and gift.
+
+namespace {
+    struct s_human_scope {
+        test::s_saved_value<bool> on{choices::enabled};
+        s_human_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            test::Load_Base_Texts();
+        }
+        ~s_human_scope() {
+            choices::Clear();
+        }
+    };
+
+    // Player 0 is the human.
+    void Human_Setup_(test::s_game_state* state) {
+        Setup_(state);
+        state->players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        state->players[0].bc = 200;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("choices: a human's crisis waits for the window; each option is paid for and timed as a computer's") {
+    for (int option = 0; option < crises::OPTION_COUNT; ++option) {
+        DOCTEST_CAPTURE(option);
+        s_crises_scope scope;
+        s_human_scope human;
+        test::s_game_state state;
+        Human_Setup_(&state);
+        const int32_t seed = static_cast<int32_t>(game_random::Get_Random_Seed());
+        DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, -1));
+        DOCTEST_CHECK(static_cast<int32_t>(game_random::Get_Random_Seed()) == seed);  // no draw
+        DOCTEST_CHECK(crises::Slots()[0].option == -1);
+        DOCTEST_CHECK(state.players[0].bc == 200);  // nothing paid yet
+        DOCTEST_REQUIRE(choices::Count(0) == 1);
+        const choices::s_choice c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_CRISES);
+        choices::s_text text;
+        DOCTEST_REQUIRE(crises::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 3);
+        DOCTEST_CHECK(std::string(text.title).size() > 0);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        for (int i = 0; i < text.count; ++i) DOCTEST_CHECK(std::string(text.option[i]).size() > 5);
+        DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        DOCTEST_CHECK(crises::Slots()[0].option == option);
+        DOCTEST_CHECK(state.players[0].bc == 200 - crises::Options(crises::CRISIS_ASTEROID)[option].cost_bc);
+        DOCTEST_CHECK(crises::Slots()[0].due == 35100 + crises::CHECK_DELAY);
+        DOCTEST_CHECK(crises::Resolve_With_Dice(0, TRIUMPH) == crises::RESULT_SUCCESS);
+        DOCTEST_CHECK(crises::Empty());
+    }
+}
+
+DOCTEST_TEST_CASE("choices: a cruel option marks the reputation when the window picks it") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    state.players[1].contact[0] = 1;
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_REVOLUTIONARIES, 1));
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 2));  // execute them
+    DOCTEST_CHECK(beliefs::Evidence(1, 0, beliefs::BELIEF_HOSTILE) == 1);
+}
+
+DOCTEST_TEST_CASE("choices: an option the empire cannot pay for becomes the last, free one; the text says so") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    state.players[0].bc = 10;
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, -1));
+    choices::s_text text;
+    DOCTEST_REQUIRE(crises::Choice_Text(choices::State()->choice[0], &text));
+    DOCTEST_CHECK(std::string(text.option[0]).find("not enough") != std::string::npos);
+    DOCTEST_CHECK(std::string(text.option[1]).find("not enough") != std::string::npos);
+    DOCTEST_CHECK(std::string(text.option[2]).find("not enough") == std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(crises::Slots()[0].option == 2);
+    DOCTEST_CHECK(state.players[0].bc == 10);
+}
+
+DOCTEST_TEST_CASE("choices: with the setting off a human gets no crisis; a computer is unaffected by the setting") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    {
+        test::s_saved_value<bool> on{choices::enabled};
+        choices::Clear();
+        choices::enabled = false;
+        DOCTEST_CHECK_FALSE(crises::Open(0, crises::CRISIS_ASTEROID, -1));
+        crises::chance = 1000;
+        MOX::stardate = 35100;
+        crises::Turn();
+        DOCTEST_CHECK(crises::Empty());
+        DOCTEST_CHECK(choices::Empty());
+    }
+    s_human_scope human;
+    state.players[0].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[0].personality = PLAYER_PERSONALITY_PACIFIST;
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, -1));
+    DOCTEST_CHECK(crises::Slots()[0].option == 2);  // chosen at once
+    DOCTEST_CHECK(choices::Empty());
+}
+
+DOCTEST_TEST_CASE("choices: a crisis that starts by chance reaches a human only with the setting on") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    crises::chance = 1000;
+    MOX::stardate = 35100;
+    crises::Turn();
+    DOCTEST_REQUIRE(!crises::Empty());
+    DOCTEST_CHECK(crises::Slots()[0].player == 0);
+    DOCTEST_CHECK(crises::Slots()[0].option == -1);
+    DOCTEST_CHECK(choices::Count(0) == 1);
+}
+
+DOCTEST_TEST_CASE("choices: a lost colony drops the crisis choice and the waiting record") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_ASTEROID, -1));
+    choices::s_text text;
+    DOCTEST_REQUIRE(crises::Choice_Text(choices::State()->choice[0], &text));
+    state.colonies[0].owner = 1;
+    DOCTEST_CHECK_FALSE(crises::Choice_Text(choices::State()->choice[0], &text));
+    DOCTEST_CHECK(choices::Has_Pending(0, false) == 0);  // dropped
+    crises::Turn();
+    DOCTEST_CHECK(crises::Empty());
+}
+
+DOCTEST_TEST_CASE("choices: a follow-up crisis asks the human again once, when it is due") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Human_Setup_(&state);
+    DOCTEST_REQUIRE(crises::Open(0, crises::CRISIS_REVOLUTIONARIES, 1));
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 1));  // put them on trial
+    DOCTEST_CHECK(crises::Resolve_With_Dice(0, CATASTROPHE) == crises::RESULT_FAILURE);
+    DOCTEST_CHECK(crises::Slots()[0].crisis == crises::CRISIS_REVOLUTION);
+    DOCTEST_CHECK(choices::Empty());
+    MOX::stardate = 35107;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Empty());  // not due yet
+    MOX::stardate = 35108;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Count(0) == 1);
+    MOX::stardate = 35109;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Count(0) == 1);  // still the same one, no second
+    DOCTEST_CHECK(crises::Slots()[0].option == -1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(crises::Slots()[0].option == 0);
+    DOCTEST_CHECK(crises::Slots()[0].due == 35109 + crises::CHECK_DELAY);
+}
+
+DOCTEST_TEST_CASE("choices: a human asks for the approach to war weariness when the scale starts and at its stages") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].treaty[0] = 4;
+    state.players[0].total_ship_strength[1] = 100;  // a stronger enemy: the war presses
+    crises::situations = true;
+    MOX::stardate = 35020;
+    crises::Turn();
+    const crises::s_scale* scale = crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1);
+    DOCTEST_REQUIRE(scale != nullptr);
+    DOCTEST_CHECK(scale->approach == 0);  // until the window answers
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    DOCTEST_CHECK(c.module == choices::MODULE_CRISES);
+    DOCTEST_CHECK(c.kind == crises::CHOICE_APPROACH);
+    choices::s_text text;
+    DOCTEST_REQUIRE(crises::Choice_Text(c, &text));
+    DOCTEST_CHECK(text.count == 3);
+    MOX::stardate = 35021;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Count(1) == 1);  // not asked twice
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1)->approach == 1);
+    // The scale at a stage asks again.
+    crises::Extra()->scale[0].value = crises::SCALE_STAGE - 1;
+    state.players[1].bc = 500;
+    MOX::stardate = 35022;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Count(1) == 1);
+    // A scale that has ended makes the choice's text false.
+    choices::s_text again;
+    const choices::s_choice pending = choices::State()->choice[0];
+    crises::Extra()->scale[0] = crises::s_scale{};
+    DOCTEST_CHECK_FALSE(crises::Choice_Text(pending, &again));
+}
+
+DOCTEST_TEST_CASE("choices: with the setting off a human's approach stays propaganda and nothing is asked") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::s_saved_value<bool> on{choices::enabled};
+    choices::Clear();
+    choices::enabled = false;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].treaty[0] = 4;
+    state.players[0].total_ship_strength[1] = 100;
+    crises::situations = true;
+    MOX::stardate = 35020;
+    crises::Turn();
+    DOCTEST_REQUIRE(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1) != nullptr);
+    DOCTEST_CHECK(crises::Find_Scale(crises::SCALE_WAR_WEARINESS, 1)->approach == 0);
+    DOCTEST_CHECK(choices::Empty());
+}
+
+DOCTEST_TEST_CASE("choices: the council asks a human with enough BC; the gift goes the computers' way") {
+    s_crises_scope scope;
+    s_human_scope human;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::crisis_front = true;
+    crises::front_strength = 30;
+    MOX::stardate = 35190;
+    MOX::settings.xenons_exist = 1;
+    MOX::antarans.field6_0x3c = 0;
+    MOX::antarans.resource_offensive = 0;
+    crises::Turn();  // the front opens
+    state.players[0].bc = 300;  // a pacifist computer gives COUNCIL_GENEROUS
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].bc = 300;
+    MOX::stardate = 35191;
+    crises::Turn();
+    DOCTEST_CHECK(state.players[1].bc == 300);  // a human gives nothing by itself
+    DOCTEST_CHECK(crises::Extra()->council_progress == crises::COUNCIL_GENEROUS);
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    const choices::s_choice c = choices::State()->choice[0];
+    DOCTEST_CHECK(c.kind == crises::CHOICE_COUNCIL);
+    choices::s_text text;
+    DOCTEST_REQUIRE(crises::Choice_Text(c, &text));
+    DOCTEST_CHECK(text.count == 3);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));
+    DOCTEST_CHECK(state.players[1].bc == 300 - crises::COUNCIL_SHARE);
+    DOCTEST_CHECK(crises::Extra()->given[1] == crises::COUNCIL_SHARE);
+    DOCTEST_CHECK(crises::Extra()->council_progress == crises::COUNCIL_GENEROUS + crises::COUNCIL_SHARE);
+    // A human with less than COUNCIL_MIN_BC is not asked; "nothing" gives nothing.
+    state.players[1].bc = crises::COUNCIL_MIN_BC - 1;
+    MOX::stardate = 35196;
+    crises::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    state.players[1].bc = 300;
+    MOX::stardate = 35201;
+    crises::Turn();
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));
+    DOCTEST_CHECK(state.players[1].bc == 300);
+    // The front is gone: the text is false.
+    crises::Extra()->front_broken = 1;
+    choices::s_choice gone = c;
+    DOCTEST_CHECK_FALSE(crises::Choice_Text(gone, &text));
 }
 
 }
