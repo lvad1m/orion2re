@@ -3,9 +3,11 @@
 #include "game/incidents.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/events.h"
+#include "game/haccess.h"
 #include "game/hostages.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
@@ -15,6 +17,7 @@
 
 #include <algorithm>
 #include <climits>
+#include <cstdarg>
 
 // The behaviour of the six incidents (events-catalog.md 3.2, 3.3 and 3.4); the records, the hooks and the
 // save section are in incidents_state.cpp. game_random is drawn only with events incidents on: the chance
@@ -174,18 +177,33 @@ namespace incidents {
             return r;
         }
 
-        bool Start_Painless_(int16_t player, int32_t option) {
+        // The subject of an event, picked before the option is applied: the colony, the leader or the other empire,
+        // the sum (what a pending choice stores).
+        struct s_subject {
+            int16_t target = -1;
+            int16_t other = -1;
+            int32_t value = 0;
+        };
+
+        // The pick of each kind draws from game_random exactly as the event always did; `option` is the option about
+        // to be applied, -1 while a human is yet to choose (the checks that depend on it wait for the apply).
+        bool Pick_Painless_(int16_t player, s_subject* s) {
             int16_t colonies[MAX_COLONIES];
             const int32_t n = Colonies_(player, false, colonies);
             if (n == 0 || State()->count >= MAX_INCIDENTS) return false;
-            const int16_t c = colonies[Pick_(n)];
+            s->target = colonies[Pick_(n)];
+            return true;
+        }
+
+        void Apply_Painless_(int16_t player, const s_subject& s, int32_t option) {
+            const int16_t c = s.target;
             if (option == PAINLESS_CURE && MOX::player[player].bc - PAINLESS_CURE_COST < PAINLESS_RESERVE) option = PAINLESS_QUARANTINE;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: colony %d: a disease without pain, option %d", (int)MOX::stardate,
                 (int)player, (int)c, (int)option);
             if (option == PAINLESS_CURE) {
                 Add_Bc_(player, -PAINLESS_CURE_COST);
                 Log_(player, "the disease is cured");
-                return true;
+                return;
             }
             s_incident r = New_(KIND_PAINLESS, player, PAINLESS_TURNS);
             r.target = c;
@@ -198,14 +216,14 @@ namespace incidents {
             }
             Record_(r);
             COLCALC::Colony_Calculation(c);
-            return true;
         }
 
-        bool Start_Drug_(int16_t player, int32_t option) {
-            int16_t colonies[MAX_COLONIES];
-            const int32_t n = Colonies_(player, false, colonies);
-            if (n == 0 || State()->count >= MAX_INCIDENTS) return false;
-            const int16_t c = colonies[Pick_(n)];
+        bool Pick_Drug_(int16_t player, s_subject* s) {
+            return Pick_Painless_(player, s);  // the same pick: a colony that can take an event
+        }
+
+        void Apply_Drug_(int16_t player, const s_subject& s, int32_t option) {
+            const int16_t c = s.target;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: colony %d: a drug of the natives, option %d", (int)MOX::stardate,
                 (int)player, (int)c, (int)option);
             s_incident r = New_(KIND_NATIVE_DRUG, player, DRUG_TURNS);
@@ -223,10 +241,9 @@ namespace incidents {
             }
             Record_(r);
             COLCALC::Colony_Calculation(c);
-            return true;
         }
 
-        bool Start_Treasury_(int16_t player, int32_t option) {
+        bool Pick_Treasury_(int16_t player, int32_t option, s_subject* s) {
             int16_t owners[MAX_PLAYERS];
             int32_t n = 0;
             for (int16_t o = 0; o < Players_(); ++o) {
@@ -238,8 +255,14 @@ namespace incidents {
                 }
             }
             if (n == 0 || (option == TREASURY_KEEP && State()->count >= MAX_INCIDENTS)) return false;
-            const int16_t owner = owners[Pick_(n)];
-            const int32_t amount = TREASURY_MIN + Pick_(TREASURY_MAX - TREASURY_MIN + 1);
+            s->other = owners[Pick_(n)];
+            s->value = TREASURY_MIN + Pick_(TREASURY_MAX - TREASURY_MIN + 1);
+            return true;
+        }
+
+        void Apply_Treasury_(int16_t player, const s_subject& s, int32_t option) {
+            const int16_t owner = s.other;
+            const int32_t amount = s.value;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: finds %d BC stolen from player %d, option %d", (int)MOX::stardate,
                 (int)player, (int)amount, (int)owner, (int)option);
             if (option == TREASURY_RETURN) {
@@ -262,20 +285,24 @@ namespace incidents {
                 Record_(r);
                 Log_(player, "keeps the treasury hidden");
             }
-            return true;
         }
 
-        bool Start_Deposit_(int16_t player, int32_t option) {
+        bool Pick_Deposit_(int16_t player, s_subject* s) {
             int16_t colonies[MAX_COLONIES];
             const int32_t n = Colonies_(player, true, colonies);
             if (n == 0 || State()->count >= MAX_INCIDENTS) return false;
-            const int16_t c = colonies[Pick_(n)];
+            s->target = colonies[Pick_(n)];
+            return true;
+        }
+
+        void Apply_Deposit_(int16_t player, const s_subject& s, int32_t option) {
+            const int16_t c = s.target;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: colony %d: a rare deposit under the colony, option %d",
                 (int)MOX::stardate, (int)player, (int)c, (int)option);
             if (option == DEPOSIT_CAREFUL) {
                 EVENTS::Enrich_Planet(MOX::colony[c].planet, 1);
                 Log_(player, "the deposit is mined with care, the planet is a class richer");
-                return true;
+                return;
             }
             s_incident r = New_(KIND_DEPOSIT, player, option == DEPOSIT_LEAVE ? DEPOSIT_TURNS : DEPOSIT_PLUNDER_TURNS);
             r.target = c;
@@ -290,17 +317,21 @@ namespace incidents {
             }
             Record_(r);
             COLCALC::Colony_Calculation(c);
-            return true;
         }
 
-        bool Start_General_(int16_t player, int32_t option, const int32_t* dice_values) {
+        bool Pick_General_(int16_t player, int32_t option, s_subject* s) {
             int16_t leaders[MAX_LEADERS];
             int32_t n = 0;
             for (int16_t l = 0; l < MAX_LEADERS; ++l) {
                 if (Ship_Captain_(l, player)) leaders[n++] = l;
             }
             if (n == 0 || (option == GENERAL_IGNORE && State()->count >= MAX_INCIDENTS)) return false;
-            const int16_t general = leaders[Pick_(n)];
+            s->other = leaders[Pick_(n)];
+            return true;
+        }
+
+        void Apply_General_(int16_t player, const s_subject& s, int32_t option, const int32_t* dice_values) {
+            const int16_t general = s.other;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: the general %d defies orders, option %d", (int)MOX::stardate,
                 (int)player, (int)general, (int)option);
             if (option == GENERAL_REASON) {
@@ -330,10 +361,9 @@ namespace incidents {
                 Record_(r);
                 Log_(player, "the general's defiance is ignored");
             }
-            return true;
         }
 
-        bool Start_Governor_(int16_t player, int32_t option) {
+        bool Pick_Governor_(int16_t player, int32_t option, s_subject* s) {
             int16_t leaders[MAX_LEADERS];
             int32_t n = 0;
             for (int16_t l = 0; l < MAX_LEADERS; ++l) {
@@ -341,14 +371,20 @@ namespace incidents {
                 if (c >= 0 && !Colony_Busy_(c)) leaders[n++] = l;
             }
             if (n == 0 || (option == GOVERNOR_KEEP && State()->count >= MAX_INCIDENTS)) return false;
-            const int16_t governor = leaders[Pick_(n)];
-            const int16_t c = Governed_Colony_(governor, player);
+            s->other = leaders[Pick_(n)];
+            s->target = Governed_Colony_(s->other, player);
+            return true;
+        }
+
+        void Apply_Governor_(int16_t player, const s_subject& s, int32_t option) {
+            const int16_t governor = s.other;
+            const int16_t c = s.target;
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "incidents: stardate %d, player %d: colony %d: the governor %d is mad, option %d", (int)MOX::stardate,
                 (int)player, (int)c, (int)governor, (int)option);
             if (option == GOVERNOR_REMOVE) {
                 OFFICER::Deassign_Officer(governor);
                 Log_(player, "the mad governor is removed");
-                return true;
+                return;
             }
             s_incident r = New_(KIND_MAD_GOVERNOR, player, GOVERNOR_BOOM_TURNS);
             r.target = c;
@@ -357,7 +393,81 @@ namespace incidents {
             r.value = static_cast<int16_t>(std::min<int32_t>(INT16_MAX, MOX::colony[c].n_pops * GOVERNOR_BOOM_BC));
             Record_(r);
             Log_(player, "the mad governor is kept, the colony booms");
-            return true;
+        }
+
+        bool Pick_Subject_(e_kind kind, int16_t player, int32_t option, s_subject* s) {
+            switch (kind) {
+                case KIND_PAINLESS: return Pick_Painless_(player, s);
+                case KIND_NATIVE_DRUG: return Pick_Drug_(player, s);
+                case KIND_TREASURY: return Pick_Treasury_(player, option, s);
+                case KIND_DEPOSIT: return Pick_Deposit_(player, s);
+                case KIND_REBEL_GENERAL: return Pick_General_(player, option, s);
+                case KIND_MAD_GOVERNOR: return Pick_Governor_(player, option, s);
+                default: return false;
+            }
+        }
+
+        void Apply_Subject_(e_kind kind, int16_t player, const s_subject& s, int32_t option, const int32_t* dice_values) {
+            switch (kind) {
+                case KIND_PAINLESS: Apply_Painless_(player, s, option); break;
+                case KIND_NATIVE_DRUG: Apply_Drug_(player, s, option); break;
+                case KIND_TREASURY: Apply_Treasury_(player, s, option); break;
+                case KIND_DEPOSIT: Apply_Deposit_(player, s, option); break;
+                case KIND_REBEL_GENERAL: Apply_General_(player, s, option, dice_values); break;
+                case KIND_MAD_GOVERNOR: Apply_Governor_(player, s, option); break;
+                default: break;
+            }
+        }
+
+        // A colony that can still take the event: ours, alive, without a record of its own.
+        bool Colony_Free_(int16_t player, int16_t c) {
+            return c >= 0 && c < MOX::NUM_COLONIES && c < MAX_COLONIES && MOX::colony[c].owner == player && MOX::colony[c].n_pops > 0 && !Colony_Busy_(c);
+        }
+
+        // A stored subject is still good: the empire lives, there is room for a record and the subject is as it was.
+        bool Subject_Valid_(e_kind kind, int16_t player, const s_subject& s) {
+            if (!Alive_(player) || State()->count >= MAX_INCIDENTS) return false;
+            switch (kind) {
+                case KIND_PAINLESS:
+                case KIND_NATIVE_DRUG: return Colony_Free_(player, s.target);
+                case KIND_DEPOSIT:
+                    return Colony_Free_(player, s.target) && MOX::colony[s.target].planet >= 0 &&
+                        MOX::planet[MOX::colony[s.target].planet].mineral_class < MINERAL_RESOURCE_ULTRA_RICH;
+                case KIND_TREASURY: return s.other >= 0 && s.other != player && Alive_(s.other);
+                case KIND_REBEL_GENERAL: return s.other >= 0 && s.other < MAX_LEADERS && Ship_Captain_(s.other, player);
+                case KIND_MAD_GOVERNOR:
+                    return Colony_Free_(player, s.target) && s.other >= 0 && s.other < MAX_LEADERS && Governed_Colony_(s.other, player) == s.target;
+                default: return false;
+            }
+        }
+
+        s_subject Subject_Of_(const choices::s_choice& c) {
+            s_subject s;
+            s.target = c.target;
+            s.other = c.other;
+            s.value = c.value;
+            return s;
+        }
+
+        // The planet name of a colony, plain ASCII.
+        void Colony_Name_(int16_t colony, char* out, size_t size) {
+            out[0] = '\0';
+            const int16_t planet = colony >= 0 ? MOX::colony[colony].planet : static_cast<int16_t>(-1);
+            if (planet < 0 || planet >= MAX_PLANETS) {
+                snprintf(out, size, "a colony");
+                return;
+            }
+            char name[64];
+            HACCESS::Do_Get_Planet_Name(planet, name, 0);
+            snprintf(out, size, "%s", name);
+        }
+
+        void Set_Option_(choices::s_text* t, const char* format, ...) {
+            va_list args;
+            va_start(args, format);
+            vsnprintf(t->option[t->count], sizeof(t->option[t->count]), format, args);
+            va_end(args);
+            ++t->count;
         }
 
         // One turn of a record; true when it is over.
@@ -465,16 +575,117 @@ namespace incidents {
     bool Start(e_kind kind, int16_t player, int32_t option, const int32_t* dice_values) {
         if (!enabled || !Alive_(player)) return false;
         const int32_t limit = kind == KIND_MAD_GOVERNOR ? 1 : 2;
-        const int32_t chosen = option >= 0 ? std::min(option, limit) : Choose(kind, player);
+        // A human with events human_choices on picks the subject now and chooses the option later (choices.h).
+        const bool ask = option < 0 && choices::Ask_Human(player);
+        int32_t chosen = option >= 0 ? std::min(option, limit) : (ask ? -1 : Choose(kind, player));
+        s_subject subject;
+        if (!Pick_Subject_(kind, player, chosen, &subject)) return false;
+        if (ask) {
+            choices::s_choice c;
+            c.module = choices::MODULE_INCIDENTS;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.target = subject.target;
+            c.other = subject.other;
+            c.value = subject.value;
+            c.asked = MOX::stardate;
+            if (choices::Add(c)) return true;
+            chosen = Choose(kind, player);  // the queue is full: the first option, as without the setting
+        }
+        Apply_Subject_(kind, player, subject, chosen, dice_values);
+        return true;
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        if (!enabled || c.kind < KIND_PAINLESS || c.kind > KIND_LAST) return false;
+        const e_kind kind = static_cast<e_kind>(c.kind);
+        const int16_t player = c.player;
+        const s_subject s = Subject_Of_(c);
+        if (!Subject_Valid_(kind, player, s)) return false;
+        *t = choices::s_text{};
+        char place[64];
+        Colony_Name_(s.target, place, sizeof(place));
         switch (kind) {
-            case KIND_PAINLESS: return Start_Painless_(player, chosen);
-            case KIND_NATIVE_DRUG: return Start_Drug_(player, chosen);
-            case KIND_TREASURY: return Start_Treasury_(player, chosen);
-            case KIND_DEPOSIT: return Start_Deposit_(player, chosen);
-            case KIND_REBEL_GENERAL: return Start_General_(player, chosen, dice_values);
-            case KIND_MAD_GOVERNOR: return Start_Governor_(player, chosen);
+            case KIND_PAINLESS: {
+                snprintf(t->title, sizeof(t->title), "Disease without pain");
+                snprintf(t->body, sizeof(t->body),
+                    "A strange disease has spread through %s. Those who survive it feel no pain at all. Doctors can cure it, "
+                    "the colony can be sealed off, or the survivors can be taken as fearless troops.",
+                    place);
+                if (MOX::player[player].bc - PAINLESS_CURE_COST < PAINLESS_RESERVE) {
+                    Set_Option_(t, "Cure the sick (%d BC) - too dear, quarantine instead", (int)PAINLESS_CURE_COST);
+                } else {
+                    Set_Option_(t, "Cure the sick (%d BC)", (int)PAINLESS_CURE_COST);
+                }
+                Set_Option_(t, "Quarantine (morale %d for %d turns)", (int)PAINLESS_QUARANTINE_MORALE, (int)PAINLESS_TURNS);
+                Set_Option_(t, "Recruit survivors (morale +%d, troops +%d, %d turns)", (int)PAINLESS_RECRUIT_MORALE, (int)PAINLESS_GROUND_BONUS,
+                    (int)PAINLESS_TURNS);
+                break;
+            }
+            case KIND_NATIVE_DRUG: {
+                const int32_t pops = MOX::colony[s.target].n_pops;
+                snprintf(t->title, sizeof(t->title), "Drug of the natives");
+                snprintf(t->body, sizeof(t->body),
+                    "The colonists of %s have taken up a drug of the natives. It calms the people, but the work suffers. "
+                    "A ban would anger them and bring smugglers; a tax would fill the treasury.",
+                    place);
+                Set_Option_(t, "Tolerate it (morale +%d, costs %d BC a turn, %d turns)", (int)DRUG_TOLERATE_MORALE, (int)pops, (int)DRUG_TURNS);
+                Set_Option_(t, "Ban it (morale %d, smugglers steal %d BC, %d turns)", (int)DRUG_BAN_MORALE, (int)DRUG_CONTRABAND_LOSS, (int)DRUG_TURNS);
+                Set_Option_(t, "Tax it (morale +%d, earns %d BC a turn, %d turns)", (int)DRUG_TAX_MORALE, (int)pops, (int)DRUG_TURNS);
+                break;
+            }
+            case KIND_TREASURY: {
+                snprintf(t->title, sizeof(t->title), "A found treasury");
+                snprintf(t->body, sizeof(t->body),
+                    "Your crews found %d BC of stolen money on a wreck. It belongs to the %.14s, who do not know where it is. "
+                    "It can be returned, returned for a commission, or kept.",
+                    (int)s.value, MOX::player[s.other].race_name);
+                Set_Option_(t, "Return it all (%.14s remember it kindly)", MOX::player[s.other].race_name);
+                Set_Option_(t, "Return it, keep %d%% (%d BC)", (int)TREASURY_COMMISSION_PERCENT, (int)(s.value * TREASURY_COMMISSION_PERCENT / 100));
+                Set_Option_(t, "Keep it all (+%d BC, they may find out)", (int)s.value);
+                break;
+            }
+            case KIND_DEPOSIT: {
+                snprintf(t->title, sizeof(t->title), "A rich deposit");
+                snprintf(t->body, sizeof(t->body),
+                    "Miners at %s struck a rare deposit under the colony. It can be left alone, mined with care, or plundered at once.", place);
+                Set_Option_(t, "Leave it alone (morale +%d for %d turns)", (int)DEPOSIT_LEAVE_MORALE, (int)DEPOSIT_TURNS);
+                Set_Option_(t, "Mine with care (planet 1 mineral class richer)");
+                Set_Option_(t, "Plunder it (2 classes richer, unrest and quakes)");
+                break;
+            }
+            case KIND_REBEL_GENERAL: {
+                snprintf(t->title, sizeof(t->title), "A rebel general");
+                snprintf(t->body, sizeof(t->body),
+                    "Captain %.14s defies orders and his crew follows him. He can be talked round, ignored in the hope that it passes, or executed.",
+                    MOX::leaders[s.other].name);
+                Set_Option_(t, "Reason with him (a dice check; failure is a coup)");
+                Set_Option_(t, "Ignore him (in %d turns a coup or a trial)", (int)GENERAL_RIPEN_TURNS);
+                Set_Option_(t, "Execute him (other leaders lose %d loyalty)", (int)GENERAL_FEAR);
+                break;
+            }
+            case KIND_MAD_GOVERNOR: {
+                snprintf(t->title, sizeof(t->title), "A mad governor");
+                snprintf(t->body, sizeof(t->body),
+                    "The governor %.14s of %s doses the water of the colony with something strange. Output soars, but he is plainly mad "
+                    "and the colony will pay for it.",
+                    MOX::leaders[s.other].name, place);
+                Set_Option_(t, "Remove him at once");
+                Set_Option_(t, "Keep him (+%d BC a turn for %d turns, then a collapse)", (int)(MOX::colony[s.target].n_pops * GOVERNOR_BOOM_BC),
+                    (int)GOVERNOR_BOOM_TURNS);
+                break;
+            }
             default: return false;
         }
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        if (!enabled || c.kind < KIND_PAINLESS || c.kind > KIND_LAST) return;
+        const e_kind kind = static_cast<e_kind>(c.kind);
+        const s_subject s = Subject_Of_(c);
+        if (!Subject_Valid_(kind, c.player, s)) return;
+        Apply_Subject_(kind, c.player, s, std::clamp<int32_t>(option, 0, kind == KIND_MAD_GOVERNOR ? 1 : 2), nullptr);
     }
 
     void Run_Records() {

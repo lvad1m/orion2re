@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/choices.h"
 #include "game/consts.h"
 
 #include <cstdint>
@@ -15,8 +16,8 @@ namespace SERIAL {
 // Incidents: six events of biology, economy and internal politics (docs/LocalLLM/events-catalog.md 3.2, 3.3
 // and 3.4; README.md 10.9, wave 4): a disease without pain, a drug of the natives, a found treasury, a rich
 // deposit under a colony, a rebel general and a mad governor. Each is an event of an empire with a choice:
-// a human-owned subject takes the first, safest option (no interface step yet), a computer picks by its
-// personality (Choose). One-off effects are applied at once; the lasting ones (morale, unrest, a flow of
+// a human chooses in the choice window when events human_choices is on (otherwise the first, safest option),
+// a computer picks by its personality (Choose). One-off effects are applied at once; the lasting ones (morale, unrest, a flow of
 // BC, a decision still to come) are kept as records here.
 // Off by default (events incidents); with the flag off nothing here draws from game_random, nothing is
 // kept and every hook returns the classic value.
@@ -40,7 +41,7 @@ namespace incidents {
         KIND_LAST = 6,
     };
 
-    // Options by kind (the first is the safest; a human takes it).
+    // Options by kind (the first is the safest; a human without events human_choices takes it).
     enum e_painless_option : uint8_t { PAINLESS_CURE = 0, PAINLESS_QUARANTINE = 1, PAINLESS_RECRUIT = 2 };
     enum e_drug_option : uint8_t { DRUG_TOLERATE = 0, DRUG_BAN = 1, DRUG_TAX = 2 };
     enum e_treasury_option : uint8_t { TREASURY_RETURN = 0, TREASURY_COMMISSION = 1, TREASURY_KEEP = 2 };
@@ -150,11 +151,18 @@ namespace incidents {
     // recruited-survivors record of the painless disease runs (PAINLESS_GROUND_BONUS); 0 with the flag off.
     int32_t Ground_Bonus(int16_t player);
 
+    // The choice window (choices.h): the text of a pending choice of this module (false when the subject is
+    // gone or there is no room for a record) and the application of the option picked, with the subject
+    // re-checked; the rebel general's dice are drawn now.
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
+
     // The option a computer of `player` takes for `kind` by its personality; a human, or the flag off: 0.
     int32_t Choose(e_kind kind, int16_t player);
 
     // Starts the event of `kind` for `player` on a subject it picks (draws from game_random when there is a
-    // choice of subjects) and applies the option Choose gives. `option` >= 0 overrides the choice;
+    // choice of subjects) and applies the option Choose gives. A human with events human_choices on gets a
+    // pending choice instead (choices.h; true, nothing applied yet). `option` >= 0 overrides the choice;
     // `dice_values` (3 values) replaces the dice of the reasoning check. False when it cannot start.
     bool Start(e_kind kind, int16_t player, int32_t option = -1, const int32_t* dice_values = nullptr);
 

@@ -77,6 +77,8 @@ namespace SAVEGAME {
     inline constexpr uint32_t SECTION_TYPE_WANDERERS = 0x444E4157;
     // 'INCD': incidents - disease, drug, treasury, deposit, general, governor (game/incidents.h).
     inline constexpr uint32_t SECTION_TYPE_INCIDENTS = 0x44434E49;
+    // 'CHOI': pending choices of a human in events (game/choices.h).
+    inline constexpr uint32_t SECTION_TYPE_CHOICES = 0x494F4843;
     // 'OVTR': overtures - mediators and paid offensives (game/overtures.h).
     inline constexpr uint32_t SECTION_TYPE_OVERTURES = 0x5254564F;
     // 'ULTM': ultimatums with a deadline (game/ultimatums.h).

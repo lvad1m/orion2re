@@ -3,6 +3,7 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/dice.h"
 #include "game/hostages.h"
 #include "game/incidents.h"
@@ -521,6 +522,156 @@ DOCTEST_TEST_CASE("rebel general: a coup leaves a ship being refitted in the shi
     DOCTEST_CHECK(state.leaders[0].status != 1);  // the general is gone
     DOCTEST_CHECK(state.ships[0].owner == 0);     // the ship stays with the empire
     DOCTEST_CHECK(state.ships[0].status == 4);    // still in the queue
+}
+
+// ---- The choice window (human-ui.md section 5, slice R1): a human's option is chosen later.
+
+namespace {
+    // Everything an incident can change in these tests, as one string.
+    std::string Signature_(const test::s_game_state& state) {
+        char buffer[1024];
+        int n = snprintf(buffer, sizeof(buffer), "bc %d %d, mineral %d, pops %d, ship %d/%d, leaders %d/%d %d/%d, n %d", (int)state.players[0].bc,
+            (int)state.players[1].bc, (int)state.planets[0].mineral_class, (int)state.colonies[0].n_pops, (int)state.ships[0].owner,
+            (int)state.ships[0].officer_index, (int)state.leaders[0].player_index, (int)state.leaders[0].status, (int)state.leaders[1].player_index,
+            (int)state.leaders[1].status, (int)incidents::State()->count);
+        for (int i = 0; i < incidents::State()->count && n < 900; ++i) {
+            const incidents::s_incident& r = incidents::State()->incident[i];
+            n += snprintf(buffer + n, sizeof(buffer) - n, "; k%d o%d t%d x%d e%d m%d u%d v%d", (int)r.kind, (int)r.option, (int)r.target, (int)r.other,
+                (int)r.ends, (int)r.morale, (int)r.unrest, (int)r.value);
+        }
+        return buffer;
+    }
+
+    // 0: Start with the option; 1: a human with the setting on, then the choice applied; 2: a human with the setting
+    // off (takes the first option; `option` is ignored).
+    std::string Run_(incidents::e_kind kind, int option, int mode) {
+        s_incidents_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        game_random::Set_Random_Seed(777);
+        if (mode == 1) {
+            choices::enabled = true;
+            state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+            DOCTEST_REQUIRE(incidents::Start(kind, 0));
+            DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        } else if (mode == 2) {
+            choices::enabled = false;
+            state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+            DOCTEST_REQUIRE(incidents::Start(kind, 0));
+            DOCTEST_CHECK(choices::Empty());
+        } else {
+            DOCTEST_REQUIRE(incidents::Start(kind, 0, option));
+        }
+        const std::string result = Signature_(state);
+        choices::Clear();
+        return result;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("choices: a human with the setting on gets a pending choice and no effect")
+{
+    for (int k = incidents::KIND_PAINLESS; k <= incidents::KIND_LAST; ++k) {
+        const incidents::e_kind kind = static_cast<incidents::e_kind>(k);
+        s_incidents_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        const std::string before = Signature_(state);
+        choices::enabled = true;
+        state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        DOCTEST_REQUIRE(incidents::Start(kind, 0));
+        DOCTEST_CHECK(choices::Count(0) == 1);
+        DOCTEST_CHECK(incidents::Empty());
+        DOCTEST_CHECK(Signature_(state) == before);
+        DOCTEST_REQUIRE(choices::State()->count == 1);
+        const choices::s_choice& c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_INCIDENTS);
+        DOCTEST_CHECK(c.kind == k);
+        choices::s_text text;
+        DOCTEST_REQUIRE(incidents::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == (kind == incidents::KIND_MAD_GOVERNOR ? 2 : 3));
+        DOCTEST_CHECK(std::string(text.title).size() > 0);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        for (int i = 0; i < text.count; ++i) DOCTEST_CHECK(std::string(text.option[i]).size() > 5);
+        choices::Clear();
+    }
+}
+
+DOCTEST_TEST_CASE("choices: Choice_Apply with each option equals Start with that option")
+{
+    for (int k = incidents::KIND_PAINLESS; k <= incidents::KIND_LAST; ++k) {
+        const incidents::e_kind kind = static_cast<incidents::e_kind>(k);
+        const int options = kind == incidents::KIND_MAD_GOVERNOR ? 2 : 3;
+        for (int option = 0; option < options; ++option) {
+            DOCTEST_CAPTURE(k);
+            DOCTEST_CAPTURE(option);
+            DOCTEST_CHECK(Run_(kind, option, 1) == Run_(kind, option, 0));
+        }
+        // With the setting off a human takes the first option, as before.
+        DOCTEST_CHECK(Run_(kind, 0, 2) == Run_(kind, 0, 0));
+    }
+}
+
+DOCTEST_TEST_CASE("choices: a computer is unaffected by the setting; a full queue falls back to the first option")
+{
+    s_incidents_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    choices::enabled = true;
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_DEPOSIT, 0));  // a computer: no pending choice
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.planets[0].mineral_class == 3);  // the erratic computer mined with care
+    incidents::Clear();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.kind = incidents::KIND_TREASURY;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_DEPOSIT, 0));  // full: option 0, the deposit is left alone
+    DOCTEST_CHECK(choices::Count(0) == 0);
+    DOCTEST_REQUIRE(incidents::State()->count == 1);
+    DOCTEST_CHECK(incidents::State()->incident[0].option == incidents::DEPOSIT_LEAVE);
+    choices::Clear();
+}
+
+DOCTEST_TEST_CASE("choices: a painless disease that cannot be paid for falls back to quarantine; a gone subject changes nothing")
+{
+    s_incidents_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    choices::enabled = true;
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].bc = incidents::PAINLESS_RESERVE;  // not enough with the reserve
+    DOCTEST_REQUIRE(incidents::Start(incidents::KIND_PAINLESS, 0));
+    choices::s_text text;
+    DOCTEST_REQUIRE(incidents::Choice_Text(choices::State()->choice[0], &text));
+    DOCTEST_CHECK(std::string(text.option[0]).find("quarantine") != std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, incidents::PAINLESS_CURE));
+    DOCTEST_REQUIRE(incidents::State()->count == 1);
+    DOCTEST_CHECK(incidents::State()->incident[0].option == incidents::PAINLESS_QUARANTINE);
+    DOCTEST_CHECK(state.players[0].bc == incidents::PAINLESS_RESERVE);
+    // A choice whose colony was lost does nothing.
+    incidents::Clear();
+    choices::s_choice gone;
+    gone.module = choices::MODULE_INCIDENTS;
+    gone.kind = incidents::KIND_NATIVE_DRUG;
+    gone.player = 0;
+    gone.target = 0;
+    state.colonies[0].owner = 1;
+    incidents::Choice_Apply(gone, 0);
+    DOCTEST_CHECK(incidents::Empty());
+    DOCTEST_CHECK_FALSE(incidents::Choice_Text(gone, &text));
+    choices::Clear();
 }
 
 }

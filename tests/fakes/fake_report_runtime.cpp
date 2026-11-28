@@ -403,3 +403,10 @@ namespace SHIPMOVE {
 namespace NEXTTURN {
     void Do_Autosave() { ++TEST_REPORT::autosave_calls; }
 }
+
+// The choice window is not under test here.
+namespace choices {
+    int8_t Has_Pending(int16_t, bool) {
+        return 0;
+    }
+} // namespace choices

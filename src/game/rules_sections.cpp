@@ -19,6 +19,7 @@
 #include "game/news.h"
 #include "game/projects.h"
 #include "game/wanderers.h"
+#include "game/choices.h"
 #include "game/incidents.h"
 #include "game/overtures.h"
 #include "game/ultimatums.h"
@@ -136,6 +137,10 @@ namespace SAVEGAME {
             return incidents::enabled && !incidents::Empty();
         }
 
+        bool Choices_Has_State_() {
+            return choices::enabled && !choices::Empty();
+        }
+
         bool Overtures_Has_State_() {
             return overtures::enabled && !overtures::Empty();
         }
@@ -216,6 +221,8 @@ namespace SAVEGAME {
                 wanderers::Parse_Save, wanderers::Commit_Save, wanderers::Discard_Save, wanderers::Clear},
             {SECTION_TYPE_INCIDENTS, 1, "incidents", Incidents_Has_State_, incidents::Save_Size, incidents::Write_Save,
                 incidents::Parse_Save, incidents::Commit_Save, incidents::Discard_Save, incidents::Clear},
+            {SECTION_TYPE_CHOICES, 1, "choices", Choices_Has_State_, choices::Save_Size, choices::Write_Save,
+                choices::Parse_Save, choices::Commit_Save, choices::Discard_Save, choices::Clear},
             {SECTION_TYPE_OVERTURES, 1, "overtures", Overtures_Has_State_, overtures::Save_Size, overtures::Write_Save,
                 overtures::Parse_Save, overtures::Commit_Save, overtures::Discard_Save, overtures::Clear},
             {SECTION_TYPE_ULTIMATUMS, 1, "ultimatums", Ultimatums_Has_State_, ultimatums::Save_Size, ultimatums::Write_Save,

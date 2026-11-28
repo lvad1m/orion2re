@@ -1,5 +1,7 @@
 #include "pch.h"
 
+#include "game/choices.h"
+
 namespace REPORT {
     uint8_t no_outpost_prompt;
     int16_t n_reports;
@@ -358,6 +360,7 @@ namespace REPORT {
         if ((status = Has_Officer_For_Hire(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = OFFICER::Officer_Made_Level_Report(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Has_Diplomacy_Messages(player_idx, show_ui != 0)) != 0) return status;
+        if ((status = choices::Has_Pending(player_idx, show_ui != 0)) != 0) return status;
         if ((status = Has_Msg(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Empty_Colony_Queue(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Need_To_Set_Occupation_Policy(player_idx, (int8_t)show_ui)) != 0) return status;
