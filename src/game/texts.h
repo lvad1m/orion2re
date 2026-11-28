@@ -6,6 +6,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 // The game's own new texts in the interface language (setting "interface language", text_language.h):
 // data/base/texts/<lang>.json5, nested objects whose keys are flattened with dots
@@ -22,6 +23,17 @@ namespace texts {
     // text does not mention is ignored; an empty value leaves the placeholder empty. Translations may
     // reorder placeholders. The result is cut to fit `size` (always terminated).
     void Format(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args);
+
+    // The same texts as UTF-8, for the windows drawn with a Unicode font (the mentat panel): the raw string of the
+    // current language (English fallback, then the key). Same lifetime rules as Get.
+    const char* Get_Utf8(const char* key);
+
+    using t_args = std::vector<std::pair<std::string, std::string>>;
+    // Format with a list of named values: the game's bytes (utf8 false, as Get) or UTF-8 (utf8 true, as Get_Utf8).
+    // The values are inserted as given. The rules of Format apply.
+    std::string Expand(const char* key, const t_args& args, bool utf8);
+    // Format for UTF-8 (the template from Get_Utf8).
+    void Format_Utf8(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args);
 
     // Reads texts/en.json5 and texts/ru.json5 through the VFS (every layer, a mod over the base), once.
     // Call at startup after the configuration; a language change needs a restart. A broken file logs one

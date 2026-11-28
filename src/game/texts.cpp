@@ -17,6 +17,7 @@ namespace texts {
         using t_table = std::map<std::string, std::string, std::less<>>;
         t_table english;
         t_table russian;
+        t_table russian_utf8;  // the same Russian texts as written, for the Unicode windows
         std::set<std::string> reported;  // missing keys already logged
         bool loaded = false;
 
@@ -69,6 +70,7 @@ namespace texts {
             if (russian_text && !text_language::From_Utf8(entry.second, &bytes)) {
                 SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "texts: %s: %s has a character outside CP866", origin, entry.first.c_str());
             }
+            if (russian_text) russian_utf8[entry.first] = entry.second;
             (russian_text ? russian : english)[entry.first] = std::move(bytes);
         }
         return true;
@@ -105,6 +107,7 @@ namespace texts {
     void Reset() {
         english.clear();
         russian.clear();
+        russian_utf8.clear();
         reported.clear();
         loaded = false;
     }
@@ -118,6 +121,61 @@ namespace texts {
         if (const char* text = Find_(english, key)) return text;
         Report_Missing_(key);
         return key;
+    }
+
+    const char* Get_Utf8(const char* key) {
+        if (!key) return "";
+        if (!loaded) Load();
+        if (text_language::language == text_language::LANGUAGE_RU) {
+            if (const char* text = Find_(russian_utf8, key)) return text;
+        }
+        if (const char* text = Find_(english, key)) return text;
+        Report_Missing_(key);
+        return key;
+    }
+
+    namespace {
+        // The text with its {name} placeholders replaced; `lookup` gives the value of a name or nullptr.
+        template <typename Lookup>
+        std::string Substitute_(std::string_view text, Lookup lookup) {
+            std::string result;
+            for (size_t i = 0; i < text.size();) {
+                if (text[i] == '{') {
+                    const size_t close = text.find('}', i + 1);
+                    if (close != std::string_view::npos) {
+                        if (const std::string* value = lookup(text.substr(i + 1, close - i - 1))) {
+                            result += *value;
+                            i = close + 1;
+                            continue;
+                        }
+                    }
+                }
+                result += text[i++];
+            }
+            return result;
+        }
+
+        void Copy_Cut_(char* out, size_t size, const std::string& result) {
+            const size_t n = std::min(result.size(), size - 1);
+            memcpy(out, result.data(), n);
+            out[n] = '\0';
+        }
+    } // namespace
+
+    std::string Expand(const char* key, const t_args& args, bool utf8) {
+        const std::string_view text = utf8 ? Get_Utf8(key) : Get(key);
+        return Substitute_(text, [&](std::string_view name) -> const std::string* {
+            for (const auto& arg : args) {
+                if (name == arg.first) return &arg.second;
+            }
+            return nullptr;
+        });
+    }
+
+    void Format_Utf8(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args) {
+        if (!out || size == 0) return;
+        const t_args list(args.begin(), args.end());
+        Copy_Cut_(out, size, Expand(key, list, true));
     }
 
     void Format(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args) {

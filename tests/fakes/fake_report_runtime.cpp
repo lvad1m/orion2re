@@ -410,3 +410,12 @@ namespace choices {
         return 0;
     }
 } // namespace choices
+
+// The mentat is not under test here (tests/unit/mentat_test.cpp is).
+namespace mentat {
+    void Turn_Start(int16_t) {
+    }
+    int8_t Alert_Step(int16_t, bool) {
+        return 0;
+    }
+} // namespace mentat

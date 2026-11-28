@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #include "game/choices.h"
+#include "game/mentat.h"
 
 namespace REPORT {
     uint8_t no_outpost_prompt;
@@ -341,6 +342,9 @@ namespace REPORT {
     int8_t __cdecl Display_Report_Aux(int16_t player_idx, uint8_t show_ui) {
         int8_t status;
 
+        // The mentat (off by default) builds the human's summary once at the start of the turn, before anything is shown.
+        mentat::Turn_Start(player_idx);
+
         if (((done_player_reports >> (uint8_t)player_idx) & 1) != 0) {
             return 0;
         }
@@ -361,6 +365,7 @@ namespace REPORT {
         if ((status = OFFICER::Officer_Made_Level_Report(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Has_Diplomacy_Messages(player_idx, show_ui != 0)) != 0) return status;
         if ((status = choices::Has_Pending(player_idx, show_ui != 0)) != 0) return status;
+        if ((status = mentat::Alert_Step(player_idx, show_ui != 0)) != 0) return status;  // the mentat's alert line (off by default)
         if ((status = Has_Msg(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Empty_Colony_Queue(player_idx, (int8_t)show_ui)) != 0) return status;
         if ((status = Need_To_Set_Occupation_Policy(player_idx, (int8_t)show_ui)) != 0) return status;

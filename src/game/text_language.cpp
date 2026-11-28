@@ -152,6 +152,40 @@ namespace text_language {
         return false;
     }
 
+    std::string To_Utf8(std::string_view bytes) {
+        // The code point of each CP866 byte, built once from Cp866_From_Codepoint.
+        static const std::array<uint16_t, 256> table = [] {
+            std::array<uint16_t, 256> t{};
+            for (uint32_t i = 0; i < 128; ++i) t[i] = static_cast<uint16_t>(i);
+            for (uint32_t codepoint = 0x80; codepoint < 0x2600; ++codepoint) {
+                uint8_t byte = 0;
+                if (Cp866_From_Codepoint(codepoint, &byte) && byte >= 0x80) t[byte] = static_cast<uint16_t>(codepoint);
+            }
+            return t;
+        }();
+        std::string out;
+        out.reserve(bytes.size());
+        for (const char c : bytes) {
+            const uint8_t byte = static_cast<uint8_t>(c);
+            if (byte < 0x80 || language != LANGUAGE_RU) {
+                out += byte < 0x80 ? c : '?';
+                continue;
+            }
+            const uint32_t codepoint = table[byte];
+            if (codepoint == 0) {
+                out += '?';
+            } else if (codepoint < 0x800) {
+                out += static_cast<char>(0xC0 | (codepoint >> 6));
+                out += static_cast<char>(0x80 | (codepoint & 0x3F));
+            } else {
+                out += static_cast<char>(0xE0 | (codepoint >> 12));
+                out += static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F));
+                out += static_cast<char>(0x80 | (codepoint & 0x3F));
+            }
+        }
+        return out;
+    }
+
     size_t Decode_Utf8(std::string_view text, size_t index, uint32_t* codepoint) {
         if (index >= text.size()) return 0;
         const auto lead = (unsigned char)text[index];

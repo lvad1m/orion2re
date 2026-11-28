@@ -506,12 +506,14 @@ namespace launcher {
         if (preset == PRESET_ALL_NEW && list != nullptr) {
             // The numbers of the author's playtest configuration (27.11.2026, the benches' "all"): every spy
             // operation, the spy network's growth by the target's size, the weariness that stops a computer's
-            // new wars, the advisor's full journal (the chronicle reads it). The mechanics page has no number
-            // boxes yet, so the preset writes them itself.
+            // new wars, the advisor's full journal (the chronicle reads it), the mentat's turn summary (the author's
+            // answer of 28.11.2026: "ментат: F9, сводка"; the panel is local to the player). The mechanics page has no
+            // number boxes yet, so the preset writes them itself.
             Line_(&out, "spy operations = 16383;");
             Line_(&out, "spy network_size_step = 8;");
             Line_(&out, "diplomacy memory_weary_limit = 30;");
             Line_(&out, "advisor journal = full;");
+            Line_(&out, "interface mentat = summary;");
         }
         if (settings.language == LANGUAGE_RUSSIAN) Line_(&out, "interface language = ru;");
         return out;

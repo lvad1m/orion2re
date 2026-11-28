@@ -57,5 +57,17 @@ namespace debug_overlay {
     bool Register_Screen_Panel(int16_t screen_id, panel_callback callback);
     bool Register_Global_Panel(panel_callback callback);
     bool Register_Global_Pane(const char* label, panel_callback callback);
+    // True while the overlay wants the operating system's cursor and the game must not see the mouse: the debugger is
+    // open, or the mentat panel is open and the mouse is over it.
     bool Visible();
+
+    // The mentat panel (mentat_panel.cpp): a window of its own, drawn without the debugger and toggled by F9.
+    // `available` says whether F9 is live (the mentat setting is on, not a network game); `take_open_request` is asked
+    // every frame and opens the panel by itself when it answers true; `draw` draws the window while it is open (with
+    // the mentat's Cyrillic font when a system font was found). Only the panel's own area captures the mouse; other
+    // keys and the rest of the screen go to the game.
+    using mentat_available = bool (*)();
+    void Register_Mentat_Window(mentat_available available, mentat_available take_open_request, panel_callback draw);
+    bool Mentat_Visible();
+    void Set_Mentat_Visible(bool visible);
 } // namespace debug_overlay

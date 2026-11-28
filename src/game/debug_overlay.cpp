@@ -1,6 +1,7 @@
 #include "pch.h"
 
 #if defined(ORION2RE_ENABLE_DEBUG_OVERLAY)
+#include <filesystem>
 #include <imgui.h>
 #include "proggy_tiny_font.h"
 #endif
@@ -105,6 +106,15 @@ namespace debug_overlay {
         SDL_AtomicInt g_visible;
         int16_t g_last_panel_screen = k_all_screens;
 
+        // The mentat panel (mentat_panel.cpp): its own window and font, not part of the debugger.
+        constexpr float k_mentat_font_size = 18.0f;
+        mentat_available g_mentat_available;
+        mentat_available g_mentat_take_open_request;
+        panel_callback g_mentat_draw;
+        ImFont* g_mentat_font;
+        SDL_AtomicInt g_mentat_visible;
+        SDL_AtomicInt g_mentat_hovered;  // the mouse is over the panel (set by the game thread each frame)
+
         std::vector<s_panel_entry>& Panel_Registry() {
             static std::vector<s_panel_entry> panels;
             return panels;
@@ -121,6 +131,33 @@ namespace debug_overlay {
 
         bool Enabled() {
             return g_enabled != 0;
+        }
+
+        bool Mentat_Available() {
+            return g_mentat_available != nullptr && g_mentat_available();
+        }
+
+        // The overlay does something: the debugger is enabled or the mentat panel is available.
+        bool Active() {
+            return Enabled() || Mentat_Available();
+        }
+
+        bool Debugger_Visible() {
+            return Enabled() && SDL_GetAtomicInt(&g_visible) != 0;
+        }
+
+        bool Mentat_Open() {
+            return Mentat_Available() && SDL_GetAtomicInt(&g_mentat_visible) != 0;
+        }
+
+        // Something is drawn (and input reaches the overlay).
+        bool Drawing() {
+            return Debugger_Visible() || Mentat_Open();
+        }
+
+        // The overlay takes the mouse: the whole screen for the debugger, the panel's area for the mentat.
+        bool Captures_Mouse() {
+            return Debugger_Visible() || (Mentat_Open() && SDL_GetAtomicInt(&g_mentat_hovered) != 0);
         }
 
         void Enqueue(const s_input_event& event) {
@@ -422,6 +459,35 @@ namespace debug_overlay {
             (float)g_font_size,
             &font_config);
 
+        // The mentat's font: a system font with Cyrillic (Segoe UI or Arial on Windows, DejaVu Sans on Linux), as the
+        // launcher does; without one the panel is drawn in the debugger's font and Russian shows as '?'.
+        g_mentat_font = nullptr;
+        {
+            const char* candidates[] = {
+#if defined(_WIN32)
+                "C:\\Windows\\Fonts\\segoeui.ttf",
+                "C:\\Windows\\Fonts\\arial.ttf",
+#else
+                "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+                "/usr/share/fonts/TTF/DejaVuSans.ttf",
+                "/usr/share/fonts/dejavu/DejaVuSans.ttf",
+#endif
+            };
+            for (const char* path : candidates) {
+                std::error_code code;
+                if (!std::filesystem::exists(path, code)) {
+                    continue;
+                }
+                ImFontConfig cyrillic_config = {};
+                cyrillic_config.GlyphRanges = io.Fonts->GetGlyphRangesCyrillic();
+                cyrillic_config.RasterizerDensity = std::max(Ui_Scale(), 1.0f);
+                g_mentat_font = io.Fonts->AddFontFromFileTTF(path, k_mentat_font_size, &cyrillic_config);
+                if (g_mentat_font != nullptr) {
+                    break;
+                }
+            }
+        }
+
         unsigned char* pixels = nullptr;
         int32_t width = 0;
         int32_t height = 0;
@@ -445,6 +511,8 @@ namespace debug_overlay {
         g_input_write = 0;
         g_last_frame_ticks = 0;
         SDL_SetAtomicInt(&g_visible, 0);
+        SDL_SetAtomicInt(&g_mentat_visible, 0);
+        SDL_SetAtomicInt(&g_mentat_hovered, 0);
         return true;
     }
 
@@ -469,11 +537,14 @@ namespace debug_overlay {
         g_pending_packet.Clear();
         g_published_packet.Clear();
         g_present_packet.Clear();
+        g_mentat_font = nullptr;
         SDL_SetAtomicInt(&g_visible, 0);
+        SDL_SetAtomicInt(&g_mentat_visible, 0);
+        SDL_SetAtomicInt(&g_mentat_hovered, 0);
     }
 
     void Handle_Display_Size(int32_t width, int32_t height) {
-        if (!Initialized() || !Enabled() || width <= 0 || height <= 0) {
+        if (!Initialized() || !Active() || width <= 0 || height <= 0) {
             return;
         }
 
@@ -485,7 +556,16 @@ namespace debug_overlay {
     }
 
     bool Handle_Key_Event(const SDL_KeyboardEvent& event, SDL_Window* window) {
-        if (!Initialized() || !Enabled()) {
+        if (!Initialized() || !Active()) {
+            return false;
+        }
+
+        if (event.down && !event.repeat && event.key == SDLK_F9 && Mentat_Available()) {
+            Set_Mentat_Visible(SDL_GetAtomicInt(&g_mentat_visible) == 0);
+            return true;
+        }
+
+        if (!Enabled()) {
             return false;
         }
 
@@ -511,7 +591,7 @@ namespace debug_overlay {
             return true;
         }
 
-        if (!Visible()) {
+        if (!Debugger_Visible()) {
             return false;
         }
 
@@ -526,7 +606,7 @@ namespace debug_overlay {
     }
 
     bool Handle_Text_Input(const char* text) {
-        if (!Initialized() || !Enabled() || !Visible() || text == nullptr) {
+        if (!Initialized() || !Enabled() || !Debugger_Visible() || text == nullptr) {
             return false;
         }
 
@@ -544,7 +624,7 @@ namespace debug_overlay {
         float raw_y,
         int32_t raw_width,
         int32_t raw_height) {
-        if (!Initialized() || !Enabled() || !Visible()) {
+        if (!Initialized() || !Active() || !Drawing()) {
             return false;
         }
 
@@ -557,7 +637,7 @@ namespace debug_overlay {
         input.display_width = raw_width;
         input.display_height = raw_height;
         Enqueue(input);
-        return true;
+        return Captures_Mouse();
     }
 
     bool Handle_Mouse_Button(
@@ -569,7 +649,7 @@ namespace debug_overlay {
         float raw_y,
         int32_t raw_width,
         int32_t raw_height) {
-        if (!Initialized() || !Enabled() || !Visible()) {
+        if (!Initialized() || !Active() || !Drawing()) {
             return false;
         }
 
@@ -582,7 +662,7 @@ namespace debug_overlay {
             imgui_button = ImGuiMouseButton_Middle;
         }
         if (imgui_button < 0) {
-            return true;
+            return Captures_Mouse();
         }
 
         s_input_event input = {};
@@ -596,11 +676,11 @@ namespace debug_overlay {
         input.display_width = raw_width;
         input.display_height = raw_height;
         Enqueue(input);
-        return true;
+        return Captures_Mouse();
     }
 
     bool Handle_Mouse_Wheel(float x, float y) {
-        if (!Initialized() || !Enabled() || !Visible()) {
+        if (!Initialized() || !Active() || !Drawing()) {
             return false;
         }
 
@@ -609,11 +689,11 @@ namespace debug_overlay {
         input.x = x;
         input.y = y;
         Enqueue(input);
-        return true;
+        return Captures_Mouse();
     }
 
     void Handle_Focus(bool focused) {
-        if (!Initialized() || !Enabled()) {
+        if (!Initialized() || !Active()) {
             return;
         }
 
@@ -624,14 +704,20 @@ namespace debug_overlay {
     }
 
     void Build_Game_Frame() {
-        if (!Initialized() || !Enabled()) {
+        if (!Initialized() || !Active()) {
             SDL_SetAtomicInt(&g_visible, 0);
+            SDL_SetAtomicInt(&g_mentat_visible, 0);
+            SDL_SetAtomicInt(&g_mentat_hovered, 0);
             return;
         }
 
         ImGui::SetCurrentContext(g_context);
         Drain_Input();
-        if (!Visible()) {
+        // The mentat opens its panel by itself at the start of a turn, as its settings say.
+        if (Mentat_Available() && g_mentat_take_open_request != nullptr && g_mentat_take_open_request()) {
+            Set_Mentat_Visible(true);
+        }
+        if (!Drawing()) {
             g_pending_packet.Clear();
             g_last_panel_screen = k_all_screens;
             return;
@@ -661,16 +747,29 @@ namespace debug_overlay {
             MOX::PLAYER_NUM,
             MOX::current_screen != g_last_panel_screen,
         };
-        Draw_Default_Panel(panel_context);
-        for (const s_panel_entry& panel : Panel_Registry()) {
-            if (panel.screen_id == k_all_screens || panel.screen_id == panel_context.screen_id) {
-                panel.callback(panel_context);
+        const bool debugger_on = Debugger_Visible();
+        if (debugger_on) {
+            Draw_Default_Panel(panel_context);
+            for (const s_panel_entry& panel : Panel_Registry()) {
+                if (panel.screen_id == k_all_screens || panel.screen_id == panel_context.screen_id) {
+                    panel.callback(panel_context);
+                }
+            }
+        }
+        if (Mentat_Open() && g_mentat_draw != nullptr) {
+            if (g_mentat_font != nullptr) {
+                ImGui::PushFont(g_mentat_font, g_mentat_font->LegacySize);
+            }
+            g_mentat_draw(panel_context);
+            if (g_mentat_font != nullptr) {
+                ImGui::PopFont();
             }
         }
         g_last_panel_screen = MOX::current_screen;
+        SDL_SetAtomicInt(&g_mentat_hovered, ImGui::GetIO().WantCaptureMouse ? 1 : 0);
         ImGui::Render();
 
-        if (Visible()) {
+        if (Drawing()) {
             Copy_Draw_Data(*ImGui::GetDrawData());
         } else {
             g_pending_packet.Clear();
@@ -678,7 +777,7 @@ namespace debug_overlay {
     }
 
     void Publish_Game_Frame(uint32_t generation) {
-        if (!Initialized() || !Enabled()) {
+        if (!Initialized() || !Active()) {
             return;
         }
 
@@ -689,7 +788,7 @@ namespace debug_overlay {
     }
 
     void Render_Published_Frame(SDL_Renderer* renderer, uint32_t generation) {
-        if (!Initialized() || !Enabled() || renderer == nullptr || g_font_texture == nullptr || !Visible()) {
+        if (!Initialized() || !Active() || renderer == nullptr || g_font_texture == nullptr || !Drawing()) {
             return;
         }
 
@@ -797,8 +896,35 @@ namespace debug_overlay {
         (void)Register_Global_Pane(label, callback);
     }
 
+    void Register_Mentat_Window(mentat_available available, mentat_available take_open_request, panel_callback draw) {
+        g_mentat_available = available;
+        g_mentat_take_open_request = take_open_request;
+        g_mentat_draw = draw;
+    }
+
+    bool Mentat_Visible() {
+        return Mentat_Open();
+    }
+
+    void Set_Mentat_Visible(bool visible) {
+        if (!Initialized() || SDL_GetAtomicInt(&g_mentat_visible) == (visible ? 1 : 0)) {
+            return;
+        }
+        if (!visible) {
+            s_input_event reset = {};
+            reset.type = INPUT_RESET;
+            Enqueue(reset);
+            SDL_SetAtomicInt(&g_mentat_hovered, 0);
+        }
+        SDL_LockMutex(g_draw_mutex);
+        g_published_packet.Clear();
+        g_present_packet.Clear();
+        SDL_UnlockMutex(g_draw_mutex);
+        SDL_SetAtomicInt(&g_mentat_visible, visible ? 1 : 0);
+    }
+
     bool Visible() {
-        return Enabled() && SDL_GetAtomicInt(&g_visible) != 0;
+        return Active() && Captures_Mouse();
     }
 #else
     bool Initialize(SDL_Renderer* renderer) {
@@ -912,6 +1038,20 @@ namespace debug_overlay {
         panel_callback callback) {
         (void)label;
         (void)callback;
+    }
+
+    void Register_Mentat_Window(mentat_available available, mentat_available take_open_request, panel_callback draw) {
+        (void)available;
+        (void)take_open_request;
+        (void)draw;
+    }
+
+    bool Mentat_Visible() {
+        return false;
+    }
+
+    void Set_Mentat_Visible(bool visible) {
+        (void)visible;
     }
 
     bool Visible() {

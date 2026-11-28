@@ -56,6 +56,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/projects_config.cpp
     src/game/wanderers_config.cpp
     src/game/choices_config.cpp
+    src/game/mentat_config.cpp
     src/game/incidents_config.cpp
     src/game/overtures_config.cpp
     src/game/ultimatums_config.cpp
@@ -1098,6 +1099,10 @@ orion2re_add_game_test(test_choices
 
 orion2re_add_game_test(test_texts
     tests/unit/texts_test.cpp
+)
+
+orion2re_add_game_test(test_mentat
+    tests/unit/mentat_test.cpp
 )
 
 orion2re_add_game_test(test_overtures

@@ -41,6 +41,11 @@ namespace text_language {
     // Decodes the UTF-8 character at text[index]. Returns its length in bytes, 0 when it is malformed.
     size_t Decode_Utf8(std::string_view text, size_t index, uint32_t* codepoint);
 
+    // The game's bytes to UTF-8, for a window that draws UTF-8 (the mentat panel): with LANGUAGE_RU the CP866
+    // bytes of Cyrillic (and the pseudographics) become their characters, anything else above 0x7F becomes '?';
+    // with LANGUAGE_EN and for ASCII the bytes stay as they are. Pure.
+    std::string To_Utf8(std::string_view bytes);
+
     // UTF-8 to the CP866 bytes of the Russian text files: ASCII as is, Cyrillic and pseudographics to
     // CP866, anything else (and malformed input) to '?'. Returns false when something became '?'.
     bool From_Utf8(std::string_view utf8, std::string* bytes);

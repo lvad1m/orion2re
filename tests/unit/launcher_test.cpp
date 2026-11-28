@@ -196,6 +196,8 @@ DOCTEST_TEST_CASE("the preset All new mechanics is Living rivals plus every box 
     DOCTEST_CHECK(Has_(all, "\nspy network_size_step = 8;\n"));
     DOCTEST_CHECK(Has_(all, "\ndiplomacy memory_weary_limit = 30;\n"));
     DOCTEST_CHECK(Has_(all, "\nadvisor journal = full;\n"));
+    DOCTEST_CHECK(Has_(all, "\ninterface mentat = summary;\n"));
+    DOCTEST_CHECK(!Has_(launcher::Build_User_Cfg(Settings_(launcher::PRESET_LIVING_RIVALS), &list), "interface mentat"));
     for (const launcher::s_mechanic_category& category : list.categories) {
         for (const launcher::s_mechanic_ref& ref : category.settings) {
             DOCTEST_INFO("box " << ref.name_space << " " << ref.name);
