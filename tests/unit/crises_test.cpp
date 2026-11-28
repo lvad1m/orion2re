@@ -11,6 +11,7 @@
 #include "game/serialization.h"
 
 #include <memory>
+#include <vector>
 
 namespace {
     struct s_crises_scope {
@@ -21,6 +22,8 @@ namespace {
         test::s_saved_value<bool> situations{crises::situations};
         test::s_saved_value<bool> front{crises::crisis_front};
         test::s_saved_value<bool> become{crises::become_crisis};
+        test::s_saved_value<bool> by_government{crises::weariness_by_government};
+        test::s_saved_value<bool> by_aggressor{crises::weariness_by_aggressor};
         test::s_saved_value<int32_t> strength{crises::front_strength};
         test::s_saved_value<decltype(MOX::settings.xenons_exist)> xenons{MOX::settings.xenons_exist};
         test::s_saved_value<int16_t> resource{MOX::antarans.resource_offensive};
@@ -35,6 +38,8 @@ namespace {
             crises::situations = false;
             crises::crisis_front = false;
             crises::become_crisis = false;
+            crises::weariness_by_government = false;
+            crises::weariness_by_aggressor = false;
             crises::front_strength = 0;
         }
         ~s_crises_scope() {
@@ -517,6 +522,221 @@ DOCTEST_TEST_CASE("decision 5: war weariness grows by 3, only in a long war or a
     state.players[0].treaty[1] = 0;
     crises::Turn();
     DOCTEST_CHECK(crises::Extra()->war_since[0] == 0);
+}
+
+// Решение автора 28.11.2026 (iterations.md): war weariness by government and by who attacked.
+namespace {
+    // Player 0 is at war with player 1 for a long time (the war presses), the scale stands at `start` with no approach.
+    void Weary_Setup_(test::s_game_state* state, int8_t government, int32_t start) {
+        Setup_(state);
+        crises::situations = true;
+        MOX::stardate = 35020;  // before the academies' first turn: no dice here
+        state->players[0].treaty[1] = 4;
+        state->players[1].treaty[0] = 4;  // the books agree: the war is on both sides
+        state->players[0].traits[TRAIT_CURRENT_GOVERNMENT] = government;
+        crises::Extra()->war_since[0] = 35000;  // 20 turns: long
+        crises::s_scale& scale = crises::Extra()->scale[0];
+        scale.kind = crises::SCALE_WAR_WEARINESS;
+        scale.player = 0;
+        scale.value = static_cast<int16_t>(start);
+        scale.started = 35000;
+        scale.approach = 2;  // carry on: no price, no relief
+    }
+
+    // The growth of each of `turns` turns, as the scale's change (a value held at `start`).
+    std::vector<int32_t> Weary_Run_(int32_t turns, int32_t start) {
+        std::vector<int32_t> growth;
+        for (int32_t i = 0; i < turns; ++i) {
+            crises::Extra()->scale[0].value = static_cast<int16_t>(start);
+            crises::Extra()->scale[0].approach = 2;
+            crises::Turn();
+            growth.push_back(crises::Extra()->scale[0].value - start);
+            MOX::stardate += 0;  // the same turn again: the step is per call
+        }
+        return growth;
+    }
+
+    int32_t Sum_(const std::vector<int32_t>& v) {
+        int32_t s = 0;
+        for (int32_t x : v) s += x;
+        return s;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("war weariness by government: each government's growth, the carried fraction and the fade") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    crises::weariness_by_government = true;
+    const struct { int8_t government; int32_t first_four; } cases[] = {
+        {GOVERNMENT_FEUDAL, 12}, {GOVERNMENT_CONFEDERATION, 12},          // 3, 3, 3, 3
+        {GOVERNMENT_DICTATORSHIP, 9}, {GOVERNMENT_IMPERIUM, 9},           // 2.25 a turn: 9 over four
+        {GOVERNMENT_DEMOCRACY, 18}, {GOVERNMENT_FEDERATION, 18},          // 4.5 a turn: 18 over four
+        {GOVERNMENT_UNIFICATION, 6}, {GOVERNMENT_GALACTIC_UNIFICATION, 6}, // 1.5 a turn: 6 over four
+    };
+    for (const auto& c : cases) {
+        crises::Clear();
+        Weary_Setup_(&state, c.government, 10);
+        const std::vector<int32_t> growth = Weary_Run_(4, 10);
+        DOCTEST_CHECK_MESSAGE(Sum_(growth) == c.first_four, "government " << (int)c.government);
+    }
+    // The fraction: a democracy's 4.5 goes 4, 5, 4, 5; a dictatorship's 2.25 goes 2, 2, 2, 3.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DEMOCRACY, 10);
+    DOCTEST_CHECK(Weary_Run_(4, 10) == std::vector<int32_t>({4, 5, 4, 5}));
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DICTATORSHIP, 10);
+    DOCTEST_CHECK(Weary_Run_(4, 10) == std::vector<int32_t>({2, 2, 2, 3}));
+    DOCTEST_CHECK(crises::Weariness_Growth(0) == 2);  // the window shows the rounded growth
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DEMOCRACY, 10);
+    DOCTEST_CHECK(crises::Weariness_Growth(0) == 5);
+    // The fade: democracy and federation forget slowly (1), the rest as before (2).
+    for (int8_t government : {GOVERNMENT_DEMOCRACY, GOVERNMENT_FEDERATION, GOVERNMENT_FEUDAL, GOVERNMENT_UNIFICATION}) {
+        crises::Clear();
+        Weary_Setup_(&state, government, 10);
+        state.players[0].treaty[1] = 0;  // peace
+        crises::Turn();
+        const bool slow = government == GOVERNMENT_DEMOCRACY || government == GOVERNMENT_FEDERATION;
+        DOCTEST_CHECK_MESSAGE(crises::Extra()->scale[0].value == 10 - (slow ? 1 : crises::WEARY_FADE), "government " << (int)government);
+    }
+    // Flag off: a democracy grows 3 and fades 2 like any other.
+    crises::weariness_by_government = false;
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DEMOCRACY, 10);
+    DOCTEST_CHECK(Weary_Run_(2, 10) == std::vector<int32_t>({3, 3}));
+    DOCTEST_CHECK(crises::Extra()->weary_rest[0] == 0);
+    state.players[0].treaty[1] = 0;
+    crises::Extra()->scale[0].value = 10;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Extra()->scale[0].value == 10 - crises::WEARY_FADE);
+}
+
+DOCTEST_TEST_CASE("war weariness by who attacked: the aggressor 125, the defender 75, no record 100, both multiply, the record ends with the war") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    crises::weariness_by_aggressor = true;
+    // The attacker (player 0 declared): 3.75 a turn, exactly 15 over four turns.
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    crises::On_War_Declared(0, 1);
+    DOCTEST_CHECK(crises::Extra()->declared[0] == 2);
+    DOCTEST_CHECK(Sum_(Weary_Run_(4, 10)) == 15);
+    // The defender (player 1 declared): 2.25 a turn, 9 over four.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    crises::On_War_Declared(1, 0);
+    DOCTEST_CHECK(Sum_(Weary_Run_(4, 10)) == 9);
+    // No record (a war from before the record): 100 per cent, and no carried fraction.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    DOCTEST_CHECK(Weary_Run_(3, 10) == std::vector<int32_t>({3, 3, 3}));
+    DOCTEST_CHECK(crises::Extra()->weary_rest[0] == 0);
+    // Two wars, one declared by us and one on us: the aggressor's number.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    MOX::NUM_PLAYERS = 3;
+    for (int j = 0; j < 3; ++j) {
+        state.players[2].contact[j] = j == 2 ? 0 : 1;
+        state.players[j].contact[2] = j == 2 ? 0 : 1;
+    }
+    state.players[0].treaty[2] = 4;
+    state.players[2].treaty[0] = 4;
+    crises::On_War_Declared(1, 0);
+    crises::On_War_Declared(0, 2);
+    DOCTEST_CHECK(Sum_(Weary_Run_(4, 10)) == 15);
+    // Only wars that press count: a short war with a weaker enemy declared by us does not make us the aggressor.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    MOX::NUM_PLAYERS = 3;
+    for (int j = 0; j < 3; ++j) {
+        state.players[2].contact[j] = j == 2 ? 0 : 1;
+        state.players[j].contact[2] = j == 2 ? 0 : 1;
+    }
+    state.players[0].treaty[2] = 4;
+    state.players[2].treaty[0] = 4;
+    state.players[1].total_ship_strength[0] = 50;  // 1 is stronger than nothing of ours
+    crises::On_War_Declared(1, 0);
+    crises::On_War_Declared(0, 2);
+    crises::Extra()->war_since[0] = 35015;  // a short war: only strong enemies press
+    state.players[0].total_ship_strength[1] = 10;
+    state.players[1].total_ship_strength[0] = 100;  // 1 presses
+    state.players[0].total_ship_strength[2] = 100;
+    state.players[2].total_ship_strength[0] = 0;    // 2 does not
+    DOCTEST_CHECK(Sum_(Weary_Run_(4, 10)) == 9);
+    // Both flags: a democracy that attacked grows 3 * 1.5 * 1.25 = 5.625 a turn: 45 over eight turns.
+    crises::weariness_by_government = true;
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DEMOCRACY, 10);
+    crises::On_War_Declared(0, 1);
+    DOCTEST_CHECK(Sum_(Weary_Run_(8, 10)) == 45);
+    // And a defending dictatorship: 3 * 0.75 * 0.75 = 1.6875 a turn: 27 over sixteen turns.
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_DICTATORSHIP, 10);
+    crises::On_War_Declared(1, 0);
+    DOCTEST_CHECK(Sum_(Weary_Run_(16, 10)) == 27);
+    // The record ends with the war: at peace the bit goes.
+    crises::weariness_by_government = false;
+    crises::Clear();
+    Weary_Setup_(&state, GOVERNMENT_FEUDAL, 10);
+    crises::On_War_Declared(0, 1);
+    state.players[0].treaty[1] = 0;
+    crises::Turn();
+    DOCTEST_CHECK(crises::Extra()->declared[0] == 0);
+}
+
+DOCTEST_TEST_CASE("war weariness by who attacked: with a flag off nothing is recorded and the scale is as before; the record saves") {
+    s_crises_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    crises::situations = true;
+    crises::On_War_Declared(0, 1);  // by_aggressor off: no record, no state
+    DOCTEST_CHECK(crises::Extra_Empty());
+    crises::weariness_by_aggressor = true;
+    crises::situations = false;
+    crises::On_War_Declared(0, 1);  // situations off: no record either
+    DOCTEST_CHECK(crises::Extra_Empty());
+    crises::situations = true;
+    crises::On_War_Declared(0, 0);  // nonsense
+    crises::On_War_Declared(-1, 1);
+    DOCTEST_CHECK(crises::Extra_Empty());
+    // With only the old state the payload is still version 4.
+    crises::Extra()->threat[0] = 5;
+    {
+        const uint32_t size = crises::Save_Size();
+        auto buffer = std::make_unique<uint8_t[]>(size);
+        SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+        crises::Write_Save(&writer);
+        DOCTEST_REQUIRE(writer.Length() == size);
+        DOCTEST_CHECK(buffer[0] == 4);
+        // A version 4 payload reads: the new fields stay empty.
+        crises::Clear();
+        SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+        std::string error;
+        DOCTEST_REQUIRE(crises::Parse_Save(&reader, &error));
+        crises::Commit_Save();
+        DOCTEST_CHECK(crises::Extra()->threat[0] == 5);
+        DOCTEST_CHECK(crises::Extra()->declared[0] == 0);
+    }
+    // Round trip with a declarer and a carried fraction: version 5.
+    crises::Clear();
+    crises::On_War_Declared(0, 1);
+    crises::Extra()->weary_rest[1] = 7500;
+    const uint32_t size = crises::Save_Size();
+    auto buffer = std::make_unique<uint8_t[]>(size);
+    SERIAL::Writer_ writer(buffer.get(), size, "test overflow");
+    crises::Write_Save(&writer);
+    DOCTEST_REQUIRE(writer.Length() == size);
+    DOCTEST_CHECK(buffer[0] == 5);
+    crises::Clear();
+    SERIAL::Reader_ reader(buffer.get(), size, "test underflow", true);
+    std::string error;
+    DOCTEST_REQUIRE(crises::Parse_Save(&reader, &error));
+    crises::Commit_Save();
+    DOCTEST_CHECK(crises::Extra()->declared[0] == 2);
+    DOCTEST_CHECK(crises::Extra()->weary_rest[1] == 7500);
+    // A carried fraction of a whole point or more is refused (the last player's high byte).
+    buffer[size - 1] = 0xff;
+    SERIAL::Reader_ bad(buffer.get(), size, "test underflow", true);
+    DOCTEST_CHECK_FALSE(crises::Parse_Save(&bad, &error));
 }
 
 DOCTEST_TEST_CASE("decision 1: become a crisis has its own flag; the front's flag leaves the threat alone and the threat leaves the front alone") {

@@ -75,6 +75,8 @@
         { namespace: "events", name: "new_events" },
         { namespace: "events", name: "crises" },
         { namespace: "events", name: "situations" },
+        { namespace: "events", name: "weariness_by_government" },
+        { namespace: "events", name: "weariness_by_aggressor" },
         { namespace: "events", name: "crisis_front" },
         { namespace: "events", name: "become_crisis" },
         { namespace: "events", name: "news" },

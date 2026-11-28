@@ -498,6 +498,48 @@ namespace crises {
         return false;
     }
 
+    // Решение автора 28.11.2026 (iterations.md, «усталость от войны по правлению и по тому, кто напал»): the growth is
+    // WEARY_WAR times the government's multiplier (events weariness_by_government) times the aggressor's multiplier
+    // (events weariness_by_aggressor); democracy and federation also fade slower. See the constants in crises.h.
+    bool Remembers_War_(int16_t p) {
+        if (!weariness_by_government) return false;
+        const int8_t government = MOX::player[p].traits[TRAIT_CURRENT_GOVERNMENT];
+        return government == GOVERNMENT_DEMOCRACY || government == GOVERNMENT_FEDERATION;
+    }
+
+    int32_t Government_Percent_(int16_t p) {
+        if (!weariness_by_government) return 100;
+        const int8_t government = MOX::player[p].traits[TRAIT_CURRENT_GOVERNMENT];
+        return government >= 0 && government < GOVERNMENT_COUNT ? WEARY_GOVERNMENT_PERCENT[government] : 100;
+    }
+
+    // The wars that press on the empire: in a long war every war, else the wars with a stronger enemy (War_Presses_).
+    int32_t Aggressor_Percent_(int16_t p, bool long_war) {
+        if (!weariness_by_aggressor) return 100;
+        const s_player& player = MOX::player[p];
+        const s_extra* extra = Extra();
+        int32_t counted = 0;
+        int32_t on_us = 0;
+        for (int16_t o = 0; o < Players_(); ++o) {
+            if (o == p || !Alive_(o) || player.contact[o] == 0 || player.treaty[o] < TREATY_FIRST_WAR) continue;
+            const int64_t theirs = MOX::player[o].total_ship_strength[p];
+            const int64_t ours = player.total_ship_strength[o];
+            if (!long_war && !(theirs > 0 && theirs * 100 >= ours * WEARY_STRONGER_PERCENT)) continue;
+            ++counted;
+            if (((extra->declared[p] >> o) & 1) != 0) return WEARY_AGGRESSOR_PERCENT;
+            if (((extra->declared[o] >> p) & 1) != 0) ++on_us;
+        }
+        return counted > 0 && on_us == counted ? WEARY_DEFENDER_PERCENT : 100;
+    }
+
+    // The growth in 1/10000 of a point: WEARY_WAR * government per cent * aggressor per cent.
+    int32_t Growth_Basis_(int16_t p, int32_t war_since, int32_t* government, int32_t* aggressor) {
+        const bool long_war = war_since != 0 && MOX::stardate - war_since >= WEARY_LONG_TURNS;
+        *government = Government_Percent_(p);
+        *aggressor = Aggressor_Percent_(p, long_war);
+        return WEARY_WAR * *government * *aggressor;
+    }
+
     // The scale of war weariness of every empire (events-catalog.md 3.9).
     // Решение автора (iterations.md, итерация 2, п. 3): «Усталость от войны: шкала гаснет постепенно, а не падает в ноль, когда война не давит (нет «мигания»); порог долгой войны — 15 ходов вместо 20, чтобы стадии изредка наступали».
     // A war that does not press lets the scale fade by WEARY_FADE a turn; it ends (and is logged) only at 0 while
@@ -523,6 +565,11 @@ namespace crises {
             for (int16_t o = 0; o < Players_(); ++o) {
                 if (o != p && Alive_(o) && player.contact[o] != 0 && player.treaty[o] >= TREATY_FIRST_WAR) at_war = true;
             }
+            for (int16_t o = 0; o < Players_(); ++o) {  // the declarer's record ends with the war
+                if (o == p || !(Alive_(o) && player.contact[o] != 0 && player.treaty[o] >= TREATY_FIRST_WAR)) {
+                    extra->declared[p] = static_cast<uint8_t>(extra->declared[p] & ~(1u << o));
+                }
+            }
             if (!at_war) extra->war_since[p] = 0;
             else if (extra->war_since[p] == 0) extra->war_since[p] = MOX::stardate;
             const bool presses = at_war && War_Presses_(p, extra->war_since[p]);
@@ -535,10 +582,21 @@ namespace crises {
                 Pick_Approach_(*scale);
                 if (Human_Asks_(p)) Ask_Approach_(p);
             }
-            int32_t delta = -WEARY_FADE;
+            int32_t delta = -(Remembers_War_(p) ? WEARY_FADE_LONG_MEMORY : WEARY_FADE);
             if (presses) {
                 const s_approach& approach = APPROACHES[std::clamp<int32_t>(scale->approach, 0, APPROACH_COUNT - 1)];
+                int32_t government = 100;
+                int32_t aggressor = 100;
+                const int32_t basis = Growth_Basis_(p, extra->war_since[p], &government, &aggressor);
                 delta = WEARY_WAR;
+                if (government != 100 || aggressor != 100) {  // a whole number a turn, the fraction carried (no game_random)
+                    const int32_t total = basis + extra->weary_rest[p];
+                    delta = total / 10000;
+                    extra->weary_rest[p] = static_cast<uint16_t>(total % 10000);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
+                        "crises: stardate %d, player %d: war weariness +%d (government %d%%, aggressor %d%%)", (int)MOX::stardate,
+                        (int)p, (int)delta, (int)government, (int)aggressor);
+                }
                 if (player.bc >= approach.cost_bc) {
                     player.bc -= approach.cost_bc;
                     player.research_accumulated = std::max<int32_t>(0, player.research_accumulated - approach.cost_research);
@@ -548,6 +606,7 @@ namespace crises {
             const int32_t stage = Scale_Move(*scale, delta);
             if (scale->value == 0 && !presses) {
                 *scale = s_scale{};
+                extra->weary_rest[p] = 0;
                 Log_Line_("war weariness: the scale ends", p, 0);
                 continue;
             }
@@ -760,6 +819,22 @@ namespace crises {
         return APPROACHES;
     }
 
+    int32_t Weariness_Growth(int16_t player) {
+        if (!situations || !Alive_(player)) return WEARY_WAR;
+        int32_t government = 100;
+        int32_t aggressor = 100;
+        const int32_t basis = Growth_Basis_(player, Extra()->war_since[player], &government, &aggressor);
+        return (basis + 5000) / 10000;
+    }
+
+    void On_War_Declared(int16_t declarer, int16_t target) {
+        if (!situations || !weariness_by_aggressor || declarer < 0 || target < 0 || declarer >= MAX_PLAYERS || target >= MAX_PLAYERS
+            || declarer == target) {
+            return;
+        }
+        Extra()->declared[declarer] = static_cast<uint8_t>(Extra()->declared[declarer] | (1u << target));
+    }
+
     int32_t Choose_Approach(int16_t player) {
         if (!Alive_(player)) return 0;
         switch (MOX::player[player].personality) {
@@ -861,11 +936,12 @@ namespace crises {
                 if (!situations || scale == nullptr) return false;
                 texts::Format(t->title, sizeof(t->title), "choices.crises.approach.title", {});
                 texts::Format(t->body, sizeof(t->body), "choices.crises.approach.body",
-                    {{"value", N(scale->value)}, {"max", N(SCALE_MAX)}, {"fine", N(WEARY_FINE)}, {"turns", N(STRIKE_TURNS)}, {"growth", N(WEARY_WAR)}});
+                    {{"value", N(scale->value)}, {"max", N(SCALE_MAX)}, {"fine", N(WEARY_FINE)}, {"turns", N(STRIKE_TURNS)}, {"growth", N(Weariness_Growth(player))}});
                 const s_approach* approaches = Approaches();
-                Add_Option("choices.crises.approach.option1", {{"bc", N(approaches[0].cost_bc)}, {"net", N(WEARY_WAR - approaches[0].relief)}});
-                Add_Option("choices.crises.approach.option2", {{"rp", N(approaches[1].cost_research)}, {"net", N(WEARY_WAR - approaches[1].relief)}});
-                Add_Option("choices.crises.approach.option3", {{"net", N(WEARY_WAR - approaches[2].relief)}});
+                const int32_t growth = Weariness_Growth(player);
+                Add_Option("choices.crises.approach.option1", {{"bc", N(approaches[0].cost_bc)}, {"net", N(growth - approaches[0].relief)}});
+                Add_Option("choices.crises.approach.option2", {{"rp", N(approaches[1].cost_research)}, {"net", N(growth - approaches[1].relief)}});
+                Add_Option("choices.crises.approach.option3", {{"net", N(growth - approaches[2].relief)}});
                 return true;
             }
             case CHOICE_COUNCIL: {

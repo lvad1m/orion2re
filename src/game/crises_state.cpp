@@ -11,14 +11,15 @@
 namespace crises {
 
     namespace {
-        constexpr uint16_t SAVE_PAYLOAD_VERSION = 4;  // 1: the slots only; 2: the slots and s_extra; 3: s_extra of the threat and the contest; 4: the front's start and the war starts
+        constexpr uint16_t SAVE_PAYLOAD_VERSION = 5;  // 5: who declared and the carried fraction of war weariness; 1: the slots only; 2: the slots and s_extra; 3: s_extra of the threat and the contest; 4: the front's start and the war starts
         constexpr uint32_t SLOT_SIZE = 1 + 1 + 2 + 1 + 4 + 1 + 1;
         constexpr uint32_t SAVE_SIZE_V1 = sizeof(uint16_t) + MAX_ACTIVE * SLOT_SIZE;
         constexpr uint32_t SCALE_SIZE = 1 + 1 + 2 + 4 + 1;
         constexpr uint32_t EXTRA_SIZE_V2 = MAX_SCALES * SCALE_SIZE + MAX_PLAYERS * 1 + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 2;
         constexpr uint32_t EXTRA_SIZE_V3 = MAX_SCALES * SCALE_SIZE + 1 + 4 + MAX_PLAYERS * 2 + MAX_PLAYERS * 2 + MAX_PLAYERS * 1
             + MAX_PLAYERS * 4 + 1 + 4 + MAX_PLAYERS * 4;
-        constexpr uint32_t EXTRA_SIZE = EXTRA_SIZE_V3 + 4 + MAX_PLAYERS * 4;
+        constexpr uint32_t EXTRA_SIZE_V4 = EXTRA_SIZE_V3 + 4 + MAX_PLAYERS * 4;
+        constexpr uint32_t EXTRA_SIZE = EXTRA_SIZE_V4 + MAX_PLAYERS * 1 + MAX_PLAYERS * 2;
 
         s_active slots[MAX_ACTIVE];
         s_active pending[MAX_ACTIVE];
@@ -26,12 +27,20 @@ namespace crises {
         s_extra pending_extra;
         bool has_pending = false;
 
+        // Version 5 only when its two arrays hold something: with the new flags off the save stays version 4.
+        bool Has_Weariness_Extra_(const s_extra& e) {
+            for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                if (e.declared[p] != 0 || e.weary_rest[p] != 0) return true;
+            }
+            return false;
+        }
+
         bool Extra_Is_Empty_(const s_extra& e) {
             for (const s_scale& s : e.scale) {
                 if (s.kind != SCALE_NONE) return false;
             }
             for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
-                if (e.threat[p] != 0 || e.war_mask[p] != 0 || e.strike_until[p] != 0 || e.given[p] != 0 || e.war_since[p] != 0) return false;
+                if (e.threat[p] != 0 || e.war_mask[p] != 0 || e.strike_until[p] != 0 || e.given[p] != 0 || e.war_since[p] != 0 || e.declared[p] != 0 || e.weary_rest[p] != 0) return false;
             }
             return e.front_broken == 0 && e.council_progress == 0 && e.contest_stage == 0 && e.front_start == 0;
         }
@@ -70,12 +79,14 @@ namespace crises {
     // Version 1 (the old layout) while nothing of the wave-4 state is kept, so a save made with the new flags
     // off is the same bytes as before.
     uint32_t Save_Size() {
-        return Extra_Is_Empty_(extra) ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + EXTRA_SIZE;
+        if (Extra_Is_Empty_(extra)) return SAVE_SIZE_V1;
+        return SAVE_SIZE_V1 + (Has_Weariness_Extra_(extra) ? EXTRA_SIZE : EXTRA_SIZE_V4);
     }
 
     void Write_Save(SERIAL::Writer_* writer) {
         const bool with_extra = !Extra_Is_Empty_(extra);
-        writer->Write_Uint16(with_extra ? SAVE_PAYLOAD_VERSION : 1);
+        const bool with_weariness = with_extra && Has_Weariness_Extra_(extra);
+        writer->Write_Uint16(with_weariness ? SAVE_PAYLOAD_VERSION : with_extra ? 4 : 1);
         for (const s_active& s : slots) {
             writer->Write_Uint8(s.crisis);
             writer->Write_Int8(s.player);
@@ -104,6 +115,9 @@ namespace crises {
         for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.baseline[p]);
         writer->Write_Int32(extra.front_start);
         for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Int32(extra.war_since[p]);
+        if (!with_weariness) return;
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint8(extra.declared[p]);
+        for (int32_t p = 0; p < MAX_PLAYERS; ++p) writer->Write_Uint16(extra.weary_rest[p]);
     }
 
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error) {
@@ -115,7 +129,7 @@ namespace crises {
         if (reader == nullptr || reader->Remaining() < sizeof(uint16_t)) return fail("crises save is truncated");
         const uint16_t version = reader->Read_Uint16();
         if (version < 1 || version > SAVE_PAYLOAD_VERSION) return fail("unsupported crises payload version");
-        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + (version == 2 ? EXTRA_SIZE_V2 : version == 3 ? EXTRA_SIZE_V3 : EXTRA_SIZE);
+        const uint32_t expected = version == 1 ? SAVE_SIZE_V1 : SAVE_SIZE_V1 + (version == 2 ? EXTRA_SIZE_V2 : version == 3 ? EXTRA_SIZE_V3 : version == 4 ? EXTRA_SIZE_V4 : EXTRA_SIZE);
         if (reader->Remaining() != expected - sizeof(uint16_t)) return fail("crises save has the wrong size");
         for (s_active& s : pending) {
             s.crisis = reader->Read_Uint8();
@@ -183,6 +197,13 @@ namespace crises {
                 for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
                     pending_extra.war_since[p] = reader->Read_Int32();
                     if (pending_extra.war_since[p] < 0) return fail("crises save has a bad war start");
+                }
+            }
+            if (version >= 5) {
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) pending_extra.declared[p] = reader->Read_Uint8();
+                for (int32_t p = 0; p < MAX_PLAYERS; ++p) {
+                    pending_extra.weary_rest[p] = reader->Read_Uint16();
+                    if (pending_extra.weary_rest[p] >= 10000) return fail("crises save has a bad carried fraction");
                 }
             }
         }

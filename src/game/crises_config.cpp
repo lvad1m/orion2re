@@ -11,6 +11,8 @@ namespace crises {
     bool situations = false;
     bool crisis_front = false;
     bool become_crisis = false;
+    bool weariness_by_government = false;
+    bool weariness_by_aggressor = false;
     int32_t front_strength = 0;
 
 } // namespace crises

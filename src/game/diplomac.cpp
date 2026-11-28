@@ -8,6 +8,7 @@
 #include "game/hostages.h"
 #include "game/news.h"
 #include "game/vassals.h"
+#include "game/crises.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/embargo.h"
@@ -900,6 +901,12 @@ namespace diplomac {
         return war_count;
     }
 
+    namespace {
+        // The engine's own callers disagree on the order of the arguments of Declare_War (it is symmetric): the
+        // incident handlers pass (victim, actor). `declarer` is who really started the war, for crises' war weariness.
+        void Declare_War_By_(int16_t player_idx, int16_t target_idx, int16_t declarer);
+    }
+
     void __cdecl Sneak_Attack_Or_Declare_War(int16_t attacker_idx, int16_t target_idx, int8_t message_idx) {
         // Diplomacy memory: a war-weary empire lets the incident pass.
         if (diplomemory::Too_Weary_For_New_War(attacker_idx)) return;
@@ -923,7 +930,7 @@ namespace diplomac {
         int32_t target_strength = player_ptr[target_idx].total_ship_strength[attacker_idx];
 
         if (((attacker_strength * 4 + 4) * 25) / (target_strength + 1) > 66) {
-            Declare_War(target_idx, attacker_idx);
+            Declare_War_By_(target_idx, attacker_idx, attacker_idx);
             pacts::On_Aggression(attacker_idx, target_idx);
             attacker.diplomacy_message[target_idx] = message_idx + 56;
         }
@@ -1027,7 +1034,7 @@ namespace diplomac {
                                     } else {
                                         player_i.diplomacy_message[j] = (incident == 10) ? 'P' : 'Q';
                                     }
-                                    Declare_War(j, i);
+                                    Declare_War_By_(j, i, i);
                                 }
                                 break;
 
@@ -1135,6 +1142,11 @@ namespace diplomac {
     }
 
     void __cdecl Declare_War(int16_t player_idx, int16_t target_idx) {
+        Declare_War_By_(player_idx, target_idx, player_idx);
+    }
+
+    namespace {
+    void Declare_War_By_(int16_t player_idx, int16_t target_idx, int16_t declarer) {
         s_player* p1 = &MOX::player[player_idx];
         s_player* p2 = &MOX::player[target_idx];
 
@@ -1204,8 +1216,10 @@ namespace diplomac {
             // Opinion modifiers (off by default): the enemies of each side remember the help.
             opinion::On_War_Started(player_idx, target_idx);
             news::Add(news::KIND_WAR, player_idx, target_idx, 0);  // the news ring (off by default)
+            crises::On_War_Declared(declarer, declarer == player_idx ? target_idx : player_idx);  // war weariness by who attacked (off by default)
         }
     }
+    } // namespace
 
     int __cdecl Fleet_Strength_Comparison(int16_t player_idx_1, int16_t player_idx_2) {
         int32_t strength1_v_2 = MOX::player[player_idx_1].total_ship_strength[player_idx_2];
@@ -1773,7 +1787,7 @@ namespace diplomac {
                     if (has_active_bond) {
                         plr->dishonored_flag[target_player] = 1;
                         MOX::player[target_player].dishonored_flag[current_player] = 1;
-                        Declare_War(target_player, current_player);
+                        Declare_War_By_(target_player, current_player, current_player);
                         plr->diplomacy_message[target_player] = 0x42 /* 'B' */;
                         return;
                     }

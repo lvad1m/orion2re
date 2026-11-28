@@ -27,6 +27,8 @@ namespace crises {
     extern bool situations;     // events situations: the situation scale (war weariness) and the academy contest
     extern bool crisis_front;   // events crisis_front: the Antaran front, the council project
     extern bool become_crisis;  // events become_crisis: the threat of atrocities and the galaxy's war on the culprit
+    extern bool weariness_by_government;  // events weariness_by_government: the government sets the scale's growth and fade
+    extern bool weariness_by_aggressor;   // events weariness_by_aggressor: who declared the war sets the scale's growth
     extern int32_t front_strength;  // events crisis_front_strength: the Antaran front's start, 0..100; 0 = no front
 
     enum e_crisis : uint8_t {
@@ -132,6 +134,20 @@ namespace crises {
     constexpr int32_t WEARY_LONG_TURNS = 15;       // a "long" war (decision 3: 15 instead of 20)
     constexpr int32_t WEARY_STRONGER_PERCENT = 120;  // an enemy "stronger": its strength against us / ours against it
     constexpr int32_t WEARY_FADE = 2;              // a few points a turn, gradual (decision 3)
+    // Р РµС€РµРЅРёРµ Р°РІС‚РѕСЂР° 28.11.2026 (iterations.md, В«СѓСЃС‚Р°Р»РѕСЃС‚СЊ РѕС‚ РІРѕР№РЅС‹ РїРѕ РїСЂР°РІР»РµРЅРёСЋ Рё РїРѕ С‚РѕРјСѓ, РєС‚Рѕ РЅР°РїР°Р»В», РІР°СЂРёР°РЅС‚
+    // В«Government + who attackedВ»): the scale grows with a multiplier by the government (events
+    // weariness_by_government) and by who declared the war (events weariness_by_aggressor); the multipliers multiply.
+    // Government, per cent of WEARY_WAR: democracy and federation 150, feudal and confederation 100, dictatorship and
+    // imperium 75, unification and galactic unification 50; democracy and federation also fade at WEARY_FADE_LONG_MEMORY
+    // ("РґРѕР»СЊС€Рµ РїРѕРјРЅСЏС‚"). Aggressor: WEARY_AGGRESSOR_PERCENT when the empire declared at least one of the wars that press
+    // on it, WEARY_DEFENDER_PERCENT when every such war was declared on it; a war with no record (it began before the
+    // record, or the flag was off) counts as declared by both, 100. The growth is a whole number a turn: the fraction is
+    // carried per empire in s_extra::weary_rest (1/10000 of a point), so the average is exact without game_random.
+    // The numbers are the programmer's, tuned on the bench.
+    constexpr int32_t WEARY_GOVERNMENT_PERCENT[GOVERNMENT_COUNT] = {100, 100, 75, 75, 150, 150, 50, 50};
+    constexpr int32_t WEARY_FADE_LONG_MEMORY = 1;
+    constexpr int32_t WEARY_AGGRESSOR_PERCENT = 125;
+    constexpr int32_t WEARY_DEFENDER_PERCENT = 75;
     constexpr int32_t WEARY_FINE = 100;
     constexpr int32_t WEARY_RESET = 60;
     constexpr int32_t APPROACH_COUNT = 3;
@@ -145,6 +161,12 @@ namespace crises {
     // The approach a computer takes for its scale of war weariness (a human takes 0 until the choice window
     // answers, when events human_choices is on: asked when the scale starts and at each stage).
     int32_t Choose_Approach(int16_t player);
+    // The scale's growth a turn for `player` after the multipliers (the window shows it; the fraction is rounded here,
+    // the turn step carries it); WEARY_WAR with both flags off.
+    int32_t Weariness_Growth(int16_t player);
+    // A war began: `declarer` declared it on `target` (diplomac.cpp Declare_War); recorded only with events situations and
+    // weariness_by_aggressor on. The record is dropped when the pair is at peace again.
+    void On_War_Declared(int16_t declarer, int16_t target);
 
     // Academy (3.9) - events-catalog.md row "Академия": "империи соревнуются за лучший результат в ресурсе на
     // нескольких этапах"; the author's decision (ab-review.md 1.2): all empires compete, 3 stages of 10 turns
@@ -248,6 +270,8 @@ namespace crises {
         uint16_t given[MAX_PLAYERS] = {};
         int32_t front_start = 0;                  // the turn (stardate - 35000) the front opens, 0 = not drawn yet
         int32_t war_since[MAX_PLAYERS] = {};      // stardate the empire's present war began, 0 = at peace
+        uint8_t declared[MAX_PLAYERS] = {};       // bit o: this empire declared its present war on empire o
+        uint16_t weary_rest[MAX_PLAYERS] = {};    // the fraction of the scale's growth carried to the next turn, 1/10000
     };
     s_extra* Extra();
     const s_scale* Find_Scale(e_scale kind, int16_t player);  // nullptr when there is none
@@ -277,7 +301,9 @@ namespace crises {
     // (MAX_PLAYERS uint8), the strikes (MAX_PLAYERS int32), the contest's stage (uint8) and end (int32) and the
     // baselines (MAX_PLAYERS int32); versions 1 and 2 are still read (the old academies and fallen are dropped).
     // Version 4 (written when s_extra holds something) adds, after the baselines, the front's start turn (int32)
-    // and the war starts (MAX_PLAYERS int32); versions 1 to 3 are still read.
+    // and the war starts (MAX_PLAYERS int32); versions 1 to 3 are still read. Version 5 (written only when a declarer
+    // record or a carried fraction exists, else version 4) adds the declarers (MAX_PLAYERS uint8) and the carried
+    // fractions (MAX_PLAYERS uint16); versions 1 to 4 are still read.
     uint32_t Save_Size();
     void Write_Save(SERIAL::Writer_* writer);
     bool Parse_Save(SERIAL::Reader_* reader, std::string* error);
