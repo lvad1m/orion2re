@@ -14,6 +14,7 @@
 #include "game/opinion.h"
 #include "game/random.h"
 #include "game/ships.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -449,25 +450,17 @@ namespace incidents {
             return s;
         }
 
-        // The planet name of a colony, plain ASCII.
+        // The planet name of a colony.
         void Colony_Name_(int16_t colony, char* out, size_t size) {
             out[0] = '\0';
             const int16_t planet = colony >= 0 ? MOX::colony[colony].planet : static_cast<int16_t>(-1);
             if (planet < 0 || planet >= MAX_PLANETS) {
-                snprintf(out, size, "a colony");
+                snprintf(out, size, "%s", texts::Get("choices.common.a_colony"));
                 return;
             }
             char name[64];
             HACCESS::Do_Get_Planet_Name(planet, name, 0);
             snprintf(out, size, "%s", name);
-        }
-
-        void Set_Option_(choices::s_text* t, const char* format, ...) {
-            va_list args;
-            va_start(args, format);
-            vsnprintf(t->option[t->count], sizeof(t->option[t->count]), format, args);
-            va_end(args);
-            ++t->count;
         }
 
         // One turn of a record; true when it is over.
@@ -605,74 +598,65 @@ namespace incidents {
         *t = choices::s_text{};
         char place[64];
         Colony_Name_(s.target, place, sizeof(place));
+        const std::string where(place);
+        constexpr const char* P = "choices.incidents.";
+        auto key = [&](const char* kind_name, const char* part) { return std::string(P) + kind_name + "." + part; };
+        auto Title_Body = [&](const char* kind_name, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->title, sizeof(t->title), key(kind_name, "title").c_str(), {});
+            texts::Format(t->body, sizeof(t->body), key(kind_name, "body").c_str(), args);
+        };
+        auto Option = [&](const std::string& full_key, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), full_key.c_str(), args);
+            ++t->count;
+        };
+        auto N = [](int32_t v) { return std::to_string(v); };
+        auto Short = [](const char* name) { return std::string(name, strnlen(name, 14)); };
         switch (kind) {
             case KIND_PAINLESS: {
-                snprintf(t->title, sizeof(t->title), "Disease without pain");
-                snprintf(t->body, sizeof(t->body),
-                    "A strange disease has spread through %s. Those who survive it feel no pain at all. Doctors can cure it, "
-                    "the colony can be sealed off, or the survivors can be taken as fearless troops.",
-                    place);
-                if (MOX::player[player].bc - PAINLESS_CURE_COST < PAINLESS_RESERVE) {
-                    Set_Option_(t, "Cure the sick (%d BC) - too dear, quarantine instead", (int)PAINLESS_CURE_COST);
-                } else {
-                    Set_Option_(t, "Cure the sick (%d BC)", (int)PAINLESS_CURE_COST);
-                }
-                Set_Option_(t, "Quarantine (morale %d for %d turns)", (int)PAINLESS_QUARANTINE_MORALE, (int)PAINLESS_TURNS);
-                Set_Option_(t, "Recruit survivors (morale +%d, troops +%d, %d turns)", (int)PAINLESS_RECRUIT_MORALE, (int)PAINLESS_GROUND_BONUS,
-                    (int)PAINLESS_TURNS);
+                Title_Body("painless", {{"place", where}});
+                const bool dear = MOX::player[player].bc - PAINLESS_CURE_COST < PAINLESS_RESERVE;
+                Option(key("painless", dear ? "option1_dear" : "option1"), {{"cost", N(PAINLESS_CURE_COST)}});
+                Option(key("painless", "option2"), {{"morale", N(PAINLESS_QUARANTINE_MORALE)}, {"turns", N(PAINLESS_TURNS)}});
+                Option(key("painless", "option3"),
+                    {{"morale", N(PAINLESS_RECRUIT_MORALE)}, {"troops", N(PAINLESS_GROUND_BONUS)}, {"turns", N(PAINLESS_TURNS)}});
                 break;
             }
             case KIND_NATIVE_DRUG: {
                 const int32_t pops = MOX::colony[s.target].n_pops;
-                snprintf(t->title, sizeof(t->title), "Drug of the natives");
-                snprintf(t->body, sizeof(t->body),
-                    "The colonists of %s have taken up a drug of the natives. It calms the people, but the work suffers. "
-                    "A ban would anger them and bring smugglers; a tax would fill the treasury.",
-                    place);
-                Set_Option_(t, "Tolerate it (morale +%d, costs %d BC a turn, %d turns)", (int)DRUG_TOLERATE_MORALE, (int)pops, (int)DRUG_TURNS);
-                Set_Option_(t, "Ban it (morale %d, smugglers steal %d BC, %d turns)", (int)DRUG_BAN_MORALE, (int)DRUG_CONTRABAND_LOSS, (int)DRUG_TURNS);
-                Set_Option_(t, "Tax it (morale +%d, earns %d BC a turn, %d turns)", (int)DRUG_TAX_MORALE, (int)pops, (int)DRUG_TURNS);
+                Title_Body("native_drug", {{"place", where}});
+                Option(key("native_drug", "option1"), {{"morale", N(DRUG_TOLERATE_MORALE)}, {"cost", N(pops)}, {"turns", N(DRUG_TURNS)}});
+                Option(key("native_drug", "option2"), {{"morale", N(DRUG_BAN_MORALE)}, {"loss", N(DRUG_CONTRABAND_LOSS)}, {"turns", N(DRUG_TURNS)}});
+                Option(key("native_drug", "option3"), {{"morale", N(DRUG_TAX_MORALE)}, {"cost", N(pops)}, {"turns", N(DRUG_TURNS)}});
                 break;
             }
             case KIND_TREASURY: {
-                snprintf(t->title, sizeof(t->title), "A found treasury");
-                snprintf(t->body, sizeof(t->body),
-                    "Your crews found %d BC of stolen money on a wreck. It belongs to the %.14s, who do not know where it is. "
-                    "It can be returned, returned for a commission, or kept.",
-                    (int)s.value, MOX::player[s.other].race_name);
-                Set_Option_(t, "Return it all (%.14s remember it kindly)", MOX::player[s.other].race_name);
-                Set_Option_(t, "Return it, keep %d%% (%d BC)", (int)TREASURY_COMMISSION_PERCENT, (int)(s.value * TREASURY_COMMISSION_PERCENT / 100));
-                Set_Option_(t, "Keep it all (+%d BC, they may find out)", (int)s.value);
+                const std::string race = Short(MOX::player[s.other].race_name);
+                Title_Body("treasury", {{"amount", N(s.value)}, {"race", race}});
+                Option(key("treasury", "option1"), {{"race", race}});
+                Option(key("treasury", "option2"),
+                    {{"percent", N(TREASURY_COMMISSION_PERCENT)}, {"keep", N(s.value * TREASURY_COMMISSION_PERCENT / 100)}});
+                Option(key("treasury", "option3"), {{"amount", N(s.value)}});
                 break;
             }
             case KIND_DEPOSIT: {
-                snprintf(t->title, sizeof(t->title), "A rich deposit");
-                snprintf(t->body, sizeof(t->body),
-                    "Miners at %s struck a rare deposit under the colony. It can be left alone, mined with care, or plundered at once.", place);
-                Set_Option_(t, "Leave it alone (morale +%d for %d turns)", (int)DEPOSIT_LEAVE_MORALE, (int)DEPOSIT_TURNS);
-                Set_Option_(t, "Mine with care (planet 1 mineral class richer)");
-                Set_Option_(t, "Plunder it (2 classes richer, unrest and quakes)");
+                Title_Body("deposit", {{"place", where}});
+                Option(key("deposit", "option1"), {{"morale", N(DEPOSIT_LEAVE_MORALE)}, {"turns", N(DEPOSIT_TURNS)}});
+                Option(key("deposit", "option2"), {});
+                Option(key("deposit", "option3"), {});
                 break;
             }
             case KIND_REBEL_GENERAL: {
-                snprintf(t->title, sizeof(t->title), "A rebel general");
-                snprintf(t->body, sizeof(t->body),
-                    "Captain %.14s defies orders and his crew follows him. He can be talked round, ignored in the hope that it passes, or executed.",
-                    MOX::leaders[s.other].name);
-                Set_Option_(t, "Reason with him (a dice check; failure is a coup)");
-                Set_Option_(t, "Ignore him (in %d turns a coup or a trial)", (int)GENERAL_RIPEN_TURNS);
-                Set_Option_(t, "Execute him (other leaders lose %d loyalty)", (int)GENERAL_FEAR);
+                Title_Body("rebel_general", {{"name", Short(MOX::leaders[s.other].name)}});
+                Option(key("rebel_general", "option1"), {});
+                Option(key("rebel_general", "option2"), {{"turns", N(GENERAL_RIPEN_TURNS)}});
+                Option(key("rebel_general", "option3"), {{"fear", N(GENERAL_FEAR)}});
                 break;
             }
             case KIND_MAD_GOVERNOR: {
-                snprintf(t->title, sizeof(t->title), "A mad governor");
-                snprintf(t->body, sizeof(t->body),
-                    "The governor %.14s of %s doses the water of the colony with something strange. Output soars, but he is plainly mad "
-                    "and the colony will pay for it.",
-                    MOX::leaders[s.other].name, place);
-                Set_Option_(t, "Remove him at once");
-                Set_Option_(t, "Keep him (+%d BC a turn for %d turns, then a collapse)", (int)(MOX::colony[s.target].n_pops * GOVERNOR_BOOM_BC),
-                    (int)GOVERNOR_BOOM_TURNS);
+                Title_Body("mad_governor", {{"name", Short(MOX::leaders[s.other].name)}, {"place", where}});
+                Option(key("mad_governor", "option1"), {});
+                Option(key("mad_governor", "option2"),
+                    {{"bc", N(MOX::colony[s.target].n_pops * GOVERNOR_BOOM_BC)}, {"turns", N(GOVERNOR_BOOM_TURNS)}});
                 break;
             }
             default: return false;

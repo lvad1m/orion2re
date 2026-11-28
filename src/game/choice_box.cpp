@@ -46,7 +46,7 @@ namespace GENDRAW {
         const int16_t body_font = std::max<int16_t>(font_idx, 2);
 
         // The option lines, in the body's font so that the heights are known.
-        char line[3][80];
+        char line[3][104];
         int16_t line_height[3] = {};
         int16_t options_height = 0;
         for (int32_t i = 0; i < count; ++i) {

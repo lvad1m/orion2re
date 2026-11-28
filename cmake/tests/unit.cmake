@@ -1094,6 +1094,10 @@ orion2re_add_game_test(test_choices
     tests/unit/choices_test.cpp
 )
 
+orion2re_add_game_test(test_texts
+    tests/unit/texts_test.cpp
+)
+
 orion2re_add_game_test(test_overtures
     tests/unit/overtures_test.cpp
 )

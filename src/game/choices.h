@@ -42,9 +42,9 @@ namespace choices {
 
     // What the window shows (English, plain ASCII).
     struct s_text {
-        char title[64] = {};
-        char body[512] = {};
-        char option[3][64] = {};
+        char title[80] = {};
+        char body[640] = {};
+        char option[3][96] = {};
         int32_t count = 0;  // the options, 2 or 3
     };
 

@@ -2,6 +2,7 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/bill.h"
 #include "game/choices.h"
 #include "game/dice.h"
@@ -36,6 +37,7 @@ namespace {
     // Two computer empires, each with a colony (0: player 0 at star 0 with 4 people on a rich planet; 1: player 1
     // at star 1 with 3), player 0 holds a ship captain (leader 0 on ship 0) and a colony governor (leader 1).
     void Setup_(test::s_game_state* state) {
+        test::Load_Base_Texts();
         MOX::NUM_PLAYERS = 2;
         MOX::NUM_STARS = 3;
         MOX::NUM_COLONIES = 2;
@@ -672,6 +674,59 @@ DOCTEST_TEST_CASE("choices: a painless disease that cannot be paid for falls bac
     DOCTEST_CHECK(incidents::Empty());
     DOCTEST_CHECK_FALSE(incidents::Choice_Text(gone, &text));
     choices::Clear();
+}
+
+
+DOCTEST_TEST_CASE("choice texts: English reads as before the move, gender-neutral for leaders; Russian fills every placeholder")
+{
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    for (int k = incidents::KIND_PAINLESS; k <= incidents::KIND_LAST; ++k) {
+        const incidents::e_kind kind = static_cast<incidents::e_kind>(k);
+        s_incidents_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        choices::enabled = true;
+        state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+        DOCTEST_REQUIRE(incidents::Start(kind, 0));
+        DOCTEST_REQUIRE(choices::State()->count == 1);
+        const choices::s_choice c = choices::State()->choice[0];
+        choices::s_text en;
+        text_language::language = text_language::LANGUAGE_EN;
+        DOCTEST_REQUIRE(incidents::Choice_Text(c, &en));
+        if (kind == incidents::KIND_PAINLESS) {
+            DOCTEST_CHECK(std::string(en.title) == "Disease without pain");
+            DOCTEST_CHECK(std::string(en.option[0]) == "Cure the sick (60 BC)");
+            DOCTEST_CHECK(std::string(en.option[1]) == "Quarantine (morale -2 for 10 turns)");
+            DOCTEST_CHECK(std::string(en.option[2]) == "Recruit survivors (morale +1, troops +10, 10 turns)");
+        } else if (kind == incidents::KIND_DEPOSIT) {
+            DOCTEST_CHECK(std::string(en.option[0]) == "Leave it alone (morale +1 for 15 turns)");
+            DOCTEST_CHECK(std::string(en.option[1]) == "Mine with care (planet 1 mineral class richer)");
+            DOCTEST_CHECK(std::string(en.option[2]) == "Plunder it (2 classes richer, unrest and quakes)");
+        } else if (kind == incidents::KIND_REBEL_GENERAL) {
+            DOCTEST_CHECK(std::string(en.body).find("Captain ") == 0);
+            DOCTEST_CHECK(std::string(en.body).find(" his ") == std::string::npos);
+            DOCTEST_CHECK(std::string(en.body).find(" him") == std::string::npos);
+            DOCTEST_CHECK(std::string(en.option[1]) == "Ignore the captain (in 10 turns a coup or a trial)");
+            DOCTEST_CHECK(std::string(en.option[2]) == "Execute the captain (other leaders lose 10 loyalty)");
+        } else if (kind == incidents::KIND_MAD_GOVERNOR) {
+            DOCTEST_CHECK(std::string(en.body).find(" he ") == std::string::npos);
+            DOCTEST_CHECK(std::string(en.option[0]) == "Remove the governor at once");
+        }
+        text_language::language = text_language::LANGUAGE_RU;
+        choices::s_text ru;
+        DOCTEST_REQUIRE(incidents::Choice_Text(c, &ru));
+        DOCTEST_CHECK(ru.count == en.count);
+        DOCTEST_CHECK(std::string(ru.title) != en.title);
+        std::string all = std::string(ru.title) + ru.body;
+        for (int i = 0; i < ru.count; ++i) all += ru.option[i];
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+        choices::Clear();
+    }
 }
 
 }

@@ -1,0 +1,55 @@
+// The game's own new texts, English (the base language: every other language falls back to these).
+// Nested objects; the key of a text is the path joined with dots, e.g. choices.incidents.painless.title.
+// {name} placeholders are filled by the game (texts::Format); a translation may reorder them.
+// A mod adds or fixes a language with its own data/texts/<lang>.json5.
+{
+  choices: {
+    common: {
+      a_colony: "a colony",
+    },
+    incidents: {
+      painless: {
+        title: "Disease without pain",
+        body: "A strange disease has spread through {place}. Those who survive it feel no pain at all. Doctors can cure it, the colony can be sealed off, or the survivors can be taken as fearless troops.",
+        option1: "Cure the sick ({cost} BC)",
+        option1_dear: "Cure the sick ({cost} BC) - too dear, quarantine instead",
+        option2: "Quarantine (morale {morale} for {turns} turns)",
+        option3: "Recruit survivors (morale +{morale}, troops +{troops}, {turns} turns)",
+      },
+      native_drug: {
+        title: "Drug of the natives",
+        body: "The colonists of {place} have taken up a drug of the natives. It calms the people, but the work suffers. A ban would anger them and bring smugglers; a tax would fill the treasury.",
+        option1: "Tolerate it (morale +{morale}, costs {cost} BC a turn, {turns} turns)",
+        option2: "Ban it (morale {morale}, smugglers steal {loss} BC, {turns} turns)",
+        option3: "Tax it (morale +{morale}, earns {cost} BC a turn, {turns} turns)",
+      },
+      treasury: {
+        title: "A found treasury",
+        body: "Your crews found {amount} BC of stolen money on a wreck. It belongs to the {race}, who do not know where it is. It can be returned, returned for a commission, or kept.",
+        option1: "Return it all ({race} remember it kindly)",
+        option2: "Return it, keep {percent}% ({keep} BC)",
+        option3: "Keep it all (+{amount} BC, they may find out)",
+      },
+      deposit: {
+        title: "A rich deposit",
+        body: "Miners at {place} struck a rare deposit under the colony. It can be left alone, mined with care, or plundered at once.",
+        option1: "Leave it alone (morale +{morale} for {turns} turns)",
+        option2: "Mine with care (planet 1 mineral class richer)",
+        option3: "Plunder it (2 classes richer, unrest and quakes)",
+      },
+      rebel_general: {
+        title: "A rebel general",
+        body: "Captain {name} defies orders and the crew follows. The captain can be talked round, ignored in the hope that it passes, or executed.",
+        option1: "Reason with the captain (a dice check; failure is a coup)",
+        option2: "Ignore the captain (in {turns} turns a coup or a trial)",
+        option3: "Execute the captain (other leaders lose {fear} loyalty)",
+      },
+      mad_governor: {
+        title: "A mad governor",
+        body: "The governor {name} of {place} doses the water of the colony with something strange. Output soars, but the governor is plainly mad and the colony will pay for it.",
+        option1: "Remove the governor at once",
+        option2: "Keep the governor (+{bc} BC a turn for {turns} turns, then a collapse)",
+      },
+    },
+  },
+}
