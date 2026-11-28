@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "doctest/doctest.h"
+#include "generate_catalog.h"
 #include "generate_cpp.h"
 #include "generate_docs.h"
 #include "json5_reader.h"
@@ -921,5 +922,20 @@ DOCTEST_TEST_SUITE("configuration schema") {
             std::string::npos);
 
         std::filesystem::remove_all(root);
+    }
+
+    DOCTEST_TEST_CASE("the settings catalog lists titles, defaults and constraints") {
+        config::tool::s_schema schema;
+        std::string diagnostic;
+
+        DOCTEST_REQUIRE(Load_("valid_primitives.json5", &schema, &diagnostic));
+        const std::string catalog = config::tool::Build_Catalog_Json(&schema);
+        DOCTEST_CHECK(catalog.find("{\"namespace\": \"\", \"name\": \"enabled\", \"group\": \"interface\"") !=
+            std::string::npos);
+        DOCTEST_CHECK(catalog.find("\"title\": \"Enabled\", \"description\": \"Boolean fixture.\"") != std::string::npos);
+        DOCTEST_CHECK(catalog.find("\"type\": \"bool\", \"default\": true}") != std::string::npos);
+        DOCTEST_CHECK(catalog.find("\"type\": \"int\", \"default\": -2, \"min\": -10, \"max\": 10}") != std::string::npos);
+        DOCTEST_CHECK(catalog.find("\"name\": \"captain_name\"") != std::string::npos);
+        DOCTEST_CHECK(catalog.front() == '[');
     }
 }

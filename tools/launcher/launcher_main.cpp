@@ -6,6 +6,7 @@
 #include <SDL3/SDL_main.h>
 
 #include <algorithm>
+#include <cstdio>
 #include <cstring>
 #include <filesystem>
 #include <fstream>
@@ -37,6 +38,8 @@ namespace {
         {"Classic: the original game", "Классика: оригинальная игра"},
         {"1.50: the community patch", "1.50: патч сообщества"},
         {"Living rivals: computer empires that adapt", "Живые соперники: компьютерные империи, которые приспосабливаются"},
+        {"All new mechanics: Living rivals plus every new switch (playtest)",
+            "Все новые механики: Живые соперники и все новые переключатели (проверка игрой)"},
         {"Custom", "Своя настройка"},
     };
     const s_text TEXT_ADVISOR = {"Advisor for computer empires", "Советник компьютерных империй"};
@@ -55,6 +58,16 @@ namespace {
     const s_text TEXT_RESEARCH_FIX = {"Fix the original AI research estimate", "Исправить ошибку оригинала в выборе исследований ИИ"};
     const s_text TEXT_MEMORY = {"Diplomatic memory: trust heals, grievances fade, empires tire of costly wars",
         "Дипломатическая память: доверие восстанавливается, обиды забываются, дорогие войны утомляют"};
+    const s_text TEXT_MECHANICS = {"New mechanics", "Новые механики"};
+    const s_text TEXT_ALL_ON = {"all on", "все вкл."};
+    const s_text TEXT_ALL_OFF = {"all off", "все выкл."};
+    const s_text TEXT_NO_CATALOG = {
+        "settings_catalog.json is not next to the launcher: the titles and descriptions of the new mechanics are missing.",
+        "Рядом с лаунчером нет settings_catalog.json: названий и описаний новых механик нет."};
+    const s_text TEXT_NO_LIST = {"mechanics.json5 is not next to the launcher: the list of new mechanics is missing.",
+        "Рядом с лаунчером нет mechanics.json5: списка новых механик нет."};
+    const s_text TEXT_ALL_NEW_NOTE = {"%d new switches are turned on besides what Living rivals sets.",
+        "Включено %d новых переключателей сверх того, что ставят Живые соперники."};
     const s_text TEXT_MODS = {"Mods", "Моды"};
     const s_text TEXT_PREVIEW = {"user.cfg that will be written", "Будущий user.cfg"};
     const s_text TEXT_START = {"Start", "Старт"};
@@ -76,6 +89,10 @@ namespace {
         fs::path game_exe;
         bool foreign_user_cfg = false;
         std::vector<std::string> available_mods;
+        launcher::s_catalog catalog;          // settings_catalog.json: titles and descriptions
+        launcher::s_mechanics_list list;      // mechanics.json5: the boxes of the mechanics page
+        bool have_catalog = false;
+        bool have_list = false;
         char folder[launcher::LANGUAGE_COUNT][1024] = {};
         std::string status;
     };
@@ -130,6 +147,8 @@ namespace {
                 app->foreign_user_cfg = true;
             }
         }
+        app->have_catalog = launcher::Parse_Catalog(Read_File_(app->base / "settings_catalog.json"), &app->catalog);
+        app->have_list = launcher::Parse_Mechanics_List(Read_File_(app->base / "mechanics.json5"), &app->list);
         for (int i = 0; i < launcher::LANGUAGE_COUNT; ++i) {
             std::strncpy(app->folder[i], app->settings.game_dir[i].c_str(), sizeof(app->folder[i]) - 1);
         }
@@ -146,7 +165,7 @@ namespace {
             fs::copy_file(app->user_cfg, app->base / "data" / "user.cfg.bak", fs::copy_options::overwrite_existing, code);
             app->foreign_user_cfg = false;
         }
-        const bool cfg = Write_File_(app->user_cfg, launcher::Build_User_Cfg(app->settings));
+        const bool cfg = Write_File_(app->user_cfg, launcher::Build_User_Cfg(app->settings, app->have_list ? &app->list : nullptr));
         Write_File_(app->launcher_ini, launcher::Build_Launcher_Ini(app->settings));
         app->status = cfg ? T(*app, TEXT_SAVED) : T(*app, TEXT_WRITE_FAILED);
         return cfg;
@@ -191,6 +210,51 @@ namespace {
             }
         }
         io.Fonts->AddFontDefault();  // no Cyrillic glyphs: Russian labels show as '?'
+    }
+
+    // The mechanics page: one collapsing header per category, one checkbox per setting.
+    void Draw_Mechanics_(s_app* app) {
+        if (!app->have_list) {
+            ImGui::TextWrapped("%s", T(*app, TEXT_NO_LIST));
+            return;
+        }
+        if (!app->have_catalog) ImGui::TextWrapped("%s", T(*app, TEXT_NO_CATALOG));
+        for (const launcher::s_mechanic_category& category : app->list.categories) {
+            int on = 0;
+            for (const launcher::s_mechanic_ref& ref : category.settings) {
+                if (launcher::Mechanic_On(app->settings, ref.name_space, ref.name)) ++on;
+            }
+            char label[256];
+            std::snprintf(label, sizeof(label), "%s (%d/%d)###%s", category.title.c_str(), on,
+                static_cast<int>(category.settings.size()), category.id.c_str());
+            if (!ImGui::CollapsingHeader(label)) continue;
+            ImGui::PushID(category.id.c_str());
+            if (ImGui::SmallButton(T(*app, TEXT_ALL_ON))) {
+                for (const launcher::s_mechanic_ref& ref : category.settings) launcher::Set_Mechanic(&app->settings, ref.name_space, ref.name, true);
+            }
+            ImGui::SameLine();
+            if (ImGui::SmallButton(T(*app, TEXT_ALL_OFF))) {
+                for (const launcher::s_mechanic_ref& ref : category.settings) launcher::Set_Mechanic(&app->settings, ref.name_space, ref.name, false);
+            }
+            for (const launcher::s_mechanic_ref& ref : category.settings) {
+                const launcher::s_catalog_entry* entry = app->catalog.Find(ref.name_space, ref.name);
+                const std::string title = entry != nullptr && !entry->title.empty() ? entry->title : ref.name_space + " " + ref.name;
+                const std::string id = "##" + ref.name_space + "." + ref.name;
+                bool checked = launcher::Mechanic_On(app->settings, ref.name_space, ref.name);
+                if (ImGui::Checkbox((title + id).c_str(), &checked)) launcher::Set_Mechanic(&app->settings, ref.name_space, ref.name, checked);
+                if (entry != nullptr && !entry->description.empty() && ImGui::BeginItemTooltip()) {
+                    ImGui::PushTextWrapPos(ImGui::GetFontSize() * 36.0f);
+                    ImGui::TextUnformatted(entry->description.c_str());
+                    if (!entry->remarks.empty()) {
+                        ImGui::Separator();
+                        ImGui::TextUnformatted(entry->remarks.c_str());
+                    }
+                    ImGui::PopTextWrapPos();
+                    ImGui::EndTooltip();
+                }
+            }
+            ImGui::PopID();
+        }
     }
 
     // Returns true when the launcher should close (the game was started).
@@ -239,6 +303,7 @@ namespace {
             ImGui::EndDisabled();
             ImGui::Checkbox(T(*app, TEXT_RESEARCH_FIX), &m.research_fix);
             ImGui::Checkbox(T(*app, TEXT_MEMORY), &m.memory);
+            if (ImGui::CollapsingHeader(T(*app, TEXT_MECHANICS))) Draw_Mechanics_(app);
             if (!app->available_mods.empty()) {
                 ImGui::TextUnformatted(T(*app, TEXT_MODS));
                 if (ImGui::BeginTable("##mods", 4)) {
@@ -257,9 +322,14 @@ namespace {
             ImGui::Unindent();
         }
 
+        if (app->settings.preset == launcher::PRESET_ALL_NEW && app->have_list) {
+            ImGui::Indent();
+            ImGui::TextWrapped(T(*app, TEXT_ALL_NEW_NOTE), static_cast<int>(app->list.Count()));
+            ImGui::Unindent();
+        }
         if (app->foreign_user_cfg) ImGui::TextWrapped("%s", T(*app, TEXT_FOREIGN));
         if (ImGui::CollapsingHeader(T(*app, TEXT_PREVIEW))) {
-            const std::string preview = launcher::Build_User_Cfg(app->settings);
+            const std::string preview = launcher::Build_User_Cfg(app->settings, app->have_list ? &app->list : nullptr);
             ImGui::TextUnformatted(preview.c_str());
         }
 

@@ -14,8 +14,9 @@ namespace launcher {
         PRESET_CLASSIC = 0,        // the original game, advisor off
         PRESET_V150 = 1,           // the 1.50 mod, advisor off
         PRESET_LIVING_RIVALS = 2,  // advisor on with every measured mechanic
-        PRESET_CUSTOM = 3,         // whatever the sliders say
-        PRESET_COUNT = 4,
+        PRESET_ALL_NEW = 3,        // Living rivals plus every box of mechanics.json5 (the playtest setup)
+        PRESET_CUSTOM = 4,         // whatever the sliders and boxes say
+        PRESET_COUNT = 5,
     };
 
     enum e_language : int {
@@ -42,7 +43,41 @@ namespace launcher {
         std::string game_dir[LANGUAGE_COUNT];  // original data folder per language (v1_31eng, v1_31rus)
         s_mechanics mechanics;                 // used by PRESET_CUSTOM
         std::vector<std::string> mods;         // extra `enable <id>;` for PRESET_CUSTOM
+        std::vector<std::string> new_mechanics;  // checked boxes of the mechanics page, "namespace.name"
     };
+
+    // One setting of the settings catalog (settings_catalog.json, written by `config-tool catalog`).
+    struct s_catalog_entry {
+        std::string name_space, name, group, category, title, description, remarks, type;
+        std::string default_text;  // "true", "false", a number, or an enum symbol
+        bool default_bool = false;
+    };
+
+    struct s_catalog {
+        std::vector<s_catalog_entry> entries;
+        const s_catalog_entry* Find(const std::string& name_space, const std::string& name) const;
+    };
+
+    // The "new mechanics" list (mechanics.json5): bool settings grouped by documentation category.
+    struct s_mechanic_ref {
+        std::string name_space, name;
+    };
+    struct s_mechanic_category {
+        std::string id, title;
+        std::vector<s_mechanic_ref> settings;
+    };
+    struct s_mechanics_list {
+        std::vector<s_mechanic_category> categories;
+        size_t Count() const;
+    };
+
+    // False (and the output cleared) when the text is not the expected JSON / JSON5.
+    bool Parse_Catalog(const std::string& json, s_catalog* catalog);
+    bool Parse_Mechanics_List(const std::string& json5, s_mechanics_list* list);
+
+    // The boxes of the mechanics page: keys are "namespace.name".
+    bool Mechanic_On(const s_settings& settings, const std::string& name_space, const std::string& name);
+    void Set_Mechanic(s_settings* settings, const std::string& name_space, const std::string& name, bool on);
 
     // First line of every launcher-written user.cfg; a file without it was written by hand.
     extern const char* const USER_CFG_MARKER;
@@ -50,8 +85,11 @@ namespace launcher {
     // The mechanics a preset stands for (PRESET_CUSTOM: the defaults).
     s_mechanics Preset_Mechanics(e_preset preset);
 
-    // The complete user.cfg text for `settings` (marker line, comments, statements).
-    std::string Build_User_Cfg(const s_settings& settings);
+    // The complete user.cfg text for `settings` (marker line, comments, statements). `list` is the
+    // mechanics list: PRESET_ALL_NEW turns every box of it on; for PRESET_CUSTOM only boxes in it are
+    // written. Without a list (nullptr) PRESET_ALL_NEW is Living rivals and custom boxes are written as is.
+    // The text language is written as `interface language = ru;` (nothing for English).
+    std::string Build_User_Cfg(const s_settings& settings, const s_mechanics_list* list = nullptr);
 
     // True when `text` was written by the launcher (starts with USER_CFG_MARKER).
     bool Is_Launcher_User_Cfg(const std::string& text);

@@ -333,6 +333,7 @@ if(ORION2RE_BUILD_CONFIG_TOOL)
             tests/unit/config_schema_test.cpp
         PRODUCTION_SOURCES
             tools/config/file_util.cpp
+            tools/config/generate_catalog.cpp
             tools/config/generate_cpp.cpp
             tools/config/generate_docs.cpp
             tools/config/json5_reader.cpp
@@ -366,6 +367,7 @@ orion2re_add_unit_test(test_launcher
 target_include_directories(test_launcher PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher")
 target_compile_definitions(test_launcher PRIVATE
     CONFIG_MAIN_SCHEMA_PATH="${CMAKE_CURRENT_SOURCE_DIR}/specs/config/main.json5"
+    LAUNCHER_MECHANICS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher/mechanics.json5"
 )
 
 orion2re_add_unit_test(test_config_enums

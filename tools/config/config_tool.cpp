@@ -2,6 +2,7 @@
 #include <cstring>
 #include <string>
 
+#include "generate_catalog.h"
 #include "generate_cpp.h"
 #include "generate_docs.h"
 #include "schema_model.h"
@@ -17,7 +18,8 @@ namespace {
             "  config-tool validate <schema.json5>\n"
             "  config-tool generate <schema.json5> <output-directory>\n"
             "  config-tool check <schema.json5> <committed-directory> <temporary-directory>\n"
-            "  config-tool docs <schema.json5> <output-directory>\n");
+            "  config-tool docs <schema.json5> <output-directory>\n"
+            "  config-tool catalog <schema.json5> <output.json>\n");
     }
 
 #if defined(ORION2RE_CONFIG_TOOL_LINK_GAME)
@@ -130,7 +132,8 @@ int main(int argc, char** argv) {
     const bool generate = argc == 4 && std::strcmp(argv[1], "generate") == 0;
     const bool check = argc == 5 && std::strcmp(argv[1], "check") == 0;
     const bool docs = argc == 4 && std::strcmp(argv[1], "docs") == 0;
-    if (!validate && !generate && !check && !docs) {
+    const bool catalog = argc == 4 && std::strcmp(argv[1], "catalog") == 0;
+    if (!validate && !generate && !check && !docs && !catalog) {
         Print_Usage_();
         return 2;
     }
@@ -154,6 +157,15 @@ int main(int argc, char** argv) {
         config::Shutdown_Runtime();
 #else
         diagnostic = "documentation generation requires config-tool linked against the game";
+        success = false;
+#endif
+    } else if (catalog) {
+#if defined(ORION2RE_CONFIG_TOOL_LINK_GAME)
+        success = Read_Native_Defaults_(&schema, &diagnostic) &&
+            config::tool::Generate_Catalog(&schema, argv[3], &diagnostic);
+        config::Shutdown_Runtime();
+#else
+        diagnostic = "catalog generation requires config-tool linked against the game";
         success = false;
 #endif
     }

@@ -645,6 +645,8 @@ set(ORION2RE_CONFIG_TOOL_CORE_SOURCES
     tools/config/file_util.cpp
     tools/config/file_util.h
     tools/config/generate_cpp.cpp
+    tools/config/generate_catalog.cpp
+    tools/config/generate_catalog.h
     tools/config/generate_cpp.h
     tools/config/generate_docs.cpp
     tools/config/generate_docs.h
@@ -1078,6 +1080,21 @@ if(ORION2RE_BUILD_CONFIG_TOOL)
     add_custom_target(config-docs
         DEPENDS "${ORION2RE_CONFIG_DOCUMENTATION_STAMP}"
     )
+
+    # The settings catalog (titles, descriptions, defaults) the launcher reads at start.
+    set(ORION2RE_SETTINGS_CATALOG "${CMAKE_CURRENT_BINARY_DIR}/settings_catalog.json")
+    add_custom_command(
+        OUTPUT "${ORION2RE_SETTINGS_CATALOG}"
+        COMMAND $<TARGET_FILE:config-tool> catalog
+            "${ORION2RE_CONFIG_SCHEMA}"
+            "${ORION2RE_SETTINGS_CATALOG}"
+        DEPENDS config-tool "${ORION2RE_CONFIG_SCHEMA}"
+            ${ORION2RE_CONFIG_TOOL_SOURCES}
+        VERBATIM
+    )
+    add_custom_target(settings-catalog
+        DEPENDS "${ORION2RE_SETTINGS_CATALOG}"
+    )
 endif()
 
 if(ORION2RE_BUILD_DOCUMENTATION)
@@ -1249,6 +1266,23 @@ if(ORION2RE_BUILD_GAME AND TARGET orion2re_imgui AND NOT ORION2RE_IMGUI_USE_PREB
         "${ORION2RE_LAUNCHER_BACKEND_DIR}"
     )
     target_link_libraries(orion2re-launcher PRIVATE ${ORION2RE_SDL3_TARGET} orion2re_imgui)
+    # mechanics.json5 (tools/launcher/make_mechanics_list.py) and, when the config tool is built,
+    # settings_catalog.json land next to the launcher; the launcher works without the catalog.
+    add_custom_command(TARGET orion2re-launcher POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher/mechanics.json5"
+            "$<TARGET_FILE_DIR:orion2re-launcher>/mechanics.json5"
+    )
+    if(TARGET settings-catalog)
+        add_dependencies(orion2re-launcher settings-catalog)
+        add_custom_command(TARGET orion2re-launcher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${ORION2RE_SETTINGS_CATALOG}"
+                "$<TARGET_FILE_DIR:orion2re-launcher>/settings_catalog.json"
+        )
+    endif()
+    install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher/mechanics.json5"
+        DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
     install(TARGETS orion2re-launcher RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}" COMPONENT Runtime)
     if(WIN32)
         set_target_properties(orion2re-launcher PROPERTIES WIN32_EXECUTABLE YES)
@@ -1263,6 +1297,18 @@ if(ORION2RE_BUILD_GAME AND TARGET orion2re_imgui AND NOT ORION2RE_IMGUI_USE_PREB
                 $<TARGET_FILE:orion2re-launcher>
                 "${ORION2RE_GAME_DIR}/$<TARGET_FILE_NAME:orion2re-launcher>"
         )
+        add_custom_command(TARGET orion2re-launcher POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${CMAKE_CURRENT_SOURCE_DIR}/tools/launcher/mechanics.json5"
+                "${ORION2RE_GAME_DIR}/mechanics.json5"
+        )
+        if(TARGET settings-catalog)
+            add_custom_command(TARGET orion2re-launcher POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                    "${ORION2RE_SETTINGS_CATALOG}"
+                    "${ORION2RE_GAME_DIR}/settings_catalog.json"
+            )
+        endif()
         set_target_properties(orion2re-launcher PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${ORION2RE_GAME_DIR}")
     endif()
 endif()
