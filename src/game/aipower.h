@@ -5,6 +5,13 @@
 #include <cstdint>
 
 namespace AIPOWER {
+    /**
+     * True while a reader that must not write the game (the mentat) measures ship strength: in strategic combat
+     * Ship_Strength_Vs_Shield then skips the refresh of the ship's design to the owner's best tech
+     * (INITSHIP::Update_Strategic_Ship, a write) and takes the design as it is. False (the default) everywhere else.
+     */
+    extern bool read_only_strength;
+
     /** Returns the best available ship shield class for the given player or special faction index. */
     int16_t Get_Best_Ship_Shield_Value(const s_tech_shield_data* shields, game::id_player player_idx);
 

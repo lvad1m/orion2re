@@ -25,7 +25,7 @@ namespace mentat {
     enum e_mode : uint8_t {
         MODE_OFF = 0,
         MODE_SUMMARY = 1,
-        MODE_ADVICE = 2,  // the advice comes with M2; it shows the summary for now
+        MODE_ADVICE = 2,  // the summary and the advice (M2)
     };
     enum e_detail : uint8_t {
         DETAIL_BRIEF = 0,
@@ -55,6 +55,13 @@ namespace mentat {
     constexpr int32_t NEWS_TURNS = 10;              // the first summary names news this old
     constexpr int32_t OPINION_MIN = 5;              // the detailed level names a neighbour's memory this deep or deeper
     constexpr int32_t MAX_LINES = 6;                // the brief summary
+    constexpr int32_t ADVICE_BRIEF = 3;             // advice lines: brief
+    constexpr int32_t ADVICE_MEDIUM = 6;            // medium (detailed: all)
+    constexpr int32_t FAMINE_DEFICIT = 3;           // a food deficit this deep is a famine to advise on
+    constexpr int32_t TRADE_RELATIONS = 20;         // relations from which a trade treaty is worth proposing
+    constexpr int32_t RESEARCH_RELATIONS = 40;      // ... a research treaty
+    constexpr int32_t ALLIANCE_RELATIONS = 60;      // ... an alliance
+    constexpr int32_t PACT_RELATIONS = 10;          // ... a non-aggression pact with an empire you have no treaty with
 
     // The mentat is on: the setting is not off and the game is not a network game (the network game is open: off).
     bool Available();
@@ -100,6 +107,44 @@ namespace mentat {
     // Every kind that stands, in the order of e_alert.
     std::vector<s_alert> Find_Alerts(int16_t player, uint8_t level = DETAIL_DETAILED);
 
+    // Advice on what the human can do now (docs/LocalLLM/mentat.md, M2). Each line: what to do, on which screen, and why in
+    // words (no rule numbers). `estimate` marks advice that rests on another empire's hidden state (its memory of you, the
+    // council votes it may hold): it appears only at DETAIL_DETAILED and says it is the mentat's estimate.
+    enum e_advice : uint8_t {
+        ADVICE_DEFEND = 0,         // a detected enemy fleet near your colony: bring ships there
+        ADVICE_UNREST = 1,         // rebels or unrest in a colony
+        ADVICE_PEACE = 2,          // a war going badly: make peace
+        ADVICE_CHOICES = 3,        // decisions waiting
+        ADVICE_FAMINE = 4,         // a food deficit
+        ADVICE_BANKRUPT = 5,       // the treasury runs out
+        ADVICE_SPY_SEND = 6,       // no spies in the empire the advisor would watch
+        ADVICE_SPY_STEAL = 7,      // set your spies there to steal technology
+        ADVICE_SPY_SABOTAGE = 8,   // ... to sabotage
+        ADVICE_COUNTER_AGENT = 9,  // a spy was caught: guard a colony
+        ADVICE_RESIDENT = 10,      // settle a resident at the empire your spies work in
+        ADVICE_PACT = 11,          // propose a non-aggression pact
+        ADVICE_TRADE = 12,         // propose a trade treaty
+        ADVICE_RESEARCH_TREATY = 13,  // propose a research treaty
+        ADVICE_ALLIANCE = 14,      // propose an alliance
+        ADVICE_OPINION = 15,       // a neighbour holds a grudge: mend it (estimate)
+        ADVICE_WAR = 16,           // a war worth starting (estimate)
+        ADVICE_FOCUS = 17,         // set research to a field
+        ADVICE_COLONIZE = 18,      // build colony ships
+        ADVICE_COUNT = 19,
+    };
+    struct s_advice {
+        uint8_t kind = ADVICE_COUNT;
+        uint8_t urgency = 0;  // 0 first: threats; then decisions and the economy, spies, diplomacy, growth
+        bool estimate = false;
+        s_text text;          // what to do and where (the screen is named in the line)
+        s_text why;           // the reason in words
+    };
+    // Builds the advice of `player` at `detail`: most urgent first, at most ADVICE_BRIEF / ADVICE_MEDIUM lines (all at
+    // detailed). Read-only: the human's own view is built with AIPOWER::read_only_strength set, so no ship design is
+    // refreshed; no draw from game_random; nothing in the game or the advisor's tables changes. It does not look at the
+    // mentat's mode (Build_Summary does).
+    void Build_Advice(int16_t player, uint8_t detail, std::vector<s_advice>* out);
+
     // The summary of the turn (built once at the start of the human's turn).
     struct s_section {
         std::string title_key;  // mentat.section.*
@@ -112,7 +157,7 @@ namespace mentat {
         std::vector<s_section> sections;  // the summary of the turn: one section (brief) or one per field (medium, detailed)
         std::vector<s_alert> alerts;      // the threats
         std::vector<s_text> why;          // detailed only: the reasons behind the threats and the opinions
-        bool advice_pending = false;      // the mode is advice and M2 is not here yet
+        std::vector<s_advice> advice;  // the advice (mode advice only), most urgent first, cut to the level's count
     };
     // Builds the summary of `player` at `detail`; reads only, and does not touch the memory.
     void Build_Summary(int16_t player, uint8_t detail, s_summary* out);

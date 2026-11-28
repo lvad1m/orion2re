@@ -2,6 +2,8 @@
 #include "legacy_world.h"
 
 namespace AIPOWER {
+    bool read_only_strength = false;
+
     uint32_t __cdecl Modified_Weapon_Strength(const s_tech_weapon_mod_data* modifications, uint32_t weapon_strength, uint16_t modification_flags) {
         int16_t total_space = 100;
 
@@ -63,7 +65,7 @@ namespace AIPOWER {
 
         if (world->settings->strategic_combat_flag != 0) {
             attack_bonus = AIPOWER::Base_Generic_Ocv(world, legacy_world::Player_Id(ship->owner));
-            INITSHIP::Update_Strategic_Ship(*legacy_ship);
+            if (!read_only_strength) INITSHIP::Update_Strategic_Ship(*legacy_ship);
         } else {
             INITSHIP::Get_Ship_Combat_Bonuses(*legacy_ship, &temp_attack, &temp_defense, &attack_bonus);
         }

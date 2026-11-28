@@ -805,8 +805,8 @@ namespace mentat {
         out->stardate = MOX::stardate;
         out->player = player;
         out->detail = detail_level;
-        out->advice_pending = mode == MODE_ADVICE;
         out->alerts = Find_Alerts(player, detail_level);
+        if (mode == MODE_ADVICE) Build_Advice(player, detail_level, &out->advice);
         if (detail_level == DETAIL_BRIEF) {
             s_section section{"mentat.section.summary", {}};
             Fill_Brief_(player, detail_level, mem, &section);

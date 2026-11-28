@@ -3,6 +3,10 @@
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
 #include "../fixtures/texts_fixture.h"
+#include "game/advisor.h"
+#include "game/advisor_directive.h"
+#include "game/advisor_intel.h"
+#include "game/aipower.h"
 #include "game/choices.h"
 #include "game/council.h"
 #include "game/crises.h"
@@ -13,7 +17,9 @@
 #include "game/msg.h"
 #include "game/news.h"
 #include "game/opinion.h"
+#include "game/legacy_world.h"
 #include "game/random.h"
+#include "game/spy_ranks.h"
 #include "game/stability.h"
 #include "game/ultimatums.h"
 
@@ -642,7 +648,7 @@ DOCTEST_TEST_CASE("texts: the alert line in the game's bytes (CP866 in Russian),
     DOCTEST_CHECK(mentat::Game(debt) == "The treasury is in debt: -5 BC.");
     DOCTEST_CHECK(mentat::Utf8(debt) == "The treasury is in debt: -5 BC.");
     text_language::language = text_language::LANGUAGE_RU;
-    const std::string utf8 = "Казна в долгу: -5 МС.";
+    const std::string utf8 = "Казна в долгу: -5 МК.";
     std::string cp866;
     DOCTEST_REQUIRE(text_language::From_Utf8(utf8, &cp866));
     DOCTEST_CHECK(mentat::Utf8(debt) == utf8);
@@ -664,3 +670,415 @@ DOCTEST_TEST_CASE("texts: the alert line in the game's bytes (CP866 in Russian),
 }
 
 }
+
+// ---- M2: the advice ----
+
+namespace {
+    // The advice of player 0 at `detail`, no cut (detailed) unless asked.
+    std::vector<mentat::s_advice> Advice_(uint8_t detail = mentat::DETAIL_DETAILED) {
+        std::vector<mentat::s_advice> advice;
+        mentat::Build_Advice(0, detail, &advice);
+        return advice;
+    }
+
+    const mentat::s_advice* Find_(const std::vector<mentat::s_advice>& advice, mentat::e_advice kind) {
+        for (const mentat::s_advice& line : advice) {
+            if (line.kind == kind) return &line;
+        }
+        return nullptr;
+    }
+
+    // A fighting ship of `owner`: three beams of damage 10 (the tables of the game are empty in a test).
+    void Armed_Ship_(test::s_game_state* state, int index, int owner, int star, int x, int y) {
+        Ship_(state, index, owner, star, x, y);
+        s_ship_weapons& mount = state->ships[index].d.ship_weapon[0];
+        mount.type = 2;
+        mount.count = 3;
+        mount.current_count = 3;
+    }
+
+    struct s_weapon_scope {
+        s_tech_weapon_data saved = TECHDATA::weapons[2];
+        s_weapon_scope() {
+            TECHDATA::weapons[2].max_damage = 10;
+            TECHDATA::weapons[2].type = WEAPON_TYPE_BEAM;
+        }
+        ~s_weapon_scope() { TECHDATA::weapons[2] = saved; }
+    };
+
+    // The bytes of what the advisor keeps per empire: its directives and the memory of ships seen in battle.
+    struct s_directive_table_ {
+        std::vector<uint8_t> bytes;
+        void Take() {
+            bytes.clear();
+            for (uint8_t p = 0; p < MAX_PLAYERS; ++p) {
+                const advisor::s_directive* directive = advisor::Get_Directive(p);
+                const uint8_t has = directive != nullptr ? 1 : 0;
+                bytes.push_back(has);
+                if (directive != nullptr) {
+                    const uint8_t* raw = reinterpret_cast<const uint8_t*>(directive);
+                    bytes.insert(bytes.end(), raw, raw + sizeof(advisor::s_directive));
+                }
+                for (uint8_t q = 0; q < MAX_PLAYERS; ++q) {
+                    const advisor::s_seen_ships& seen = advisor::Seen_Ships(p, q);
+                    const uint8_t* raw = reinterpret_cast<const uint8_t*>(&seen);
+                    bytes.insert(bytes.end(), raw, raw + sizeof(advisor::s_seen_ships));
+                }
+            }
+        }
+        bool Same(const s_directive_table_& other) const { return bytes == other.bytes; }
+    };
+
+    // Texts of every line, for the checks that no key or placeholder shows.
+    std::string Advice_Texts_(const std::vector<mentat::s_advice>& advice) {
+        std::string all;
+        for (const mentat::s_advice& line : advice) all += mentat::Utf8(line.text) + "\n" + mentat::Utf8(line.why) + "\n";
+        return all;
+    }
+} // namespace
+
+DOCTEST_TEST_SUITE("mentat advice") {
+
+DOCTEST_TEST_CASE("advice: threats first, a lost war means peace, the reasons in words") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    Ship_(&state, 0, 0, 0, 100, 100);
+    Ship_(&state, 1, 1, -1, 100, 100);
+    Ship_(&state, 2, 1, -1, 110, 100);
+    state.colonies[0].pop[0] = 0x400 | 1;  // a rebel
+    DOCTEST_CHECK(Advice_().empty() == false);  // the rebels
+    War_(&state, 0, 1);
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_PEACE) == nullptr);  // the war is not going badly yet
+    state.players[0].ship_war_losses[1] = 4;
+    const std::vector<mentat::s_advice> advice = Advice_();
+    const mentat::s_advice* defend = Find_(advice, mentat::ADVICE_DEFEND);
+    const mentat::s_advice* peace = Find_(advice, mentat::ADVICE_PEACE);
+    const mentat::s_advice* unrest = Find_(advice, mentat::ADVICE_UNREST);
+    DOCTEST_REQUIRE(defend != nullptr);
+    DOCTEST_REQUIRE(peace != nullptr);
+    DOCTEST_REQUIRE(unrest != nullptr);
+    DOCTEST_CHECK(mentat::Utf8(defend->text) == "Fleet: send ships to Sol.");
+    DOCTEST_CHECK(mentat::Utf8(defend->why) == "Near Sol: their strength 2 against your 1 there.");
+    DOCTEST_CHECK(mentat::Utf8(peace->text) == "Diplomacy: propose peace to Bbbb.");
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(peace->why), "ships lost: yours 4, theirs 0"));
+    DOCTEST_CHECK(mentat::Utf8(unrest->text) == "Colony: calm the colony at Sol.");
+    // The threats are the first lines.
+    DOCTEST_REQUIRE(advice.size() >= 3);
+    for (size_t i = 0; i < 3; ++i) DOCTEST_CHECK(advice[i].urgency == 0);
+    for (size_t i = 1; i < advice.size(); ++i) DOCTEST_CHECK(advice[i - 1].urgency <= advice[i].urgency);
+    const std::string all = Advice_Texts_(advice);
+    DOCTEST_CHECK_FALSE(Has_Text_(all, "{"));
+    DOCTEST_CHECK_FALSE(Has_Text_(all, "mentat."));
+    DOCTEST_CHECK_FALSE(Has_Text_(all, "rule"));
+    // At peace again the advice to make peace goes.
+    state.players[0].treaty[1] = 3;
+    state.players[1].treaty[0] = 3;
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_PEACE) == nullptr);
+}
+
+DOCTEST_TEST_CASE("advice: the war is going badly when their fleet in view is stronger") {
+    s_scope scope;
+    s_weapon_scope weapons;
+    test::s_game_state state;
+    Setup_(&state);
+    Armed_Ship_(&state, 0, 0, 0, 100, 100);
+    Armed_Ship_(&state, 1, 1, -1, 105, 100);
+    Armed_Ship_(&state, 2, 1, -1, 105, 100);
+    Armed_Ship_(&state, 3, 1, -1, 105, 100);
+    War_(&state, 0, 1);
+    const std::vector<mentat::s_advice> advice = Advice_();
+    const mentat::s_advice* peace = Find_(advice, mentat::ADVICE_PEACE);
+    DOCTEST_REQUIRE(peace != nullptr);
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(peace->why), "against your"));
+}
+
+DOCTEST_TEST_CASE("advice: spies, from no spies to theft, and the new colony products") {
+    s_scope scope;
+    test::s_game_state state;
+    test::s_saved_value<bool> counter_flag{spy_ranks::counter_agents};
+    test::s_saved_value<bool> ranks_flag{spy_ranks::ranks};
+    Setup_(&state);
+    state.players[0].relations[1] = -10;  // the coldest: the target
+    const std::vector<mentat::s_advice> none = Advice_();
+    const mentat::s_advice* send = Find_(none, mentat::ADVICE_SPY_SEND);
+    DOCTEST_REQUIRE(send != nullptr);
+    DOCTEST_CHECK(mentat::Utf8(send->text) == "Races/spies: train spies and send them to Bbbb.");
+    state.players[0].spies[1] = 2;
+    const std::vector<mentat::s_advice> some = Advice_();
+    const mentat::s_advice* steal = Find_(some, mentat::ADVICE_SPY_STEAL);
+    DOCTEST_REQUIRE(steal != nullptr);
+    DOCTEST_CHECK(mentat::Utf8(steal->text) == "Races/spies: set your spies at Bbbb (2 now) to steal technology.");
+    DOCTEST_CHECK(Find_(some, mentat::ADVICE_SPY_SEND) == nullptr);
+    // In a war the spies sabotage.
+    War_(&state, 0, 1);
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_SPY_SABOTAGE) != nullptr);
+    War_(&state, 0, 1);
+    state.players[0].treaty[1] = 3;
+    state.players[1].treaty[0] = 3;
+    // A caught spy and a counter-agent; a resident for the empire the spies work in (the products need the flags and the tech).
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_COUNTER_AGENT) == nullptr);
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_RESIDENT) == nullptr);
+    spy_ranks::counter_agents = true;
+    spy_ranks::ranks = true;
+    state.players[0].tech_applications[TECH_APP_SPY_NETWORK] = TECH_RESEARCH_STATUS_RESEARCHED;
+    s_MSG msg = {};
+    msg.msg_type = MSG_TYPE_LOST_ATTACKING_SPY;
+    msg.u.lost_attacking_spy.player_idx = 1;
+    Add_Msg_(0, msg);
+    const std::vector<mentat::s_advice> products = Advice_();
+    const mentat::s_advice* counter = Find_(products, mentat::ADVICE_COUNTER_AGENT);
+    const mentat::s_advice* resident = Find_(products, mentat::ADVICE_RESIDENT);
+    DOCTEST_REQUIRE(counter != nullptr);
+    DOCTEST_REQUIRE(resident != nullptr);
+    DOCTEST_CHECK(mentat::Utf8(counter->text) == "Colony: build a counter-agent at Sol.");
+    DOCTEST_CHECK(mentat::Utf8(resident->text) == "Colony: build a resident at Sol for Bbbb.");
+}
+
+DOCTEST_TEST_CASE("advice: the diplomacy screen's chances, one proposal per neighbour") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].relations[1] = 70;
+    state.players[0].relations[3] = 25;
+    std::vector<mentat::s_advice> advice = Advice_();
+    const mentat::s_advice* alliance = Find_(advice, mentat::ADVICE_ALLIANCE);
+    const mentat::s_advice* trade = Find_(advice, mentat::ADVICE_TRADE);
+    DOCTEST_REQUIRE(alliance != nullptr);
+    DOCTEST_REQUIRE(trade != nullptr);
+    DOCTEST_CHECK(mentat::Utf8(alliance->text) == "Diplomacy: propose an alliance to Bbbb.");
+    DOCTEST_CHECK(mentat::Utf8(trade->text) == "Diplomacy: propose a trade treaty to Dddd.");
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_RESEARCH_TREATY) == nullptr);
+    state.players[0].relations[3] = 45;
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_RESEARCH_TREATY) != nullptr);
+    // A treaty already made is not proposed again; no treaty at all asks for a pact first.
+    state.players[0].trade_treaty[3] = 1;
+    state.players[0].research_treaty[3] = 1;
+    state.players[0].treaty[1] = 2;
+    state.players[0].research_treaty[1] = 1;
+    state.players[0].trade_treaty[1] = 1;
+    advice = Advice_();
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_ALLIANCE) == nullptr);
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_TRADE) == nullptr);
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_RESEARCH_TREATY) == nullptr);
+    state.players[0].treaty[3] = 0;
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_PACT) != nullptr);
+    // At war with a neighbour no treaty is offered to it.
+    War_(&state, 0, 3);
+    DOCTEST_CHECK(Find_(Advice_(), mentat::ADVICE_PACT) == nullptr);
+}
+
+DOCTEST_TEST_CASE("advice: famine, the treasury, waiting choices, colony ships, range research") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    state.players[0].surplus_food = -4;
+    state.players[0].bc = 50;
+    state.players[0].surplus_bc = -20;
+    choices::enabled = true;
+    choices::s_choice pending;
+    pending.module = choices::MODULE_INCIDENTS;
+    pending.player = 0;
+    DOCTEST_REQUIRE(choices::Add(pending));
+    // A free planet in reach at the colony's star, and two stars not visited yet (the early game).
+    state.planets[1].star_index = 0;
+    state.planets[1].colony_index = -1;
+    state.planets[1].planet_type = PLANET_TYPE_PLANET;
+    MOX::planet_count = 2;
+    state.stars[0].visited = 1;
+    state.stars[1].x = 400;
+    state.stars[2].x = 800;
+    MOX::NUM_STARS = 3;
+    state.players[0].ship_range = 3;
+    MOX::stardate = 35050;
+    const std::vector<mentat::s_advice> advice = Advice_();
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_FAMINE) != nullptr);
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_BANKRUPT) != nullptr);
+    DOCTEST_CHECK(Find_(advice, mentat::ADVICE_CHOICES) != nullptr);
+    const mentat::s_advice* colonize = Find_(advice, mentat::ADVICE_COLONIZE);
+    const mentat::s_advice* focus = Find_(advice, mentat::ADVICE_FOCUS);
+    DOCTEST_REQUIRE(colonize != nullptr);
+    DOCTEST_REQUIRE(focus != nullptr);
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(colonize->text), "1 free planets"));
+    DOCTEST_CHECK(mentat::Utf8(focus->text) == "Science: set research to propulsion (range).");
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(focus->why), "1 of 3 stars explored"));
+    // The Russian lines have no key or placeholder showing.
+    text_language::language = text_language::LANGUAGE_RU;
+    const std::string ru = Advice_Texts_(Advice_());
+    DOCTEST_CHECK_FALSE(Has_Text_(ru, "mentat."));
+    DOCTEST_CHECK_FALSE(Has_Text_(ru, "{"));
+    DOCTEST_CHECK(Has_Text_(ru, "Колония: "));
+}
+
+DOCTEST_TEST_CASE("advice: what rests on another empire's hidden state appears only at the detailed level") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    opinion::enabled = true;
+    opinion::Add(1, 0, opinion::REASON_EMBARGO, -20);  // Bbbb remembers an embargo against you
+    for (const uint8_t detail : {mentat::DETAIL_BRIEF, mentat::DETAIL_MEDIUM}) {
+        DOCTEST_CAPTURE(static_cast<int>(detail));
+        const std::vector<mentat::s_advice> advice = Advice_(detail);
+        DOCTEST_CHECK(Find_(advice, mentat::ADVICE_OPINION) == nullptr);
+        for (const mentat::s_advice& line : advice) DOCTEST_CHECK_FALSE(line.estimate);
+    }
+    const std::vector<mentat::s_advice> detailed = Advice_(mentat::DETAIL_DETAILED);
+    const mentat::s_advice* grudge = Find_(detailed, mentat::ADVICE_OPINION);
+    DOCTEST_REQUIRE(grudge != nullptr);
+    DOCTEST_CHECK(grudge->estimate);
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(grudge->text), "an embargo"));
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(grudge->text), "estimate"));
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(grudge->why), "-20"));
+}
+
+DOCTEST_TEST_CASE("advice: a leader's war on a weak neighbour is an estimate, detailed only") {
+    s_scope scope;
+    s_weapon_scope weapons;
+    test::s_saved_value<bool> phases{advisor::rules_phases};
+    test::s_saved_value<int32_t> parts{advisor::phase_parts};
+    test::s_game_state state;
+    Setup_(&state);
+    advisor::rules_phases = true;
+    advisor::phase_parts = advisor::PHASE_PART_LEADER;
+    MOX::stardate = 35200;
+    // Three colonies and a fleet of ours; spies at both neighbours; a stronger neighbour (1) and a weak one (3) in range.
+    for (int i = 1; i < 3; ++i) {
+        state.planets[i].star_index = 0;
+        state.planets[i].colony_index = static_cast<int16_t>(i);
+        state.colonies[i].owner = 0;
+        state.colonies[i].planet = static_cast<int16_t>(i);
+        state.colonies[i].n_pops = 1;
+    }
+    MOX::planet_count = 3;
+    MOX::NUM_COLONIES = 3;
+    for (int i = 0; i < 4; ++i) state.players[i].total_pop = 100;
+    Armed_Ship_(&state, 0, 0, 0, 100, 100);
+    Armed_Ship_(&state, 1, 0, 0, 100, 100);
+    Armed_Ship_(&state, 2, 1, -1, 105, 100);
+    state.players[0].spies[1] = 1;
+    state.players[0].spies[3] = 1;
+    state.players[0].within_range[1] = 1;
+    state.players[0].within_range[3] = 1;
+    state.stars[0].visited = 1;
+    const std::vector<mentat::s_advice> detailed = Advice_(mentat::DETAIL_DETAILED);
+    const mentat::s_advice* war = Find_(detailed, mentat::ADVICE_WAR);
+    DOCTEST_REQUIRE(war != nullptr);
+    DOCTEST_CHECK(war->estimate);
+    DOCTEST_CHECK(Has_Text_(mentat::Utf8(war->text), "Dddd"));
+    DOCTEST_CHECK(Find_(Advice_(mentat::DETAIL_MEDIUM), mentat::ADVICE_WAR) == nullptr);
+    DOCTEST_CHECK(Find_(Advice_(mentat::DETAIL_BRIEF), mentat::ADVICE_WAR) == nullptr);
+}
+
+DOCTEST_TEST_CASE("advice: the line count by level, and none outside the advice mode") {
+    s_scope scope;
+    test::s_game_state state;
+    Setup_(&state);
+    for (int i = 0; i < 4; ++i) state.players[i].total_pop = 100;
+    state.players[0].relations[1] = 70;
+    state.players[0].relations[3] = 70;
+    state.players[0].surplus_food = -4;
+    state.players[0].bc = 50;
+    state.players[0].surplus_bc = -20;
+    state.colonies[0].pop[0] = 0x400 | 1;
+    choices::enabled = true;
+    choices::s_choice pending;
+    pending.module = choices::MODULE_INCIDENTS;
+    pending.player = 0;
+    DOCTEST_REQUIRE(choices::Add(pending));
+    DOCTEST_CHECK(Advice_(mentat::DETAIL_BRIEF).size() == 3);
+    DOCTEST_CHECK(Advice_(mentat::DETAIL_MEDIUM).size() == 6);
+    DOCTEST_CHECK(Advice_(mentat::DETAIL_DETAILED).size() > 6);
+    mentat::s_summary summary;
+    mentat::mode = mentat::MODE_SUMMARY;
+    mentat::Build_Summary(0, mentat::DETAIL_DETAILED, &summary);
+    DOCTEST_CHECK(summary.advice.empty());
+    mentat::mode = mentat::MODE_ADVICE;
+    mentat::Build_Summary(0, mentat::DETAIL_BRIEF, &summary);
+    DOCTEST_CHECK(summary.advice.size() == 3);
+    mentat::Build_Summary(0, mentat::DETAIL_DETAILED, &summary);
+    DOCTEST_CHECK(summary.advice.size() > 6);
+}
+
+DOCTEST_TEST_CASE("advice reads only: no draw, no game state, no ship design, no advisor table changes") {
+    s_scope scope;
+    s_weapon_scope weapons;
+    test::s_saved_value<bool> phases{advisor::rules_phases};
+    test::s_saved_value<int32_t> parts{advisor::phase_parts};
+    test::s_saved_value<bool> counter_flag{spy_ranks::counter_agents};
+    test::s_saved_value<bool> ranks_flag{spy_ranks::ranks};
+    test::s_saved_value<uint8_t> combat_flag{MOX::settings.strategic_combat_flag};
+    test::s_game_state state;
+    Setup_(&state);
+    Council_(&state);
+    advisor::rules_phases = true;
+    advisor::phase_parts = advisor::PHASE_PART_ALL;
+    spy_ranks::counter_agents = true;
+    spy_ranks::ranks = true;
+    opinion::enabled = true;
+    opinion::Add(1, 0, opinion::REASON_EMBARGO, -20);
+    news::enabled = true;
+    MOX::settings.strategic_combat_flag = 1;  // the case where the classic strength measure refreshes ship designs
+    War_(&state, 0, 1);
+    state.players[0].spies[1] = 2;
+    state.players[0].ship_war_losses[1] = 5;
+    Armed_Ship_(&state, 0, 0, 0, 100, 100);
+    Armed_Ship_(&state, 1, 1, -1, 105, 100);
+    Armed_Ship_(&state, 2, 1, -1, 105, 100);
+    for (const int index : {0, 1, 2}) {
+        state.ships[index].d.armor_type = 7;  // not the best the owner could have: a refresh would rewrite it
+        state.ships[index].d.shield_type = 7;
+        state.ships[index].d.computer_type = 7;
+    }
+    state.colonies[0].pop[0] = 0x400 | 1;
+    s_MSG msg = {};
+    msg.msg_type = MSG_TYPE_LOST_ATTACKING_SPY;
+    msg.u.lost_attacking_spy.player_idx = 1;
+    Add_Msg_(0, msg);
+
+    // The probe: with the switch off the classic measure does rewrite a design (the check below can fail).
+    {
+        const std::vector<s_ship_data> before = state.ships;
+        (void)AIPOWER::Ship_Strength_Vs_Ships(&game::current, legacy_world::Ship_Id(0), legacy_world::Player_Id(0));
+        DOCTEST_CHECK(memcmp(before.data(), state.ships.data(), sizeof(s_ship_data) * 3) != 0);
+        for (const int index : {0, 1, 2}) {
+            state.ships[index].d.armor_type = 7;
+            state.ships[index].d.shield_type = 7;
+            state.ships[index].d.computer_type = 7;
+        }
+    }
+    DOCTEST_CHECK_FALSE(AIPOWER::read_only_strength);
+
+    const std::vector<s_player> players = state.players;
+    const std::vector<s_ship_data> ships = state.ships;
+    const std::vector<s_colony> colonies = state.colonies;
+    const std::vector<s_planet_data> planets = state.planets;
+    const std::vector<s_star_data> stars = state.stars;
+    const s_current_design design = state.design;
+    s_directive_table_ directives_before;
+    directives_before.Take();
+    game_random::Set_Random_Seed(4242);
+    const int32_t stardate = MOX::stardate;
+    for (const uint8_t detail : {mentat::DETAIL_BRIEF, mentat::DETAIL_MEDIUM, mentat::DETAIL_DETAILED}) {
+        DOCTEST_CAPTURE(static_cast<int>(detail));
+        DOCTEST_CHECK_FALSE(Advice_(detail).empty());
+        mentat::s_summary summary;
+        mentat::mode = mentat::MODE_ADVICE;
+        mentat::Build_Summary(0, detail, &summary);
+        DOCTEST_CHECK_FALSE(summary.advice.empty());
+        DOCTEST_CHECK_FALSE(AIPOWER::read_only_strength);  // the switch is back
+    }
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == 4242);
+    DOCTEST_CHECK(MOX::stardate == stardate);
+    DOCTEST_CHECK(memcmp(players.data(), state.players.data(), players.size() * sizeof(s_player)) == 0);
+    DOCTEST_CHECK(memcmp(ships.data(), state.ships.data(), ships.size() * sizeof(s_ship_data)) == 0);
+    DOCTEST_CHECK(memcmp(colonies.data(), state.colonies.data(), colonies.size() * sizeof(s_colony)) == 0);
+    DOCTEST_CHECK(memcmp(planets.data(), state.planets.data(), planets.size() * sizeof(s_planet_data)) == 0);
+    DOCTEST_CHECK(memcmp(stars.data(), state.stars.data(), stars.size() * sizeof(s_star_data)) == 0);
+    DOCTEST_CHECK(memcmp(&design, &state.design, sizeof(s_current_design)) == 0);
+    s_directive_table_ directives_after;
+    directives_after.Take();
+    DOCTEST_CHECK(directives_before.Same(directives_after));
+}
+
+}
+

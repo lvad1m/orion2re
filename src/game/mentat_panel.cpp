@@ -96,6 +96,23 @@ namespace mentat {
             }
         }
 
+        // The advice: each line says what to do and on which screen, and the reason follows it in words.
+        void Draw_Advice_(const s_summary& summary) {
+            if (ImGui::CollapsingHeader(Label_("mentat.section.advice", "mentat_h_advice").c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
+                if (summary.advice.empty()) {
+                    Wrapped_(texts::Get_Utf8("mentat.advice_none"));
+                }
+                for (const s_advice& advice : summary.advice) {
+                    Bullet_(Utf8(advice.text));
+                    ImGui::Indent();
+                    ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyleColorVec4(ImGuiCol_TextDisabled));
+                    Wrapped_(Utf8(advice.why));
+                    ImGui::PopStyleColor();
+                    ImGui::Unindent();
+                }
+            }
+        }
+
         void Draw_Window_(const debug_overlay::s_panel_context& context) {
             (void)context;
             const s_summary* summary = Current();
@@ -125,9 +142,7 @@ namespace mentat {
                     Mark_Seen();
                     Draw_Summary_(*summary);
                     Draw_Threats_(*summary);
-                    if (summary->advice_pending && ImGui::CollapsingHeader(Label_("mentat.section.advice", "mentat_h_advice").c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
-                        Wrapped_(texts::Get_Utf8("mentat.advice_later"));
-                    }
+                    if (mode == MODE_ADVICE) Draw_Advice_(*summary);
                     if (summary->detail >= DETAIL_DETAILED && ImGui::CollapsingHeader(Label_("mentat.section.why", "mentat_h_why").c_str(), ImGuiTreeNodeFlags_DefaultOpen)) {
                         for (const s_text& line : summary->why) {
                             Bullet_(Utf8(line));
