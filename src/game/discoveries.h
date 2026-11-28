@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/choices.h"
 #include "game/consts.h"
 
 #include <cstdint>
@@ -14,8 +15,9 @@ namespace SERIAL {
 // dice of the research projects, projects.h): an ancient power plant, sleeping symbionts, natives on a continent
 // (each with three ways to deal with it), the vaults of the guardians (a limited set for the whole galaxy; the
 // best explorers find them better) and tombs with guardians (the dig wakes a monster that must be beaten before
-// the reward). The first option of a choice is the safest one: a human takes it (no screen yet), a computer
-// chooses by its personality (Choose). Guardians are monsters of the game's table (SHIPS::Build_Nonplayer_Ship).
+// the reward). The first option of a choice is the safest one: a human chooses in the choice window when events
+// human_choices is on (choices.h; otherwise the first option, as before), a computer chooses by its personality
+// (Choose). The vaults and the tombs have no choice. Guardians are monsters of the game's table (SHIPS::Build_Nonplayer_Ship).
 // Rewards go through the existing levers: a technology application (research points when none is left to learn),
 // research points, BC, a colony building, a population point lost or a planet's mineral class (EVENTS::Enrich_Planet).
 // Wave 6, ab-review 2.12. The row (events-catalog 3.8): "ограниченный набор хранилищ с артефактами, бонусы
@@ -150,6 +152,12 @@ namespace discoveries {
     // option `option` (-1: Choose). Costs are paid now. False when the flag is off, the table is full or the
     // empire has no place for it.
     bool Start(e_kind kind, int16_t player, int16_t star = -1, int32_t option = -1);
+
+    // The choice window of a human (choices.h): kinds POWER_PLANT, SYMBIONTS and NATIVES; the colony is in `target`.
+    // The text is false and Choice_Apply does nothing when the subject is gone (the colony lost, the star has had
+    // another find, the table is full). Neither draws from game_random.
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t);
+    void Choice_Apply(const choices::s_choice& c, int32_t option);
 
     // The dice check of the record at `index` (kinds with a check): with `dice` (one value per die of
     // dice::roll_kind) or, with nullptr, rolled with game_random. Applies the outcome and drops the record.

@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/intrigue.h"
 #include "game/opinion.h"
@@ -472,6 +474,211 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
     SERIAL::Reader_ r4(buffer.get(), size - 1, "test underflow", true);
     DOCTEST_CHECK_FALSE(overtures::Parse_Save(&r4, &error));
     DOCTEST_CHECK(overtures::State()->count == 2);  // the failed parses left the state alone
+}
+
+
+// ---- The choice window (human-ui.md section 5, slice R1, part B): a human's option is chosen later.
+
+namespace {
+    std::string Signature_(const test::s_game_state& state, int32_t app) {
+        char buffer[512];
+        int n = snprintf(buffer, sizeof(buffer), "ships %d, known %d %d %d %d, app", Alive_Ships_(state), Known_(state, 0), Known_(state, 1),
+            Known_(state, 2), Known_(state, 3));
+        for (int p = 0; p < 4; ++p) {
+            n += snprintf(buffer + n, sizeof(buffer) - n, " %d/%d/%d", (int)state.players[p].bc, app >= 0 ? (int)state.players[p].tech_applications[app] : 0,
+                (int)opinion::Relations(p, 0));
+        }
+        n += snprintf(buffer + n, sizeof(buffer) - n, ", seed %u", (unsigned)game_random::Get_Random_Seed());
+        return buffer;
+    }
+
+    // The leaked discovery needs an application the first empire knows and the others lack.
+    int32_t Leak_Setup_(test::s_game_state* state) {
+        const int32_t app = Some_App_(state);
+        DOCTEST_REQUIRE(app > 0);
+        state->players[0].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+        state->players[1].bc = 500;
+        state->players[2].bc = 300;
+        state->players[3].bc = 50;
+        return app;
+    }
+
+    // 0: Start with the option; 1: a human with the setting on, then the choice applied; 2: a human with the setting
+    // off (takes the first option; `option` is ignored).
+    std::string Run_(overtures::e_kind kind, int option, int mode) {
+        s_overtures_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        const int32_t app = kind == overtures::KIND_LEAK ? Leak_Setup_(&state) : -1;
+        game_random::Set_Random_Seed(4242);
+        if (mode == 1) {
+            choices::enabled = true;
+            DOCTEST_REQUIRE(overtures::Start(kind, 0));
+            DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        } else if (mode == 2) {
+            choices::enabled = false;
+            DOCTEST_REQUIRE(overtures::Start(kind, 0));
+            DOCTEST_CHECK(choices::Empty());
+        } else {
+            DOCTEST_REQUIRE(overtures::Start(kind, 0, option));
+        }
+        const std::string result = Signature_(state, app);
+        choices::Clear();
+        return result;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("choices: a human with the setting on gets a pending choice and no effect")
+{
+    for (int k = overtures::KIND_HAND; k <= overtures::KIND_LEAK; ++k) {
+        const overtures::e_kind kind = static_cast<overtures::e_kind>(k);
+        s_overtures_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Setup_(&state);
+        test::Load_Base_Texts();
+        const int32_t app = kind == overtures::KIND_LEAK ? Leak_Setup_(&state) : -1;
+        const std::string before = Signature_(state, app);
+        choices::enabled = true;
+        DOCTEST_REQUIRE(overtures::Start(kind, 0));
+        DOCTEST_CHECK(choices::Count(0) == 1);
+        DOCTEST_CHECK(overtures::Empty());
+        DOCTEST_REQUIRE(choices::State()->count == 1);
+        const choices::s_choice& c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_OVERTURES);
+        DOCTEST_CHECK(c.kind == k);
+        choices::s_text text;
+        DOCTEST_REQUIRE(overtures::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 3);
+        DOCTEST_CHECK(std::string(text.title).size() > 0);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        for (int i = 0; i < text.count; ++i) DOCTEST_CHECK(std::string(text.option[i]).size() > 5);
+        // Nothing but the pick (a draw for the leak) happened.
+        const std::string after = Signature_(state, app);
+        if (kind == overtures::KIND_HAND) DOCTEST_CHECK(after.substr(0, after.find(", seed")) == before.substr(0, before.find(", seed")));
+        choices::Clear();
+    }
+}
+
+DOCTEST_TEST_CASE("choices: Choice_Apply with each option equals Start with that option; the draws are the same")
+{
+    for (int k = overtures::KIND_HAND; k <= overtures::KIND_LEAK; ++k) {
+        const overtures::e_kind kind = static_cast<overtures::e_kind>(k);
+        for (int option = 0; option < 3; ++option) {
+            DOCTEST_CAPTURE(k);
+            DOCTEST_CAPTURE(option);
+            DOCTEST_CHECK(Run_(kind, option, 1) == Run_(kind, option, 0));
+        }
+        // With the setting off a human takes the first option, as before.
+        DOCTEST_CHECK(Run_(kind, 0, 2) == Run_(kind, 0, 0));
+    }
+}
+
+DOCTEST_TEST_CASE("choices: a computer is unaffected by the setting; a full queue falls back to the first option")
+{
+    s_overtures_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    Computers_(&state);
+    choices::enabled = true;
+    state.players[0].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_HAND, 0));  // a computer: no pending choice, it seizes
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[0].bc == 1000 + overtures::HAND_LOOT);
+    // A mediator or a paid offensive never reaches a human, with or without the setting.
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    War_(&state, 0, 1);
+    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_MEDIATOR, 0));
+    DOCTEST_CHECK_FALSE(overtures::Start(overtures::KIND_OFFENSIVE, 0));
+    DOCTEST_CHECK(choices::Empty());
+    state.players[0].treaty[1] = state.players[1].treaty[0] = 0;
+    // A full queue: the human gets the first option (accept).
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.kind = 1;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    state.players[0].bc = 1000;
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_HAND, 0));
+    DOCTEST_CHECK(choices::Count(0) == 0);
+    DOCTEST_CHECK(Alive_Ships_(state) == 2);
+    choices::Clear();
+}
+
+DOCTEST_TEST_CASE("choices: a gone subject makes Choice_Text false and Choice_Apply do nothing")
+{
+    s_overtures_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    choices::enabled = true;
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_HAND, 0));
+    const choices::s_choice hand = choices::State()->choice[0];
+    for (int s = 0; s < 3; ++s) state.ships[s].status = 5;  // the fleet is cut to two ships
+    choices::s_text text;
+    DOCTEST_CHECK_FALSE(overtures::Choice_Text(hand, &text));
+    overtures::Choice_Apply(hand, overtures::HAND_SEIZE);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(choices::Has_Pending(0, false) == 0);  // the step drops it
+    DOCTEST_CHECK(choices::Empty());
+    // A leak whose application the empire does not know (any more) is gone too.
+    choices::s_choice leak = hand;
+    leak.kind = overtures::KIND_LEAK;
+    leak.other = static_cast<int16_t>(Some_App_(&state));
+    DOCTEST_CHECK_FALSE(overtures::Choice_Text(leak, &text));
+    overtures::Choice_Apply(leak, overtures::LEAK_SELL);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    leak.other = -1;
+    DOCTEST_CHECK_FALSE(overtures::Choice_Text(leak, &text));
+}
+
+DOCTEST_TEST_CASE("choices: the leak window names the buyer, or says there is none; Russian fills every placeholder")
+{
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_overtures_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    Leak_Setup_(&state);
+    std::snprintf(state.players[1].race_name, sizeof(state.players[1].race_name), "Alkari");
+    choices::enabled = true;
+    DOCTEST_REQUIRE(overtures::Start(overtures::KIND_LEAK, 0));
+    const choices::s_choice c = choices::State()->choice[0];
+    choices::s_text en;
+    text_language::language = text_language::LANGUAGE_EN;
+    DOCTEST_REQUIRE(overtures::Choice_Text(c, &en));
+    DOCTEST_CHECK(std::string(en.option[1]) == "Sell it (buyer: Alkari, 100 BC)");
+    DOCTEST_CHECK(std::string(en.option[2]) == "Keep it secret (counterintelligence, 30 BC)");
+    state.players[1].bc = state.players[2].bc = state.players[3].bc = 10;  // nobody can pay
+    DOCTEST_REQUIRE(overtures::Choice_Text(c, &en));
+    DOCTEST_CHECK(std::string(en.option[1]).find("nobody can pay") != std::string::npos);
+    overtures::Choice_Apply(c, overtures::LEAK_SELL);
+    DOCTEST_CHECK(state.players[0].bc == 1000);  // no buyer: nothing happens
+    state.players[0].bc = 12;
+    DOCTEST_REQUIRE(overtures::Choice_Text(c, &en));
+    DOCTEST_CHECK(std::string(en.option[2]) == "Keep it secret (counterintelligence, 12 BC)");  // all it has
+    text_language::language = text_language::LANGUAGE_RU;
+    choices::s_text ru;
+    DOCTEST_REQUIRE(overtures::Choice_Text(c, &ru));
+    DOCTEST_CHECK(ru.count == en.count);
+    std::string all = std::string(ru.title) + ru.body;
+    for (int i = 0; i < ru.count; ++i) all += ru.option[i];
+    DOCTEST_CHECK(all.find('{') == std::string::npos);
+    DOCTEST_CHECK(all.find('?') == std::string::npos);
+    choices::Clear();
 }
 
 }

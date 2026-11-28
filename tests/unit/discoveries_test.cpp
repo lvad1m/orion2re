@@ -2,6 +2,8 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
+#include "game/choices.h"
 #include "game/dice.h"
 #include "game/discoveries.h"
 #include "game/projects.h"
@@ -517,4 +519,224 @@ DOCTEST_TEST_CASE("vaults: the finder race survives a save; version 1 loads with
         DOCTEST_CHECK(discoveries::State()->vaults_found == 1);
     }
 }
+
+// ---- The choice window (human-ui.md section 5, slice R1, part B): a human's way is chosen later.
+
+namespace {
+    // Everything a find can change in these tests, as one string.
+    std::string Signature_(const test::s_game_state& state) {
+        char buffer[512];
+        int n = snprintf(buffer, sizeof(buffer), "bc %d, research %d, pops %d, used %d%d%d, n %d", (int)state.players[0].bc,
+            (int)state.players[0].research_accumulated, (int)state.colonies[0].n_pops, discoveries::Used(0) ? 1 : 0, discoveries::Used(1) ? 1 : 0,
+            discoveries::Used(2) ? 1 : 0, (int)discoveries::State()->count);
+        for (int i = 0; i < discoveries::State()->count; ++i) {
+            const discoveries::s_record& r = discoveries::State()->record[i];
+            n += snprintf(buffer + n, sizeof(buffer) - n, "; k%d p%d s%d c%d e%d o%d", (int)r.kind, (int)r.player, (int)r.star, (int)r.other, (int)r.ends,
+                (int)r.option);
+        }
+        snprintf(buffer + n, sizeof(buffer) - n, ", seed %u", (unsigned)game_random::Get_Random_Seed());
+        return buffer;
+    }
+
+    void Choice_Setup_(test::s_game_state* state, discoveries::e_kind kind) {
+        test::Load_Base_Texts();
+        Setup_(state);
+        Human_(state);
+        if (kind == discoveries::KIND_NATIVES) state->stars[0].system_special = SYSTEM_SPECIAL_NATIVES;
+    }
+
+    // 0: Start with the option; 1: a human with the setting on, then the choice applied; 2: a human with the setting off.
+    std::string Run_(discoveries::e_kind kind, int option, int mode) {
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Choice_Setup_(&state, kind);
+        game_random::Set_Random_Seed(99);
+        if (mode == 1) {
+            choices::enabled = true;
+            DOCTEST_REQUIRE(discoveries::Start(kind, 0));
+            DOCTEST_REQUIRE(choices::Apply_Pending(0, option));
+        } else if (mode == 2) {
+            choices::enabled = false;
+            DOCTEST_REQUIRE(discoveries::Start(kind, 0));
+            DOCTEST_CHECK(choices::Empty());
+        } else {
+            DOCTEST_REQUIRE(discoveries::Start(kind, 0, -1, option));
+        }
+        const std::string result = Signature_(state);
+        choices::Clear();
+        return result;
+    }
+} // namespace
+
+DOCTEST_TEST_CASE("choices: a human with the setting on gets a pending choice and no effect")
+{
+    for (int k = discoveries::KIND_POWER_PLANT; k <= discoveries::KIND_NATIVES; ++k) {
+        const discoveries::e_kind kind = static_cast<discoveries::e_kind>(k);
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Choice_Setup_(&state, kind);
+        const std::string before = Signature_(state);
+        choices::enabled = true;
+        DOCTEST_REQUIRE(discoveries::Start(kind, 0));
+        DOCTEST_CHECK(choices::Count(0) == 1);
+        DOCTEST_CHECK(discoveries::Empty());
+        DOCTEST_CHECK_FALSE(discoveries::Used(0));
+        DOCTEST_CHECK(Signature_(state) == before);
+        DOCTEST_REQUIRE(choices::State()->count == 1);
+        const choices::s_choice& c = choices::State()->choice[0];
+        DOCTEST_CHECK(c.module == choices::MODULE_DISCOVERIES);
+        DOCTEST_CHECK(c.kind == k);
+        DOCTEST_CHECK(c.target == 0);
+        choices::s_text text;
+        DOCTEST_REQUIRE(discoveries::Choice_Text(c, &text));
+        DOCTEST_CHECK(text.count == 3);
+        DOCTEST_CHECK(std::string(text.title).size() > 0);
+        DOCTEST_CHECK(std::string(text.body).size() > 40);
+        for (int i = 0; i < text.count; ++i) DOCTEST_CHECK(std::string(text.option[i]).size() > 5);
+        choices::Clear();
+    }
+}
+
+DOCTEST_TEST_CASE("choices: Choice_Apply with each option equals Start with that option; the draws are the same")
+{
+    for (int k = discoveries::KIND_POWER_PLANT; k <= discoveries::KIND_NATIVES; ++k) {
+        const discoveries::e_kind kind = static_cast<discoveries::e_kind>(k);
+        for (int option = 0; option < 3; ++option) {
+            DOCTEST_CAPTURE(k);
+            DOCTEST_CAPTURE(option);
+            DOCTEST_CHECK(Run_(kind, option, 1) == Run_(kind, option, 0));
+        }
+        // With the setting off a human takes the first option, as before.
+        DOCTEST_CHECK(Run_(kind, 0, 2) == Run_(kind, 0, 0));
+    }
+}
+
+DOCTEST_TEST_CASE("choices: two candidate colonies draw the same with the setting on; a computer is unaffected; a vault has no choice")
+{
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    Human_(&state);
+    // A second colony of player 0 at star 2.
+    MOX::NUM_COLONIES = 3;
+    state.planets[2].star_index = 2;
+    state.planets[2].colony_index = 2;
+    state.planets[2].planet_type = PLANET_TYPE_PLANET;
+    state.colonies[2].owner = 0;
+    state.colonies[2].planet = 2;
+    state.colonies[2].n_pops = 3;
+    MOX::planet_count = 3;
+    game_random::Set_Random_Seed(31337);
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 0));
+    const uint32_t classic_seed = game_random::Get_Random_Seed();
+    const int16_t classic_colony = discoveries::State()->record[0].other;
+    discoveries::Clear();
+    choices::enabled = true;
+    game_random::Set_Random_Seed(31337);
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 0));
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == classic_seed);
+    DOCTEST_REQUIRE(choices::State()->count == 1);
+    DOCTEST_CHECK(choices::State()->choice[0].target == classic_colony);
+    choices::Clear();
+    // A computer.
+    state.players[1].personality = PLAYER_PERSONALITY_AGGRESSIVE;
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 1));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(discoveries::Find(discoveries::KIND_POWER_PLANT, 1, -1)->option == discoveries::OPT_POWER_INSTALL);
+    // A vault and a tomb never ask.
+    state.stars[2].system_special = SYSTEM_SPECIAL_ANCIENT_ARTIFACTS;
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_VAULT, 0));
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_TOMB, 0));
+    DOCTEST_CHECK(choices::Empty());
+    // A full queue: the first option, as without the setting.
+    discoveries::Clear();
+    state.players[0].bc = 1000;
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.kind = 1;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 0));
+    DOCTEST_CHECK(choices::Count(0) == 0);
+    DOCTEST_CHECK(discoveries::Find(discoveries::KIND_POWER_PLANT, 0, -1)->option == discoveries::OPT_POWER_TEST);
+    choices::Clear();
+}
+
+DOCTEST_TEST_CASE("choices: a gone subject makes Choice_Text false and Choice_Apply do nothing")
+{
+    s_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Choice_Setup_(&state, discoveries::KIND_POWER_PLANT);
+    choices::enabled = true;
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 0));
+    const choices::s_choice c = choices::State()->choice[0];
+    choices::s_text text;
+    DOCTEST_REQUIRE(discoveries::Choice_Text(c, &text));
+    state.colonies[0].owner = 1;  // the colony is lost
+    DOCTEST_CHECK_FALSE(discoveries::Choice_Text(c, &text));
+    discoveries::Choice_Apply(c, discoveries::OPT_POWER_TEST);
+    DOCTEST_CHECK(discoveries::Empty());
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(choices::Has_Pending(0, false) == 0);
+    DOCTEST_CHECK(choices::Empty());
+    // The star has had another find meanwhile: gone too.
+    state.colonies[0].owner = 0;
+    DOCTEST_CHECK(discoveries::Choice_Text(c, &text));
+    DOCTEST_REQUIRE(discoveries::Start(discoveries::KIND_POWER_PLANT, 0, 0, discoveries::OPT_POWER_INSTALL));
+    DOCTEST_CHECK_FALSE(discoveries::Choice_Text(c, &text));
+    // Natives need the natives at the star.
+    discoveries::Clear();
+    choices::s_choice natives = c;
+    natives.kind = discoveries::KIND_NATIVES;
+    DOCTEST_CHECK_FALSE(discoveries::Choice_Text(natives, &text));
+    // A tomb is no choice at all.
+    natives.kind = discoveries::KIND_TOMB;
+    DOCTEST_CHECK_FALSE(discoveries::Choice_Text(natives, &text));
+    choices::Clear();
+}
+
+DOCTEST_TEST_CASE("choices: a poor empire sees what the cost really is; Russian fills every placeholder")
+{
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    for (int k = discoveries::KIND_POWER_PLANT; k <= discoveries::KIND_NATIVES; ++k) {
+        const discoveries::e_kind kind = static_cast<discoveries::e_kind>(k);
+        s_scope scope;
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        choices::Clear();
+        test::s_game_state state;
+        Choice_Setup_(&state, kind);
+        state.players[0].bc = 7;
+        choices::enabled = true;
+        DOCTEST_REQUIRE(discoveries::Start(kind, 0));
+        const choices::s_choice c = choices::State()->choice[0];
+        choices::s_text en;
+        text_language::language = text_language::LANGUAGE_EN;
+        DOCTEST_REQUIRE(discoveries::Choice_Text(c, &en));
+        if (kind == discoveries::KIND_POWER_PLANT) DOCTEST_CHECK(std::string(en.option[0]).find("(7 BC,") != std::string::npos);
+        if (kind == discoveries::KIND_NATIVES) DOCTEST_CHECK(std::string(en.option[1]).find("(7 BC,") != std::string::npos);
+        text_language::language = text_language::LANGUAGE_RU;
+        choices::s_text ru;
+        DOCTEST_REQUIRE(discoveries::Choice_Text(c, &ru));
+        DOCTEST_CHECK(ru.count == en.count);
+        DOCTEST_CHECK(std::string(ru.title) != en.title);
+        std::string all = std::string(ru.title) + ru.body;
+        for (int i = 0; i < ru.count; ++i) all += ru.option[i];
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+        choices::Clear();
+    }
+}
+
 }

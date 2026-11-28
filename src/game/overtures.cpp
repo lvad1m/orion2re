@@ -2,6 +2,7 @@
 
 #include "game/overtures.h"
 
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
@@ -10,6 +11,7 @@
 #include "game/random.h"
 #include "game/ships.h"
 #include "game/techdata.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -118,14 +120,33 @@ namespace overtures {
             SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "overtures: stardate %d, player %d: gets application %d", (int)MOX::stardate, (int)player, app);
         }
 
-        bool Start_Hand_(int16_t player, int32_t option) {
-            if (Ship_Count_(player) <= HAND_SHIPS) return false;
+        // The outstretched hand can come: more than HAND_SHIPS ships, an empire in contact and an application to learn
+        // (`apps`, the cheapest first); returns the number of applications, 0 when it cannot.
+        int32_t Hand_Apps_(int16_t player, int16_t* apps) {
+            if (Ship_Count_(player) <= HAND_SHIPS) return 0;
             bool contact = false;
             for (int16_t o = 0; o < Players_(); ++o) contact = contact || (o != player && Alive_(o) && Contact_(player, o));
-            if (!contact) return false;
+            if (!contact) return 0;
+            return Unknown_Apps_(player, apps, TECH_APP_COUNT);
+        }
+
+        choices::s_choice Choice_(e_kind kind, int16_t player, int16_t other) {
+            choices::s_choice c;
+            c.module = choices::MODULE_OVERTURES;
+            c.kind = kind;
+            c.player = static_cast<int8_t>(player);
+            c.other = other;
+            c.asked = MOX::stardate;
+            return c;
+        }
+
+        // `ask`: a human with the setting on; the event is queued and nothing is applied (`option` is the first
+        // option, used when the queue is full).
+        bool Start_Hand_(int16_t player, int32_t option, bool ask) {
             int16_t apps[TECH_APP_COUNT];
-            const int32_t n = Unknown_Apps_(player, apps, TECH_APP_COUNT);
+            const int32_t n = Hand_Apps_(player, apps);
             if (n == 0) return false;
+            if (ask && choices::Add(Choice_(KIND_HAND, player, -1))) return true;
             switch (option) {
                 case HAND_ACCEPT: {
                     Scrap_Cheapest_(player, HAND_SHIPS);
@@ -151,10 +172,9 @@ namespace overtures {
             return true;
         }
 
-        bool Start_Leak_(int16_t player, int32_t option) {
+        // Applications known here and missing at an empire in contact.
+        int32_t Leak_Apps_(int16_t player, int16_t* apps) {
             const s_player& me = MOX::player[player];
-            // Applications known here and missing at an empire in contact.
-            int16_t apps[TECH_APP_COUNT];
             int32_t n = 0;
             for (int32_t app = TECH_APP_NO_TECH + 1; app < TECH_APP_COUNT; ++app) {
                 if (!Known_(me, app)) continue;
@@ -166,9 +186,11 @@ namespace overtures {
                     }
                 }
             }
-            if (n == 0) return false;
-            const int16_t app = apps[Pick_(n)];
-            int16_t takers[MAX_PLAYERS];
+            return n;
+        }
+
+        // The empires in contact that lack `app`.
+        int32_t Leak_Takers_(int16_t player, int32_t app, int16_t* takers) {
             int32_t t = 0;
             for (int16_t o = 0; o < Players_(); ++o) {
                 if (o != player && Alive_(o) && Contact_(player, o) && !Known_(MOX::player[o], app) &&
@@ -176,6 +198,33 @@ namespace overtures {
                     takers[t++] = o;
                 }
             }
+            return t;
+        }
+
+        // The richest taker that can pay LEAK_PRICE, -1 when none.
+        int16_t Leak_Buyer_(const int16_t* takers, int32_t t) {
+            int16_t buyer = -1;
+            for (int32_t i = 0; i < t; ++i) {
+                if (MOX::player[takers[i]].bc >= LEAK_PRICE && (buyer < 0 || MOX::player[takers[i]].bc > MOX::player[buyer].bc)) buyer = takers[i];
+            }
+            return buyer;
+        }
+
+        void Apply_Leak_(int16_t player, int16_t app, int32_t option);
+
+        bool Start_Leak_(int16_t player, int32_t option, bool ask) {
+            int16_t apps[TECH_APP_COUNT];
+            const int32_t n = Leak_Apps_(player, apps);
+            if (n == 0) return false;
+            const int16_t app = apps[Pick_(n)];
+            if (ask && choices::Add(Choice_(KIND_LEAK, player, app))) return true;
+            Apply_Leak_(player, app, option);
+            return true;
+        }
+
+        void Apply_Leak_(int16_t player, int16_t app, int32_t option) {
+            int16_t takers[MAX_PLAYERS];
+            const int32_t t = Leak_Takers_(player, app, takers);
             switch (option) {
                 case LEAK_SHARE:
                     for (int32_t i = 0; i < t && i < LEAK_MAX_SHARE; ++i) {
@@ -185,10 +234,7 @@ namespace overtures {
                     Log_(player, "shares a discovery that was about to leak");
                     break;
                 case LEAK_SELL: {
-                    int16_t buyer = -1;
-                    for (int32_t i = 0; i < t; ++i) {
-                        if (MOX::player[takers[i]].bc >= LEAK_PRICE && (buyer < 0 || MOX::player[takers[i]].bc > MOX::player[buyer].bc)) buyer = takers[i];
-                    }
+                    const int16_t buyer = Leak_Buyer_(takers, t);
                     if (buyer < 0) {
                         Log_(player, "finds no buyer for a discovery that was about to leak");
                         break;
@@ -204,7 +250,6 @@ namespace overtures {
                     Log_(player, "suppresses a discovery that was about to leak");
                     break;
             }
-            return true;
         }
 
         bool Pair_Busy_(int16_t a, int16_t b) {
@@ -355,12 +400,73 @@ namespace overtures {
     bool Start(e_kind kind, int16_t player, int32_t option) {
         if (!enabled || !Alive_(player)) return false;
         const int32_t chosen = std::clamp(option >= 0 ? option : Choose(kind, player), 0, 2);
+        // A human with events human_choices on picks the subject now and chooses the option later (choices.h).
+        const bool ask = option < 0 && (kind == KIND_HAND || kind == KIND_LEAK) && choices::Ask_Human(player);
         switch (kind) {
-            case KIND_HAND: return Start_Hand_(player, chosen);
-            case KIND_LEAK: return Start_Leak_(player, chosen);
+            case KIND_HAND: return Start_Hand_(player, chosen, ask);
+            case KIND_LEAK: return Start_Leak_(player, chosen, ask);
             case KIND_MEDIATOR: return Start_Mediator_(player);
             case KIND_OFFENSIVE: return Start_Offensive_(player, chosen);
             default: return false;
+        }
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player) || (c.kind != KIND_HAND && c.kind != KIND_LEAK)) return false;
+        auto N = [](int32_t v) { return std::to_string(v); };
+        auto Short = [](const char* name) { return std::string(name, strnlen(name, 14)); };
+        constexpr const char* P = "choices.overtures.";
+        auto Line = [&](const char* part, const char* name) { return std::string(P) + part + "." + name; };
+        auto Title_Body = [&](const char* part, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->title, sizeof(t->title), Line(part, "title").c_str(), {});
+            texts::Format(t->body, sizeof(t->body), Line(part, "body").c_str(), args);
+        };
+        auto Option = [&](const std::string& full_key, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), full_key.c_str(), args);
+            ++t->count;
+        };
+        if (c.kind == KIND_HAND) {
+            int16_t apps[TECH_APP_COUNT];
+            const int32_t n = Hand_Apps_(player, apps);
+            if (n == 0) return false;
+            *t = choices::s_text{};
+            Title_Body("hand", {});
+            Option(Line("hand", "option1"), {{"ships", N(HAND_SHIPS)}, {"apps", N(std::min(n, HAND_APPS))}});
+            Option(Line("hand", "option2"), {{"bc", N(HAND_BARGAIN_BC)}});
+            Option(Line("hand", "option3"), {{"bc", N(HAND_LOOT)}});
+            return true;
+        }
+        const int32_t app = c.other;
+        if (app <= TECH_APP_NO_TECH || app >= TECH_APP_COUNT || !Known_(MOX::player[player], app)) return false;
+        int16_t takers[MAX_PLAYERS];
+        const int32_t n = Leak_Takers_(player, app, takers);
+        if (n == 0) return false;
+        *t = choices::s_text{};
+        Title_Body("leak", {{"count", N(n)}});
+        Option(Line("leak", "option1"), {{"count", N(std::min(n, LEAK_MAX_SHARE))}});
+        const int16_t buyer = Leak_Buyer_(takers, n);
+        if (buyer >= 0) {
+            Option(Line("leak", "option2"), {{"race", Short(MOX::player[buyer].race_name)}, {"price", N(LEAK_PRICE)}});
+        } else {
+            Option(Line("leak", "option2_nobuyer"), {{"price", N(LEAK_PRICE)}});
+        }
+        Option(Line("leak", "option3"), {{"cost", N(std::min(LEAK_SUPPRESS_COST, MOX::player[player].bc))}});
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        if (!enabled || !Alive_(player)) return;
+        option = std::clamp(option, 0, 2);
+        if (c.kind == KIND_HAND) {
+            Start_Hand_(player, option, false);  // the same checks as at the start: a fleet too small does nothing
+        } else if (c.kind == KIND_LEAK) {
+            const int32_t app = c.other;
+            int16_t takers[MAX_PLAYERS];
+            if (app <= TECH_APP_NO_TECH || app >= TECH_APP_COUNT || !Known_(MOX::player[player], app)) return;
+            if (Leak_Takers_(player, app, takers) == 0) return;
+            Apply_Leak_(player, static_cast<int16_t>(app), option);
         }
     }
 

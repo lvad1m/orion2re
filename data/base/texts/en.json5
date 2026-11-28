@@ -51,5 +51,45 @@
         option2: "Keep the governor (+{bc} BC a turn for {turns} turns, then a collapse)",
       },
     },
+    overtures: {
+      hand: {
+        title: "An outstretched hand",
+        body: "A delegation of scientists from all races offers to share its work with you if you cut your fleet. You can accept the offer, bargain, or seize the delegation.",
+        option1: "Accept (scrap the {ships} cheapest ships, get {apps} technologies)",
+        option2: "Bargain (scrap 1 ship, get 1 technology and {bc} BC)",
+        option3: "Seize them (+{bc} BC, empires you know think worse of you)",
+      },
+      leak: {
+        title: "A leaked discovery",
+        body: "One of your discoveries is about to leak to the empires that lack it (in contact: {count}). You can share it, sell it, or pay to keep it secret.",
+        option1: "Share it (up to {count} empires get it and are grateful)",
+        option2: "Sell it (buyer: {race}, {price} BC)",
+        option2_nobuyer: "Sell it - nobody can pay {price} BC, no deal",
+        option3: "Keep it secret (counterintelligence, {cost} BC)",
+      },
+    },
+    discoveries: {
+      power_plant: {
+        title: "An ancient power plant",
+        body: "Colonists at {place} have dug up an ancient power plant. It can be tested on a dead world, taken apart for its secrets, or installed to run the colony's industry.",
+        option1: "Test it on a dead world ({cost} BC, research +{research}, {turns} turns)",
+        option2: "Take it apart (dice check: a technology, or a blast on a bad failure; {turns} turns)",
+        option3: "Install it (the colony gets a factory, population -1, {turns} turns)",
+      },
+      symbionts: {
+        title: "Sleeping symbionts",
+        body: "Colonists at {place} have found a ship with sleeping symbionts. The ship can be studied, the symbionts can be woken, or a volunteer can bond with one of them.",
+        option1: "Study the ship (dice check, research +{research}, {turns} turns)",
+        option2: "Wake them (dice check: a technology, or a hostile guardian on a bad failure; {turns} turns)",
+        option3: "Bond with a volunteer (dice check, research +{research}, risk of a loss; {turns} turns)",
+      },
+      natives: {
+        title: "Natives",
+        body: "Natives live on a continent of {place}. You can leave them in peace, teach them, or put them to work.",
+        option1: "Leave them alone (a gift of {gift} BC, {turns} turns)",
+        option2: "Teach them ({cost} BC, {turns} turns, then a research lab)",
+        option3: "Put them to work (+{bc} BC now; {percent}% risk of revolt: -1 pop, -{loss} BC)",
+      },
+    },
   },
 }

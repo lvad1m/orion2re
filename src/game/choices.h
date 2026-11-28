@@ -25,7 +25,9 @@ namespace choices {
     enum e_module : uint8_t {
         MODULE_NONE = 0,
         MODULE_INCIDENTS = 1,
-        MODULE_LAST = 1,
+        MODULE_OVERTURES = 2,
+        MODULE_DISCOVERIES = 3,
+        MODULE_LAST = 3,
     };
 
     // One pending choice. What target, other and value mean is the module's business (incidents: the colony,

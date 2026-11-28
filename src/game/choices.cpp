@@ -2,7 +2,9 @@
 
 #include "game/choices.h"
 
+#include "game/discoveries.h"
 #include "game/incidents.h"
+#include "game/overtures.h"
 
 #include <algorithm>
 
@@ -19,6 +21,8 @@ namespace choices {
         bool Text_(const s_choice& c, s_text* text) {
             switch (c.module) {
                 case MODULE_INCIDENTS: return incidents::Choice_Text(c, text);
+                case MODULE_OVERTURES: return overtures::Choice_Text(c, text);
+                case MODULE_DISCOVERIES: return discoveries::Choice_Text(c, text);
                 default: return false;
             }
         }
@@ -26,6 +30,8 @@ namespace choices {
         void Apply_(const s_choice& c, int32_t option) {
             switch (c.module) {
                 case MODULE_INCIDENTS: incidents::Choice_Apply(c, option); break;
+                case MODULE_OVERTURES: overtures::Choice_Apply(c, option); break;
+                case MODULE_DISCOVERIES: discoveries::Choice_Apply(c, option); break;
                 default: break;
             }
         }

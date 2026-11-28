@@ -2,12 +2,15 @@
 
 #include "game/discoveries.h"
 
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/dice.h"
 #include "game/events.h"
+#include "game/haccess.h"
 #include "game/projects.h"
 #include "game/random.h"
 #include "game/ships.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -171,14 +174,9 @@ namespace discoveries {
             return r;
         }
 
-        bool Start_Colony_Kind_(e_kind kind, int16_t player, int16_t star, int32_t option) {
-            int16_t cand[MAX_COLONIES];
-            const int32_t n = Colony_Candidates_(kind, player, star, cand);
-            if (n == 0) return false;
-            const int16_t c = cand[Pick_(n)];
+        // The find starts at colony `c` with way `opt` (costs are paid now).
+        bool Begin_Colony_Kind_(e_kind kind, int16_t player, int16_t c, int32_t opt) {
             const int16_t s = Colony_Star_(c);
-            const bool choice = kind != KIND_TOMB;
-            const int32_t opt = !choice ? 0 : (option >= 0 ? std::clamp<int32_t>(option, 0, 2) : Choose(kind, player));
             int32_t turns = TOMB_DIG_TURNS;
             const char* what = "";
             switch (kind) {
@@ -211,6 +209,27 @@ namespace discoveries {
             Mark_Used_(s);
             Log_(player, s, what);
             return true;
+        }
+
+        // `ask`: a human with the setting on; the colony is picked as always and the find is queued, nothing is started.
+        bool Start_Colony_Kind_(e_kind kind, int16_t player, int16_t star, int32_t option, bool ask) {
+            int16_t cand[MAX_COLONIES];
+            const int32_t n = Colony_Candidates_(kind, player, star, cand);
+            if (n == 0) return false;
+            const int16_t c = cand[Pick_(n)];
+            const bool choice = kind != KIND_TOMB;
+            if (choice && ask) {
+                choices::s_choice q;
+                q.module = choices::MODULE_DISCOVERIES;
+                q.kind = kind;
+                q.player = static_cast<int8_t>(player);
+                q.target = c;
+                q.other = Colony_Star_(c);
+                q.asked = MOX::stardate;
+                if (choices::Add(q)) return true;
+            }  // the queue is full: the first option, as without the setting
+            const int32_t opt = !choice ? 0 : (option >= 0 ? std::clamp<int32_t>(option, 0, 2) : Choose(kind, player));
+            return Begin_Colony_Kind_(kind, player, c, opt);
         }
 
         bool Start_Vault_(int16_t player, int16_t star) {
@@ -440,10 +459,77 @@ namespace discoveries {
             case KIND_POWER_PLANT:
             case KIND_SYMBIONTS:
             case KIND_NATIVES:
-            case KIND_TOMB: return Start_Colony_Kind_(kind, player, star, option);
+            case KIND_TOMB: return Start_Colony_Kind_(kind, player, star, option, option < 0 && choices::Ask_Human(player));
             case KIND_VAULT: return Start_Vault_(player, star);
             default: return false;
         }
+    }
+
+    namespace {
+        // The colony of a pending choice can still take the find: the empire lives, there is room for a record and the
+        // colony is among the candidates as at the start.
+        bool Choice_Valid_(const choices::s_choice& c) {
+            if (!enabled || c.kind < KIND_POWER_PLANT || c.kind > KIND_NATIVES || !Alive_(c.player)) return false;
+            if (State()->count >= MAX_RECORDS || !Colony_Ok_(c.target, c.player)) return false;
+            const int16_t star = Colony_Star_(c.target);
+            if (star < 0) return false;
+            int16_t cand[MAX_COLONIES];
+            const int32_t n = Colony_Candidates_(static_cast<e_kind>(c.kind), c.player, star, cand);
+            for (int32_t i = 0; i < n; ++i) {
+                if (cand[i] == c.target) return true;
+            }
+            return false;
+        }
+    } // namespace
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        if (!Choice_Valid_(c)) return false;
+        *t = choices::s_text{};
+        const e_kind kind = static_cast<e_kind>(c.kind);
+        char place[64] = {};
+        const int16_t planet = MOX::colony[c.target].planet;
+        if (planet >= 0 && planet < MAX_PLANETS) {
+            char name[64];
+            HACCESS::Do_Get_Planet_Name(planet, name, 0);
+            snprintf(place, sizeof(place), "%s", name);
+        } else {
+            snprintf(place, sizeof(place), "%s", texts::Get("choices.common.a_colony"));
+        }
+        const int32_t bc = MOX::player[c.player].bc;
+        auto N = [](int32_t v) { return std::to_string(v); };
+        const char* part = kind == KIND_POWER_PLANT ? "power_plant" : kind == KIND_SYMBIONTS ? "symbionts" : "natives";
+        const std::string prefix = std::string("choices.discoveries.") + part + ".";
+        texts::Format(t->title, sizeof(t->title), (prefix + "title").c_str(), {});
+        texts::Format(t->body, sizeof(t->body), (prefix + "body").c_str(), {{"place", std::string(place)}});
+        auto Option = [&](const char* name, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), (prefix + name).c_str(), args);
+            ++t->count;
+        };
+        switch (kind) {
+            case KIND_POWER_PLANT:
+                // A poor empire pays what it has (Add_Bc_ stops at zero): the line shows the real sum.
+                Option("option1", {{"cost", N(std::min(POWER_TEST_COST, bc))}, {"research", N(POWER_TEST_RESEARCH)}, {"turns", N(POWER_TURNS)}});
+                Option("option2", {{"turns", N(POWER_TURNS)}});
+                Option("option3", {{"turns", N(POWER_TURNS)}});
+                break;
+            case KIND_SYMBIONTS:
+                Option("option1", {{"research", N(SYMB_STUDY_RESEARCH)}, {"turns", N(SYMB_TURNS)}});
+                Option("option2", {{"turns", N(SYMB_TURNS)}});
+                Option("option3", {{"research", N(SYMB_BOND_RESEARCH)}, {"turns", N(SYMB_TURNS)}});
+                break;
+            default:
+                Option("option1", {{"gift", N(NATIVES_GIFT_BC)}, {"turns", N(NATIVES_TURNS)}});
+                Option("option2", {{"cost", N(std::min(NATIVES_TEACH_COST, bc))}, {"turns", N(NATIVES_TURNS)}});
+                Option("option3", {{"bc", N(NATIVES_WORK_BC)}, {"percent", N(NATIVES_REVOLT_PERCENT)}, {"loss", N(NATIVES_REVOLT_BC)},
+                                      {"turns", N(NATIVES_TURNS)}});
+                break;
+        }
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        if (!Choice_Valid_(c)) return;
+        Begin_Colony_Kind_(static_cast<e_kind>(c.kind), c.player, c.target, std::clamp<int32_t>(option, 0, 2));
     }
 
     void Check_With_Dice(int32_t index, const int32_t* dice_values) {

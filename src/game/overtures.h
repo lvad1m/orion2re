@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/choices.h"
 #include "game/consts.h"
 
 #include <cstdint>
@@ -14,9 +15,10 @@ namespace SERIAL {
 // an outstretched hand (scientists of all races offer help for a smaller fleet), a leaked discovery (share it,
 // sell it or suppress it), a mediator (a third power makes peace between two warring empires) and a paid
 // offensive of the coalition (a computer at war pays an ally to fight the common enemy). The first two are
-// one-off effects; the last two are kept as records. A human-owned subject takes the first, safest option (no
-// interface step yet) and is never driven by the mediator or the paid offensive (only computers are); a
-// computer picks by its personality (Choose).
+// one-off effects; the last two are kept as records. A human-owned subject chooses the option of the first two
+// in the choice window when events human_choices is on (choices.h; otherwise it takes the first, safest option
+// as before) and is never driven by the mediator or the paid offensive (only computers are: a human paying for
+// an offensive is an action of the diplomacy screen); a computer picks by its personality (Choose).
 // The mediator is the row "Посредник" of mechanics.md 3.5.3 (wave 6, ab-review.md 1.4 and 4.3; it was built
 // first, in wave 4, as "peacekeepers" with a patrol strike, which the author struck out on 25.11.2026: "патрули
 // не делаем"). The row, in its own words:
@@ -112,6 +114,12 @@ namespace overtures {
     // an empire at war, for the paid offensive the payer) and applies the option Choose gives (`option` >= 0
     // overrides it). Draws from game_random only to pick among several candidates. False when it cannot start.
     bool Start(e_kind kind, int16_t player, int32_t option = -1);
+
+    // The choice window of a human (choices.h): kind HAND or LEAK (a leak keeps its application in `other`). The
+    // text is false and Choice_Apply does nothing when the subject is gone (the fleet is too small, nobody to
+    // share with, the application is no longer known). Neither draws from game_random.
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t);
+    void Choice_Apply(const choices::s_choice& c, int32_t option);
 
     // Once a turn after incidents::Turn() (nextturn.cpp): the records run and end; a new event may start.
     void Turn();
