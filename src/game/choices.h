@@ -32,7 +32,9 @@ namespace choices {
         MODULE_WORLD_EVENTS = 6,
         MODULE_PIRATE_WORLD = 7,
         MODULE_MOO_WORLD = 8,
-        MODULE_LAST = 8,
+        MODULE_INTRIGUE = 9,   // the fate of a caught spy, a forged letter about an ally (R2, piece A)
+        MODULE_SECRETS = 10,   // a blackmailer's demand
+        MODULE_LAST = 10,
     };
 
     // One pending choice. What target, other and value mean is the module's business (incidents: the colony,

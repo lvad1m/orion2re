@@ -3,6 +3,7 @@
 #include "game/secrets.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/colcalc.h"
 #include "game/council.h"
 #include "game/counterspy.h"
@@ -19,6 +20,7 @@
 #include "game/spy.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
+#include "game/texts.h"
 
 #include <algorithm>
 
@@ -175,6 +177,70 @@ namespace secrets {
             }
         }
 
+        // The owner pays for the holder's silence (the demand, or tribute when it cannot be met); the secret ends,
+        // except a council vote promised to a computer's holder, which waits for the vote.
+        bool Pay_For_Silence_(int32_t index, e_demand demand) {
+            s_secret& s = Slots()[index];
+            s_player& owner = MOX::player[s.owner];
+            if (demand == DEMAND_VOTE && ambition::council_bribery && Computer_(s.owner)) {
+                // The silence is paid for in the council: the secret is kept (ambition.cpp spends it when
+                // the holder stands as a nominee and the owner votes) until it goes stale.
+                s.demanded = 1;
+                opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d demands the council vote of player %d for its silence about %s",
+                    (int)MOX::stardate, (int)s.holder, (int)s.owner, Kind_Name_(s.kind));
+                return true;
+            }
+            if (demand == DEMAND_TECH) {
+                const int16_t app = Gift_App_(s.owner, s.holder);
+                if (app >= 0) {
+                    COLCALC::Player_Gets_Tech_App(&MOX::player[s.holder], app);
+                    opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
+                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d gives player %d the application %d for its silence about %s",
+                        (int)MOX::stardate, (int)s.owner, (int)s.holder, (int)app, Kind_Name_(s.kind));
+                    s = s_secret{};
+                    return true;
+                }
+            }
+            const int32_t price = owner.bc * BLACKMAIL_PERCENT / 100;
+            owner.bc -= price;
+            MOX::player[s.holder].bc += price;
+            opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d pays player %d %d BC for its silence about %s",
+                (int)MOX::stardate, (int)s.owner, (int)s.holder, (int)price, Kind_Name_(s.kind));
+            s = s_secret{};
+            return true;
+        }
+
+        // A human owner is asked about the demand (once: a choice for the slot may be waiting); false when the
+        // queue is full and the human gets what it gets today.
+        bool Ask_Owner_(int32_t index, e_demand demand) {
+            const s_secret& s = Slots()[index];
+            const choices::s_state* queue = choices::State();
+            for (int32_t i = 0; i < queue->count; ++i) {
+                const choices::s_choice& q = queue->choice[i];
+                if (q.module == choices::MODULE_SECRETS && q.target == index && q.other == s.holder && q.value == s.learned) return true;
+            }
+            choices::s_choice c;
+            c.module = choices::MODULE_SECRETS;
+            c.kind = static_cast<uint8_t>(demand);
+            c.player = s.owner;
+            c.target = static_cast<int16_t>(index);
+            c.other = s.holder;
+            c.value = s.learned;
+            c.asked = MOX::stardate;
+            return choices::Add(c);
+        }
+
+        // The secret a pending choice is about, when it still stands and is the same; else null.
+        const s_secret* Choice_Secret_(const choices::s_choice& c) {
+            if (!enabled || c.target < 0 || c.target >= MAX_SECRETS || c.kind > DEMAND_VOTE) return nullptr;
+            const s_secret& s = Slots()[c.target];
+            if (s.kind == KIND_NONE || s.owner != c.player || s.holder != c.other || s.learned != c.value) return nullptr;
+            if (!Alive_(s.owner) || !Alive_(s.holder) || !Alive_(s.victim) || !Still_True(s)) return nullptr;
+            return &s;
+        }
+
         void Use_All_() {
             bool fresh[MAX_SECRETS] = {};  // copies sold this turn wait for the next one
             int16_t kompromat[MAX_PLAYERS];  // each holder's kompromat target in the pre-council window (-1: none)
@@ -310,6 +376,8 @@ namespace secrets {
         s_secret& s = Slots()[index];
         if (s.kind == KIND_NONE) return false;
         s_player& owner = MOX::player[s.owner];
+        // A human owner with events human_choices on answers in the choice window (nothing is drawn or applied now).
+        if (choices::Ask_Human(s.owner) && owner.bc >= BLACKMAIL_MIN_BC && Ask_Owner_(index, demand)) return false;
         const bool refuses = owner.objectives == PLAYER_OBJECTIVE_HUMAN || owner.bc < BLACKMAIL_MIN_BC ||
             opinion::Relations(s.owner, s.holder) <= BLACKMAIL_REFUSE_RELATIONS;
         if (refuses) {
@@ -318,34 +386,46 @@ namespace secrets {
             Make_Public(index);
             return false;
         }
-        if (demand == DEMAND_VOTE && ambition::council_bribery && Computer_(s.owner)) {
-            // The silence is paid for in the council: the secret is kept (ambition.cpp spends it when
-            // the holder stands as a nominee and the owner votes) until it goes stale.
-            s.demanded = 1;
-            opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
-            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d demands the council vote of player %d for its silence about %s",
-                (int)MOX::stardate, (int)s.holder, (int)s.owner, Kind_Name_(s.kind));
-            return true;
-        }
-        if (demand == DEMAND_TECH) {
-            const int16_t app = Gift_App_(s.owner, s.holder);
-            if (app >= 0) {
-                COLCALC::Player_Gets_Tech_App(&MOX::player[s.holder], app);
-                opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
-                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d gives player %d the application %d for its silence about %s",
-                    (int)MOX::stardate, (int)s.owner, (int)s.holder, (int)app, Kind_Name_(s.kind));
-                s = s_secret{};
-                return true;
-            }
-        }
+        return Pay_For_Silence_(index, demand);
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const s_secret* s = Choice_Secret_(c);
+        if (s == nullptr) return false;
+        const s_player& owner = MOX::player[s->owner];
+        const auto Short = [](int16_t p) { return std::string(MOX::player[p].race_name, strnlen(MOX::player[p].race_name, 14)); };
+        const auto N = [](int32_t v) { return std::to_string(v); };
+        const std::string holder = Short(s->holder);
+        const std::string victim = Short(s->victim);
+        const char* about_key = s->kind == KIND_PLAN ? "plan" : s->kind == KIND_BRIBE ? "bribe" : s->kind == KIND_TREATY ? "treaty" : "bio";
+        char about[160];
+        texts::Format(about, sizeof(about), (std::string("choices.secrets.about.") + about_key).c_str(), {{"victim", victim}});
+        const bool can_pay = owner.bc >= BLACKMAIL_MIN_BC;
+        const bool tech = c.kind == DEMAND_TECH && Gift_App_(s->owner, s->holder) >= 0;
         const int32_t price = owner.bc * BLACKMAIL_PERCENT / 100;
-        owner.bc -= price;
-        MOX::player[s.holder].bc += price;
-        opinion::Add(s.owner, s.holder, opinion::REASON_BLACKMAILED_US, BLACKMAIL_OPINION);
-        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d pays player %d %d BC for its silence about %s",
-            (int)MOX::stardate, (int)s.owner, (int)s.holder, (int)price, Kind_Name_(s.kind));
-        s = s_secret{};
+        *t = choices::s_text{};
+        texts::Format(t->title, sizeof(t->title), "choices.secrets.blackmail.title", {});
+        texts::Format(t->body, sizeof(t->body), tech ? "choices.secrets.blackmail.body_tech" : "choices.secrets.blackmail.body_tribute",
+            {{"holder", holder}, {"victim", victim}, {"about", about}, {"price", N(price)}});
+        const char* pay = !can_pay ? "option1_poor" : tech ? "option1_tech" : "option1";
+        texts::Format(t->option[0], sizeof(t->option[0]), (std::string("choices.secrets.blackmail.") + pay).c_str(),
+            {{"holder", holder}, {"price", N(price)}});
+        texts::Format(t->option[1], sizeof(t->option[1]), "choices.secrets.blackmail.option2",
+            {{"loss", N(s->kind == KIND_BIOWEAPON ? reputation::ATROCITY_OPINION : RUMOUR_OPINION)}});
+        t->count = 2;
         return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        if (Choice_Secret_(c) == nullptr) return;
+        const int32_t index = c.target;
+        if (option == 0 && MOX::player[c.player].bc >= BLACKMAIL_MIN_BC) {
+            Pay_For_Silence_(index, static_cast<e_demand>(c.kind));
+            return;
+        }
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "secrets: stardate %d, player %d refuses to pay player %d for its silence",
+            (int)MOX::stardate, (int)c.player, (int)c.other);
+        Make_Public(index);
     }
 
     void Make_Public(int32_t index) {

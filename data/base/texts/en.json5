@@ -228,5 +228,42 @@
         option2: "Refuse (no protection; a new price on your head may bring new raids)",
       },
     },
+    intrigue: {
+      fate: {
+        title: "A spy is caught",
+        body: "Your counterintelligence has caught a spy of the {race} empire. You decide the spy's fate: execute the spy, expel all their spies, or send the spy home (with the spy network technology the spy can be turned instead).",
+        option1: "Execute the spy (their opinion of you {opinion})",
+        option2: "Expel all their spies here ({spies}; an AI empire sends no new ones for {turns} turns)",
+        option2_plain: "Expel all their spies here ({spies} go home)",
+        option3_turn: "Turn the spy (for {turns} turns their operations against you are {difficulty} harder)",
+        option3_home: "Send the spy home (their opinion of you +{opinion})",
+        option3_home_favour: "Send the spy home (their opinion of you +{opinion}; they owe you a favour)",
+      },
+      letter: {
+        title: "A letter about your partner",
+        body_alliance: "A letter without a signature has reached you. It says that the {race} empire, your ally, is plotting against you. You can believe the letter or dismiss it.",
+        body_pact: "A letter without a signature has reached you. It says that the {race} empire, which has a defence pact with you, is plotting against you. You can believe the letter or dismiss it.",
+        option1: "Believe it (break the alliance with the {race})",
+        option1_pact: "Believe it (end the defence pact with the {race})",
+        option2: "Dismiss it (nothing changes)",
+      },
+    },
+    secrets: {
+      about: {
+        plan: "that you are planning an attack on the {victim}",
+        bribe: "that you have bribed a governor of the {victim}",
+        treaty: "that you made a secret treaty against the {victim}",
+        bio: "that you used biological weapons against the {victim}",
+      },
+      blackmail: {
+        title: "Blackmail",
+        body_tribute: "Agents of the {holder} have learned a secret of yours: {about}. They demand {price} BC for their silence. If you refuse, the secret is made public and the {victim} learn of it.",
+        body_tech: "Agents of the {holder} have learned a secret of yours: {about}. They demand a technology for their silence. If you refuse, the secret is made public and the {victim} learn of it.",
+        option1: "Pay {price} BC (the {holder} keep the secret)",
+        option1_tech: "Give them a technology (the cheapest they lack; the {holder} keep the secret)",
+        option1_poor: "Pay: not enough BC, the secret is made public",
+        option2: "Refuse (the secret goes public; other empires' opinion of you {loss})",
+      },
+    },
   },
 }

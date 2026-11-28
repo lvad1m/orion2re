@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/choices.h"
+
 #include <cstdint>
 #include <string>
 
@@ -19,6 +21,8 @@ namespace SERIAL {
 // - Smear: an empire with spies and network points in a rival or an enemy spreads bad rumours about
 //   it - a dice check like a false flag; believed, every other computer empire that knows the target
 //   thinks worse of it; exposed, the target remembers who smeared it.
+// A human owner who is blackmailed chooses in the choice window (choices.h) when events human_choices is on
+// (pay or refuse); otherwise the human refuses at once, as before.
 // Both off by default; game_random is drawn only by the parts that are on (the learning rolls, the
 // smear's dice).
 //
@@ -125,6 +129,14 @@ namespace secrets {
     // The same with the demand chosen: a technology (falls back to tribute when the owner has none to
     // give), or a council vote (needs `diplomacy council_bribery`, else tribute; the secret is kept).
     bool Blackmail_For(int32_t index, e_demand demand);
+    // A blackmailer's demand to a human owner (events human_choices on, a treasury of at least BLACKMAIL_MIN_BC):
+    // Blackmail_For queues a choice instead of refusing for the human and keeps the secret until it is answered
+    // (choices.h; record: player = the owner, target = the slot, other = the holder, value = the stardate the
+    // secret was learned, kind = the e_demand). Option 0 pays (a demand for a vote is paid as tribute, a technology
+    // the owner cannot give as tribute, as for any human owner), option 1 refuses: the secret is made public.
+    // A secret that went stale or changed drops the choice.
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
     void Make_Public(int32_t index);
     // Sells the secret to a third empire (not the owner, the victim or the holder) that thinks ill of
     // the owner: for SALE_PRICE BC, or for a favour when it is poor (intrigue.h). The buyer now holds it.

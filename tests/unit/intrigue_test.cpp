@@ -2,9 +2,12 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/advisor.h"
+#include "game/choices.h"
 #include "game/dice.h"
 #include "game/espionage.h"
+#include "game/hostages.h"
 #include "game/intrigue.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
@@ -273,6 +276,178 @@ DOCTEST_TEST_CASE("a forged letter between allies: believed it breaks the allian
     DOCTEST_CHECK(opinion::Modifier(1, 0, opinion::REASON_PLOTTED_AGAINST_US) == intrigue::PLOTTED_OPINION);
     DOCTEST_CHECK(opinion::Modifier(2, 0, opinion::REASON_PLOTTED_AGAINST_US) == intrigue::PLOTTED_OPINION);
     DOCTEST_CHECK_FALSE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));  // 10 points left: too few
+}
+
+// R2, piece A (human-ui.md section 5): a human catcher chooses the fate of a spy; a human whose ally is the
+// subject of a forged letter chooses whether to believe it.
+DOCTEST_TEST_CASE("a human catcher chooses the fate of a spy; off: as before; a computer is unaffected") {
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_intrigue_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    test::s_saved_value<bool> prison{hostages::spy_prison};
+    choices::Clear();
+    hostages::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].spies[2] = 3;
+    state.players[1].spies[1] = 1;
+    // Setting off: nothing is queued, the human's spy fate is the classic one.
+    choices::enabled = false;
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].spies[2] == 3);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == 0);
+    // On: a pending choice and no effect (and no jail even with the prison on).
+    choices::enabled = true;
+    hostages::spy_prison = true;
+    intrigue::On_Spy_Caught(2, 1);
+    DOCTEST_CHECK(hostages::Spies_Held(2, 1) == 0);
+    intrigue::Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    DOCTEST_CHECK(hostages::Spies_Held(2, 1) == 0);
+    DOCTEST_CHECK(state.players[1].spies[2] == 3);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == 0);
+    const choices::s_choice fate = choices::State()->choice[0];
+    text_language::language = text_language::LANGUAGE_EN;
+    choices::s_text en;
+    DOCTEST_REQUIRE(intrigue::Choice_Text(fate, &en));
+    DOCTEST_CHECK(en.count == 3);
+    DOCTEST_CHECK(std::string(en.option[0]) == "Execute the spy (their opinion of you -15)");
+    DOCTEST_CHECK(std::string(en.option[2]).find("Send the spy home") == 0);  // no spy network technology
+    text_language::language = text_language::LANGUAGE_RU;
+    choices::s_text ru;
+    DOCTEST_REQUIRE(intrigue::Choice_Text(fate, &ru));
+    DOCTEST_CHECK(ru.count == 3);
+    for (const std::string all : {std::string(ru.title) + ru.body + ru.option[0] + ru.option[1] + ru.option[2]}) {
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+    }
+    // Each option does what a computer's fate does.
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 0));
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == intrigue::EXECUTION_OPINION);
+    DOCTEST_CHECK(choices::Empty());
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 1));  // expel
+    DOCTEST_CHECK(state.players[1].spies[2] == 0);
+    DOCTEST_CHECK(state.players[1].spies[1] == 4);
+    DOCTEST_CHECK(state.players[1].stop_spying_duration[2] == intrigue::EXPEL_TURNS);
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 2));  // no technology: send home
+    DOCTEST_CHECK(state.players[1].spies[1] == 5);
+    DOCTEST_CHECK(intrigue::Favours(1, 2) == 1);
+    DOCTEST_CHECK(opinion::Modifier(1, 2, opinion::REASON_TREATED_OUR_SPY) == intrigue::EXECUTION_OPINION + intrigue::RETURN_OPINION);
+    // The spy network: the third option turns the spy, once; with a double agent already working it sends home.
+    state.players[2].tech_applications[TECH_APP_SPY_NETWORK] = TECH_RESEARCH_STATUS_RESEARCHED;
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    text_language::language = text_language::LANGUAGE_EN;
+    DOCTEST_REQUIRE(intrigue::Choice_Text(choices::State()->choice[0], &en));
+    DOCTEST_CHECK(std::string(en.option[2]).find("Turn the spy") == 0);
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 2));
+    DOCTEST_CHECK(intrigue::Has_Double_Agent(2, 1));
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_REQUIRE(intrigue::Choice_Text(choices::State()->choice[0], &en));
+    DOCTEST_CHECK(std::string(en.option[2]).find("Send the spy home") == 0);
+    // A gone attacker drops the choice.
+    const choices::s_choice gone = choices::State()->choice[0];
+    state.players[1].eliminated = 1;
+    DOCTEST_CHECK_FALSE(intrigue::Choice_Text(gone, &en));
+    state.players[1].eliminated = 0;
+    choices::Clear();
+    // A full queue: the spy goes to the prison, as for a human today.
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.player = 3;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_CHECK(choices::Count(2) == 0);
+    DOCTEST_CHECK(hostages::Spies_Held(2, 1) == 1);
+    choices::Clear();
+    // A computer catcher decides at once, with no choice queued.
+    state.players[2].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[2].relations[1] = -40;
+    intrigue::On_Spy_Caught(2, 1);
+    intrigue::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    hostages::Clear();
+}
+
+DOCTEST_TEST_CASE("a forged letter about a human's ally: believe it (break the alliance) or dismiss it") {
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_intrigue_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].treaty[2] = state.players[2].treaty[1] = TREATY_ALLIANCE;
+    state.players[0].spies[1] = 4;
+    // Setting off: the letter changes nothing for the human but the opinions, as before.
+    choices::enabled = false;
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].treaty[2] == TREATY_ALLIANCE);
+    // On: a pending choice, the alliance stands until it is answered.
+    choices::enabled = true;
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    DOCTEST_REQUIRE(choices::Count(1) == 1);
+    DOCTEST_CHECK(state.players[1].treaty[2] == TREATY_ALLIANCE);
+    const choices::s_choice letter = choices::State()->choice[0];
+    text_language::language = text_language::LANGUAGE_EN;
+    choices::s_text en;
+    DOCTEST_REQUIRE(intrigue::Choice_Text(letter, &en));
+    DOCTEST_CHECK(en.count == 2);
+    DOCTEST_CHECK(std::string(en.option[0]).find("break the alliance") != std::string::npos);
+    text_language::language = text_language::LANGUAGE_RU;
+    choices::s_text ru;
+    DOCTEST_REQUIRE(intrigue::Choice_Text(letter, &ru));
+    const std::string all = std::string(ru.title) + ru.body + ru.option[0] + ru.option[1];
+    DOCTEST_CHECK(all.find('{') == std::string::npos);
+    DOCTEST_CHECK(all.find('?') == std::string::npos);
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 1));  // dismiss
+    DOCTEST_CHECK(state.players[1].treaty[2] == TREATY_ALLIANCE);
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    DOCTEST_REQUIRE(choices::Apply_Pending(1, 0));  // believe: what a computer does
+    DOCTEST_CHECK(state.players[1].treaty[2] == 0);
+    DOCTEST_CHECK(state.players[2].treaty[1] == 0);
+    // No alliance or pact left (or a gone partner): nothing to ask, and a stale choice drops.
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    DOCTEST_CHECK(choices::Empty());
+    state.players[1].treaty[2] = state.players[2].treaty[1] = TREATY_ALLIANCE;
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    const choices::s_choice stale = choices::State()->choice[0];
+    state.players[2].eliminated = 1;
+    DOCTEST_CHECK_FALSE(intrigue::Choice_Text(stale, &en));
+    state.players[2].eliminated = 0;
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 0;
+    DOCTEST_CHECK_FALSE(intrigue::Choice_Text(stale, &en));
+    choices::Clear();
+    // A computer ally is unaffected: it breaks the alliance on its own (relations -30), nothing queued.
+    state.players[1].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[1].treaty[2] = state.players[2].treaty[1] = TREATY_ALLIANCE;
+    espionage::State()->points[0][1] = 60;
+    DOCTEST_REQUIRE(intrigue::Forge_Letter_With_Dice(0, 1, 2, TRIUMPH));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[1].treaty[2] == 0);
 }
 
 DOCTEST_TEST_CASE("off: nothing happens and nothing is kept") {

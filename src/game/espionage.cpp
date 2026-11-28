@@ -154,7 +154,8 @@ namespace espionage {
     void On_Spy_Caught(int16_t victim, int16_t attacker) {
         intrigue::On_Spy_Caught(victim, attacker);  // the spy's fate (off by default)
         // A spy whose fate nobody decided otherwise sits in the catcher's prison (off by default; ab-review 2.2).
-        if (hostages::spy_prison && intrigue::Decide_Fate(victim, attacker, INT32_MAX) == intrigue::FATE_CLASSIC) {
+        if (hostages::spy_prison && intrigue::Decide_Fate(victim, attacker, INT32_MAX) == intrigue::FATE_CLASSIC &&
+            !intrigue::Asks_Human_Fate(victim)) {
             hostages::Imprison_Spy(victim, attacker);
         }
         counterspy::On_Spy_Caught(victim, attacker);  // suspicion, interrogation (off by default)

@@ -2,7 +2,9 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/ambition.h"
+#include "game/choices.h"
 #include "game/council.h"
 #include "game/covenants.h"
 #include "game/diplodef.h"
@@ -307,6 +309,125 @@ DOCTEST_TEST_CASE("iteration 1: one spy learns a secret on a roll of 30 per mill
     DOCTEST_CHECK_FALSE(secrets::Empty());
     DOCTEST_CHECK(secrets::Slots()[0].holder == 1);
     DOCTEST_CHECK(secrets::Slots()[0].owner == 0);
+}
+
+// R2, piece A: a human owner answers a blackmailer in the choice window.
+DOCTEST_TEST_CASE("a human owner chooses: pay for silence or refuse; off: the secret goes public as before") {
+    struct s_language_scope {
+        test::s_saved_value<uint8_t> language{text_language::language};
+    } language_scope;
+    s_secrets_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].bc = 1000;
+    // Off: the human refuses at once, as before.
+    choices::enabled = false;
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail(0));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[0].sneak_attack_planet == -1);
+    // On: a pending choice, the secret kept, nothing paid, asked once.
+    state.players[0].sneak_attack_planet = 5;
+    state.players[0].sneak_attack_player = 2;
+    choices::enabled = true;
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail(0));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail(0));
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(state.players[0].sneak_attack_planet == 5);
+    DOCTEST_CHECK(secrets::Slots()[0].kind == secrets::KIND_PLAN);
+    const choices::s_choice demand = choices::State()->choice[0];
+    text_language::language = text_language::LANGUAGE_EN;
+    choices::s_text en;
+    DOCTEST_REQUIRE(secrets::Choice_Text(demand, &en));
+    DOCTEST_CHECK(en.count == 2);
+    DOCTEST_CHECK(std::string(en.option[0]) == "Pay 150 BC (the  keep the secret)");  // race names are empty in the fixture
+    text_language::language = text_language::LANGUAGE_RU;
+    choices::s_text ru;
+    DOCTEST_REQUIRE(secrets::Choice_Text(demand, &ru));
+    const std::string all = std::string(ru.title) + ru.body + ru.option[0] + ru.option[1];
+    DOCTEST_CHECK(all.find('{') == std::string::npos);
+    DOCTEST_CHECK(all.find('?') == std::string::npos);
+    // Pay: what a computer owner pays.
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(state.players[0].bc == 1000 - 1000 * secrets::BLACKMAIL_PERCENT / 100);
+    DOCTEST_CHECK(state.players[1].bc == 1000 * secrets::BLACKMAIL_PERCENT / 100);
+    DOCTEST_CHECK(state.players[0].sneak_attack_planet == 5);  // silence kept
+    DOCTEST_CHECK(secrets::Empty());
+    // Refuse: the secret is made public.
+    opinion::Clear();
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail(0));
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 1));
+    DOCTEST_CHECK(state.players[0].sneak_attack_planet == -1);
+    DOCTEST_CHECK(opinion::Modifier(3, 0, opinion::REASON_BAD_RUMOURS) == secrets::RUMOUR_OPINION);
+    DOCTEST_CHECK(secrets::Empty());
+    // Too poor to pay: asked nothing, the secret goes public (as before).
+    state.players[0].sneak_attack_planet = 5;
+    state.players[0].sneak_attack_player = 2;
+    state.players[0].bc = 50;
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail(0));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(secrets::Empty());
+    // A demand for a technology the owner cannot give is paid as tribute, as for any human owner; the demand
+    // for a vote too. A secret gone stale drops the choice; a paying choice with an empty purse refuses.
+    state.players[0].bc = 1000;
+    state.players[0].sneak_attack_planet = 5;
+    state.players[0].sneak_attack_player = 2;
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail_For(0, secrets::DEMAND_VOTE));
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    const choices::s_choice vote = choices::State()->choice[0];
+    DOCTEST_CHECK(secrets::Slots()[0].demanded == 0);
+    state.players[0].bc = 20;
+    text_language::language = text_language::LANGUAGE_EN;
+    DOCTEST_REQUIRE(secrets::Choice_Text(vote, &en));
+    DOCTEST_CHECK(std::string(en.option[0]).find("not enough BC") != std::string::npos);
+    state.players[0].sneak_attack_planet = -1;  // the plan is over: stale
+    DOCTEST_CHECK_FALSE(secrets::Choice_Text(vote, &en));
+    choices::Clear();
+    // A computer owner is unaffected: it pays at once, nothing queued.
+    state.players[0].objectives = PLAYER_OBJECTIVE_MILITARIST;
+    state.players[0].bc = 1000;
+    state.players[0].sneak_attack_planet = 5;
+    state.players[0].sneak_attack_player = 2;
+    secrets::Clear();
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK(secrets::Blackmail(0));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[0].bc == 1000 - 1000 * secrets::BLACKMAIL_PERCENT / 100);
+}
+
+DOCTEST_TEST_CASE("blackmail for a technology asked of a human: the owner gives the cheapest one") {
+    s_secrets_scope scope;
+    test::s_saved_value<bool> choices_on{choices::enabled};
+    choices::Clear();
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    const int16_t app = projects::Cheapest_Unknown_App(1);
+    DOCTEST_REQUIRE(app >= 0);
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;  // a granted technology then only refreshes the designs
+    state.players[0].bc = 1000;
+    state.players[0].tech_applications[app] = TECH_RESEARCH_STATUS_RESEARCHED;
+    choices::enabled = true;
+    DOCTEST_REQUIRE(secrets::Learn(1, secrets::KIND_PLAN, 0, 2, -1));
+    DOCTEST_CHECK_FALSE(secrets::Blackmail_For(0, secrets::DEMAND_TECH));
+    DOCTEST_REQUIRE(choices::Count(0) == 1);
+    choices::s_text en;
+    DOCTEST_REQUIRE(secrets::Choice_Text(choices::State()->choice[0], &en));
+    DOCTEST_CHECK(std::string(en.option[0]).find("Give them a technology") == 0);
+    DOCTEST_REQUIRE(choices::Apply_Pending(0, 0));
+    DOCTEST_CHECK(state.players[1].tech_applications[app] == TECH_RESEARCH_STATUS_RESEARCHED);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(secrets::Empty());
 }
 
 DOCTEST_TEST_CASE("off: nothing is learned, nothing smeared") {

@@ -6,11 +6,13 @@
 #include "game/advisor_directive.h"
 #include "game/beliefs.h"
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/counterspy.h"
 #include "game/dice.h"
 #include "game/diplomac.h"
 #include "game/diplomacy_memory.h"
 #include "game/espionage.h"
+#include "game/hostages.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
 #include "game/random.h"
@@ -19,6 +21,7 @@
 #include "game/spy.h"
 #include "game/spy_ops.h"
 #include "game/spy_ranks.h"
+#include "game/texts.h"
 
 #include <algorithm>
 #include <climits>
@@ -225,6 +228,33 @@ namespace intrigue {
             }
         }
 
+        // `target` acts on a forged letter about `other`: the alliance is broken, a defence pact ends (a computer
+        // whose opinion of `other` fell low enough, or a human who believes the letter).
+        void Act_On_Letter_(int16_t target, int16_t other) {
+            if (MOX::player[target].treaty[other] == TREATY_ALLIANCE) {
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "intrigue: stardate %d, player %d breaks its alliance with player %d over a forged letter",
+                    (int)MOX::stardate, (int)target, (int)other);
+                diplomac::Break_Treaties(target, other);
+            }
+            pacts::End_Pact(target, other, "a forged letter");
+        }
+
+        bool Can_Turn_(int16_t victim, int16_t attacker) {
+            return MOX::player[victim].tech_applications[TECH_APP_SPY_NETWORK] == TECH_RESEARCH_STATUS_RESEARCHED &&
+                !Has_Double_Agent(victim, attacker);
+        }
+
+        // A human catcher chooses the fate; a choice that cannot be queued leaves the spy to the prison, as before.
+        void Ask_Human_Fate_(int16_t victim, int16_t attacker) {
+            choices::s_choice c;
+            c.module = choices::MODULE_INTRIGUE;
+            c.kind = CHOICE_FATE;
+            c.player = static_cast<int8_t>(victim);
+            c.other = attacker;
+            c.asked = MOX::stardate;
+            if (!choices::Add(c)) hostages::Imprison_Spy(victim, attacker);
+        }
+
         void Settle_Caught_Spies_() {
             int32_t count = 0;
             const s_caught* queue = Caught_Queue(&count);
@@ -232,6 +262,10 @@ namespace intrigue {
                 const int16_t victim = queue[i].victim;
                 const int16_t attacker = queue[i].attacker;
                 if (!Alive_(victim) || !Alive_(attacker)) continue;
+                if (Asks_Human_Fate(victim)) {
+                    Ask_Human_Fate_(victim, attacker);  // no draw: a human's spy fate is classic today
+                    continue;
+                }
                 e_fate fate = Decide_Fate(victim, attacker, INT32_MAX);
                 if (fate == FATE_EXPELLED) fate = Decide_Fate(victim, attacker, static_cast<int32_t>(game_random::Random(100)));
                 Apply_Fate(victim, attacker, fate);
@@ -368,14 +402,20 @@ namespace intrigue {
         if (check.outcome >= dice::OUTCOME_SUCCESS) {
             opinion::Add(target, other, opinion::REASON_PLOTTED_AGAINST_US, FORGED_OPINION);
             opinion::Add(other, target, opinion::REASON_PLOTTED_AGAINST_US, FORGED_OPINION);
-            // Only a computer acts on the letter; a human decides for itself.
+            // A computer acts on the letter; a human decides for itself (in the choice window with events
+            // human_choices on, otherwise the letter changes nothing for a human).
             if (Computer_(target) && opinion::Relations(target, other) <= FORGED_BREAK_RELATIONS) {
-                if (MOX::player[target].treaty[other] == TREATY_ALLIANCE) {
-                    SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "intrigue: stardate %d, player %d breaks its alliance with player %d over a forged letter",
-                        (int)MOX::stardate, (int)target, (int)other);
-                    diplomac::Break_Treaties(target, other);
-                }
-                pacts::End_Pact(target, other, "a forged letter");
+                Act_On_Letter_(target, other);
+            } else if (choices::Ask_Human(target) &&
+                       (MOX::player[target].treaty[other] == TREATY_ALLIANCE || pacts::Has_Pact(target, other))) {
+                choices::s_choice c;
+                c.module = choices::MODULE_INTRIGUE;
+                c.kind = CHOICE_LETTER;
+                c.player = static_cast<int8_t>(target);
+                c.other = other;
+                c.target = forger;
+                c.asked = MOX::stardate;
+                choices::Add(c);
             }
             return true;
         }
@@ -404,6 +444,71 @@ namespace intrigue {
                 (int)MOX::stardate, (int)enemy, (int)payer);
         }
         return true;
+    }
+
+    bool Asks_Human_Fate(int16_t victim) {
+        return spy_fate && choices::Ask_Human(victim);
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t player = c.player;
+        const int16_t other = c.other;
+        if (!Alive_(player) || !Alive_(other) || player == other) return false;
+        const auto Short = [](int16_t p) { return std::string(MOX::player[p].race_name, strnlen(MOX::player[p].race_name, 14)); };
+        const auto N = [](int32_t v) { return std::to_string(v); };
+        constexpr const char* P = "choices.intrigue.";
+        const std::string race = Short(other);
+        const auto Option = [&](const std::string& key, std::initializer_list<std::pair<const char*, std::string>> args) {
+            texts::Format(t->option[t->count], sizeof(t->option[t->count]), (std::string(P) + key).c_str(), args);
+            ++t->count;
+        };
+        if (c.kind == CHOICE_FATE) {
+            if (!spy_fate) return false;
+            *t = choices::s_text{};
+            texts::Format(t->title, sizeof(t->title), "choices.intrigue.fate.title", {});
+            texts::Format(t->body, sizeof(t->body), "choices.intrigue.fate.body", {{"race", race}});
+            Option("fate.option1", {{"opinion", N(EXECUTION_OPINION)}});
+            Option(Computer_(other) ? "fate.option2" : "fate.option2_plain", {{"spies", N(Spies_(other, player))}, {"turns", N(EXPEL_TURNS)}});
+            if (Can_Turn_(player, other)) {
+                Option("fate.option3_turn", {{"turns", N(DOUBLE_AGENT_TURNS)}, {"difficulty", N(DOUBLE_AGENT_DIFFICULTY)}});
+            } else {
+                Option(favours ? "fate.option3_home_favour" : "fate.option3_home", {{"opinion", N(RETURN_OPINION)}});
+            }
+            return true;
+        }
+        if (c.kind == CHOICE_LETTER) {
+            if (!forged_letters) return false;
+            const bool alliance = MOX::player[player].treaty[other] == TREATY_ALLIANCE;
+            if (!alliance && !pacts::Has_Pact(player, other)) return false;
+            *t = choices::s_text{};
+            texts::Format(t->title, sizeof(t->title), "choices.intrigue.letter.title", {});
+            texts::Format(t->body, sizeof(t->body), alliance ? "choices.intrigue.letter.body_alliance" : "choices.intrigue.letter.body_pact",
+                {{"race", race}});
+            Option(alliance ? "letter.option1" : "letter.option1_pact", {{"race", race}});
+            Option("letter.option2", {});
+            return true;
+        }
+        return false;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        const int16_t player = c.player;
+        const int16_t other = c.other;
+        if (!Alive_(player) || !Alive_(other) || player == other) return;
+        if (c.kind == CHOICE_FATE) {
+            if (!spy_fate) return;
+            e_fate fate = FATE_EXECUTED;
+            if (option == 1) {
+                fate = FATE_EXPELLED;
+            } else if (option >= 2) {
+                fate = Can_Turn_(player, other) ? FATE_TURNED : FATE_SENT_HOME;
+            }
+            Apply_Fate(player, other, fate);
+        } else if (c.kind == CHOICE_LETTER) {
+            if (!forged_letters || option != 0) return;
+            if (MOX::player[player].treaty[other] != TREATY_ALLIANCE && !pacts::Has_Pact(player, other)) return;
+            Act_On_Letter_(player, other);
+        }
     }
 
     void Turn() {

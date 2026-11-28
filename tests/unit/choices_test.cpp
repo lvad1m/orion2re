@@ -191,7 +191,7 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused")
         SERIAL::Reader_ r2(bad.get(), size, "test underflow", true);
         return !choices::Parse_Save(&r2, &error);
     };
-    DOCTEST_CHECK(refuse(3, 9));        // module
+    DOCTEST_CHECK(refuse(3, choices::MODULE_LAST + 1));  // module
     DOCTEST_CHECK(refuse(3, 0));
     DOCTEST_CHECK(refuse(5, 9));        // player
     DOCTEST_CHECK(refuse(5, 0xFF));

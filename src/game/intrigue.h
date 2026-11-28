@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/choices.h"
+
 #include <cstdint>
 #include <string>
 
@@ -17,7 +19,10 @@ namespace SERIAL {
 //   pact; each now thinks the other plots against it, and an alliance may break;
 // - favours: a ledger of debts between empires (for a warning, a defence under a pact, a spy sent
 //   home); a debtor pays with its council vote or by joining its creditor's war;
-// - the fate of a caught spy: a computer empire executes, expels, sends home or turns the spy.
+// - the fate of a caught spy: a computer empire executes, expels, sends home or turns the spy; a human
+//   catcher chooses in the choice window (choices.h) when events human_choices is on, otherwise the spy is
+//   simply lost (or jailed, diplomacy spy_prison) as before. A forged letter about a human's ally or
+//   defence-pact partner likewise asks the human (believe or dismiss) with events human_choices on.
 // Every part has its own flag, off by default; with all of them off nothing here draws from
 // game_random and no state is kept.
 namespace intrigue {
@@ -84,6 +89,19 @@ namespace intrigue {
     };
     e_fate Decide_Fate(int16_t victim, int16_t attacker, int32_t turn_roll);
     void Apply_Fate(int16_t victim, int16_t attacker, e_fate fate);
+
+    // Human choices (choices.h; events human_choices): the fate of a spy caught by a human (Settle at the end
+    // of the spy step) and a believed forged letter about a human's ally or defence-pact partner. A choice record:
+    // player = the human, other = the attacker (fate) or the empire the letter accuses (letter).
+    // Fate options: 0 execute, 1 expel, 2 turn (spy network technology, no double agent yet) else send home.
+    // Letter options: 0 believe (break the alliance, end the pact), 1 dismiss.
+    constexpr uint8_t CHOICE_FATE = 1;
+    constexpr uint8_t CHOICE_LETTER = 2;
+    // A spy caught by `victim` waits for a choice (spy_fate on and `victim` is asked): espionage.cpp then
+    // does not jail it; a choice that cannot be queued jails it (when spy_prison is on) at the end of the spy step.
+    bool Asks_Human_Fate(int16_t victim);
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
     // `catcher` has a turned spy of `owner` working for it (spy_ops.cpp adds to the difficulty).
     bool Has_Double_Agent(int16_t catcher, int16_t owner);
