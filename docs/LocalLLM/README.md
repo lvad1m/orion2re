@@ -9,6 +9,8 @@
 > Каталог событий из других игр и свои идеи: [events-catalog.md](events-catalog.md).
 > Банк реплик дипломатии (28 080 строк, 13 рас, ru/en): [textbank/README.md](textbank/README.md).
 > Лаунчер и язык интерфейса: [launcher.md](launcher.md).
+> Интерфейс человека к новым механикам: [human-ui.md](human-ui.md); ментат, советник человека:
+> [mentat.md](mentat.md).
 
 ## Содержание
 
