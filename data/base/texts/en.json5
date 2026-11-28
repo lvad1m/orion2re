@@ -247,6 +247,12 @@
         option1_pact: "Believe it (end the defence pact with the {race})",
         option2: "Dismiss it (nothing changes)",
       },
+      proxy: {
+        title: "A war for hire",
+        body: "The {race} empire is at war with the {enemy} and offers you {price} BC to go to war with them too. If you accept, you receive the money and declare war on the {enemy} at once. The {enemy} may learn who paid for it.",
+        option1: "Take {price} BC and declare war on the {enemy}",
+        option2: "Refuse (nothing changes)",
+      },
     },
     secrets: {
       about: {
@@ -263,6 +269,28 @@
         option1_tech: "Give them a technology (the cheapest they lack; the {holder} keep the secret)",
         option1_poor: "Pay: not enough BC, the secret is made public",
         option2: "Refuse (the secret goes public; other empires' opinion of you {loss})",
+      },
+    },
+    pacts: {
+      pact: {
+        title: "A defence pact is offered",
+        body: "The {race} empire proposes a defence pact aimed at the {threat} empire. If you are attacked, the {race} declare war on the attacker, unless they are too weary of war. You are not bound to fight for them. The pact ends if you go to war with each other, if either empire is destroyed, or if your opinions of each other turn bad.",
+        option1: "Accept (a defence pact with the {race})",
+        option2: "Refuse (nothing changes; they may ask again later)",
+      },
+      guarantee: {
+        title: "A guarantee of independence is offered",
+        body: "The {race} empire, much stronger than you, offers to guarantee your independence against the {threat} empire. If you are attacked, they declare war on the attacker, unless they are too weary of war. You owe them nothing. The guarantee ends if you go to war with each other, if their opinion of you turns bad, or if you are no longer the weaker fleet.",
+        option1: "Accept the guarantee of the {race}",
+        option2: "Refuse (nothing changes; they may ask again later)",
+      },
+    },
+    ambition: {
+      bribe: {
+        title: "A bribe for your vote",
+        body: "The council is about to vote between two nominees. The {race} empire, which stands against the {rival}, offers you {price} BC for your vote. If you accept, you receive the money now and your vote goes to the {race} without a further prompt.",
+        option1: "Accept {price} BC (your vote goes to the {race})",
+        option2: "Refuse (you vote as you wish)",
       },
     },
     hostages: {

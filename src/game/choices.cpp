@@ -2,6 +2,7 @@
 
 #include "game/choices.h"
 
+#include "game/ambition.h"
 #include "game/crises.h"
 #include "game/discoveries.h"
 #include "game/hostages.h"
@@ -9,6 +10,7 @@
 #include "game/intrigue.h"
 #include "game/moo_world.h"
 #include "game/overtures.h"
+#include "game/pacts.h"
 #include "game/pirate_world.h"
 #include "game/secrets.h"
 #include "game/wanderers.h"
@@ -39,6 +41,8 @@ namespace choices {
                 case MODULE_INTRIGUE: return intrigue::Choice_Text(c, text);
                 case MODULE_SECRETS: return secrets::Choice_Text(c, text);
                 case MODULE_HOSTAGES: return hostages::Choice_Text(c, text);
+                case MODULE_PACTS: return pacts::Choice_Text(c, text);
+                case MODULE_AMBITION: return ambition::Choice_Text(c, text);
                 default: return false;
             }
         }
@@ -56,6 +60,8 @@ namespace choices {
                 case MODULE_INTRIGUE: intrigue::Choice_Apply(c, option); break;
                 case MODULE_SECRETS: secrets::Choice_Apply(c, option); break;
                 case MODULE_HOSTAGES: hostages::Choice_Apply(c, option); break;
+                case MODULE_PACTS: pacts::Choice_Apply(c, option); break;
+                case MODULE_AMBITION: ambition::Choice_Apply(c, option); break;
                 default: break;
             }
         }
@@ -96,6 +102,18 @@ namespace choices {
         if (s->count >= MAX_PENDING) return false;
         s->choice[s->count++] = choice;
         Log_(choice, "waits for the human");
+        return true;
+    }
+
+    bool Ask_Now(const s_choice& choice) {
+        if (!Ask_Human(choice.player)) return false;
+        s_text text;
+        if (!Text_(choice, &text) || text.count < 2) return false;
+        Log_(choice, "asks the human now");
+        const int16_t picked = GENDRAW::Choice_Box(text);
+        const int32_t option = std::clamp<int32_t>(picked, 0, text.count - 1);
+        Log_(choice, "chose option", option);
+        Apply_(choice, option);
         return true;
     }
 

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "game/choices.h"
+
 #include <cstdint>
 
 // The ambitious governor and council bribery (docs/LocalLLM/mechanics.md 3.5.6 and 3.5.3; README.md
@@ -54,5 +56,21 @@ namespace ambition {
     int32_t Council_Vote_Bias(int16_t voter, int16_t candidate);
     // The vote is over: the bribes are forgotten.
     void After_Council_Vote();
+
+    // R2, piece C (human-ui.md section 5): with events human_choices on, a computer nominee that would bribe a
+    // computer voter by the rules above (Before_Council_Vote: the same money, reserve and opinion thresholds, no
+    // secret to blackmail with) offers the human voter the same BRIBE_PRICE. Called by Council_Votes right after
+    // Before_Council_Vote, so the computers' purchases and the exposure roll are as before; nothing is drawn. The
+    // window opens at once (choices::Ask_Now). Accepting pays the human and binds its council vote: Council_Player_Vote
+    // casts it for the briber without asking (Take_Human_Vote_Promise).
+    constexpr uint8_t CHOICE_BRIBE = 1;
+    // The offer the nominees would make to `human`, if any (player human, target the briber, other the rival nominee,
+    // value the price).
+    bool Human_Offer(int16_t human, int16_t nominee0, int16_t nominee1, choices::s_choice* offer);
+    void Offer_To_Human(int16_t human, int16_t nominee0, int16_t nominee1);
+    // The nominee the human has sold its vote to in this session, -1 if none; reading it forgets it.
+    int16_t Take_Human_Vote_Promise();
+    bool Choice_Text(const choices::s_choice& choice, choices::s_text* text);
+    void Choice_Apply(const choices::s_choice& choice, int32_t option);
 
 } // namespace ambition

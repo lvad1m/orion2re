@@ -2,7 +2,9 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/ambition.h"
+#include "game/choices.h"
 #include "game/loyalty.h"
 #include "game/opinion.h"
 #include "game/random.h"
@@ -286,3 +288,134 @@ DOCTEST_TEST_CASE("off: no defection, no bribes, no draws") {
 }
 
 } // DOCTEST_TEST_SUITE
+
+// R2, piece C (human-ui.md section 5): a computer nominee offers a human voter the bribe it would give a computer
+// voter; accepting binds the human's council vote.
+namespace {
+    struct s_bribe_choice_scope {
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        test::s_saved_value<uint8_t> language{text_language::language};
+        test::s_saved_value<int8_t> game_type{MOX::game_type};
+        test::s_saved_value<decltype(NETMOX::net.is_network_active)> network{NETMOX::net.is_network_active};
+
+        s_bribe_choice_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            MOX::game_type = 0;
+            NETMOX::net.is_network_active = 0;
+        }
+        ~s_bribe_choice_scope() { choices::Clear(); }
+    };
+}
+
+DOCTEST_TEST_SUITE("council bribes offered to a human") {
+
+DOCTEST_TEST_CASE("a nominee that would bribe a computer voter offers the human the same; accept pays and binds the vote") {
+    s_ambition_scope scope;
+    s_bribe_choice_scope cscope;
+    test::s_game_state state;
+    Council_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    opinion::Add(3, 1, opinion::REASON_PLOTTED_AGAINST_US, -90);  // computer voter 3 hates nominee 1
+    ambition::Before_Council_Vote(1, 2);
+    // The computers' purchases are those of a game without the human (voter 3 is bought by nominee 2).
+    DOCTEST_CHECK(ambition::Council_Vote_Bias(3, 2) == ambition::BRIBE_BIAS);
+    DOCTEST_CHECK(state.players[2].bc == 1000 - ambition::BRIBE_PRICE);
+    DOCTEST_CHECK(state.players[1].bc == 1000);
+    choices::s_choice offer;
+    DOCTEST_REQUIRE(ambition::Human_Offer(0, 1, 2, &offer));
+    DOCTEST_CHECK(offer.module == choices::MODULE_AMBITION);
+    DOCTEST_CHECK(offer.player == 0);
+    DOCTEST_CHECK(offer.target == 1);
+    DOCTEST_CHECK(offer.other == 2);
+    DOCTEST_CHECK(offer.value == ambition::BRIBE_PRICE);
+    DOCTEST_CHECK(state.players[0].bc == 150);  // nothing paid until it is accepted
+    for (const uint8_t language : {text_language::LANGUAGE_EN, text_language::LANGUAGE_RU}) {
+        text_language::language = language;
+        choices::s_text t;
+        DOCTEST_REQUIRE(ambition::Choice_Text(offer, &t));
+        DOCTEST_CHECK(t.count == 2);
+        std::string all = std::string(t.title) + t.body + t.option[0] + t.option[1];
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+    }
+    text_language::language = text_language::LANGUAGE_EN;
+    // Refuse: nothing changes.
+    ambition::Choice_Apply(offer, 1);
+    DOCTEST_CHECK(state.players[0].bc == 150);
+    DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == -1);
+    // Accept: the money moves, the vote is promised once.
+    ambition::Choice_Apply(offer, 0);
+    DOCTEST_CHECK(state.players[0].bc == 150 + ambition::BRIBE_PRICE);
+    DOCTEST_CHECK(state.players[1].bc == 1000 - ambition::BRIBE_PRICE);
+    DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == 1);
+    DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == -1);
+    // The next session forgets an unspent promise.
+    ambition::Choice_Apply(offer, 0);
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == -1);
+}
+
+DOCTEST_TEST_CASE("no offer with the setting off, a poor briber, a hated briber, a human nominee, a network game; none to computers") {
+    s_ambition_scope scope;
+    s_bribe_choice_scope cscope;
+    test::s_game_state state;
+    Council_Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].objectives = PLAYER_OBJECTIVE_HUMAN;
+    choices::s_choice offer;
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK(ambition::Human_Offer(0, 1, 2, &offer));
+    choices::enabled = false;
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 1, 2, &offer));
+    choices::enabled = true;
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(3, 1, 2, &offer));  // a computer is never offered through this path
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 0, 2, &offer));  // a human nominee does not bribe itself
+    ambition::council_bribery = false;
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 1, 2, &offer));
+    ambition::council_bribery = true;
+    state.players[0].relations[1] = -90;  // the human hates both nominees (a human's opinion is the classic one)
+    state.players[0].relations[2] = -90;
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 1, 2, &offer));
+    state.players[0].relations[1] = 0;
+    state.players[0].relations[2] = 0;
+    // Poor nominees: no money, no offer (the check is made once, before the first purchase).
+    state.players[1].bc = ambition::MIN_BC_TO_BRIBE - 1;
+    state.players[2].bc = ambition::MIN_BC_TO_BRIBE - 1;
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 1, 2, &offer));
+    state.players[1].bc = 1000;
+    state.players[2].bc = 1000;
+    ambition::Before_Council_Vote(1, 2);
+    MOX::game_type = 2;  // a network game
+    DOCTEST_CHECK_FALSE(ambition::Human_Offer(0, 1, 2, &offer));
+    MOX::game_type = 0;
+    DOCTEST_CHECK(ambition::Human_Offer(0, 1, 2, &offer));
+    // The briber's treasury is gone by the time of the answer: nothing is paid and no vote is promised.
+    state.players[offer.target].bc = 5;
+    choices::s_text t;
+    DOCTEST_CHECK_FALSE(ambition::Choice_Text(offer, &t));
+    ambition::Choice_Apply(offer, 0);
+    DOCTEST_CHECK(state.players[0].bc == 150);
+    DOCTEST_CHECK(ambition::Take_Human_Vote_Promise() == -1);
+}
+
+DOCTEST_TEST_CASE("without a human the computers' bribes are as before and nothing is offered or kept") {
+    s_ambition_scope scope;
+    s_bribe_choice_scope cscope;
+    test::s_game_state state;
+    Council_Setup_(&state);
+    opinion::Add(3, 1, opinion::REASON_PLOTTED_AGAINST_US, -90);
+    const uint32_t seed = game_random::Get_Random_Seed();
+    ambition::Before_Council_Vote(1, 2);
+    DOCTEST_CHECK(ambition::Council_Vote_Bias(0, 1) == ambition::BRIBE_BIAS);
+    DOCTEST_CHECK(ambition::Council_Vote_Bias(3, 2) == ambition::BRIBE_BIAS);
+    DOCTEST_CHECK(state.players[1].bc == 1000 - ambition::BRIBE_PRICE);
+    choices::s_choice offer;
+    for (int16_t p = 0; p < 4; ++p) DOCTEST_CHECK_FALSE(ambition::Human_Offer(p, 1, 2, &offer));
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(game_random::Get_Random_Seed() == seed);
+}
+
+}

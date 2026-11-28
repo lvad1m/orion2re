@@ -35,7 +35,9 @@ namespace choices {
         MODULE_INTRIGUE = 9,   // the fate of a caught spy, a forged letter about an ally (R2, piece A)
         MODULE_SECRETS = 10,   // a blackmailer's demand
         MODULE_HOSTAGES = 11,  // a human's held leader or spies, a human holder of prisoners (R2, piece B)
-        MODULE_LAST = 11,
+        MODULE_PACTS = 12,     // a computer offers a defence pact or a guarantee to a human (R2, piece C)
+        MODULE_AMBITION = 13,  // a computer nominee offers a human voter a bribe for the council vote
+        MODULE_LAST = 13,
     };
 
     // One pending choice. What target, other and value mean is the module's business (incidents: the colony,
@@ -70,6 +72,11 @@ namespace choices {
     // Queues a choice; false when the queue is full.
     bool Add(const s_choice& choice);
     int32_t Count(int16_t player);
+
+    // Shows `choice` at once in the window and applies the picked option, without queueing it (for a decision
+    // that cannot wait for the next turn, such as a bribe offered during the council session). False when the
+    // subject is gone (nothing shown) or the setting is off for the player.
+    bool Ask_Now(const s_choice& choice);
 
     // Applies the first pending choice of `player` with `option` and removes it; false when it has none.
     bool Apply_Pending(int16_t player, int32_t option);

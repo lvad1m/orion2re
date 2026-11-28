@@ -499,3 +499,123 @@ DOCTEST_TEST_CASE("the save payload round-trips; bad values are refused") {
 }
 
 }
+
+// R2, piece C (human-ui.md section 5): a computer at war offers a human the proxy war it makes to a computer
+// partner; the human takes the money and declares war, or refuses.
+namespace {
+    struct s_proxy_choice_scope {
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        test::s_saved_value<uint8_t> language{text_language::language};
+        test::s_saved_value<int8_t> game_type{MOX::game_type};
+        test::s_saved_value<decltype(NETMOX::net.is_network_active)> network{NETMOX::net.is_network_active};
+
+        s_proxy_choice_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            MOX::game_type = 0;
+            NETMOX::net.is_network_active = 0;
+        }
+        ~s_proxy_choice_scope() { choices::Clear(); }
+    };
+}
+
+DOCTEST_TEST_SUITE("proxy wars offered to a human") {
+
+DOCTEST_TEST_CASE("with no computer to hire a human is offered the proxy war: take the money and declare war, or refuse") {
+    s_intrigue_scope scope;
+    s_proxy_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].bc = 1000;
+    state.players[0].treaty[3] = state.players[3].treaty[0] = TREATY_WAR;
+    state.players[1].relations[3] = -5;  // no computer dislikes 3 enough
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[2].relations[3] = 30;  // the human's own opinion is its answer to give
+    MOX::stardate = 35003;
+    // The setting off: nothing is asked, nothing is paid.
+    choices::enabled = false;
+    intrigue::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    choices::enabled = true;
+    intrigue::Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(state.players[2].bc == 0);
+    DOCTEST_CHECK(state.players[2].treaty[3] < TREATY_WAR);
+    const choices::s_choice ask = choices::State()->choice[0];
+    DOCTEST_CHECK(ask.module == choices::MODULE_INTRIGUE);
+    DOCTEST_CHECK(ask.kind == intrigue::CHOICE_PROXY);
+    DOCTEST_CHECK(ask.other == 0);
+    DOCTEST_CHECK(ask.target == 3);
+    DOCTEST_CHECK(ask.value == 200);
+    for (const uint8_t language : {text_language::LANGUAGE_EN, text_language::LANGUAGE_RU}) {
+        text_language::language = language;
+        choices::s_text t;
+        DOCTEST_REQUIRE(intrigue::Choice_Text(ask, &t));
+        DOCTEST_CHECK(t.count == 2);
+        std::string all = std::string(t.title) + t.body + t.option[0] + t.option[1];
+        DOCTEST_CHECK(all.find('{') == std::string::npos);
+        DOCTEST_CHECK(all.find('?') == std::string::npos);
+    }
+    text_language::language = text_language::LANGUAGE_EN;
+    intrigue::Turn();  // asked once while it waits
+    DOCTEST_CHECK(choices::Count(2) == 1);
+    // Refuse: nothing changes; not asked again for PROXY_REOFFER_TURNS turns.
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 1));
+    DOCTEST_CHECK(state.players[0].bc == 1000);
+    DOCTEST_CHECK(state.players[2].treaty[3] < TREATY_WAR);
+    MOX::stardate = 35013;
+    intrigue::Turn();
+    DOCTEST_CHECK(choices::Empty());
+    MOX::stardate = 35053;
+    intrigue::Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    // Take it: Hire_Proxy, the computer's path - the payer pays, the human declares war.
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 0));
+    DOCTEST_CHECK(state.players[0].bc == 800);
+    DOCTEST_CHECK(state.players[2].bc == 200);
+    DOCTEST_CHECK(state.players[2].treaty[3] >= TREATY_WAR);
+}
+
+DOCTEST_TEST_CASE("a computer to hire keeps the deal as before; the human is not asked; gone subjects drop the offer") {
+    s_intrigue_scope scope;
+    s_proxy_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[0].bc = 1000;
+    state.players[0].treaty[3] = state.players[3].treaty[0] = TREATY_WAR;
+    state.players[1].relations[3] = -5;
+    state.players[2].relations[3] = -40;
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    MOX::stardate = 35003;
+    intrigue::Turn();
+    DOCTEST_CHECK(state.players[0].bc == 800);  // computer 2 hired, exactly as without a human
+    DOCTEST_CHECK(state.players[2].bc == 200);
+    DOCTEST_CHECK(state.players[2].treaty[3] >= TREATY_WAR);
+    for (int32_t i = 0; i < choices::State()->count; ++i) DOCTEST_CHECK(choices::State()->choice[i].other != 0);  // none from the payer that hired
+    choices::Clear();
+    // A queued offer whose subject is gone: Choice_Text false, Choice_Apply does nothing.
+    choices::s_choice ask;
+    ask.module = choices::MODULE_INTRIGUE;
+    ask.kind = intrigue::CHOICE_PROXY;
+    ask.player = 1;
+    ask.other = 0;
+    ask.target = 3;
+    ask.value = 100;
+    choices::s_text t;
+    state.players[0].treaty[3] = state.players[3].treaty[0] = 0;  // the war is over
+    DOCTEST_CHECK_FALSE(intrigue::Choice_Text(ask, &t));
+    const int32_t before = state.players[0].bc;
+    intrigue::Choice_Apply(ask, 0);
+    DOCTEST_CHECK(state.players[0].bc == before);
+    DOCTEST_CHECK(state.players[1].treaty[3] < TREATY_WAR);
+    state.players[0].treaty[3] = state.players[3].treaty[0] = TREATY_WAR;
+    DOCTEST_CHECK(intrigue::Choice_Text(ask, &t));
+    state.players[0].bc = 50;  // the payer cannot pay any more
+    DOCTEST_CHECK_FALSE(intrigue::Choice_Text(ask, &t));
+}
+
+}

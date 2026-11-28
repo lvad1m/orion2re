@@ -148,6 +148,43 @@ namespace intrigue {
             }
         }
 
+        int32_t proxy_refused[MAX_PLAYERS][MAX_PLAYERS];  // [human][payer]: stardate + 1 of the last refusal, 0 none; not saved
+
+        // The empire `human` may be asked to fight `enemy` for `payer`: the facts of the computer's rule (contact with
+        // both, no war with either, no treaty binding it to the enemy). Its opinions, trust, weariness and advisor are
+        // replaced by its own answer.
+        bool Proxy_Open_To_(int16_t human, int16_t payer, int16_t enemy) {
+            if (human == payer || human == enemy || !choices::Ask_Human(human)) return false;
+            if (!Contact_(human, payer) || !Contact_(human, enemy)) return false;
+            return !At_War_(human, enemy) && !At_War_(human, payer) && !Bound_(human, enemy);
+        }
+
+        // Queued once while it waits; one refused lately is not repeated; a full queue: no offer, as before.
+        void Offer_Proxy_To_Human_(int16_t payer, int16_t enemy, int32_t payment) {
+            for (int16_t human = 0; human < Players_(); ++human) {
+                if (!Proxy_Open_To_(human, payer, enemy)) continue;
+                const int32_t refused = proxy_refused[human][payer] - 1;
+                if (refused >= 0 && MOX::stardate - refused >= 0 && MOX::stardate - refused < PROXY_REOFFER_TURNS) continue;
+                bool waiting = false;
+                const choices::s_state* queue = choices::State();
+                for (int32_t i = 0; i < queue->count; ++i) {
+                    const choices::s_choice& q = queue->choice[i];
+                    if (q.module == choices::MODULE_INTRIGUE && q.kind == CHOICE_PROXY && q.player == human && q.other == payer) waiting = true;
+                }
+                if (waiting) continue;
+                choices::s_choice c;
+                c.module = choices::MODULE_INTRIGUE;
+                c.kind = CHOICE_PROXY;
+                c.player = static_cast<int8_t>(human);
+                c.other = payer;
+                c.target = enemy;
+                c.value = payment;
+                c.asked = MOX::stardate;
+                choices::Add(c);
+                return;  // one offer a deal
+            }
+        }
+
         void Proxy_Wars_() {
             for (int16_t payer = 0; payer < Players_(); ++payer) {
                 if (!Computer_(payer) || MOX::player[payer].bc < PROXY_MIN_PAYMENT) continue;
@@ -169,8 +206,12 @@ namespace intrigue {
                             best_relations = relations;
                         }
                     }
-                    if (best < 0) continue;
                     const int32_t payment = std::max(PROXY_MIN_PAYMENT, MOX::player[payer].bc * proxy_payment_percent / 100);
+                    if (best < 0) {
+                        // No computer to hire: a human may be asked (no draw; the computers' choice is not touched).
+                        Offer_Proxy_To_Human_(payer, enemy, payment);
+                        continue;
+                    }
                     if (Hire_Proxy(payer, best, enemy, payment)) break;  // one deal a period
                 }
             }
@@ -462,6 +503,17 @@ namespace intrigue {
             texts::Format(t->option[t->count], sizeof(t->option[t->count]), (std::string(P) + key).c_str(), args);
             ++t->count;
         };
+        if (c.kind == CHOICE_PROXY) {
+            const int16_t enemy = c.target;
+            if (!proxy_wars || !Alive_(enemy) || enemy == player || enemy == other || c.value <= 0) return false;
+            if (!At_War_(other, enemy) || At_War_(player, enemy) || At_War_(player, other) || MOX::player[other].bc < c.value) return false;
+            *t = choices::s_text{};
+            texts::Format(t->title, sizeof(t->title), "choices.intrigue.proxy.title", {});
+            texts::Format(t->body, sizeof(t->body), "choices.intrigue.proxy.body", {{"race", race}, {"enemy", Short(enemy)}, {"price", N(c.value)}});
+            Option("proxy.option1", {{"enemy", Short(enemy)}, {"price", N(c.value)}});
+            Option("proxy.option2", {});
+            return true;
+        }
         if (c.kind == CHOICE_FATE) {
             if (!spy_fate) return false;
             *t = choices::s_text{};
@@ -495,6 +547,18 @@ namespace intrigue {
         const int16_t player = c.player;
         const int16_t other = c.other;
         if (!Alive_(player) || !Alive_(other) || player == other) return;
+        if (c.kind == CHOICE_PROXY) {
+            choices::s_text unused;
+            if (!Choice_Text(c, &unused)) return;
+            if (option == 0) {
+                Hire_Proxy(other, player, c.target, c.value);
+            } else {
+                proxy_refused[player][other] = MOX::stardate + 1;
+                SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "intrigue: stardate %d, player %d refuses to fight player %d for player %d",
+                    (int)MOX::stardate, (int)player, (int)c.target, (int)other);
+            }
+            return;
+        }
         if (c.kind == CHOICE_FATE) {
             if (!spy_fate) return;
             e_fate fate = FATE_EXECUTED;

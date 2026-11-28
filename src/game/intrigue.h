@@ -97,6 +97,11 @@ namespace intrigue {
     // Letter options: 0 believe (break the alliance, end the pact), 1 dismiss.
     constexpr uint8_t CHOICE_FATE = 1;
     constexpr uint8_t CHOICE_LETTER = 2;
+    // A computer at war pays a human to attack its enemy (R2, piece C): the choice's player is the human, other the
+    // payer, target the enemy, value the sum. Option 0 takes the money and declares war (Hire_Proxy), 1 refuses.
+    // A refused offer is not repeated for PROXY_REOFFER_TURNS turns (not saved).
+    constexpr uint8_t CHOICE_PROXY = 3;
+    constexpr int32_t PROXY_REOFFER_TURNS = 50;
     // A spy caught by `victim` waits for a choice (spy_fate on and `victim` is asked): espionage.cpp then
     // does not jail it; a choice that cannot be queued jails it (when spy_prison is on) at the end of the spy step.
     bool Asks_Human_Fate(int16_t victim);

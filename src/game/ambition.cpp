@@ -3,12 +3,14 @@
 #include "game/ambition.h"
 
 #include "game/bill.h"
+#include "game/choices.h"
 #include "game/invasion.h"
 #include "game/loyalty.h"
 #include "game/officer.h"
 #include "game/opinion.h"
 #include "game/random.h"
 #include "game/secrets.h"
+#include "game/texts.h"
 
 #include <algorithm>
 
@@ -89,6 +91,8 @@ namespace ambition {
 
         // Transient: what each voter was given for each candidate in this vote.
         int16_t bias[MAX_PLAYERS][MAX_PLAYERS];
+        bool rich_at_start[2];       // each nominee's treasury check of Before_Council_Vote, for the human's offer
+        int16_t human_promise = -1;  // the nominee a human sold its vote to
     } // namespace
 
     bool Is_Restless(int16_t leader) {
@@ -167,6 +171,8 @@ namespace ambition {
 
     void Before_Council_Vote(int16_t nominee0, int16_t nominee1) {
         std::fill(&bias[0][0], &bias[0][0] + MAX_PLAYERS * MAX_PLAYERS, int16_t{0});
+        human_promise = -1;
+        rich_at_start[0] = rich_at_start[1] = false;
         if (!council_bribery) return;
         const int16_t nominees[2] = {nominee0, nominee1};
         for (int n = 0; n < 2; ++n) {
@@ -174,6 +180,7 @@ namespace ambition {
             const int16_t rival = nominees[1 - n];
             if (!Computer_(briber) || briber == rival) continue;
             const bool rich = MOX::player[briber].bc >= MIN_BC_TO_BRIBE;  // checked once, before the first purchase
+            rich_at_start[n] = rich;
             int32_t bought = 0;
             for (int16_t voter = 0; voter < Players_(); ++voter) {
                 if (voter == nominee0 || voter == nominee1 || !Computer_(voter)) continue;
@@ -211,6 +218,74 @@ namespace ambition {
     int32_t Council_Vote_Bias(int16_t voter, int16_t candidate) {
         if (!council_bribery || voter < 0 || voter >= MAX_PLAYERS || candidate < 0 || candidate >= MAX_PLAYERS) return 0;
         return bias[voter][candidate];
+    }
+
+    bool Human_Offer(int16_t human, int16_t nominee0, int16_t nominee1, choices::s_choice* offer) {
+        if (!council_bribery || !choices::Ask_Human(human) || human == nominee0 || human == nominee1) return false;
+        const int16_t nominees[2] = {nominee0, nominee1};
+        for (int n = 0; n < 2; ++n) {
+            const int16_t briber = nominees[n];
+            const int16_t rival = nominees[1 - n];
+            if (!Computer_(briber) || briber == rival || !rich_at_start[n]) continue;
+            if (Secret_About_(briber, human) >= 0) continue;  // a blackmail, not a bribe: the secrets' own demand
+            if (MOX::player[briber].bc - BRIBE_PRICE < BRIBE_RESERVE || opinion::Relations(human, briber) < BRIBE_MIN_RELATIONS) continue;
+            if (offer != nullptr) {
+                *offer = choices::s_choice{};
+                offer->module = choices::MODULE_AMBITION;
+                offer->kind = CHOICE_BRIBE;
+                offer->player = static_cast<int8_t>(human);
+                offer->target = briber;
+                offer->other = rival;
+                offer->value = BRIBE_PRICE;
+                offer->asked = MOX::stardate;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    void Offer_To_Human(int16_t human, int16_t nominee0, int16_t nominee1) {
+        choices::s_choice offer;
+        if (Human_Offer(human, nominee0, nominee1, &offer)) choices::Ask_Now(offer);
+    }
+
+    int16_t Take_Human_Vote_Promise() {
+        const int16_t promised = human_promise;
+        human_promise = -1;
+        return promised;
+    }
+
+    bool Choice_Text(const choices::s_choice& c, choices::s_text* t) {
+        const int16_t human = c.player;
+        const int16_t briber = c.target;
+        const int16_t rival = c.other;
+        if (c.kind != CHOICE_BRIBE || !council_bribery || !Alive_(human) || !Computer_(briber) || !Alive_(rival)) return false;
+        if (human == briber || human == rival || briber == rival || c.value <= 0 || MOX::player[briber].bc < c.value) return false;
+        const auto Short = [](int16_t p) { return std::string(MOX::player[p].race_name, strnlen(MOX::player[p].race_name, 14)); };
+        const std::initializer_list<std::pair<const char*, std::string>> args = {
+            {"race", Short(briber)}, {"rival", Short(rival)}, {"price", std::to_string(c.value)}};
+        *t = choices::s_text{};
+        texts::Format(t->title, sizeof(t->title), "choices.ambition.bribe.title", {});
+        texts::Format(t->body, sizeof(t->body), "choices.ambition.bribe.body", args);
+        texts::Format(t->option[0], sizeof(t->option[0]), "choices.ambition.bribe.option1", args);
+        texts::Format(t->option[1], sizeof(t->option[1]), "choices.ambition.bribe.option2", args);
+        t->count = 2;
+        return true;
+    }
+
+    void Choice_Apply(const choices::s_choice& c, int32_t option) {
+        choices::s_text unused;
+        if (!Choice_Text(c, &unused)) return;
+        if (option != 0) {
+            SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d refuses the bribe of player %d",
+                (int)MOX::stardate, (int)c.player, (int)c.target);
+            return;
+        }
+        MOX::player[c.target].bc -= c.value;
+        MOX::player[c.player].bc += c.value;
+        human_promise = c.target;
+        SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION, "ambition: stardate %d, player %d bribes player %d with %d BC for its council vote",
+            (int)MOX::stardate, (int)c.target, (int)c.player, (int)c.value);
     }
 
     void After_Council_Vote() {

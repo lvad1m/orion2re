@@ -2,8 +2,10 @@
 
 #include "doctest/doctest.h"
 #include "../fixtures/game_state.h"
+#include "../fixtures/texts_fixture.h"
 #include "game/advisor.h"
 #include "game/advisor_directive.h"
+#include "game/choices.h"
 #include "game/diplomacy_memory.h"
 #include "game/opinion.h"
 #include "game/pacts.h"
@@ -264,6 +266,257 @@ DOCTEST_TEST_CASE("an aggression during talks is recognised as a red wedding (di
     DOCTEST_CHECK(reputation::Has(1, reputation::TITLE_HOSPITALITY_BREAKER));
     DOCTEST_CHECK(opinion::Modifier(2, 1, opinion::REASON_VIOLATED_HOSPITALITY) == reputation::RED_WEDDING_VICTIM_OPINION);
     reputation::Clear();
+}
+
+}
+
+// R2, piece C (human-ui.md section 5): a computer offers a human a defence pact or a guarantee by its own side of
+// the rule; the human's answer replaces the human's opinion and beliefs.
+namespace {
+    struct s_choice_scope {
+        test::s_saved_value<bool> choices_on{choices::enabled};
+        test::s_saved_value<uint8_t> language{text_language::language};
+        test::s_saved_value<int8_t> game_type{MOX::game_type};
+        test::s_saved_value<decltype(NETMOX::net.is_network_active)> network{NETMOX::net.is_network_active};
+
+        s_choice_scope() {
+            choices::Clear();
+            choices::enabled = true;
+            MOX::game_type = 0;
+            NETMOX::net.is_network_active = 0;
+        }
+        ~s_choice_scope() { choices::Clear(); }
+    };
+
+    // The pending offer of a kind (a guarantee is offered along with a pact when both rules hold).
+    choices::s_choice Offer_Of_(uint8_t kind) {
+        const choices::s_state* queue = choices::State();
+        for (int32_t i = 0; i < queue->count; ++i) {
+            if (queue->choice[i].module == choices::MODULE_PACTS && queue->choice[i].kind == kind) return queue->choice[i];
+        }
+        return choices::s_choice{};
+    }
+
+    void Check_Texts_(const choices::s_choice& c) {
+        for (const uint8_t language : {text_language::LANGUAGE_EN, text_language::LANGUAGE_RU}) {
+            text_language::language = language;
+            choices::s_text t;
+            DOCTEST_REQUIRE(pacts::Choice_Text(c, &t));
+            DOCTEST_CHECK(t.count == 2);
+            std::string all = std::string(t.title) + t.body + t.option[0] + t.option[1];
+            DOCTEST_CHECK(all.find('{') == std::string::npos);
+            DOCTEST_CHECK(all.find('?') == std::string::npos);
+        }
+        text_language::language = text_language::LANGUAGE_EN;
+    }
+}
+
+DOCTEST_TEST_SUITE("defence pacts offered to a human") {
+
+DOCTEST_TEST_CASE("a computer offers a human a pact against a common threat; accept signs it, refuse is not repeated for 50 turns") {
+    s_pacts_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    Common_Threat_(&state);
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    // The setting off: nothing is asked; the computers' pairs are as before.
+    choices::enabled = false;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Empty());
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+    // On: one pending offer from computer 1 aimed at 3 and no effect yet.
+    choices::enabled = true;
+    MOX::stardate = 35020;
+    pacts::End_Of_Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+    const choices::s_choice ask = choices::State()->choice[0];
+    DOCTEST_CHECK(ask.module == choices::MODULE_PACTS);
+    DOCTEST_CHECK(ask.kind == pacts::CHOICE_PACT);
+    DOCTEST_CHECK(ask.player == 2);
+    DOCTEST_CHECK(ask.target == 1);
+    DOCTEST_CHECK(ask.other == 3);
+    Check_Texts_(ask);
+    MOX::stardate = 35030;
+    pacts::End_Of_Turn();  // asked once, not again while it waits
+    DOCTEST_CHECK(choices::Count(2) == 1);
+    // Accept: the same pact a computer pair signs.
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 0));
+    DOCTEST_CHECK(pacts::Has_Pact(1, 2));
+    DOCTEST_CHECK(pacts::Has_Pact(2, 1));
+    pacts::Clear();
+    // Refuse: nothing signed, and the offer is not repeated for REOFFER_TURNS turns.
+    MOX::stardate = 35040;
+    pacts::End_Of_Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 1));
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+    MOX::stardate = 35050;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Empty());
+    MOX::stardate = 35090;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Count(2) == 1);
+}
+
+DOCTEST_TEST_CASE("the computer's side of the rule still holds for a human partner; a gone subject makes Choice_Text false") {
+    s_pacts_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    Common_Threat_(&state);
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[1].relations[2] = 10;  // the computer thinks too little of the human
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Empty());
+    state.players[1].relations[2] = 30;
+    // The human's own opinion of the threat is its answer to give: it may even like the threat.
+    state.players[2].relations[3] = 50;
+    MOX::stardate = 35020;
+    pacts::End_Of_Turn();
+    DOCTEST_REQUIRE(choices::Count(2) == 1);
+    const choices::s_choice ask = choices::State()->choice[0];
+    choices::s_text t;
+    DOCTEST_CHECK(pacts::Choice_Text(ask, &t));
+    state.players[1].treaty[2] = state.players[2].treaty[1] = TREATY_WAR;  // at war now
+    DOCTEST_CHECK_FALSE(pacts::Choice_Text(ask, &t));
+    pacts::Choice_Apply(ask, 0);
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 2));
+    state.players[1].treaty[2] = state.players[2].treaty[1] = 0;
+    state.players[3].eliminated = 1;  // the aim is gone
+    DOCTEST_CHECK_FALSE(pacts::Choice_Text(ask, &t));
+    state.players[3].eliminated = 0;
+    DOCTEST_CHECK(pacts::Choice_Text(ask, &t));
+    // A human is not a network game's player: no offer.
+    choices::Clear();
+    MOX::game_type = 2;
+    MOX::stardate = 35090;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Empty());
+}
+
+DOCTEST_TEST_CASE("a computer guarantees a weak human it values; a full guarantor's offer lapses; a full queue gives it as today") {
+    s_pacts_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    state.players[2].objectives = PLAYER_OBJECTIVE_HUMAN;
+    state.players[0].relations[2] = 40;
+    state.players[0].relations[3] = -5;
+    state.players[0].total_ship_strength[2] = 300;
+    state.players[2].total_ship_strength[0] = 100;
+    state.players[3].total_ship_strength[2] = 100;
+    state.players[2].total_ship_strength[3] = 50;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Count(2) == 2);  // the pact against the same threat is offered too
+    const choices::s_choice ask = Offer_Of_(pacts::CHOICE_GUARANTEE);
+    DOCTEST_CHECK(ask.kind == pacts::CHOICE_GUARANTEE);
+    DOCTEST_CHECK(ask.target == 0);
+    DOCTEST_CHECK(ask.other == 3);
+    Check_Texts_(ask);
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(0, 2));
+    // The guarantor's slots fill up with computer wards before the human answers: the offer lapses.
+    pacts::guarantees_max = 1;
+    pacts::Give_Guarantee(0, 1, 3);
+    choices::s_text t;
+    DOCTEST_CHECK_FALSE(pacts::Choice_Text(ask, &t));
+    pacts::End_Guarantee(0, 1, "test");
+    DOCTEST_CHECK(pacts::Choice_Text(ask, &t));
+    DOCTEST_REQUIRE(choices::Apply_Pending(2, 0));
+    DOCTEST_CHECK(pacts::Guarantees(0, 2));
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(2, 0));
+    // A full queue: no offer, nothing happens (as before the setting).
+    pacts::Clear();
+    choices::Clear();
+    MOX::stardate = 35100;
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.player = 2;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(choices::Count(2) == choices::MAX_PENDING);
+    DOCTEST_CHECK(pacts::Guarantees(0, 2));  // the human gets the guarantee as today
+}
+
+DOCTEST_TEST_CASE("a human in the game changes no pair of computers; a game without a human makes no offer") {
+    s_pacts_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    Common_Threat_(&state);
+    // Computers only, the setting on: the same pacts as with the setting off, and nothing queued.
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(pacts::Has_Pact(1, 2));
+    DOCTEST_CHECK(choices::Empty());
+    // Player 4 human, indifferent to everyone: computers 1 and 2 sign as before.
+    pacts::Clear();
+    state.players[4].objectives = PLAYER_OBJECTIVE_HUMAN;
+    MOX::stardate = 35020;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(pacts::Has_Pact(1, 2));
+    DOCTEST_CHECK_FALSE(pacts::Has_Pact(1, 4));
+    DOCTEST_CHECK(choices::Empty());
+}
+
+}
+
+DOCTEST_TEST_SUITE("guarantees to a human keep the computer's picks") {
+
+DOCTEST_TEST_CASE("a human ward asked instead of guaranteed keeps its slot: the computer's other pick is the one it made before") {
+    s_pacts_scope scope;
+    s_choice_scope cscope;
+    test::s_game_state state;
+    Setup_(&state);
+    test::Load_Base_Texts();
+    pacts::guarantees_max = 1;
+    // Computer 0 values 1 and 2 alike and is twice as strong as each; 3 threatens both.
+    for (int w = 1; w <= 2; ++w) {
+        state.players[0].relations[w] = 40;
+        state.players[0].total_ship_strength[w] = 300;
+        state.players[w].total_ship_strength[0] = 100;
+        state.players[3].total_ship_strength[w] = 100;
+        state.players[w].total_ship_strength[3] = 50;
+    }
+    state.players[0].relations[3] = -5;
+    // Without a human: the first ward in the order (1) is guaranteed, 2 is not.
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(pacts::Guarantees(0, 1));
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(0, 2));
+    DOCTEST_CHECK(choices::Empty());
+    // Ward 1 human, the setting on: 1 is asked, 2 is still not guaranteed (the same pick as before).
+    pacts::Clear();
+    state.players[1].objectives = PLAYER_OBJECTIVE_HUMAN;
+    MOX::stardate = 35020;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(0, 1));
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(0, 2));
+    DOCTEST_CHECK(Offer_Of_(pacts::CHOICE_GUARANTEE).player == 1);
+    // The setting off: the human gets the guarantee silently, as today.
+    choices::Clear();
+    choices::enabled = false;
+    MOX::stardate = 35030;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(pacts::Guarantees(0, 1));
+    DOCTEST_CHECK_FALSE(pacts::Guarantees(0, 2));
+    DOCTEST_CHECK(choices::Empty());
+    // A full queue: the human gets the guarantee as today.
+    pacts::Clear();
+    choices::enabled = true;
+    for (int i = 0; i < choices::MAX_PENDING; ++i) {
+        choices::s_choice filler;
+        filler.module = choices::MODULE_INCIDENTS;
+        filler.player = 1;
+        DOCTEST_REQUIRE(choices::Add(filler));
+    }
+    MOX::stardate = 35040;
+    pacts::End_Of_Turn();
+    DOCTEST_CHECK(pacts::Guarantees(0, 1));
 }
 
 }

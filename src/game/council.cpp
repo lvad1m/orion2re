@@ -277,8 +277,17 @@ namespace council {
         council::council_message[0] = '\0';
         list_metadata = 0;
 
-        int16_t selection = fields::Get_List_Field(
-            214, 388, 180, title_msg, (char*)list_items, 25, &list_metadata, active_mask, 17, nullptr, 0, nullptr, 0, 0);
+        // A vote sold to a nominee in this session (ambition.h): cast for it without asking again.
+        const int16_t promised = ambition::Take_Human_Vote_Promise();
+        int16_t selection;
+        if (promised >= 0 && promised == (int16_t)council::council_nominee_[0]) {
+            selection = 0;
+        } else if (promised >= 0 && promised == (int16_t)council::council_nominee_[1]) {
+            selection = 1;
+        } else {
+            selection = fields::Get_List_Field(
+                214, 388, 180, title_msg, (char*)list_items, 25, &list_metadata, active_mask, 17, nullptr, 0, nullptr, 0, 0);
+        }
 
         if (selection == 0) {
             council::winning_player = council::council_nominee_[0];
@@ -505,6 +514,7 @@ namespace council {
 
     void __cdecl Council_Votes() {
         ambition::Before_Council_Vote(council_nominee_[0], council_nominee_[1]);  // council bribery (off by default)
+        ambition::Offer_To_Human(MOX::PLAYER_NUM, council_nominee_[0], council_nominee_[1]);  // a bribe to a human voter (off by default)
         if (council_total_members != 0) {
             for (int i = 0; i < (int)council_total_members; ++i) {
                 uint8_t member_id = council_members[i];

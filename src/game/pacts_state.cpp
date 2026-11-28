@@ -19,6 +19,14 @@ namespace pacts {
         uint8_t pending_pact[MAX_PLAYERS];
         uint8_t pending_guarantee[MAX_PLAYERS];
         bool has_pending = false;
+        int32_t refused[MAX_PLAYERS][MAX_PLAYERS][2];  // [human][computer][kind - 1]: the stardate of the last refusal; not saved
+        bool refused_ready = false;
+
+        void Init_Refused_() {
+            if (refused_ready) return;
+            std::memset(refused, 0xff, sizeof(refused));
+            refused_ready = true;
+        }
 
         uint8_t Bit_(int16_t player) {
             return static_cast<uint8_t>(1u << (player & 7));
@@ -80,7 +88,20 @@ namespace pacts {
             (int)MOX::stardate, (int)guarantor, (int)protege, why != nullptr ? why : "");
     }
 
+    int32_t Last_Refusal(int16_t human, int16_t computer, uint8_t kind) {
+        Init_Refused_();
+        if (!Valid_(human) || !Valid_(computer) || kind < CHOICE_PACT || kind > CHOICE_GUARANTEE) return -1;
+        return refused[human][computer][kind - 1];
+    }
+
+    void Note_Refusal(int16_t human, int16_t computer, uint8_t kind) {
+        Init_Refused_();
+        if (!Valid_(human) || !Valid_(computer) || kind < CHOICE_PACT || kind > CHOICE_GUARANTEE) return;
+        refused[human][computer][kind - 1] = MOX::stardate;
+    }
+
     void Clear() {
+        refused_ready = false;
         std::memset(pact, 0, sizeof(pact));
         std::memset(guarantee, 0, sizeof(guarantee));
         Discard_Save();
