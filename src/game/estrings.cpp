@@ -14,8 +14,8 @@ namespace ESTRINGS {
             "estrings.lbx", "estrGERM.lbx", "estrFREN.lbx", "estrSPAN.lbx", "estrITAL.lbx", "estrPOLI.lbx"};
         const uint8_t language = (uint8_t)MOX::settings.language;
         const char* filename = filenames[language < 6 ? language : 0];
-        std::vector<char> loaded(ESTRINGS_DATA_SIZE);
-        farload::Farload_Data_Static(filename, 0, loaded.data(), 0, 1, ESTRINGS_DATA_SIZE);
+        std::vector<char> loaded;
+        string_overrides::Load_String_Table(filename, ESTRINGS_DATA_SIZE, ESTRINGS_COUNT, &loaded);
         string_overrides::Apply_Table(filename, &loaded, ESTRINGS_COUNT);
         string_data.swap(loaded);
 

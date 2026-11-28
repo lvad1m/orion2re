@@ -7,4 +7,7 @@ namespace string_overrides {
     void Reset_Cache() {}
     void Apply_String(const char*, size_t, char*, size_t) {}
     void Apply_Table(const char*, std::vector<char>*, size_t, size_t, bool) {}
+    void Load_String_Table(const char*, size_t original_size, size_t, std::vector<char>* data) {
+        data->assign(original_size, '\0');
+    }
 } // namespace string_overrides

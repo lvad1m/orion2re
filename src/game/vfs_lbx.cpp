@@ -222,7 +222,27 @@ namespace vfs_detail {
 } // namespace vfs_detail
 
 namespace vfs {
+    namespace {
+        t_lbx_name_mapper g_lbx_name_mapper = nullptr;
+    } // namespace
+
+    void Set_Lbx_Name_Mapper(t_lbx_name_mapper mapper) {
+        g_lbx_name_mapper = mapper;
+    }
+
+    bool Map_Lbx_Name(const char* name, char* out, size_t out_size) {
+        if (name == nullptr || out == nullptr || out_size == 0) {
+            return false;
+        }
+        if (g_lbx_name_mapper != nullptr && g_lbx_name_mapper(name, out, out_size)) {
+            return true;
+        }
+        snprintf(out, out_size, "%s", name);
+        return false;
+    }
+
     s_vfs_file* fopen_lbx(const char* lbx_name, int32_t entry_idx) {
+        char mapped_name[64];
         char entry_path[vfs_detail::VFS_MAX_PATH];
         s_vfs_file* entry_override_file;
         s_vfs_file* whole_lbx_file;
@@ -233,6 +253,10 @@ namespace vfs {
 
         if (!vfs_detail::g_vfs_state.initialized || lbx_name == nullptr || entry_idx < 0) {
             return nullptr;
+        }
+
+        if (vfs::Map_Lbx_Name(lbx_name, mapped_name, sizeof(mapped_name))) {
+            lbx_name = mapped_name;
         }
 
         if (vfs_detail::Build_Lbx_Entry_Path_(lbx_name, entry_idx, entry_path, sizeof(entry_path))) {

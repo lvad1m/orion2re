@@ -6,6 +6,7 @@
 #endif
 
 #include "config/config_loader.h"
+#include "game/text_language.h"
 #include "game/user_paths.h"
 #include "game/turn_oracle.h"
 #include "lua/lua_mod_runtime.h"
@@ -319,6 +320,7 @@ int main(int argc, char** argv) {
     }
     SDL_LogInfo(SDL_LOG_CATEGORY_APPLICATION,
         config_loaded ? "configuration: loaded %s" : "configuration: %s not found; using defaults", startup_config_path);
+    text_language::Install(text_language::language);
 
     int result = platform::Run_Main_Loop(nullptr);
 #if defined(ORION2RE_DEBUG_BUILD)

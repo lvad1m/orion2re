@@ -13,6 +13,7 @@
 #include "game/buffer.h"
 #include "game/farload.h"
 #include "game/string_overrides.h"
+#include "game/text_language.h"
 #include "game/vfs.h"
 
 #include "miniz.h"
@@ -24,12 +25,16 @@ namespace test_farload_buffer_detail {
       public:
         Scoped_Test_Directory() {
             string_overrides::Reset_Cache();
+            text_language::Install(text_language::LANGUAGE_EN);
+            text_language::Reset();
             const auto unique_id = std::chrono::steady_clock::now().time_since_epoch().count();
             root_path_ = fs::temp_directory_path() / ("orion2re-farload-" + std::to_string(unique_id));
             fs::create_directories(root_path_);
         }
 
         ~Scoped_Test_Directory() {
+            text_language::Install(text_language::LANGUAGE_EN);
+            text_language::Reset();
             vfs::Shutdown();
             std::error_code error;
             fs::remove_all(root_path_, error);
@@ -952,5 +957,128 @@ DOCTEST_TEST_SUITE("farload buffer vfs") {
         void* loaded = buffer::Farload_Buffer_Library("BUFFER.LBX", 0, pool.payload);
         DOCTEST_REQUIRE(loaded != nullptr);
         DOCTEST_CHECK(std::string((const char*)loaded, 9) == "zip-entry");
+    }
+    // ---- text language: the Russian twins (piece lang1)
+
+    // One string table entry: count 1, record size = text size, NUL-terminated strings back to back.
+    std::string Table_Record(const std::vector<std::string>& strings) {
+        std::string body;
+        for (const auto& text : strings) {
+            body += text;
+            body.push_back('\0');
+        }
+        const uint16_t one = 1;
+        const uint16_t size = (uint16_t)body.size();
+        std::string result((const char*)&one, sizeof(one));
+        result.append((const char*)&size, sizeof(size));
+        return result + body;
+    }
+
+    DOCTEST_TEST_CASE("ru opens the twin; entry overrides and sidecars follow the twin, not the original") {
+        using namespace test_farload_buffer_detail;
+        Scoped_Test_Directory test_dir;
+        test_dir.Write_Lbx_File("KENTEXT.LBX", {Records({"english"}, 100), Records({"english one"}, 100)});
+        test_dir.Write_Lbx_File("KENTXTR.LBX", {Records({"russian"}, 100), Records({"russian one"}, 100)});
+        test_dir.Write_File("data/overrides/kentext.json5", "{1: 'english sidecar'}");
+        DOCTEST_REQUIRE(vfs::Init(test_dir.root_path().string().c_str()) == 1);
+        char output[100] = {};
+
+        // en: nothing changes at all, whatever is in the folder.
+        text_language::Install(text_language::LANGUAGE_EN);
+        string_overrides::Load_Message("KENTEXT.LBX", 1, 0, 100, 2, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "english one");
+        string_overrides::Load_Message("KENTEXT.LBX", 1, 0, 100, 1, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "english sidecar");
+
+        // ru with the twin present: the twin file, and the twin's sidecar (plain UTF-8 Russian -> CP866).
+        text_language::Install(text_language::LANGUAGE_RU);
+        farload::Farload_Data_Static("KENTEXT.LBX", 0, output, 0, 1, 100);
+        DOCTEST_CHECK(std::string(output) == "russian");
+        string_overrides::Load_Message("KENTEXT.LBX", 1, 0, 100, 2, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "russian one");
+        string_overrides::Load_Message("KENTEXT.LBX", 1, 0, 100, 1, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "russian one"); // the English sidecar does not apply
+        test_dir.Write_File("data/overrides/kentxtr.json5", "{1: '\xD0\x9F\xD1\x80\xD0\xB8\xD0\xB2\xD0\xB5\xD1\x82 \xD1\x91 caf\xC3\xA9'}");
+        string_overrides::Load_Message("KENTEXT.LBX", 1, 0, 100, 1, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "\x8F\xE0\xA8\xA2\xA5\xE2 \xF1 caf\xE9");
+
+        // A per-entry override is keyed by the twin's name.
+        test_dir.Write_File(fs::path("data") / "overrides" / "KENTEXT.LBX" / "000", "english entry");
+        farload::Farload_Data_Static("KENTEXT.LBX", 0, output, 0, 1, 100);
+        DOCTEST_CHECK(std::string(output) == "russian");
+        test_dir.Write_File(fs::path("data") / "overrides" / "KENTXTR.LBX" / "000", std::string("russian entry\0", 14));
+        char* entry = (char*)farload::Farload_Library("KENTEXT.LBX", 0, nullptr, 0);
+        DOCTEST_REQUIRE(entry != nullptr);
+        DOCTEST_CHECK(std::string(entry) == "russian entry");
+        std::free(entry);
+
+        // Back to en: the original again.
+        text_language::Install(text_language::LANGUAGE_EN);
+        farload::Farload_Data_Static("KENTEXT.LBX", 1, output, 0, 1, 100); // entry 0 has the raw English override
+        DOCTEST_CHECK(std::string(output) == "english one");
+    }
+
+    DOCTEST_TEST_CASE("ru without the twin file opens the original silently") {
+        using namespace test_farload_buffer_detail;
+        Scoped_Test_Directory test_dir;
+        test_dir.Write_Lbx_File("KENTEXT.LBX", {Records({"english"}, 100)});
+        test_dir.Write_File("data/overrides/kentext.json5", "{1: 'english sidecar'}");
+        DOCTEST_REQUIRE(vfs::Init(test_dir.root_path().string().c_str()) == 1);
+        text_language::Install(text_language::LANGUAGE_RU);
+        char output[100] = {};
+        farload::Farload_Data_Static("KENTEXT.LBX", 0, output, 0, 1, 100);
+        DOCTEST_CHECK(std::string(output) == "english");
+        string_overrides::Load_Message("KENTEXT.LBX", 0, 0, 100, 1, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "english sidecar");
+        // A file that has no twin at all is never mapped.
+        test_dir.Write_Lbx_File("COMBAT.LBX", {Records({"combat"}, 100)});
+        farload::Farload_Data_Static("COMBAT.LBX", 0, output, 0, 1, 100);
+        DOCTEST_CHECK(std::string(output) == "combat");
+    }
+
+    DOCTEST_TEST_CASE("string tables: a longer twin record with enough strings loads, too few falls back") {
+        using namespace test_farload_buffer_detail;
+        Scoped_Test_Directory test_dir;
+        test_dir.Write_Lbx_File("ESTRINGS.LBX", {Table_Record({"one", "two", "three"})});
+        test_dir.Write_Lbx_File("ESTRRUSS.LBX", {Table_Record({"odin", "dva", "tri", "chetyre", "pyat"})});
+        DOCTEST_REQUIRE(vfs::Init(test_dir.root_path().string().c_str()) == 1);
+        const size_t original_size = 14; // "one\0two\0three\0"
+        std::vector<char> data;
+
+        // en: the fixed size check, the original.
+        text_language::Install(text_language::LANGUAGE_EN);
+        string_overrides::Load_String_Table("estrings.lbx", original_size, 3, &data);
+        DOCTEST_CHECK(std::string(data.data()) == "one");
+        DOCTEST_CHECK(data.size() == original_size);
+
+        // ru: the twin's own, longer record is accepted.
+        text_language::Install(text_language::LANGUAGE_RU);
+        string_overrides::Load_String_Table("estrings.lbx", original_size, 3, &data);
+        DOCTEST_CHECK(data.size() == 26); // "odin\0dva\0tri\0chetyre\0pyat\0"
+        DOCTEST_CHECK(std::string(data.data()) == "odin");
+        DOCTEST_CHECK(std::count(data.begin(), data.end(), '\0') == 5);
+
+        // ru, but the loader needs more strings than the twin holds: fall back to the original.
+        string_overrides::Load_String_Table("estrings.lbx", original_size, 6, &data);
+        DOCTEST_CHECK(data.size() == original_size);
+        DOCTEST_CHECK(std::string(data.data()) == "one");
+        // The twin stays off for the rest of the run.
+        char output[100] = {};
+        string_overrides::Load_Message("estrings.lbx", 0, 0, (uint16_t)original_size, 1, output, sizeof(output));
+        DOCTEST_CHECK(std::string(output) == "one");
+        text_language::Install(text_language::LANGUAGE_EN);
+    }
+
+    DOCTEST_TEST_CASE("string tables: the original keeps its fixed size check when there is no twin") {
+        using namespace test_farload_buffer_detail;
+        Scoped_Test_Directory test_dir;
+        test_dir.Write_Lbx_File("HESTRNGS.LBX", {Table_Record({"a", "b"})});
+        DOCTEST_REQUIRE(vfs::Init(test_dir.root_path().string().c_str()) == 1);
+        text_language::Install(text_language::LANGUAGE_RU);
+        std::vector<char> data;
+        string_overrides::Load_String_Table("HESTRNGS.LBX", 4, 2, &data);
+        DOCTEST_CHECK(data.size() == 4);
+        DOCTEST_CHECK(std::string(data.data()) == "a");
+        text_language::Install(text_language::LANGUAGE_EN);
     }
 }

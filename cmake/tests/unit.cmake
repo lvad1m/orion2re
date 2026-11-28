@@ -30,6 +30,7 @@ set(ORION2RE_DEFAULT_CONFIG_SOURCES
     src/game/council_config.cpp
     src/game/council_ai_config.cpp
     src/game/dice_config.cpp
+    src/game/text_language_config.cpp
     src/game/diplomacy_memory_config.cpp
     src/game/opinion_config.cpp
     src/game/rivalry_config.cpp
@@ -1641,6 +1642,22 @@ orion2re_add_unit_test(test_hqx
         orion2re_scalers
 )
 
+orion2re_add_unit_test(test_text_language
+    SOURCES
+        tests/unit/text_language_test.cpp
+    PRODUCTION_SOURCES
+        src/game/text_language.cpp
+        src/game/compat.cpp
+        src/game/vfs.cpp
+        src/game/vfs_file.cpp
+        src/game/vfs_lbx.cpp
+        src/game/vfs_path.cpp
+        src/game/vfs_zip.cpp
+    LIBRARIES
+        ${ORION2RE_MINIZ_TARGET}
+    LINK_SDL
+)
+
 orion2re_add_unit_test(test_vfs
     SOURCES
         tests/unit/vfs_test.cpp
@@ -1687,6 +1704,7 @@ orion2re_add_unit_test(test_farload_buffer_vfs
         src/game/compat.cpp
         src/game/farload.cpp
         src/game/string_overrides.cpp
+        src/game/text_language.cpp
         src/config/text_encoding.cpp
         ${ORION2RE_YYJSON_SOURCES}
         src/game/vfs.cpp

@@ -40,6 +40,14 @@ namespace vfs {
     s_vfs_file* fopen(const char* path, const char* mode);
     s_vfs_file* fopen_lbx(const char* lbx_name, int32_t entry_idx);
 
+    // Optional name mapping for LBX files (the text language twins). When the mapper claims a name
+    // (returns true and writes the replacement), fopen_lbx opens the replacement for both the
+    // per-entry override path and the whole file. nullptr removes the mapper.
+    using t_lbx_name_mapper = bool (*)(const char* name, char* out, size_t out_size);
+    void Set_Lbx_Name_Mapper(t_lbx_name_mapper mapper);
+    // True when `name` was mapped; `out` always receives the name to use (the original when not).
+    bool Map_Lbx_Name(const char* name, char* out, size_t out_size);
+
     // Start cursor at zero; close each returned file. Do not change mounts while
     // iterating matching read-only files from highest to lowest priority.
     s_vfs_file* fopen_next_read(const char* path, size_t* cursor);

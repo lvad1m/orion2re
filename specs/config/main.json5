@@ -125,6 +125,14 @@
       base_type: "uint8",
       values: { prewarp: 0, average: 1, advanced: 2 },
     },
+    text_language: {
+      title: "Interface language",
+      description: "Selects the language of the game's own texts.",
+      remarks: "en keeps the original files. ru reads the Russian twin of each original file when it is in the game folder.",
+      kind: "enum",
+      base_type: "uint8",
+      values: { en: 0, ru: 1 },
+    },
     dice_roll_kind: {
       title: "Dice roll",
       description: "Selects the dice of the single check used by the new mechanics.",
@@ -3990,6 +3998,21 @@
       bind_root: {
         header: "game/multplay.h",
         symbol: "MULTPLAY::router_endpoint",
+      },
+    },
+
+    language: {
+      title: "Interface language",
+      description: "Selects the language of the game's own texts (dialogs, diplomacy, events, council, help, names, technology descriptions, fonts) and of the texts the new mechanics add.",
+      remarks: "en keeps the original files. ru reads the Russian twin of each original file when it is in the game folder; buttons and pictures stay English. Read at startup: changing it needs a restart.",
+      examples: ["interface language = ru;"],
+      group: "interface",
+      namespace: "interface",
+      type: "text_language",
+      default: "en",
+      bind_root: {
+        header: "game/text_language.h",
+        symbol: "text_language::language",
       },
     },
 

@@ -17,6 +17,11 @@ namespace string_overrides {
     void Apply_String(const char* filename, size_t id, char* dest, size_t capacity);
     void Apply_Table(const char* filename, std::vector<char>* data, size_t count, size_t first_id = 1, bool skip_padding = false);
 
+    // Reads entry 0 of a string table LBX into *data. With the Russian twin of `filename` in use the
+    // twin's own record size is accepted when it holds at least `min_strings` strings; otherwise
+    // (twin unusable, or no twin) the original file is read with the fixed `original_size` check.
+    void Load_String_Table(const char* filename, size_t original_size, size_t min_strings, std::vector<char>* data);
+
     // Disk entry/record selection and logical string numbering belong to the caller.
     void Load_Message(const char* filename, int32_t entry, uint32_t record, uint16_t record_size, size_t id, char* dest, size_t capacity);
     char* Load_Raw_Table(const char* filename, int32_t entry, void* pool, int32_t allocation_mode, size_t count, size_t first_id = 1, bool skip_padding = false);

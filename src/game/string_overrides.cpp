@@ -1,6 +1,8 @@
 #include "pch.h"
 
 #include "string_overrides.h"
+#include "text_language.h"
+#include "vfs.h"
 #include "yyjson.h"
 
 namespace string_overrides {
@@ -63,7 +65,17 @@ namespace string_overrides {
             return result;
         }
 
-        bool Decode_Bytes(std::string_view text, std::string* bytes) {
+        // The name an LBX is really opened under (the Russian twin when one is in use).
+        std::string Mapped_Name(const char* filename, bool* mapped = nullptr) {
+            char buffer[64];
+            const bool was_mapped = vfs::Map_Lbx_Name(filename, buffer, sizeof(buffer));
+            if (mapped) *mapped = was_mapped;
+            return was_mapped ? std::string(buffer) : std::string(filename);
+        }
+
+        // cp866: the sidecar belongs to a Russian twin, so Cyrillic and pseudographics are written as
+        // plain UTF-8 and stored as CP866 bytes.
+        bool Decode_Bytes(std::string_view text, std::string* bytes, bool cp866) {
             bytes->clear();
             bytes->reserve(text.size());
             for (size_t i = 0; i < text.size(); ++i) {
@@ -71,6 +83,13 @@ namespace string_overrides {
                 if (c == 0) return false;
                 if (c < 0x80) {
                     bytes->push_back((char)c);
+                } else if (cp866 && c >= 0xC4) {
+                    uint32_t codepoint = 0;
+                    uint8_t byte = 0;
+                    const size_t length = text_language::Decode_Utf8(text, i, &codepoint);
+                    if (length == 0 || !text_language::Cp866_From_Codepoint(codepoint, &byte) || byte == 0) return false;
+                    bytes->push_back((char)byte);
+                    i += length - 1;
                 } else {
                     // U+0080..U+00FF have only these two UTF-8 lead bytes.
                     // Preserve their numeric byte values, including game tokens.
@@ -96,7 +115,7 @@ namespace string_overrides {
             size_t cursor = 0;
             t_file file(vfs::fopen_next_read(path.c_str(), &cursor), &vfs::fclose);
             if (!file) return true;
-            t_file lbx(vfs::fopen(filename, "rb"), &vfs::fclose);
+            t_file lbx(vfs::fopen(Mapped_Name(filename).c_str(), "rb"), &vfs::fclose);
             for (; file; file.reset(vfs::fopen_next_read(path.c_str(), &cursor))) {
                 if (vfs::File_Has_Higher_Priority(lbx.get(), file.get())) break;
                 const int32_t size = vfs::fsize(file.get());
@@ -112,7 +131,7 @@ namespace string_overrides {
             return true;
         }
 
-        bool Parse(const std::string& path, std::string_view original, t_overrides* overrides, std::string* diagnostic) {
+        bool Parse(const std::string& path, std::string_view original, t_overrides* overrides, std::string* diagnostic, bool cp866) {
             std::string source = Quote_Numeric_Keys(original);
             yyjson_read_err error{};
             std::unique_ptr<yyjson_doc, decltype(&yyjson_doc_free)> doc(
@@ -135,7 +154,7 @@ namespace string_overrides {
                     return Fail(path, "expected positive decimal string IDs and string values", diagnostic);
                 }
                 std::string encoded;
-                if (!Decode_Bytes(std::string_view(yyjson_get_str(value), yyjson_get_len(value)), &encoded)) {
+                if (!Decode_Bytes(std::string_view(yyjson_get_str(value), yyjson_get_len(value)), &encoded, cp866)) {
                     return Fail(path, "string " + std::to_string(id) + " must contain only byte values U+0001..U+00FF (no NUL)", diagnostic);
                 }
                 if (!overrides->emplace(id, std::move(encoded)).second) {
@@ -146,7 +165,7 @@ namespace string_overrides {
         }
 
         std::string Sidecar_Path(const char* filename) {
-            std::string name(filename);
+            std::string name(Mapped_Name(filename));
             for (char& c : name) {
                 if (c >= 'A' && c <= 'Z') c += 'a' - 'A';
                 if (c == '\\') c = '/';
@@ -157,6 +176,8 @@ namespace string_overrides {
 
         const t_overrides* Get(const char* filename, const std::string& path, std::string* diagnostic) {
             std::vector<std::string> sources;
+            bool cp866 = false;
+            Mapped_Name(filename, &cp866);
             if (!Read(filename, path, &sources, diagnostic)) {
                 cache.erase(path);
                 return nullptr;
@@ -176,7 +197,7 @@ namespace string_overrides {
             s_cached_sidecar candidate;
             for (const std::string& source : sources) {
                 t_overrides layer;
-                if (!Parse(path, source, &layer, diagnostic)) {
+                if (!Parse(path, source, &layer, diagnostic, cp866)) {
                     cache.erase(path);
                     return nullptr;
                 }
@@ -282,6 +303,34 @@ namespace string_overrides {
         const t_overrides* overrides = Get(filename, path, diagnostic);
         if (overrides == nullptr) return false;
         return Packed(overrides, data, count, first_id, skip_padding, path, diagnostic);
+    }
+
+    void Load_String_Table(const char* filename, size_t original_size, size_t min_strings, std::vector<char>* data) {
+        bool twin = false;
+        Mapped_Name(filename, &twin);
+        if (twin) {
+            // The twin keeps the layout of the original but its record is longer: accept its own size.
+            std::vector<char> loaded;
+            s_vfs_file* file = vfs::fopen_lbx(filename, 0);
+            if (file) {
+                uint16_t record_count = 0;
+                uint16_t record_size = 0;
+                if (vfs::fread(&record_count, sizeof(record_count), 1, file) == 1 &&
+                    vfs::fread(&record_size, sizeof(record_size), 1, file) == 1 && record_count >= 1 && record_size > 0) {
+                    loaded.resize(size_t(record_count) * record_size);
+                    if (vfs::fread(loaded.data(), 1, loaded.size(), file) != loaded.size()) loaded.clear();
+                }
+                vfs::fclose(file);
+            }
+            if (std::count(loaded.begin(), loaded.end(), '\0') >= (std::ptrdiff_t)min_strings) {
+                data->swap(loaded);
+                return;
+            }
+            SDL_LogWarn(SDL_LOG_CATEGORY_APPLICATION, "text_language: %s has fewer than %d strings", filename, (int)min_strings);
+            text_language::Disable_Twin(filename);
+        }
+        data->assign(original_size, '\0');
+        farload::Farload_Data_Static(filename, 0, data->data(), 0, 1, (int32_t)original_size);
     }
 
     void Apply_String(const char* filename, size_t id, char* dest, size_t capacity) {

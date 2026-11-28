@@ -1372,8 +1372,8 @@ namespace HAROLD {
                 break;
         }
 
-        std::vector<char> loaded(load_size);
-        farload::Farload_Data_Static(strings_file, 0, loaded.data(), 0, 1, (int32_t)load_size);
+        std::vector<char> loaded;
+        string_overrides::Load_String_Table(strings_file, load_size, 397, &loaded);
         string_overrides::Apply_Table(strings_file, &loaded, 397);
         MOX::h_strings.swap(loaded);
         size_t offset = 0;

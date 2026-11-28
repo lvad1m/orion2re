@@ -111,8 +111,8 @@ namespace RUSS {
 
         snprintf(filename_buffer, sizeof(filename_buffer), "rstring%d.lbx", (uint32_t)language);
 
-        std::vector<char> loaded(0x1964);
-        farload::Farload_Data_Static(filename_buffer, 0, loaded.data(), 0, 1, (int32_t)loaded.size());
+        std::vector<char> loaded;
+        string_overrides::Load_String_Table(filename_buffer, 0x1964, 177, &loaded);
         string_overrides::Apply_Table(filename_buffer, &loaded, 177);
         russ_strings.swap(loaded);
 
