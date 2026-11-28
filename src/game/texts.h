@@ -21,7 +21,9 @@ namespace texts {
     // The text of `key` with the named placeholders {name} replaced by the values. No printf formats come
     // from data files. A placeholder that is not among the arguments stays as written; an argument the
     // text does not mention is ignored; an empty value leaves the placeholder empty. Translations may
-    // reorder placeholders. The result is cut to fit `size` (always terminated).
+    // reorder placeholders. A plural placeholder {name|form1|form2|form3} gives the integer value, a space and
+    // the form for it (Russian: 1, 2-4, 5+ rules, three forms; other languages: 1 or not, two forms; fewer forms:
+    // the last; a non-integer value: the last form). The result is cut to fit `size` (always terminated).
     void Format(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args);
 
     // The same texts as UTF-8, for the windows drawn with a Unicode font (the mentat panel): the raw string of the

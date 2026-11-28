@@ -135,7 +135,36 @@ namespace texts {
     }
 
     namespace {
-        // The text with its {name} placeholders replaced; `lookup` gives the value of a name or nullptr.
+        // The plural form index for the integer n: Russian 0 (1, 21), 1 (2-4, 22-24), 2 (the rest); others 0 (|n| == 1) or 1.
+        size_t Plural_Index_(long long n) {
+            const unsigned long long a = n < 0 ? 0ULL - static_cast<unsigned long long>(n) : static_cast<unsigned long long>(n);
+            if (text_language::language == text_language::LANGUAGE_RU) {
+                if (a % 10 == 1 && a % 100 != 11) return 0;
+                if (a % 10 >= 2 && a % 10 <= 4 && (a % 100 < 12 || a % 100 > 14)) return 1;
+                return 2;
+            }
+            return a == 1 ? 0 : 1;
+        }
+
+        // "{name|form1|form2|...}": the value, a space and the form for the value; false when the value is not an integer
+        // (then the last form is used, still with the value).
+        std::string Plural_(const std::string& value, const std::vector<std::string_view>& forms) {
+            bool integer = !value.empty();
+            size_t start = (integer && (value[0] == '-' || value[0] == '+')) ? 1 : 0;
+            if (start == value.size()) integer = false;
+            for (size_t k = start; integer && k < value.size(); ++k) integer = value[k] >= '0' && value[k] <= '9';
+            size_t index = forms.size() - 1;
+            if (integer && value.size() - start <= 18) {
+                const size_t wanted = Plural_Index_(std::stoll(value));
+                if (wanted < index) index = wanted;
+            }
+            std::string result = value;
+            result += ' ';
+            result += forms[index];
+            return result;
+        }
+
+        // The text with its {name} and {name|form|form} placeholders replaced; `lookup` gives the value of a name or nullptr.
         template <typename Lookup>
         std::string Substitute_(std::string_view text, Lookup lookup) {
             std::string result;
@@ -143,10 +172,27 @@ namespace texts {
                 if (text[i] == '{') {
                     const size_t close = text.find('}', i + 1);
                     if (close != std::string_view::npos) {
-                        if (const std::string* value = lookup(text.substr(i + 1, close - i - 1))) {
-                            result += *value;
-                            i = close + 1;
-                            continue;
+                        const std::string_view body = text.substr(i + 1, close - i - 1);
+                        const size_t bar = body.find('|');
+                        if (bar == std::string_view::npos) {
+                            if (const std::string* value = lookup(body)) {
+                                result += *value;
+                                i = close + 1;
+                                continue;
+                            }
+                        } else if (body.find('{') == std::string_view::npos) {
+                            if (const std::string* value = lookup(body.substr(0, bar))) {
+                                std::vector<std::string_view> forms;
+                                for (size_t from = bar + 1;;) {
+                                    const size_t next = body.find('|', from);
+                                    forms.push_back(body.substr(from, next == std::string_view::npos ? std::string_view::npos : next - from));
+                                    if (next == std::string_view::npos) break;
+                                    from = next + 1;
+                                }
+                                result += Plural_(*value, forms);
+                                i = close + 1;
+                                continue;
+                            }
                         }
                     }
                 }
@@ -180,32 +226,8 @@ namespace texts {
 
     void Format(char* out, size_t size, const char* key, std::initializer_list<std::pair<const char*, std::string>> args) {
         if (!out || size == 0) return;
-        const std::string_view text = Get(key);
-        std::string result;
-        for (size_t i = 0; i < text.size();) {
-            if (text[i] == '{') {
-                const size_t close = text.find('}', i + 1);
-                if (close != std::string_view::npos) {
-                    const std::string_view name = text.substr(i + 1, close - i - 1);
-                    const std::pair<const char*, std::string>* hit = nullptr;
-                    for (const auto& arg : args) {
-                        if (name == arg.first) {
-                            hit = &arg;
-                            break;
-                        }
-                    }
-                    if (hit) {
-                        result += hit->second;
-                        i = close + 1;
-                        continue;
-                    }
-                }
-            }
-            result += text[i++];
-        }
-        const size_t n = std::min(result.size(), size - 1);
-        memcpy(out, result.data(), n);
-        out[n] = '\0';
+        const t_args list(args.begin(), args.end());
+        Copy_Cut_(out, size, Expand(key, list, false));
     }
 
 } // namespace texts

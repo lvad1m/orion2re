@@ -6,8 +6,10 @@
 #include "game/choices.h"
 #include "yyjson.h"
 
+#include <algorithm>
 #include <map>
 #include <set>
+#include <vector>
 #include <string>
 
 namespace {
@@ -48,9 +50,21 @@ namespace {
         for (size_t i = text.find('{'); i != std::string::npos; i = text.find('{', i + 1)) {
             const size_t close = text.find('}', i);
             if (close == std::string::npos) break;
-            names.insert(text.substr(i + 1, close - i - 1));
+            names.insert(text.substr(i + 1, close - i - 1).substr(0, text.substr(i + 1, close - i - 1).find('|')));
         }
         return names;
+    }
+
+    // The forms of every plural placeholder {name|a|b|...} in the text: the number of forms of each.
+    std::vector<size_t> Plural_Form_Counts_(const std::string& text) {
+        std::vector<size_t> counts;
+        for (size_t i = text.find('{'); i != std::string::npos; i = text.find('{', i + 1)) {
+            const size_t close = text.find('}', i);
+            if (close == std::string::npos) break;
+            const std::string body = text.substr(i + 1, close - i - 1);
+            if (body.find('|') != std::string::npos) counts.push_back(static_cast<size_t>(std::count(body.begin(), body.end(), '|')));
+        }
+        return counts;
     }
 
     // The text with every placeholder replaced by its worst-case value: names 14 characters, numbers 5 digits.
@@ -63,7 +77,21 @@ namespace {
                 result += text[i++];
                 continue;
             }
-            result += long_names.count(text.substr(i + 1, close - i - 1)) ? std::string(14, 'W') : std::string(5, '9');
+            const std::string body = text.substr(i + 1, close - i - 1);
+            const size_t bar = body.find('|');
+            if (bar != std::string::npos) {
+                // a plural placeholder: five digits, a space and the longest form
+                size_t longest = 0;
+                for (size_t from = bar + 1; from <= body.size();) {
+                    size_t next = body.find('|', from);
+                    if (next == std::string::npos) next = body.size();
+                    longest = std::max(longest, next - from);
+                    from = next + 1;
+                }
+                result += std::string(5, '9') + ' ' + std::string(longest, 'W');
+            } else {
+                result += long_names.count(body) ? std::string(14, 'W') : std::string(5, '9');
+            }
             i = close + 1;
         }
         return result;
@@ -122,6 +150,44 @@ DOCTEST_TEST_CASE("Format: named placeholders, reordered, unknown ones kept, no 
     DOCTEST_CHECK(std::string(out) == "missing.key");
 }
 
+DOCTEST_TEST_CASE("Format: the plural placeholder {name|form1|form2|form3}")
+{
+    s_texts_scope scope;
+    DOCTEST_REQUIRE(texts::Load_Source(text_language::LANGUAGE_EN, R"({t: "in {n|turn|turns}", u: "{n|a|b|c}", f: "{n|only}", x: "{n|a|b} {n}", odd: "{n|a|b", odd2: "{ {n|a|b}", unk: "{k|a|b}"})"));
+    char out[128];
+    auto format = [&](const char* key, const char* value) {
+        texts::Format(out, sizeof(out), key, {{"n", value}});
+        return std::string(out);
+    };
+    text_language::language = text_language::LANGUAGE_RU;
+    const struct { const char* n; const char* form; } ru[] = {{"0", "c"}, {"1", "a"}, {"2", "b"}, {"4", "b"}, {"5", "c"}, {"11", "c"}, {"12", "c"}, {"14", "c"},
+        {"21", "a"}, {"22", "b"}, {"25", "c"}, {"101", "a"}, {"111", "c"}, {"-1", "a"}, {"-2", "b"}};
+    for (const auto& row : ru) {
+        DOCTEST_CAPTURE(row.n);
+        DOCTEST_CHECK(format("u", row.n) == std::string(row.n) + " " + row.form);
+    }
+    text_language::language = text_language::LANGUAGE_EN;
+    DOCTEST_CHECK(format("t", "0") == "in 0 turns");
+    DOCTEST_CHECK(format("t", "1") == "in 1 turn");
+    DOCTEST_CHECK(format("t", "2") == "in 2 turns");
+    DOCTEST_CHECK(format("t", "-1") == "in -1 turn");
+    DOCTEST_CHECK(format("u", "5") == "5 b");  // English uses the first two forms
+    DOCTEST_CHECK(format("u", "1") == "1 a");
+    text_language::language = text_language::LANGUAGE_RU;
+    DOCTEST_CHECK(format("f", "2") == "2 only");  // fewer forms: the last one given
+    DOCTEST_CHECK(format("u", "many") == "many c");  // not an integer: the value and the last form
+    DOCTEST_CHECK(format("u", "") == " c");
+    DOCTEST_CHECK(format("x", "3") == "3 b 3");  // a plain {n} stays plain
+    DOCTEST_CHECK(format("odd", "3") == "{n|a|b");  // unclosed: left as written
+    DOCTEST_CHECK(format("odd2", "3") == "{ 3 b");  // no nesting: the inner placeholder works, the stray brace stays
+    DOCTEST_CHECK(format("unk", "3") == "{k|a|b}");  // an unknown name stays as written
+    // Expand and Format_Utf8 share the rule.
+    char utf8[64];
+    texts::Format_Utf8(utf8, sizeof(utf8), "u", {{"n", "3"}});
+    DOCTEST_CHECK(std::string(utf8) == "3 b");
+    DOCTEST_CHECK(texts::Expand("u", {{"n", "5"}}, false) == "5 c");
+}
+
 DOCTEST_TEST_CASE("the shipped text files: Russian keys and placeholders match English, CP866 clean, every choice text fits")
 {
     s_texts_scope scope;
@@ -140,6 +206,11 @@ DOCTEST_TEST_CASE("the shipped text files: Russian keys and placeholders match E
         std::string bytes;
         DOCTEST_CHECK(text_language::From_Utf8(text, &bytes));
         DOCTEST_CHECK(bytes.find('?') == std::string::npos);
+        for (const size_t bars : Plural_Form_Counts_(text)) DOCTEST_CHECK(bars == 3);  // three forms in Russian
+    }
+    for (const auto& [key, text] : en) {
+        DOCTEST_CAPTURE(key);
+        for (const size_t bars : Plural_Form_Counts_(text)) DOCTEST_CHECK(bars == 2);  // two forms in English
     }
     // Every English key has a Russian one, so the Russian window is whole.
     for (const auto& [key, text] : en) {

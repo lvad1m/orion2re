@@ -237,7 +237,7 @@ DOCTEST_TEST_CASE("council: the expected vote goes against you, or you fall a fe
     state.players[3].treaty[1] = 2;
     mentat::s_alert alert;
     DOCTEST_REQUIRE(Stands_(mentat::ALERT_COUNCIL_SHORT, &alert));
-    DOCTEST_CHECK(mentat::Utf8(alert.text) == "Council session in 3 turns: you fall 1 votes short of the two thirds.");
+    DOCTEST_CHECK(mentat::Utf8(alert.text) == "Council session in 3 turns: you fall 1 vote short of the two thirds.");
     DOCTEST_CHECK(mentat::Utf8(alert.why) == "You are expected to get 13 of 21 votes, 14 are needed.");
     DOCTEST_CHECK_FALSE(Stands_(mentat::ALERT_COUNCIL_LOSE));
 
